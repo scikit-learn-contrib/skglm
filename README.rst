@@ -1,7 +1,7 @@
 skglm
 =====
 
-|image0| |image1|
+|image0|
 
 
 ``skglm`` is a library that provide better sparse generalized linear model for scikit-learn.

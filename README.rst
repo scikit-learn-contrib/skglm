@@ -16,14 +16,13 @@ Its main features are:
 Currently, the package handles any combination of the following datafits:
 
 - quadratic
-- binary cross entropy
+- logistic loss
 - multitask quadratic
 
 and the following penalties:
 
 - L1 norm
 - MCP
-- SCAD
 - L05 and L2/3 penalties
 
 
@@ -37,17 +36,6 @@ Documentation
 Please visit https://mathurinm.github.io/skglm/ for the latest version
 of the documentation.
 
-Install the released version
-============================
-
-Assuming you have a working Python environment, e.g., with Anaconda you
-can `install skglm with pip <https://pypi.python.org/pypi/skglm/>`__.
-
-From a console or terminal install skglm with pip:
-
-::
-
-    pip install -U skglm
 
 Install and work with the development version
 =============================================
@@ -105,5 +93,3 @@ ArXiv links:
 
 .. |image0| image:: https://github.com/mathurinm/skglm/workflows/build/badge.svg
    :target: https://github.com/mathurinm/skglm/actions?query=workflow%3Abuild
-.. |image1| image:: https://codecov.io/gh/mathurinm/skglm/branch/main/graphs/badge.svg?branch=main
-   :target: https://codecov.io/gh/mathurinm/skglm

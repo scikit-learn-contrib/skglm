@@ -22,6 +22,8 @@ Currently, the package handles any combination of the following datafits:
 and the following penalties:
 
 - L1 norm
+- weighted L1 norm
+- L1 + L2 squared norm (elastic net)
 - MCP
 - L05 and L2/3 penalties
 

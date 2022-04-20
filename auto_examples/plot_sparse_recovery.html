@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Sparse recovery with non-convex penalties &#8212; skglm 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.12.4.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.4.1/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          skglm</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.1</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="index.html">Examples</a></li>
+                <li><a href="../api.html">API</a></li>
+                <li><a href="../add.html">Add custom penalty and datafit</a></li>
+                <li><a href="https://github.com/mathurinm/skglm">GitHub</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Documentation</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-auto-examples-plot-sparse-recovery-py"><span class="std std-ref">here</span></a>
+to download the full example code</p>
+</div>
+<section class="sphx-glr-example-title" id="sparse-recovery-with-non-convex-penalties">
+<span id="sphx-glr-auto-examples-plot-sparse-recovery-py"></span><h1>Sparse recovery with non-convex penalties<a class="headerlink" href="#sparse-recovery-with-non-convex-penalties" title="Permalink to this headline">¶</a></h1>
+<p>Illustrate the superior performance of penalties for sparse recovery.</p>
+<img src="../_images/sphx_glr_plot_sparse_recovery_001.png" srcset="../_images/sphx_glr_plot_sparse_recovery_001.png" alt="plot sparse recovery" class = "sphx-glr-single-img"/><p class="sphx-glr-script-out">Out:</p>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Running lasso...
+Running mcp...
+Running l05...
+Running l23...
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Author: Mathurin Massias</span>
+<span class="c1">#         Quentin Bertrand</span>
+<span class="c1">#         Quentin Klopfenstein</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+<span class="kn">from</span> <span class="nn">numpy.linalg</span> <span class="kn">import</span> <span class="n">norm</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html#sklearn.model_selection.train_test_split" title="sklearn.model_selection.train_test_split" class="sphx-glr-backref-module-sklearn-model_selection sphx-glr-backref-type-py-function"><span class="n">train_test_split</span></a>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <a href="https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html#sklearn.metrics.f1_score" title="sklearn.metrics.f1_score" class="sphx-glr-backref-module-sklearn-metrics sphx-glr-backref-type-py-function"><span class="n">f1_score</span></a><span class="p">,</span> <a href="https://scikit-learn.org/stable/modules/generated/sklearn.metrics.mean_squared_error.html#sklearn.metrics.mean_squared_error" title="sklearn.metrics.mean_squared_error" class="sphx-glr-backref-module-sklearn-metrics sphx-glr-backref-type-py-function"><span class="n">mean_squared_error</span></a>
+
+<span class="kn">from</span> <span class="nn">skglm.utils</span> <span class="kn">import</span> <span class="n">make_correlated_data</span>
+<span class="kn">from</span> <span class="nn">skglm.solvers</span> <span class="kn">import</span> <span class="n">cd_solver_path</span>
+<span class="kn">from</span> <span class="nn">skglm.datafits</span> <span class="kn">import</span> <a href="../generated/skglm.datafits.Quadratic.html#skglm.datafits.Quadratic" title="skglm.datafits.Quadratic" class="sphx-glr-backref-module-skglm-datafits sphx-glr-backref-type-py-class"><span class="n">Quadratic</span></a>
+<span class="kn">from</span> <span class="nn">skglm.penalties</span> <span class="kn">import</span> <a href="../generated/skglm.penalties.L1.html#skglm.penalties.L1" title="skglm.penalties.L1" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">L1</span></a><span class="p">,</span> <a href="../generated/skglm.penalties.MCPenalty.html#skglm.penalties.MCPenalty" title="skglm.penalties.MCPenalty" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">MCPenalty</span></a><span class="p">,</span> <a href="../generated/skglm.penalties.L0_5.html#skglm.penalties.L0_5" title="skglm.penalties.L0_5" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">L0_5</span></a><span class="p">,</span> <a href="../generated/skglm.penalties.L2_3.html#skglm.penalties.L2_3" title="skglm.penalties.L2_3" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">L2_3</span></a>
+
+<span class="n">current_palette</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">color_palette</span><span class="p">(</span><span class="s2">&quot;colorblind&quot;</span><span class="p">)</span>
+
+<span class="c1"># Simulate sparse data</span>
+<span class="n">n_features</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="n">density</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">supp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">n_features</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">density</span> <span class="o">*</span> <span class="n">n_features</span><span class="p">),</span>
+                        <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">w_true</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_features</span><span class="p">)</span>
+<span class="n">w_true</span><span class="p">[</span><span class="n">supp</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">X_</span><span class="p">,</span> <span class="n">y_</span><span class="p">,</span> <span class="n">w_true</span> <span class="o">=</span> <span class="n">make_correlated_data</span><span class="p">(</span>
+    <span class="n">n_samples</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">n_features</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">snr</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">rho</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">w_true</span><span class="o">=</span><span class="n">w_true</span><span class="p">)</span>
+
+<span class="c1"># standardize for MCP</span>
+<span class="n">X_</span> <span class="o">/=</span> <span class="n">norm</span><span class="p">(</span><span class="n">X_</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X_</span><span class="p">))</span>
+<span class="n">X</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html#sklearn.model_selection.train_test_split" title="sklearn.model_selection.train_test_split" class="sphx-glr-backref-module-sklearn-model_selection sphx-glr-backref-type-py-function"><span class="n">train_test_split</span></a><span class="p">(</span><span class="n">X_</span><span class="p">,</span> <span class="n">y_</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+
+<span class="c1"># Compute l1 penalty value which leads to 0 as solution</span>
+<span class="n">alpha_max</span> <span class="o">=</span> <span class="n">norm</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">y</span><span class="p">,</span> <span class="nb">ord</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+<span class="c1"># Define a range of penalty values</span>
+<span class="n">n_alphas</span> <span class="o">=</span> <span class="mi">30</span>
+<span class="n">alphas</span> <span class="o">=</span> <span class="n">alpha_max</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">geomspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">1e-2</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">n_alphas</span><span class="p">)</span>
+
+<span class="n">datafit</span> <span class="o">=</span> <a href="../generated/skglm.datafits.Quadratic.html#skglm.datafits.Quadratic" title="skglm.datafits.Quadratic" class="sphx-glr-backref-module-skglm-datafits sphx-glr-backref-type-py-class"><span class="n">Quadratic</span></a><span class="p">()</span>
+
+<span class="n">penalties</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">penalties</span><span class="p">[</span><span class="s1">&#39;lasso&#39;</span><span class="p">]</span> <span class="o">=</span> <a href="../generated/skglm.penalties.L1.html#skglm.penalties.L1" title="skglm.penalties.L1" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">L1</span></a><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">penalties</span><span class="p">[</span><span class="s1">&#39;mcp&#39;</span><span class="p">]</span> <span class="o">=</span> <a href="../generated/skglm.penalties.MCPenalty.html#skglm.penalties.MCPenalty" title="skglm.penalties.MCPenalty" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">MCPenalty</span></a><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">penalties</span><span class="p">[</span><span class="s1">&#39;l05&#39;</span><span class="p">]</span> <span class="o">=</span> <a href="../generated/skglm.penalties.L0_5.html#skglm.penalties.L0_5" title="skglm.penalties.L0_5" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">L0_5</span></a><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">penalties</span><span class="p">[</span><span class="s1">&#39;l23&#39;</span><span class="p">]</span> <span class="o">=</span> <a href="../generated/skglm.penalties.L2_3.html#skglm.penalties.L2_3" title="skglm.penalties.L2_3" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">L2_3</span></a><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">colors</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">colors</span><span class="p">[</span><span class="s1">&#39;lasso&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_palette</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">colors</span><span class="p">[</span><span class="s1">&#39;mcp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_palette</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">colors</span><span class="p">[</span><span class="s1">&#39;l05&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_palette</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<span class="n">colors</span><span class="p">[</span><span class="s1">&#39;l23&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_palette</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+
+<span class="n">f1</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">estimation_error</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">prediction_error</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">l0</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">mse_ref</span> <span class="o">=</span> <a href="https://scikit-learn.org/stable/modules/generated/sklearn.metrics.mean_squared_error.html#sklearn.metrics.mean_squared_error" title="sklearn.metrics.mean_squared_error" class="sphx-glr-backref-module-sklearn-metrics sphx-glr-backref-type-py-function"><span class="n">mean_squared_error</span></a><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">y_test</span><span class="p">),</span> <span class="n">y_test</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">estimator</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">penalties</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Running </span><span class="si">{</span><span class="n">estimator</span><span class="si">}</span><span class="s1">...&#39;</span><span class="p">)</span>
+    <span class="n">estimator_path</span> <span class="o">=</span> <span class="n">cd_solver_path</span><span class="p">(</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">datafit</span><span class="p">,</span> <span class="n">penalties</span><span class="p">[</span><span class="n">estimator</span><span class="p">],</span> <span class="n">alphas</span><span class="o">=</span><span class="n">alphas</span><span class="p">,</span> <span class="n">ws_strategy</span><span class="o">=</span><span class="s2">&quot;fixpoint&quot;</span><span class="p">)</span>
+
+    <span class="n">f1_temp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_alphas</span><span class="p">)</span>
+    <span class="n">prediction_error_temp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_alphas</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">estimator_path</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">):</span>
+        <span class="n">f1_temp</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <a href="https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html#sklearn.metrics.f1_score" title="sklearn.metrics.f1_score" class="sphx-glr-backref-module-sklearn-metrics sphx-glr-backref-type-py-function"><span class="n">f1_score</span></a><span class="p">(</span><span class="n">w</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">w_true</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">prediction_error_temp</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <a href="https://scikit-learn.org/stable/modules/generated/sklearn.metrics.mean_squared_error.html#sklearn.metrics.mean_squared_error" title="sklearn.metrics.mean_squared_error" class="sphx-glr-backref-module-sklearn-metrics sphx-glr-backref-type-py-function"><span class="n">mean_squared_error</span></a><span class="p">(</span><span class="n">X_test</span> <span class="o">@</span> <span class="n">w</span><span class="p">,</span> <span class="n">y_test</span><span class="p">)</span> <span class="o">/</span> <span class="n">mse_ref</span>
+
+    <span class="n">f1</span><span class="p">[</span><span class="n">estimator</span><span class="p">]</span> <span class="o">=</span> <span class="n">f1_temp</span>
+    <span class="n">prediction_error</span><span class="p">[</span><span class="n">estimator</span><span class="p">]</span> <span class="o">=</span> <span class="n">prediction_error_temp</span>
+
+<span class="n">name_estimators</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;lasso&#39;</span><span class="p">:</span> <span class="s2">&quot;Lasso&quot;</span><span class="p">}</span>
+<span class="n">name_estimators</span><span class="p">[</span><span class="s1">&#39;mcp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;MCP, $\gamma=</span><span class="si">%s</span><span class="s2">$&quot;</span> <span class="o">%</span> <span class="mi">3</span>
+<span class="n">name_estimators</span><span class="p">[</span><span class="s1">&#39;l05&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;$\ell_{1/2}$&quot;</span>
+<span class="n">name_estimators</span><span class="p">[</span><span class="s1">&#39;l23&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;$\ell_{2/3}$&quot;</span>
+
+
+<span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="s1">&#39;all&#39;</span><span class="p">)</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axarr</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">[</span><span class="mf">8.2</span><span class="p">,</span> <span class="mf">5.7</span><span class="p">])</span>
+
+<span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">estimator</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">penalties</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+
+    <span class="n">axarr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span>
+        <span class="n">alphas</span> <span class="o">/</span> <span class="n">alphas</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">f1</span><span class="p">[</span><span class="n">estimator</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">name_estimators</span><span class="p">[</span><span class="n">estimator</span><span class="p">],</span>
+        <span class="n">c</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">estimator</span><span class="p">])</span>
+
+    <span class="n">axarr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span>
+        <span class="n">alphas</span> <span class="o">/</span> <span class="n">alphas</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">prediction_error</span><span class="p">[</span><span class="n">estimator</span><span class="p">],</span>
+        <span class="n">label</span><span class="o">=</span><span class="n">name_estimators</span><span class="p">[</span><span class="n">estimator</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">estimator</span><span class="p">])</span>
+
+    <span class="n">max_f1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">f1</span><span class="p">[</span><span class="n">estimator</span><span class="p">])</span>
+    <span class="n">axarr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">vlines</span><span class="p">(</span>
+        <span class="n">x</span><span class="o">=</span><span class="n">alphas</span><span class="p">[</span><span class="n">max_f1</span><span class="p">]</span> <span class="o">/</span> <span class="n">alphas</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ymin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">ymax</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">f1</span><span class="p">[</span><span class="n">estimator</span><span class="p">]),</span>
+        <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">estimator</span><span class="p">],</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
+    <span class="n">line1</span> <span class="o">=</span> <span class="n">axarr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">alphas</span><span class="p">[</span><span class="n">max_f1</span><span class="p">]</span> <span class="o">/</span> <span class="n">alphas</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">clip_on</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">estimator</span><span class="p">],</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+
+    <span class="n">min_error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">prediction_error</span><span class="p">[</span><span class="n">estimator</span><span class="p">])</span>
+
+    <span class="n">lims</span> <span class="o">=</span> <span class="n">axarr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">()</span>
+    <span class="n">axarr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">vlines</span><span class="p">(</span>
+        <span class="n">x</span><span class="o">=</span><span class="n">alphas</span><span class="p">[</span><span class="n">min_error</span><span class="p">]</span> <span class="o">/</span> <span class="n">alphas</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ymin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">ymax</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">prediction_error</span><span class="p">[</span><span class="n">estimator</span><span class="p">]),</span>
+        <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">estimator</span><span class="p">],</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
+
+    <span class="n">line2</span> <span class="o">=</span> <span class="n">axarr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">alphas</span><span class="p">[</span><span class="n">min_error</span><span class="p">]</span> <span class="o">/</span> <span class="n">alphas</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">clip_on</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">estimator</span><span class="p">],</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+    <span class="n">axarr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\lambda / \lambda_{\mathrm</span><span class="si">{max}</span><span class="s2">}$&quot;</span><span class="p">)</span>
+    <span class="n">axarr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;F1-score&quot;</span><span class="p">)</span>
+    <span class="n">axarr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ymin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ymax</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">axarr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ymin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ymax</span><span class="o">=</span><span class="n">lims</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">axarr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;pred. RMSE left-out&quot;</span><span class="p">)</span>
+    <span class="n">axarr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span>
+        <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1.02</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">),</span> <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;lower left&quot;</span><span class="p">,</span>
+        <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;expand&quot;</span><span class="p">,</span> <span class="n">borderaxespad</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ncol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  6.451 seconds)</p>
+<div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-sparse-recovery-py">
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/6e21a7dfacaac216510434aedaa5fa12/plot_sparse_recovery.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_sparse_recovery.py</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/bd97045a660ad082c4a4a4abf0767b0e/plot_sparse_recovery.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_sparse_recovery.ipynb</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2022, skglm developers.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.4.0.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

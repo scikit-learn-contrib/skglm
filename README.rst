@@ -92,5 +92,5 @@ ArXiv links:
 
 - https://arxiv.org/pdf/2204.07826.pdf
 
-.. |image0| image:: https://github.com/mathurinm/skglm/workflows/build/badge.svg
+.. |image0| image:: https://github.com/mathurinm/skglm/workflows/build/badge.svg?branch=main
    :target: https://github.com/mathurinm/skglm/actions?query=workflow%3Abuild

@@ -83,6 +83,7 @@ If you use this code, please cite
         author={Q. Bertrand and Q. Klopfenstein and P.-A. Bannier and G. Gidel and M. Massias},
         year={2022},
         url={https://arxiv.org/abs/2204.07826}
+    }
 
 
 

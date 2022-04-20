@@ -25,16 +25,17 @@ If you use this code, please cite
     @online{skglm,
         title={Beyond L1 norm with skglm},
         author={Q. Bertrand and Q. Klopfenstein and P.-A. Bannier and G. Gidel and M. Massias},
-        booktitle={in preparation},
+        journal = {arXiv preprint arXiv:2204.07826},
+        url={https://arxiv.org/pdf/2204.07826.pdf}
         year={2022},
     }
 
 
-Installing the latest release
------------------------------
-Run::
+.. Installing the latest release
+.. -----------------------------
+.. Run::
 
-    $ pip install scikit-contrib-skglm
+..    $ pip install scikit-contrib-skglm
 
 
 Installing the development version

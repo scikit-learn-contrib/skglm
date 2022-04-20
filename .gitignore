@@ -1,0 +1,7 @@
+/skglm.egg-info/*
+*.pyc
+
+/doc/_build/
+/doc/gen_modules/
+/doc/generated/
+/doc/auto_examples/

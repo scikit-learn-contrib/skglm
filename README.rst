@@ -4,7 +4,7 @@ skglm
 |image0|
 
 
-``skglm`` is a library that provide better sparse generalized linear model for scikit-learn.
+``skglm`` is a library that provide better sparse generalized linear models for scikit-learn.
 Its main features are:
 
 - **speed**: problems with millions of features can be solved in seconds. Default solvers rely on efficient coordinate descent with numba just in time compilation.

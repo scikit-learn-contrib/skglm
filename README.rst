@@ -70,7 +70,7 @@ timing comparison with other estimators, easy and fast ways to perform cross val
 Dependencies
 ============
 
-All dependencies are in the ``./requirements.txt`` file.
+All dependencies are specified in the ``setup.py`` file.
 They are installed automatically when ``pip install -e .`` is run.
 
 Cite

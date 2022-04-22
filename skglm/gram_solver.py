@@ -19,14 +19,17 @@ group_size = 3
 
 alpha = alpha_max * reg / n_samples
 
+weights = np.random.normal(2, 0.4, n_features)
+weights_grp = np.random.normal(2, 0.4, n_features // group_size)
+
 # Lasso
 print("#" * 15)
 print("Lasso")
 print("#" * 15)
 start = time()
-w = gram_lasso(X, y, alpha, max_iter, tol)
+w = gram_lasso(X, y, alpha, max_iter, tol, weights=weights)
 gram_lasso_time = time() - start
-clf_sk = Lasso(alpha, tol=tol, fit_intercept=False)
+clf_sk = Lasso(alpha, weights=weights, tol=tol, fit_intercept=False)
 start = time()
 clf_sk.fit(X, y)
 celer_lasso_time = time() - start
@@ -42,9 +45,10 @@ print("#" * 15)
 print("Group Lasso")
 print("#" * 15)
 start = time()
-w = gram_group_lasso(X, y, alpha, group_size, max_iter, tol)
+w = gram_group_lasso(X, y, alpha, group_size, max_iter, tol, weights=weights_grp)
 gram_group_lasso_time = time() - start
-clf_celer = GroupLasso(group_size, alpha, tol=tol, fit_intercept=False)
+clf_celer = GroupLasso(group_size, alpha, weights=weights_grp, tol=tol,
+                       fit_intercept=False)
 start = time()
 clf_celer.fit(X, y)
 celer_group_lasso_time = time() - start

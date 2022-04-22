@@ -7,7 +7,7 @@ skglm
 ``skglm`` is a library that provides better sparse generalized linear models for scikit-learn.
 Its main features are:
 
-- **speed**: problems with millions of features can be solved in seconds. Default solvers rely on efficient coordinate descent with ``numba`` just in time compilation.
+- **speed**: problems with millions of features can be solved in seconds. Default solvers rely on efficient coordinate descent with Numba just in time compilation.
 - **flexibility**: virtually any combination of datafit and penalty can be implemented in a few lines of code.
 - **scikit-learn API**: all estimators are drop-in replacements for scikit-learn.
 - **scope**: support for many missing models in scikit-learn - weighted Lasso, arbitrary group penalties, non-convex sparse penalties, etc.
@@ -30,7 +30,7 @@ and the following penalties:
 
 The estimators follow the scikit-learn API, come with automated parallel cross-validation, and support both sparse and dense data.
 
-.. with optionally feature centering, normalization, and     intercept fitting.
+.. with optionally feature centering, normalization, and unpenalized intercept fitting.
 
 Documentation
 =============

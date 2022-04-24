@@ -1,4 +1,3 @@
-from re import L
 import numpy as np
 from numba import njit
 from numpy.linalg import norm
@@ -12,12 +11,14 @@ def primal(alpha, r, w, weights):
     p_obj = (r @ r) / (2 * len(r))
     return p_obj + alpha * np.sum(np.abs(w * weights))
 
+
 @njit
 def dual(alpha, norm_y2, theta, y):
     d_obj = - np.sum((y / (alpha * len(y)) - theta) ** 2)
     d_obj *= 0.5 * alpha ** 2 * len(y)
     d_obj += norm_y2 / (2 * len(y))
     return d_obj
+
 
 @njit
 def dnorm_l1(theta, X, weights):
@@ -28,6 +29,7 @@ def dnorm_l1(theta, X, weights):
         scal = max(scal, Xj_theta / weights[j])
     return scal
 
+
 @njit
 def create_dual_point(r, alpha, X, y, weights):
     theta = r / (alpha * len(y))
@@ -35,6 +37,7 @@ def create_dual_point(r, alpha, X, y, weights):
     if scal > 1.:
         theta /= scal
     return theta
+
 
 @njit
 def dual_gap(alpha, norm_y2, y, X, w, weights):
@@ -115,7 +118,6 @@ def gram_fista_lasso(X, y, alpha, max_iter, tol, w_init=None, weights=None,
                 print("Convergence reached!")
                 break
     return w
-
 
 
 def gram_group_lasso(X, y, alpha, groups, max_iter, tol, w_init=None, weights=None, 

@@ -1,16 +1,48 @@
+from re import L
 import numpy as np
 from numba import njit
 from numpy.linalg import norm
 from celer.homotopy import _grp_converter
 
-from skglm.utils import BST, ST
+from skglm.utils import BST, ST, ST_vec
 
 
 @njit
-def primal(alpha, y, X, w, weights):
-    r = y - X @ w
-    p_obj = (r @ r) / (2 * len(y))
+def primal(alpha, r, w, weights):
+    p_obj = (r @ r) / (2 * len(r))
     return p_obj + alpha * np.sum(np.abs(w * weights))
+
+@njit
+def dual(alpha, norm_y2, theta, y):
+    d_obj = - np.sum((y / (alpha * len(y)) - theta) ** 2)
+    d_obj *= 0.5 * alpha ** 2 * len(y)
+    d_obj += norm_y2 / (2 * len(y))
+    return d_obj
+
+@njit
+def dnorm_l1(theta, X, weights):
+    n_features = X.shape[1]
+    scal = 0.
+    for j in range(n_features):
+        Xj_theta = X[:, j] @ theta
+        scal = max(scal, Xj_theta / weights[j])
+    return scal
+
+@njit
+def create_dual_point(r, alpha, X, y, weights):
+    theta = r / (alpha * len(y))
+    scal = dnorm_l1(theta, X, weights)
+    if scal > 1.:
+        theta /= scal
+    return theta
+
+@njit
+def dual_gap(alpha, norm_y2, y, X, w, weights):
+    r = y - X @ w
+    p_obj = primal(alpha, r, w, weights)
+    theta = create_dual_point(r, alpha, X, y, weights)
+    d_obj = dual(alpha, norm_y2, theta, y)
+    return p_obj, d_obj, p_obj - d_obj
 
 
 @njit
@@ -23,31 +55,64 @@ def primal_grp(alpha, y, X, w, grp_ptr, grp_indices, weights):
     return p_obj
 
 
-def gram_lasso(X, y, alpha, max_iter, tol, w_init=None, weights=None, check_freq=10):
-    p_obj_prev = np.inf
+@njit
+def compute_lipschitz(X, y):
     n_features = X.shape[1]
-    grads = X.T @ y / len(y)
-    G = X.T @ X
     lipschitz = np.zeros(n_features, dtype=X.dtype)
     for j in range(n_features):
         lipschitz[j] = (X[:, j] ** 2).sum() / len(y)
+    return lipschitz
+
+
+def gram_lasso(X, y, alpha, max_iter, tol, w_init=None, weights=None, check_freq=10):
+    n_features = X.shape[1]
+    norm_y2 = y @ y 
+    grads = X.T @ y / len(y)
+    G = X.T @ X
+    lipschitz = compute_lipschitz(X, y)
     w = w_init.copy() if w_init is not None else np.zeros(n_features)
-    z = w_init.copy() if w_init is not None else np.zeros(n_features)
-    beta_0 = beta_1 = 1
     weights = weights if weights is not None else np.ones(n_features)
     # CD
     for n_iter in range(max_iter):
-        beta_1 = (1 + np.sqrt(1 + 4 * beta_0 ** 2)) / 2
-        cd_epoch(X, G, grads, w, z, alpha, beta_1, beta_0, lipschitz, weights)
-        beta_0 = beta_1
+        cd_epoch(X, G, grads, w, alpha, lipschitz, weights)
         if n_iter % check_freq == 0:
-            p_obj = primal(alpha, y, X, w, weights)
+            p_obj, d_obj, d_gap = dual_gap(alpha, norm_y2, y, X, w, weights)
+            print(f"iter {n_iter} :: p_obj {p_obj:.5f} :: d_obj {d_obj:.5f}" +
+                  f" :: gap {d_gap:.5f}")
+            if d_gap < tol:
+                print("Convergence reached!")
+                break
+    return w
+
+
+def gram_fista_lasso(X, y, alpha, max_iter, tol, w_init=None, weights=None, 
+                     check_freq=10):
+    n_samples, n_features = X.shape
+    p_obj_prev = np.inf
+    t_new = 1
+    w = w_init.copy() if w_init is not None else np.zeros(n_features)
+    z = w_init.copy() if w_init is not None else np.zeros(n_features)
+    weights = weights if weights is not None else np.ones(n_features)
+    G = X.T @ X
+    Xty = X.T @ y
+    L = np.linalg.norm(X, ord=2) ** 2 / n_samples
+    for n_iter in range(max_iter):
+        t_old = t_new
+        t_new = (1 + np.sqrt(1 + 4 * t_old ** 2)) / 2
+        w_old = w.copy()
+        z -= (G @ z - Xty) / L / n_samples
+        w = ST_vec(z, alpha / L)
+        z = w + (t_old - 1.) / t_new * (w - w_old)
+        if n_iter % check_freq == 0:
+            r = y - X @ w
+            p_obj = primal(alpha, r, w, weights)
             if p_obj_prev - p_obj < tol:
                 print("Convergence reached!")
                 break
-            print(f"iter {n_iter} :: p_obj {p_obj}")
+            print(f"iter {n_iter} :: p_obj {p_obj:.5f}")
             p_obj_prev = p_obj
     return w
+
 
 
 def gram_group_lasso(X, y, alpha, groups, max_iter, tol, w_init=None, weights=None, 
@@ -78,17 +143,15 @@ def gram_group_lasso(X, y, alpha, groups, max_iter, tol, w_init=None, weights=No
 
 
 @njit
-def cd_epoch(X, G, grads, w, z, alpha, beta_1, beta_0, lipschitz, weights):
+def cd_epoch(X, G, grads, w, alpha, lipschitz, weights):
     n_features = X.shape[1]
     for j in range(n_features):
         if lipschitz[j] == 0. or weights[j] == np.inf:
             continue
         old_w_j = w[j]
-        old_z_j = z[j]
-        w[j] = ST(z[j] + grads[j] / lipschitz[j], alpha / lipschitz[j] * weights[j])
-        z[j] = w[j] + ((beta_0 - 1) / beta_1) * (w[j] - old_w_j)
-        if old_z_j != z[j]:
-            grads += G[j, :] * (old_z_j - z[j]) / len(X)
+        w[j] = ST(w[j] + grads[j] / lipschitz[j], alpha / lipschitz[j] * weights[j])
+        if old_w_j != w[j]:
+            grads += G[j, :] * (old_w_j - w[j]) / len(X)
 
 
 @njit

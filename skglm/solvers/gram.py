@@ -3,7 +3,7 @@ from numba import njit
 from numpy.linalg import norm
 from celer.homotopy import _grp_converter
 
-from skglm.utils import BST, ST, ST_vec
+from skglm.utils import BST, ST, BST_vec, ST_vec
 
 
 @njit
@@ -69,7 +69,7 @@ def compute_lipschitz(X, y):
 
 def gram_lasso(X, y, alpha, max_iter, tol, w_init=None, weights=None, check_freq=10):
     n_features = X.shape[1]
-    norm_y2 = y @ y 
+    norm_y2 = y @ y
     grads = X.T @ y / len(y)
     G = X.T @ X
     lipschitz = compute_lipschitz(X, y)
@@ -88,7 +88,7 @@ def gram_lasso(X, y, alpha, max_iter, tol, w_init=None, weights=None, check_freq
     return w
 
 
-def gram_fista_lasso(X, y, alpha, max_iter, tol, w_init=None, weights=None, 
+def gram_fista_lasso(X, y, alpha, max_iter, tol, w_init=None, weights=None,
                      check_freq=10):
     n_samples, n_features = X.shape
     norm_y2 = y @ y
@@ -120,7 +120,49 @@ def gram_fista_lasso(X, y, alpha, max_iter, tol, w_init=None, weights=None,
     return w
 
 
-def gram_group_lasso(X, y, alpha, groups, max_iter, tol, w_init=None, weights=None, 
+def gram_fista_group_lasso(X, y, alpha, groups, max_iter, tol, w_init=None,
+                           weights=None, check_freq=50):
+    p_obj_prev = np.inf
+    n_features = X.shape[1]
+
+    grp_ptr, grp_indices = _grp_converter(groups, X.shape[1])
+    n_groups = len(grp_ptr) - 1
+    grp_size = n_features // n_groups
+
+    t_new = 1
+
+    w = w_init.copy() if w_init is not None else np.zeros(n_features)
+    z = w_init.copy() if w_init is not None else np.zeros(n_features)
+    weights = weights if weights is not None else np.ones(n_features)
+    tiled_weights = np.repeat(weights, grp_size)
+
+    G = X.T @ X
+    Xty = X.T @ y
+
+    lipschitz = np.zeros(n_groups, dtype=X.dtype)
+    for g in range(n_groups):
+        X_g = X[:, grp_indices[grp_ptr[g]:grp_ptr[g + 1]]]
+        lipschitz[g] = norm(X_g, ord=2) ** 2 / len(y)
+    tiled_lipschitz = np.repeat(lipschitz[np.newaxis, :], grp_size)
+
+    for n_iter in range(max_iter):
+        t_old = t_new
+        t_new = (1 + np.sqrt(1 + 4 * t_old ** 2)) / 2
+        w_old = w.copy()
+        z -= (G @ z - Xty) / tiled_lipschitz / len(y)
+        w = BST_vec(z, alpha / tiled_lipschitz * tiled_weights, n_features)
+        z = w + (t_old - 1.) / t_new * (w - w_old)
+        if n_iter % check_freq == 0:
+            p_obj = primal_grp(alpha, y, X, w, grp_ptr, grp_indices, weights)
+            print(f"iter {n_iter} :: p_obj {p_obj:.5f}")
+            if p_obj_prev - p_obj < tol:
+                print("Convergence reached!")
+                break
+            p_obj_prev = p_obj
+    return w
+
+
+def gram_group_lasso(X, y, alpha, groups, max_iter, tol, w_init=None, weights=None,
                      check_freq=50):
     p_obj_prev = np.inf
     n_features = X.shape[1]

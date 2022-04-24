@@ -44,14 +44,14 @@ def dual_gap(alpha, norm_y2, y, X, w):
     return p_obj, d_obj, p_obj - d_obj
 
 
-n_samples, n_features = 30, 50
+n_samples, n_features = 1_000_000, 300
 X, y, w_star = make_correlated_data(
     n_samples=n_samples, n_features=n_features, random_state=0)
 alpha_max = norm(X.T @ y, ord=np.inf)
 
 # Hyperparameters
-max_iter = 1_000
-tol = 1e-5
+max_iter = 1000
+tol = 1e-8
 reg = 0.1
 group_size = 3
 check_gap_freq = 100
@@ -88,4 +88,4 @@ for n_iter in range(max_iter):
 
 clf = Lasso(alpha, tol=tol, fit_intercept=False)
 clf.fit(X, y)
-np.testing.assert_allclose(w, clf.coef_, rtol=1e-3)
+np.testing.assert_allclose(w, clf.coef_, rtol=1e-5)

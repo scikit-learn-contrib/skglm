@@ -88,29 +88,32 @@ def gram_lasso(X, y, alpha, max_iter, tol, w_init=None, weights=None, check_freq
 def gram_fista_lasso(X, y, alpha, max_iter, tol, w_init=None, weights=None, 
                      check_freq=10):
     n_samples, n_features = X.shape
-    p_obj_prev = np.inf
+    norm_y2 = y @ y
     t_new = 1
+
     w = w_init.copy() if w_init is not None else np.zeros(n_features)
     z = w_init.copy() if w_init is not None else np.zeros(n_features)
     weights = weights if weights is not None else np.ones(n_features)
+
     G = X.T @ X
     Xty = X.T @ y
     L = np.linalg.norm(X, ord=2) ** 2 / n_samples
+
     for n_iter in range(max_iter):
         t_old = t_new
         t_new = (1 + np.sqrt(1 + 4 * t_old ** 2)) / 2
         w_old = w.copy()
         z -= (G @ z - Xty) / L / n_samples
-        w = ST_vec(z, alpha / L)
+        w = ST_vec(z, alpha / L * weights)
         z = w + (t_old - 1.) / t_new * (w - w_old)
+
         if n_iter % check_freq == 0:
-            r = y - X @ w
-            p_obj = primal(alpha, r, w, weights)
-            if p_obj_prev - p_obj < tol:
+            p_obj, d_obj, d_gap = dual_gap(alpha, norm_y2, y, X, w, weights)
+            print(f"iter {n_iter} :: p_obj {p_obj:.5f} :: d_obj {d_obj:.5f} " +
+                  f":: gap {d_gap:.5f}")
+            if d_gap < tol:
                 print("Convergence reached!")
                 break
-            print(f"iter {n_iter} :: p_obj {p_obj:.5f}")
-            p_obj_prev = p_obj
     return w
 
 

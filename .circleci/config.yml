@@ -24,7 +24,7 @@ jobs:
                 echo "Merging $(cat merge.txt)";
                 git remote add upstream https://github.com/mathurinm/skglm.git;
                 git pull --ff-only upstream "refs/pull/$(cat merge.txt)/merge";
-                git fetch upstream master;
+                git fetch upstream main;
               fi
 
         # If both keys are in the same command only one is restored

@@ -109,7 +109,6 @@ def gram_lasso(X, y, alpha, max_iter, tol, w_init=None, weights=None, check_freq
     lipschitz = compute_lipschitz(X, y)
     w = w_init.copy() if w_init is not None else np.zeros(n_features)
     weights = weights if weights is not None else np.ones(n_features)
-    # CD
     for n_iter in range(max_iter):
         cd_epoch(X, G, grads, w, alpha, lipschitz, weights)
         if n_iter % check_freq == 0:
@@ -127,15 +126,12 @@ def gram_fista_lasso(X, y, alpha, max_iter, tol, w_init=None, weights=None,
     n_samples, n_features = X.shape
     norm_y2 = y @ y
     t_new = 1
-
     w = w_init.copy() if w_init is not None else np.zeros(n_features)
     z = w_init.copy() if w_init is not None else np.zeros(n_features)
     weights = weights if weights is not None else np.ones(n_features)
-
     G = X.T @ X
     Xty = X.T @ y
     L = np.linalg.norm(X, ord=2) ** 2 / n_samples
-
     for n_iter in range(max_iter):
         t_old = t_new
         t_new = (1 + np.sqrt(1 + 4 * t_old ** 2)) / 2
@@ -143,48 +139,8 @@ def gram_fista_lasso(X, y, alpha, max_iter, tol, w_init=None, weights=None,
         z -= (G @ z - Xty) / L / n_samples
         w = ST_vec(z, alpha / L * weights)
         z = w + (t_old - 1.) / t_new * (w - w_old)
-
         if n_iter % check_freq == 0:
             p_obj, d_obj, d_gap = dual_gap(alpha, norm_y2, y, X, w, weights)
-            print(f"iter {n_iter} :: p_obj {p_obj:.5f} :: d_obj {d_obj:.5f} " +
-                  f":: gap {d_gap:.5f}")
-            if d_gap < tol:
-                print("Convergence reached!")
-                break
-    return w
-
-
-def gram_fista_group_lasso(X, y, alpha, groups, max_iter, tol, w_init=None,
-                           weights=None, check_freq=100):
-    n_features = X.shape[1]
-    norm_y2 = y @ y
-
-    grp_ptr, grp_indices = _grp_converter(groups, X.shape[1])
-    n_groups = len(grp_ptr) - 1
-    grp_size = n_features // n_groups
-
-    t_new = 1
-
-    w = w_init.copy() if w_init is not None else np.zeros(n_features)
-    z = w_init.copy() if w_init is not None else np.zeros(n_features)
-    weights = weights if weights is not None else np.ones(n_groups)
-
-    G = X.T @ X
-    Xty = X.T @ y
-
-    L = np.linalg.norm(X, ord=2) ** 2 / len(y)
-
-    for n_iter in range(max_iter):
-        t_old = t_new
-        t_new = (1 + np.sqrt(1 + 4 * t_old ** 2)) / 2
-        w_old = w.copy()
-        z -= (G @ z - Xty) / L / len(y)
-        w = BST_vec(z, alpha / L * weights, grp_size)
-        z = w + (t_old - 1.) / t_new * (w - w_old)
-
-        if n_iter % check_freq == 0:
-            p_obj, d_obj, d_gap = dual_gap_grp(y, X, w, alpha, norm_y2, grp_ptr,
-                                               grp_indices, weights)
             print(f"iter {n_iter} :: p_obj {p_obj:.5f} :: d_obj {d_obj:.5f} " +
                   f":: gap {d_gap:.5f}")
             if d_gap < tol:
@@ -207,9 +163,40 @@ def gram_group_lasso(X, y, alpha, groups, max_iter, tol, w_init=None, weights=No
         lipschitz[g] = norm(X_g, ord=2) ** 2 / len(y)
     w = w_init.copy() if w_init is not None else np.zeros(n_features)
     weights = weights if weights is not None else np.ones(n_groups)
-    # BCD
     for n_iter in range(max_iter):
         bcd_epoch(X, G, grads, w, alpha, lipschitz, grp_indices, grp_ptr, weights)
+        if n_iter % check_freq == 0:
+            p_obj, d_obj, d_gap = dual_gap_grp(y, X, w, alpha, norm_y2, grp_ptr,
+                                               grp_indices, weights)
+            print(f"iter {n_iter} :: p_obj {p_obj:.5f} :: d_obj {d_obj:.5f} " +
+                  f":: gap {d_gap:.5f}")
+            if d_gap < tol:
+                print("Convergence reached!")
+                break
+    return w
+
+
+def gram_fista_group_lasso(X, y, alpha, groups, max_iter, tol, w_init=None,
+                           weights=None, check_freq=100):
+    n_features = X.shape[1]
+    norm_y2 = y @ y
+    grp_ptr, grp_indices = _grp_converter(groups, X.shape[1])
+    n_groups = len(grp_ptr) - 1
+    grp_size = n_features // n_groups
+    t_new = 1
+    w = w_init.copy() if w_init is not None else np.zeros(n_features)
+    z = w_init.copy() if w_init is not None else np.zeros(n_features)
+    weights = weights if weights is not None else np.ones(n_groups)
+    G = X.T @ X
+    Xty = X.T @ y
+    L = np.linalg.norm(X, ord=2) ** 2 / len(y)
+    for n_iter in range(max_iter):
+        t_old = t_new
+        t_new = (1 + np.sqrt(1 + 4 * t_old ** 2)) / 2
+        w_old = w.copy()
+        z -= (G @ z - Xty) / L / len(y)
+        w = BST_vec(z, alpha / L * weights, grp_size)
+        z = w + (t_old - 1.) / t_new * (w - w_old)
         if n_iter % check_freq == 0:
             p_obj, d_obj, d_gap = dual_gap_grp(y, X, w, alpha, norm_y2, grp_ptr,
                                                grp_indices, weights)

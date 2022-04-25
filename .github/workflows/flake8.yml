@@ -25,7 +25,7 @@ jobs:
       - name: Lint with flake
         run: |
           pip install flake8
-          flake8 skglm/ --exclude="skglm/expes/*","skglm/profile","*/toprof.py*" --max-line-length=88
+          flake8 skglm/ --max-line-length=88
 
       - name: Check doc style with pydocstyle
         run: |

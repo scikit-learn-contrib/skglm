@@ -40,9 +40,9 @@ If you use this code, please cite
 
 Installing the development version
 ----------------------------------
-First clone the repository available at https://github.com/mathurinm/skglm::
+First clone the repository available at https://github.com/scikit-learn-contrib/skglm::
 
-    $ git clone https://github.com/mathurinm/skglm.git
+    $ git clone https://github.com/scikit-learn-contrib/skglm.git
     $ cd skglm/
 
 Then, install the package with::

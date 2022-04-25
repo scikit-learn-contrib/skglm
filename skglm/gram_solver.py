@@ -59,15 +59,15 @@ gram_fista_group_lasso_time = time() - start
 
 np.testing.assert_allclose(w, w_fista, rtol=1e-4)
 
-# clf_celer = GroupLasso(group_size, alpha, tol=tol, weights=weights_grp,
-#                        fit_intercept=False)
-# start = time()
-# clf_celer.fit(X, y)
-# celer_group_lasso_time = time() - start
-# np.testing.assert_allclose(w, clf_celer.coef_, rtol=1e-1)
+clf_celer = GroupLasso(group_size, alpha, tol=tol, weights=weights_grp,
+                       fit_intercept=False)
+start = time()
+clf_celer.fit(X, y)
+celer_group_lasso_time = time() - start
+np.testing.assert_allclose(w, clf_celer.coef_, rtol=1e-4)
 
 print("\n")
-# print("Celer: %.2f" % celer_group_lasso_time)
+print("Celer: %.2f" % celer_group_lasso_time)
 print("BCD Gram: %.2f" % gram_group_lasso_time)
 print("FISTA Gram: %.2f" % gram_fista_group_lasso_time)
 print("\n")

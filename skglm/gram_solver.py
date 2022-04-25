@@ -12,7 +12,7 @@ X, y, w_star = make_correlated_data(
 alpha_max = norm(X.T @ y, ord=np.inf)
 
 # Hyperparameters
-max_iter = 1000
+max_iter = 10_000
 tol = 1e-8
 reg = 0.1
 group_size = 3
@@ -53,13 +53,13 @@ start = time()
 w = gram_group_lasso(X, y, alpha, group_size, max_iter, tol, weights=weights_grp)
 gram_group_lasso_time = time() - start
 start = time()
-w_fista = gram_fista_group_lasso(X, y, alpha, group_size, max_iter, tol, 
+w_fista = gram_fista_group_lasso(X, y, alpha, group_size, max_iter, tol,
                                  weights=weights_grp)
 gram_fista_group_lasso_time = time() - start
 
 np.testing.assert_allclose(w, w_fista, rtol=1e-4)
 
-# clf_celer = GroupLasso(group_size, alpha, tol=tol, weights=weights_grp, 
+# clf_celer = GroupLasso(group_size, alpha, tol=tol, weights=weights_grp,
 #                        fit_intercept=False)
 # start = time()
 # clf_celer.fit(X, y)

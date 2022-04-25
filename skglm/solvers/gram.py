@@ -156,8 +156,8 @@ def gram_fista_lasso(X, y, alpha, max_iter, tol, w_init=None, weights=None,
 
 def gram_fista_group_lasso(X, y, alpha, groups, max_iter, tol, w_init=None,
                            weights=None, check_freq=50):
-    p_obj_prev = np.inf
     n_features = X.shape[1]
+    norm_y2 = y @ y
 
     grp_ptr, grp_indices = _grp_converter(groups, X.shape[1])
     n_groups = len(grp_ptr) - 1
@@ -168,31 +168,28 @@ def gram_fista_group_lasso(X, y, alpha, groups, max_iter, tol, w_init=None,
     w = w_init.copy() if w_init is not None else np.zeros(n_features)
     z = w_init.copy() if w_init is not None else np.zeros(n_features)
     weights = weights if weights is not None else np.ones(n_groups)
-    # tiled_weights = np.repeat(weights, grp_size)
 
     G = X.T @ X
     Xty = X.T @ y
 
-    lipschitz = np.zeros(n_groups, dtype=X.dtype)
-    for g in range(n_groups):
-        X_g = X[:, grp_indices[grp_ptr[g]:grp_ptr[g + 1]]]
-        lipschitz[g] = norm(X_g, ord=2) ** 2 / len(y)
-    tiled_lipschitz = np.repeat(lipschitz[np.newaxis, :], grp_size)
+    L = np.linalg.norm(X, ord=2) ** 2 / len(y)
 
     for n_iter in range(max_iter):
         t_old = t_new
         t_new = (1 + np.sqrt(1 + 4 * t_old ** 2)) / 2
         w_old = w.copy()
-        z -= (G @ z - Xty) / tiled_lipschitz / len(y)
-        w = BST_vec(z, alpha / lipschitz, grp_size)
+        z -= (G @ z - Xty) / L / len(y)
+        w = BST_vec(z, alpha / L * weights, grp_size)
         z = w + (t_old - 1.) / t_new * (w - w_old)
+
         if n_iter % check_freq == 0:
-            p_obj = primal_grp(alpha, y, X, w, grp_ptr, grp_indices, np.ones(n_groups))
-            print(f"iter {n_iter} :: p_obj {p_obj:.5f}")
-            if p_obj_prev - p_obj < tol:
+            p_obj, d_obj, d_gap = dual_gap_grp(y, X, w, alpha, norm_y2, grp_ptr,
+                                               grp_indices, weights)
+            print(f"iter {n_iter} :: p_obj {p_obj:.5f} :: d_obj {d_obj:.5f} " +
+                  f":: gap {d_gap:.5f}")
+            if d_gap < tol:
                 print("Convergence reached!")
                 break
-            p_obj_prev = p_obj
     return w
 
 

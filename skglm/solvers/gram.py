@@ -101,7 +101,7 @@ def compute_lipschitz(X, y):
     return lipschitz
 
 
-def gram_lasso(X, y, alpha, max_iter, tol, w_init=None, weights=None, check_freq=10):
+def gram_lasso(X, y, alpha, max_iter, tol, w_init=None, weights=None, check_freq=100):
     n_features = X.shape[1]
     norm_y2 = y @ y
     grads = X.T @ y / len(y)
@@ -123,7 +123,7 @@ def gram_lasso(X, y, alpha, max_iter, tol, w_init=None, weights=None, check_freq
 
 
 def gram_fista_lasso(X, y, alpha, max_iter, tol, w_init=None, weights=None,
-                     check_freq=10):
+                     check_freq=100):
     n_samples, n_features = X.shape
     norm_y2 = y @ y
     t_new = 1
@@ -155,7 +155,7 @@ def gram_fista_lasso(X, y, alpha, max_iter, tol, w_init=None, weights=None,
 
 
 def gram_fista_group_lasso(X, y, alpha, groups, max_iter, tol, w_init=None,
-                           weights=None, check_freq=50):
+                           weights=None, check_freq=100):
     n_features = X.shape[1]
     norm_y2 = y @ y
 
@@ -194,7 +194,7 @@ def gram_fista_group_lasso(X, y, alpha, groups, max_iter, tol, w_init=None,
 
 
 def gram_group_lasso(X, y, alpha, groups, max_iter, tol, w_init=None, weights=None,
-                     check_freq=50):
+                     check_freq=100):
     n_features = X.shape[1]
     grp_ptr, grp_indices = _grp_converter(groups, X.shape[1])
     n_groups = len(grp_ptr) - 1

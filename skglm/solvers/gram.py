@@ -8,14 +8,22 @@ from skglm.utils import BST, ST, BST_vec, ST_vec
 
 @njit
 def primal(alpha, r, w, weights):
+    n_features = len(weights)
     p_obj = (r @ r) / (2 * len(r))
-    return p_obj + alpha * np.sum(np.abs(w * weights))
+    pen = 0.
+    for j in range(n_features):
+        if weights[j] == np.inf:
+            continue
+        pen += np.abs(w[j] * weights[j])
+    return p_obj + alpha * pen
 
 
 @njit
 def primal_grp(alpha, norm_r2, r, w, grp_ptr, grp_indices, weights):
     p_obj = norm_r2 / (2 * len(r))
     for g in range(len(grp_ptr) - 1):
+        if weights[g] == np.inf:
+            continue
         w_g = w[grp_indices[grp_ptr[g]:grp_ptr[g + 1]]]
         p_obj += alpha * norm(w_g * weights[g], ord=2)
     return p_obj

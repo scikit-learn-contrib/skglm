@@ -3,7 +3,7 @@ from numba import njit
 from numpy.linalg import norm
 from celer.homotopy import _grp_converter
 
-from skglm.utils import BST, ST, BST_vec, ST_vec
+from skglm.utils import BST, ST, ST_vec
 
 
 @njit
@@ -109,6 +109,18 @@ def compute_lipschitz(X, y):
     return lipschitz
 
 
+@njit
+def prox_l21(w, u, weights, grp_ptr, grp_indices):
+    n_groups = len(grp_ptr) - 1
+    out = w.copy()
+    for g in range(n_groups):
+        idx = grp_indices[grp_ptr[g]:grp_ptr[g + 1]]
+        grp_nrm = norm(w[idx], ord=2)
+        scaling = np.maximum(1 - u / grp_nrm * weights[g], 0)
+        out[idx] *= scaling
+    return out
+
+
 def gram_lasso(X, y, alpha, max_iter, tol, w_init=None, weights=None, check_freq=100):
     n_features = X.shape[1]
     norm_y2 = y @ y
@@ -190,7 +202,6 @@ def gram_fista_group_lasso(X, y, alpha, groups, max_iter, tol, w_init=None,
     norm_y2 = y @ y
     grp_ptr, grp_indices = _grp_converter(groups, X.shape[1])
     n_groups = len(grp_ptr) - 1
-    grp_size = n_features // n_groups
     t_new = 1
     w = w_init.copy() if w_init is not None else np.zeros(n_features)
     z = w_init.copy() if w_init is not None else np.zeros(n_features)
@@ -203,7 +214,7 @@ def gram_fista_group_lasso(X, y, alpha, groups, max_iter, tol, w_init=None,
         t_new = (1 + np.sqrt(1 + 4 * t_old ** 2)) / 2
         w_old = w.copy()
         z -= (G @ z - Xty) / L / len(y)
-        w = BST_vec(z, alpha / L * weights, grp_size)
+        w = prox_l21(z, alpha / L, weights, grp_ptr, grp_indices)
         z = w + (t_old - 1.) / t_new * (w - w_old)
         if n_iter % check_freq == 0:
             p_obj, d_obj, d_gap = dual_gap_grp(y, X, w, alpha, norm_y2, grp_ptr,

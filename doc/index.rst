@@ -31,13 +31,6 @@ If you use this code, please cite
     }
 
 
-.. Installing the latest release
-.. -----------------------------
-.. Run::
-
-..    $ pip install scikit-contrib-skglm
-
-
 Installing the development version
 ----------------------------------
 First clone the repository available at https://github.com/scikit-learn-contrib/skglm::

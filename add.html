@@ -94,6 +94,12 @@
     <div class="body col-md-12 content" role="main">
       
   <p id="how">With skglm, you can solve any custom Generalized Linear Model with arbitrary smooth datafit and arbitrary proximable penalty, by defining two classes: a <code class="docutils literal notranslate"><span class="pre">Penalty</span></code> and a <code class="docutils literal notranslate"><span class="pre">Datafit</span></code>.</p>
+<p>They can then be passed to a <a class="reference internal" href="generated/skglm.GeneralizedLinearEstimator.html#skglm.GeneralizedLinearEstimator" title="skglm.GeneralizedLinearEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeneralizedLinearEstimator</span></code></a>, using <code class="docutils literal notranslate"><span class="pre">is_classif</span></code> to specify if the task is classification or regression.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">clf</span> <span class="o">=</span> <span class="n">GeneralizedLinearEstimator</span><span class="p">(</span>
+   <span class="n">MyDatafit</span><span class="p">(),</span> <span class="n">MyPenalty</span><span class="p">(),</span> <span class="n">is_classif</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 <section id="how-to-add-a-custom-penalty">
 <h1>How to add a custom penalty<a class="headerlink" href="#how-to-add-a-custom-penalty" title="Permalink to this headline">¶</a></h1>
 <p>A penalty is a jitclass which must inherit from the <code class="docutils literal notranslate"><span class="pre">BasePenalty</span></code> class:</p>

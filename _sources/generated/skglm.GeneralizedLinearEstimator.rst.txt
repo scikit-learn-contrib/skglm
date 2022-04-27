@@ -1,0 +1,27 @@
+﻿skglm.GeneralizedLinearEstimator
+================================
+
+.. currentmodule:: skglm
+
+.. autoclass:: GeneralizedLinearEstimator
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~GeneralizedLinearEstimator.__init__
+      ~GeneralizedLinearEstimator.fit
+      ~GeneralizedLinearEstimator.get_params
+      ~GeneralizedLinearEstimator.path
+      ~GeneralizedLinearEstimator.predict
+      ~GeneralizedLinearEstimator.set_params
+   
+   
+
+   
+   
+   

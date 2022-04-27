@@ -14,6 +14,7 @@ Estimators
 .. autosummary::
    :toctree: generated/
 
+   GeneralizedLinearEstimator
    ElasticNet
    Lasso
    LinearSVC

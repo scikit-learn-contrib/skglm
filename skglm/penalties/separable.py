@@ -174,7 +174,7 @@ class MCPenalty(BasePenalty):
     With x >= 0
     pen(x) =
     alpha * x - x^2 / (2 * gamma) if x =< gamma * alpha
-    gamma * alpha 2 / 2           if x > gamma * alpha
+    gamma * alpha ** 2 / 2           if x > gamma * alpha
     value = sum_{j=1}^{n_features} pen(abs(w_j))
     """
 
@@ -281,7 +281,7 @@ class SCAD(BasePenalty):
         subdiff_dist = np.zeros_like(grad)
         for idx, j in enumerate(ws):
             if w[j] == 0:
-                # distance of -grad to alpha * [-1, 1]
+                # distance of -grad_j to alpha * [-1, 1]
                 subdiff_dist[idx] = max(0, np.abs(grad[idx]) - self.alpha)
             elif np.abs(w[j]) <= self.alpha:
                 # distance of -grad_j to alpha

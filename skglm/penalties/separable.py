@@ -229,6 +229,82 @@ class MCPenalty(BasePenalty):
         return np.max(np.abs(gradient0))
 
 
+spec_SCAD = [
+    ('alpha', float64),
+    ('gamma', float64)
+]
+
+
+@jitclass(spec_SCAD)
+class SCAD(BasePenalty):
+    """Smoothly Clipped Absolute Deviation.
+
+    Notes
+    -----
+    With x >= 0
+    pen(x) =
+    alpha * x                         if x =< alpha
+    (2 * gamma * alpha * x - x ** 2 - alpha ** 2) \
+        / (2 * (gamma - 1))           if alpha < x < alpha * gamma
+    (alpha ** 2 * (gamma + 1)) / 2    if x > gamma * alpha
+    value = sum_{j=1}^{n_features} pen(abs(w_j))
+    """
+
+    def __init__(self, alpha, gamma):
+        self.alpha = alpha
+        self.gamma = gamma
+
+    def value(self, w):
+        """Compute the value of the SCAD penalty at w."""
+        value = np.full_like(w, (self.alpha ** 2 * (self.gamma + 1)) / 2)
+        for j in range(len(w)):
+            if np.abs(w[j]) <= self.alpha:
+                value[j] = self.alpha * np.abs(w[j])
+            elif np.abs(w[j]) > self.alpha and np.abs(w[j]) < self.alpha * self.gamma:
+                value[j] = (
+                    2 * self.gamma * self.alpha * np.abs(w[j])
+                    - np.abs(w[j]) ** 2 - self.alpha ** 2) / (2 * (self.gamma - 1))
+        return np.sum(value)
+
+    def prox_1d(self, value, stepsize, j):
+        """Compute the proximal operator of SCAD penalty."""
+        tau = self.alpha * stepsize
+        g = self.gamma / stepsize
+        if np.abs(value) <= 2 * tau:
+            return ST(value, tau)
+        if np.abs(value) > g * tau:
+            return value
+        return ((g - 1) * value - np.sign(value) * g * tau) / (g - 2)
+
+    def subdiff_distance(self, w, grad, ws):
+        """Compute distance of negative gradient to the subdifferential at w."""
+        subdiff_dist = np.zeros_like(grad)
+        for idx, j in enumerate(ws):
+            if w[j] == 0:
+                # distance of -grad to alpha * [-1, 1]
+                subdiff_dist[idx] = max(0, np.abs(grad[idx]) - self.alpha)
+            elif np.abs(w[j]) <= self.alpha:
+                # distance of -grad_j to alpha
+                subdiff_dist[idx] = np.abs(grad[idx] + self.alpha)
+            elif np.abs(w[j]) > self.alpha and np.abs(w[j]) < self.alpha * self.gamma:
+                # distance of -grad_j to (alpha * gamma - np.abs(w_j)) / (gamma - 1)
+                subdiff_dist[idx] = np.abs(
+                    grad[idx] +
+                    (self.alpha * self.gamma - np.abs(w[j])) / (self.gamma - 1))
+            else:
+                # distance of grad to 0
+                subdiff_dist[idx] = np.abs(grad[idx])
+        return subdiff_dist
+
+    def is_penalized(self, n_features):
+        """Return a binary mask with the penalized features."""
+        return np.ones(n_features, bool_)
+
+    def generalized_support(self, w):
+        """Return a mask with non-zero coefficients."""
+        return w != 0
+
+
 spec_IndicatorBox = [
     ('alpha', float64)
 ]

@@ -153,3 +153,82 @@ class BlockMCPenalty(BasePenalty):
     def is_penalized(self, n_features):
         """Return a binary mask with the penalized features."""
         return np.ones(n_features, bool_)
+
+
+spec_BlockSCAD = [
+    ('alpha', float64),
+    ('gamma', float64),
+]
+
+
+@jitclass(spec_BlockSCAD)
+class BlockSCAD(BasePenalty):
+    """Block Smoothly Clipped Absolute Deviation.
+    
+    Notes
+    -----
+    With W_j the j-th row of W, the penalty is:
+        pen(||W_j||) = alpha * ||W_j||               if ||W_j|| =< alpha
+                       (2 * gamma * alpha * ||W_j|| - ||W_j|| ** 2 - alpha ** 2) \
+                           / (2 * (gamma - 1))       if alpha < ||W_j|| < alpha * gamma
+                       (alpha **2 * (gamma + 1)) / 2 if ||W_j|| > gamma * alpha
+        value = sum_{j=1}^{n_features} pen(||W_j||)
+    """
+
+    def __init__(self, alpha, gamma):
+        self.alpha = alpha
+        self.gamma = gamma
+
+    def value(self, W):
+        """Compute the value of the SCAD penalty at W."""
+        n_features = W.shape[1]
+        norm_rows = np.sqrt(np.sum(W ** 2, axis=1))
+        value = np.full_like(norm_rows, ((self.gamma + 1) * self.alpha ** 2) / 2.)
+        for j in range(n_features):
+            if norm_rows[j] <= self.alpha:
+                value[j] = self.alpha * norm_rows[j]
+            elif norm_rows[j] > self.alpha and norm_rows[j] < self.alpha * self.gamma:
+                value[j] = (
+                    2 * self.gamma * self.alpha * norm_rows[j] - norm_rows[j] ** 2 
+                    - self.alpha ** 2) / (2 * (self.gamma - 1))
+        return np.sum(value)
+    
+    def prox_1feat(self, value, stepsize, j):
+        """Compute the proximal operator of BlockSCAD."""
+        tau = self.alpha * stepsize
+        g = self.gamma / stepsize
+        norm_value = norm(value)
+        if norm_value <= 2 * tau:
+            return BST(value, tau)
+        if norm_value > g * tau:
+            return value
+        # TODO: check!
+        return ((g - 1) * value - value / norm_value * g * tau) / (g - 1)
+    
+    def subdiff_distance(self, W, grad, ws):
+        """Compute distance of negative gradient to the subdifferential at W."""
+        subdiff_dist = np.zeros_like(ws, dtype=grad.dtype)
+        for idx, j in enumerate(ws):
+            norm_Wj = norm(W[j])
+            if not np.any(W[j]):
+                # distance of -grad_j to alpha * unit_ball
+                norm_grad_j = norm(grad[idx])
+                subdiff_dist[idx] = max(0, norm_grad_j - self.alpha)
+            elif norm_Wj <= self.alpha:
+                # distance of -grad_j to alpha
+                # TODO: check!
+                subdiff_dist[idx] = norm(grad[idx] + self.alpha)
+            elif norm_Wj > self.alpha and norm_Wj < self.gamma * self.alpha:
+                # distance of -grad_j to (alpha * gamma - W[j] / ||W_j||) / (gamma - 1)
+                # TODO
+                pass
+            else:
+                # distance of grad to 0
+                subdiff_dist[idx] = norm(grad[idx])
+        return subdiff_dist
+
+
+    def is_penalized(self, n_features):
+        """Return a binary mask with the penalized features."""
+        return np.ones(n_features, bool_)
+

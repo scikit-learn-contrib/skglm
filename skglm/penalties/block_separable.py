@@ -164,7 +164,7 @@ spec_BlockSCAD = [
 @jitclass(spec_BlockSCAD)
 class BlockSCAD(BasePenalty):
     """Block Smoothly Clipped Absolute Deviation.
-    
+
     Notes
     -----
     With W_j the j-th row of W, the penalty is:
@@ -189,10 +189,10 @@ class BlockSCAD(BasePenalty):
                 value[j] = self.alpha * norm_rows[j]
             elif norm_rows[j] > self.alpha and norm_rows[j] < self.alpha * self.gamma:
                 value[j] = (
-                    2 * self.gamma * self.alpha * norm_rows[j] - norm_rows[j] ** 2 
+                    2 * self.gamma * self.alpha * norm_rows[j] - norm_rows[j] ** 2
                     - self.alpha ** 2) / (2 * (self.gamma - 1))
         return np.sum(value)
-    
+
     def prox_1feat(self, value, stepsize, j):
         """Compute the proximal operator of BlockSCAD."""
         tau = self.alpha * stepsize
@@ -204,7 +204,7 @@ class BlockSCAD(BasePenalty):
             return value
         # TODO: check!
         return ((g - 1) * value - value / norm_value * g * tau) / (g - 1)
-    
+
     def subdiff_distance(self, W, grad, ws):
         """Compute distance of negative gradient to the subdifferential at W."""
         subdiff_dist = np.zeros_like(ws, dtype=grad.dtype)
@@ -227,8 +227,6 @@ class BlockSCAD(BasePenalty):
                 subdiff_dist[idx] = norm(grad[idx])
         return subdiff_dist
 
-
     def is_penalized(self, n_features):
         """Return a binary mask with the penalized features."""
         return np.ones(n_features, bool_)
-

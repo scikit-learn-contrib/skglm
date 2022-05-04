@@ -1,5 +1,60 @@
 import numpy as np
+from numba import float64
+from numba.experimental import jitclass
+from numba.types import bool_
 from skglm.datafits import BaseDatafit
+from skglm.penalties import BasePenalty
+
+spec_L1R = [
+    ('alpha', float64)
+]
+
+
+@jitclass(spec_L1R)
+class L1_R(BasePenalty):
+    """L1 penalty without the first term."""
+
+    def __init__(self, alpha):
+        self.alpha = alpha
+
+    def value(self, w):
+        """Compute L1 penalty value without the first term."""
+        return self.alpha * np.sum(np.abs(w[1:]))
+
+    def prox_1d(self, value, stepsize, j):
+        """Compute proximal operator of the L1 penalty (soft-thresholding operator)."""
+        prox = value
+        w0 = prox[0]
+        prox -= np.sign(value) * abs(np.clip(value, -self.alpha * stepsize,
+                                             self.alpha * stepsize))
+        prox[0] = w0
+        return prox
+
+    def subdiff_distance(self, w, grad, ws):
+        """Compute distance of negative gradient to the subdifferential at w."""
+        subdiff_dist = np.zeros_like(grad)
+        for idx, j in enumerate(ws):
+            if w[j] == 0:
+                # distance of - grad_j to  [-alpha, alpha]
+                subdiff_dist[idx] = max(0, np.abs(grad[idx]) - self.alpha)
+            else:
+                # distance of - grad_j to alpha * sign(w[j])
+                subdiff_dist[idx] = np.abs(
+                    - grad[idx] - np.sign(w[j]) * self.alpha)
+        subdiff_dist[0] = 0
+        return subdiff_dist
+
+    def is_penalized(self, n_features):
+        """Return a binary mask with the penalized features."""
+        return np.ones(n_features, bool_)
+
+    def generalized_support(self, w):
+        """Return a mask with non-zero coefficients."""
+        return w != 0
+
+    def alpha_max(self, gradient0):
+        """Return penalization value for which 0 is solution."""
+        return np.max(np.abs(gradient0))
 
 
 class Huber(BaseDatafit):
@@ -19,8 +74,7 @@ class Huber(BaseDatafit):
         Pre-computed quantity used during the gradient evaluation. Equal to X.T @ y.
 
     lipschitz : array, shape (n_features,)
-        The coordinatewise gradient Lipschitz constants. Equal to
-        norm(X, axis=0) ** 2 / n_samples.
+        The coordinatewise gradient Lipschitz constants.
 
     Note
     ----
@@ -68,7 +122,7 @@ class Huber(BaseDatafit):
         if np.abs(R) < self.delta:
             return (X[:, j] @ Xw - self.Xty[j]) / len(Xw)
         else:
-            return - X[:, j] @ np.sign(R) * self.delta / len(Xw)
+            return X[:, j] @ np.sign(-R) * self.delta / len(Xw)
 
     def gradient_scalar_sparse(self, X_data, X_indptr, X_indices, y, Xw, j):
         grad_j = 0.
@@ -99,10 +153,9 @@ class Huber(BaseDatafit):
 
 if __name__ == '__main__':
     from skglm import GeneralizedLinearEstimator
-    from skglm.penalties import L1
 
     clf = GeneralizedLinearEstimator(
-       Huber(0.1), L1(0.1), is_classif=False
+        Huber(0.1), L1_R(0.1), is_classif=False
     )
     X = np.random.randn(10, 3)
     y = np.random.randn(10)

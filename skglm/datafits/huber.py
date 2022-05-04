@@ -1,39 +1,36 @@
 import numpy as np
 from numba import float64
-from skglm.datafits.base import BaseDatafit, jit_factory
+from numba.experimental import jitclass
+from skglm.datafits import BaseDatafit
 
 
 spec_huber = [
     ('delta', float64),
     ('Xty', float64[:]),
-    ('lipschitz', float64[:]),
+    ('lipschitz', float64[:])
 ]
 
 
+@jitclass(spec_huber)
 class Huber(BaseDatafit):
     """Huber datafit.
 
     The datafit reads::
 
-    1 / n_samples * sum (f_k(y_k - (X w)_k))
+    1 / n_samples * sum (f(y_k - (X w)_k))
 
-    f_k(x) = 1 / 2 * x^2 si x <= sigma
-    f_k(x) = sigma * | x | - 1 /2 * sigma si x > sigma
+    f(x) = 1 / 2 * x^2 si x <= sigma
+    f(x) = sigma * | x | - 1 /2 * sigma si x > sigma
 
 
     Attributes
     ----------
     Xty : array, shape (n_features,)
-        Pre-computed quantity used during the gradient evaluation. Equal to X.T @ y.
+        Pre-computed quantity used during the gradient evaluation. 
+        Equal to X.T @ y.
 
     lipschitz : array, shape (n_features,)
         The coordinatewise gradient Lipschitz constants.
-
-    Note
-    ----
-    The class Quadratic is subsequently decorated with a @jitclass decorator with
-    the `jit_factory` function to be compiled. This allows for faster computations
-    using Numba JIT compiler.
     """
 
     def __init__(self, delta):
@@ -44,8 +41,7 @@ class Huber(BaseDatafit):
         n_features = X.shape[1]
         self.lipschitz = np.zeros(n_features, dtype=X.dtype)
         for j in range(n_features):
-            self.lipschitz[j] = (np.where(np.abs(y) < self.delta,
-                                          X[:, j] ** 2, 0)).sum() / len(y)
+            self.lipschitz[j] = (X[:, j] ** 2).sum() / len(y)
 
     def initialize_sparse(
             self, X_data, X_indptr, X_indices, y):
@@ -56,8 +52,7 @@ class Huber(BaseDatafit):
             nrm2 = 0.
             xty = 0
             for idx in range(X_indptr[j], X_indptr[j + 1]):
-                if np.abs(y[idx]) < self.delta:
-                    nrm2 += X_data[idx] ** 2
+                nrm2 += X_data[idx] ** 2
                 xty += X_data[idx] * y[X_indices[idx]]
 
             self.lipschitz[j] = nrm2 / len(y)
@@ -72,7 +67,7 @@ class Huber(BaseDatafit):
 
     def gradient_scalar(self, X, y, w, Xw, j):
         R = y - Xw
-        if np.abs(R) < self.delta:
+        if np.abs(R[j]) < self.delta:
             return (X[:, j] @ Xw - self.Xty[j]) / len(Xw)
         else:
             return X[:, j] @ np.sign(-R) * self.delta / len(Xw)
@@ -103,7 +98,6 @@ class Huber(BaseDatafit):
             grad[j] = grad_j / n_samples
         return grad
 
-Huber, Huber_32 = jit_factory(Huber, spec_huber)
 
 if __name__ == '__main__':
     from skglm import GeneralizedLinearEstimator
@@ -112,7 +106,7 @@ if __name__ == '__main__':
     clf = GeneralizedLinearEstimator(
         Huber(0.5), L1(0.1), is_classif=False
     )
-    X = np.random.randn(10, 10)
+    X = np.random.randn(10, 3)
     y = np.random.randn(10)
-    #import ipdb; ipdb.set_trace()
     clf.fit(X, y)
+    print(clf)

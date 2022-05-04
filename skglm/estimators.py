@@ -914,7 +914,7 @@ class SparseLogisticRegression(LogReg_sklearn):
             self.coef_ = np.empty([n_classes, X.shape[1]])
             self.intercept_ = 0.
             multiclass = OneVsRestClassifier(self).fit(X, y)
-            self.coef_ = multiclass.coef_
+            self.coef_ = np.array([clf.coef_[0] for clf in multiclass.estimators_])
             self.n_iter_ = max(clf.n_iter_ for clf in multiclass.estimators_)
         return self
 

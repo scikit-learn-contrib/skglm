@@ -97,16 +97,3 @@ class Huber(BaseDatafit):
                     grad_j += X_data[i] * np.sign(R) * self.delta
             grad[j] = grad_j / n_samples
         return grad
-
-
-if __name__ == '__main__':
-    from skglm import GeneralizedLinearEstimator
-    from skglm.penalties import L1
-
-    clf = GeneralizedLinearEstimator(
-        Huber(0.5), L1(0.1), is_classif=False
-    )
-    X = np.random.randn(10, 3)
-    y = np.random.randn(10)
-    clf.fit(X, y)
-    print(clf)

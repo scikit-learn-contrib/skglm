@@ -18,7 +18,7 @@ class Huber(BaseDatafit):
     1 / n_samples * sum (f(y_k - (X w)_k))
 
     f(x) = 1 / 2 * x^2 if x <= delta
-    f(x) = delta * | x | - 1 /2 * delta ** 2 if x > delta
+    f(x) = delta * | x | - 1 /2 * delta^2 if x > delta
 
 
     Attributes

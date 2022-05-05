@@ -2,49 +2,6 @@ import numpy as np
 from numba import float64
 from numba.experimental import jitclass
 from skglm.datafits import BaseDatafit
-import platform
-import os
-import scipy
-
-
-def get_sys_info():
-    info = {
-        "env-OMP_NUM_THREADS": "none",
-        "platform": "none",
-        "platform-architecture": "none",
-        "platform-release": "none",
-        "platform-version": "none",
-        "system-cpus": "none",
-        "system-processor": "none",
-        "system-ram (GB)": "none",
-        "version-cuda": "none",
-        "version-numpy": "none",
-        "version-scipy": "none",
-    }
-
-    try:
-        # Info on the env
-        info["env-OMP_NUM_THREADS"] = os.environ.get('OMP_NUM_THREADS')
-
-        # Info on the OS
-        info["platform"] = platform.system()
-        info["platform-architecture"] = platform.machine()
-        info["platform-release"] = platform.release()
-        info["platform-version"] = platform.version()
-
-        # Info on the hardware
-        info["system-cpus"] = os.cpu_count()
-        info["system-processor"] = os._get_processor_name()
-        info["system-ram (GB)"] = round(
-            os.psutil.virtual_memory().total / (1024.0 ** 3)
-        )
-
-        # Info on dependency libs
-        info["version-cuda"] = os._get_cuda_version()
-        info["version-numpy"] = (np.__version__, os._get_numpy_libs())
-        info["version-scipy"] = scipy.__version__
-    except Exception:
-        pass
 
 
 spec_huber = [

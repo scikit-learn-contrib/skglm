@@ -12,7 +12,6 @@ spec_huber = [
 
 @jitclass(spec_huber)
 class Huber(BaseDatafit):
-
     """Huber datafit.
 
     The datafit reads::

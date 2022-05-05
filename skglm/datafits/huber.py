@@ -63,11 +63,11 @@ class Huber(BaseDatafit):
     def gradient_scalar_sparse(self, X_data, X_indptr, X_indices, y, Xw, j):
         grad_j = 0.
         for i in range(X_indptr[j], X_indptr[j + 1]):
-            R = y[X_indices[i]] - Xw[X_indices[i]]
-            if np.abs(R) < self.delta:
-                grad_j += X_data[i] * (-R)
+            diff_indice_i = y[X_indices[i]] - Xw[X_indices[i]]
+            if np.abs(diff_indice_i) < self.delta:
+                grad_j += X_data[i] * (-diff_indice_i)
             else:
-                grad_j += X_data[i] * np.sign(-R) * self.delta
+                grad_j += X_data[i] * np.sign(-diff_indice_i) * self.delta
         return grad_j / len(Xw)
 
     def full_grad_sparse(
@@ -78,10 +78,10 @@ class Huber(BaseDatafit):
         for j in range(n_features):
             grad_j = 0.
             for i in range(X_indptr[j], X_indptr[j + 1]):
-                R = y[X_indices[i]] - Xw[X_indices[i]]
-                if np.abs(R) < self.delta:
-                    grad_j += X_data[i] * (-R)
+                diff_indice_i = y[X_indices[i]] - Xw[X_indices[i]]
+                if np.abs(diff_indice_i) < self.delta:
+                    grad_j += X_data[i] * (-diff_indice_i)
                 else:
-                    grad_j += X_data[i] * np.sign(-R) * self.delta
+                    grad_j += X_data[i] * np.sign(-diff_indice_i) * self.delta
             grad[j] = grad_j / n_samples
         return grad

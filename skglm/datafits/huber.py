@@ -13,13 +13,12 @@ spec_huber = [
 @jitclass(spec_huber)
 class Huber(BaseDatafit):
     """Huber datafit.
-
     The datafit reads::
 
     1 / n_samples * sum (f(y_k - (X w)_k))
 
-    f(x) = 1 / 2 * x^2 if x <= sigma
-    f(x) = delta * | x | - 1 /2 * delta if x > sigma
+    f(x) = 1 / 2 * x^2 if x <= delta
+    f(x) = delta * | x | - 1 /2 * delta if x > delta
 
 
     Attributes

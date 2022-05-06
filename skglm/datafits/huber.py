@@ -26,7 +26,6 @@ class Huber(BaseDatafit):
     lipschitz : array, shape (n_features,)
         The coordinatewise gradient Lipschitz constants.
     """
-
     def __init__(self, delta):
         self.delta = delta
 

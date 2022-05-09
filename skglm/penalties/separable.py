@@ -292,7 +292,7 @@ class SCAD(BasePenalty):
                     grad[idx] +
                     (self.alpha * self.gamma - np.abs(w[j])) / (self.gamma - 1))
             else:
-                # distance of grad to 0
+                # distance of -grad_j to 0
                 subdiff_dist[idx] = np.abs(grad[idx])
         return subdiff_dist
 

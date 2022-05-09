@@ -203,7 +203,7 @@ class BlockSCAD(BasePenalty):
         if norm_value > g * tau:
             return value
         # TODO: check!
-        return ((g - 1) * value - value / norm_value * g * tau) / (g - 1)
+        return ((g - 1) * value - value / norm_value * g * tau) / (g - 2)
 
     def subdiff_distance(self, W, grad, ws):
         """Compute distance of negative gradient to the subdifferential at W."""
@@ -223,7 +223,7 @@ class BlockSCAD(BasePenalty):
                 # TODO
                 pass
             else:
-                # distance of grad to 0
+                # distance of -grad_j to 0
                 subdiff_dist[idx] = norm(grad[idx])
         return subdiff_dist
 

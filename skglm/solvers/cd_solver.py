@@ -150,7 +150,7 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
                 Xw = np.zeros(X.shape[0], dtype=X.dtype)
 
         if (isinstance(datafit, (Quadratic, Quadratic_32)) and n_samples > n_features
-            and n_features < 10_000):
+                and n_features < 10_000):
             # Gram matrix must fit in memory
             sol = cd_gram_quadratic(
                 X, y, penalty, max_epochs=max_epochs, tol=tol, w_init=None,

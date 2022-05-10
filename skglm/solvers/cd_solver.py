@@ -214,11 +214,11 @@ def cd_solver(
 
     Returns
     -------
-    alphas : array, shape (n_alphas,)
-        The alphas along the path where models are computed.
+    w : array, shape (n_features,)
+        Coefficients.
 
-    coefs : array, shape (n_features, n_alphas)
-        Coefficients along the path.
+    obj_out : array, shape (n_iter,)
+        Objective value at every outer iteration.
 
     stop_crit : array, shape (n_alphas,)
         Value of stopping criterion at convergence along the path.

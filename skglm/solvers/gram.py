@@ -1,11 +1,9 @@
 import numpy as np
 from numba import njit
 from scipy import sparse
+
 from skglm.solvers.cd_solver import (
     construct_grad, construct_grad_sparse, dist_fix_point)
-# from numpy.linalg import norm
-
-from skglm.utils import ST, ST_vec
 from skglm.datafits import Quadratic
 
 
@@ -33,6 +31,9 @@ def cd_gram_quadratic(X, y, penalty, max_iter=100, tol=1e-4, w_init=None,
 
     tol : float, optional
         The tolerance for the optimization.
+
+    w_init : array, shape (n_features,), optional
+        Initial coefficient vector.
 
     ws_strategy : ('subdiff'|'fixpoint'), optional
         The score used to compute the stopping criterion.
@@ -88,7 +89,6 @@ def cd_gram_quadratic(X, y, penalty, max_iter=100, tol=1e-4, w_init=None,
                 break
             obj_out.append(p_obj)
     return w, np.array(obj_out), stop_crit
-
 
 
 @njit

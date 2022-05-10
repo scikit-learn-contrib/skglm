@@ -12,7 +12,7 @@ from skglm.datafits import Quadratic
 def cd_gram_quadratic(X, y, penalty, max_iter=100, tol=1e-4, w_init=None,
                       ws_strategy="subdiff", verbose=0):
     r"""Run a coordinate descent solver using Gram update for quadratic datafit.
-    
+
     This solver should be used when n_samples >> n_features. It does not implement any
     working set strategy and iteratively updates the gradients (n_features,) instead of
     the residuals (n_samples,).
@@ -21,25 +21,25 @@ def cd_gram_quadratic(X, y, penalty, max_iter=100, tol=1e-4, w_init=None,
     ----------
     X : array, shape (n_samples, n_features)
         Training data.
-    
+
     y : array, shape (n_samples,)
         Target values.
-    
+
     penalty : instance of Penalty class
         Penalty used in the model.
-    
+
     max_iter : int, optional
         Maximum number of CD epochs.
-    
+
     tol : float, optional
         The tolerance for the optimization.
-    
+
     ws_strategy : ('subdiff'|'fixpoint'), optional
         The score used to compute the stopping criterion.
-    
+
     verbose : bool or int, optional
         Amount of verbosity. 0/False is silent.
-    
+
     Returns
     -------
     w : array, shape (n_features,)
@@ -64,11 +64,7 @@ def cd_gram_quadratic(X, y, penalty, max_iter=100, tol=1e-4, w_init=None,
     grads = (X.T @ y - G @ w_init) / len(y) if w_init is not None else X.T @ y / len(y)
     w = w_init.copy() if w_init is not None else np.zeros(n_features)
     for n_iter in range(max_iter):
-        if is_sparse:
-            _cd_epoch_gram_sparse(
-                X.data, X.indptr, X.indices, G, grads, w, penalty, datafit)
-        else:
-            _cd_epoch_gram(X, G, grads, w, penalty, datafit)
+        _cd_epoch_gram(X, G, grads, w, datafit, penalty)
         if n_iter % 50 == 0:
             # TODO: X @ w
             Xw = X @ w
@@ -96,18 +92,40 @@ def cd_gram_quadratic(X, y, penalty, max_iter=100, tol=1e-4, w_init=None,
 
 
 @njit
-def _cd_epoch_gram(X, G, grads, w, penalty, datafit):
+def _cd_epoch_gram(X, G, grads, w, datafit, penalty):
+    """Run an epoch of coordinate descent in place with gradient update using Gram.
+
+    Parameters
+    ----------
+    X : array, shape (n_samples, n_features)
+        Design matrix.
+
+    G : array, shape (n_features, n_features)
+        Gram matrix.
+
+    grads : array, shape (n_features,)
+        Gradient vector.
+
+    w : array, shape (n_features,)
+        Coefficient vector.
+
+    datafit : Datafit
+        Datafit.
+
+    penalty : Penalty
+        Penalty.
+    """
+    # TODO: sparse matrix
     n_features = X.shape[1]
+    lc = datafit.lipschitz
     for j in range(n_features):
-        if lipschitz[j] == 0:
+        if lc[j] == 0:
             continue
         old_w_j = w[j]
-        # use penalty.prox1d
-        w[j] = ST(w[j] + grads[j] / datafit.lipschitz[j],
-                  alpha / lipschitz[j] * )
+        stepsize = 1 / lc[j] if lc[j] != 0 else 1000
+        w[j] = penalty.prox_1d(old_w_j + grads[j] / lc[j], stepsize, j)
         if old_w_j != w[j]:
             grads += G[j, :] * (old_w_j - w[j]) / len(X)
-
 
 
 # def fista_gram_quadratic(

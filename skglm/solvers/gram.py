@@ -2,7 +2,7 @@ import numpy as np
 from numba import njit
 from scipy import sparse
 
-from skglm.datafits import Quadratic
+from skglm.datafits import Quadratic, Quadratic_32
 from skglm.solvers.cd_utils import (
     construct_grad, construct_grad_sparse, dist_fix_point)
 
@@ -52,20 +52,26 @@ def cd_gram_quadratic(X, y, penalty, max_epochs=1000, tol=1e-4, w_init=None,
     stop_crit : array, shape (n_alphas,)
         Value of stopping criterion at convergence along the path.
     """
-    n_features = X.shape[1]
+    is_sparse = sparse.issparse(X)
+    n_samples = len(y)
+    n_features = len(X.indptr) - 1 if is_sparse else X.shape[1]
     all_feats = np.arange(n_features)
     obj_out = []
-    datafit = Quadratic()
-    is_sparse = sparse.issparse(X)
+    datafit = Quadratic_32() if X.dtype == np.float32 else Quadratic()
     if is_sparse:
         datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
     else:
         datafit.initialize(X, y)
     G = X.T @ X  # gram matrix
     grads = (X.T @ y - G @ w_init) / len(y) if w_init is not None else X.T @ y / len(y)
-    w = w_init.copy() if w_init is not None else np.zeros(n_features)
+    w = w_init.copy() if w_init is not None else np.zeros(n_features, dtype=X.dtype)
     for epoch in range(max_epochs):
-        _cd_epoch_gram(X, G, grads, w, datafit, penalty)
+        if is_sparse:
+            _cd_epoch_gram_sparse(
+                G.data, G.indptr, G.indices, grads, w, datafit, penalty, n_samples,
+                n_features)
+        else:
+            _cd_epoch_gram(G, grads, w, datafit, penalty, n_samples, n_features)
         if epoch % 50 == 0:
             # TODO: X @ w
             Xw = X @ w
@@ -92,14 +98,11 @@ def cd_gram_quadratic(X, y, penalty, max_epochs=1000, tol=1e-4, w_init=None,
 
 
 @njit
-def _cd_epoch_gram(X, G, grads, w, datafit, penalty):
+def _cd_epoch_gram(G, grads, w, datafit, penalty, n_samples, n_features):
     """Run an epoch of coordinate descent in place with gradient update using Gram.
 
     Parameters
     ----------
-    X : array, shape (n_samples, n_features)
-        Design matrix.
-
     G : array, shape (n_features, n_features)
         Gram matrix.
 
@@ -114,9 +117,10 @@ def _cd_epoch_gram(X, G, grads, w, datafit, penalty):
 
     penalty : Penalty
         Penalty.
+
+    n_features : int
+        Number of features.
     """
-    # TODO: sparse matrix
-    n_features = X.shape[1]
     lc = datafit.lipschitz
     for j in range(n_features):
         if lc[j] == 0:
@@ -125,7 +129,51 @@ def _cd_epoch_gram(X, G, grads, w, datafit, penalty):
         stepsize = 1 / lc[j] if lc[j] != 0 else 1000
         w[j] = penalty.prox_1d(old_w_j + grads[j] / lc[j], stepsize, j)
         if old_w_j != w[j]:
-            grads += G[j, :] * (old_w_j - w[j]) / len(X)
+            grads += G[j, :] * (old_w_j - w[j]) / n_samples
+
+
+@njit
+def _cd_epoch_gram_sparse(G_data, G_indptr, G_indices, grads, w, datafit, penalty,
+                          n_samples, n_features):
+    """Run a CD epoch with Gram update for sparse design matrices.
+
+    Parameters
+    ----------
+    G_data : array, shape (n_elements,)
+        `data` attribute of the sparse CSC matrix G.
+
+    G_indptr : array, shape (n_features + 1,)
+        `indptr` attribute of the sparse CSC matrix G.
+
+    G_indices : array, shape (n_elements,)
+        `indices` attribute of the sparse CSC matrix G.
+
+    grads : array, shape (n_features,)
+        Gradient vector.
+
+    w : array, shape (n_features,)
+        Coefficient vector.
+
+    datafit : Datafit
+        Datafit.
+
+    penalty : Penalty
+        Penalty.
+
+    n_features : int
+        Number of features.
+    """
+    lc = datafit.lipschitz
+    for j in range(n_features):
+        if lc[j] == 0:
+            continue
+        old_w_j = w[j]
+        stepsize = 1 / lc[j]
+        w[j] = penalty.prox_1d(old_w_j + grads[j] / lc[j], stepsize, j)
+        diff = old_w_j - w[j]
+        if diff != 0:
+            for i in range(G_indptr[j], G_indptr[j + 1]):
+                grads[G_indices[i]] += diff * G_data[i] / n_samples
 
 
 # def fista_gram_quadratic(

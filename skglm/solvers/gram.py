@@ -1,57 +1,98 @@
 import numpy as np
 from numba import njit
+from scipy import sparse
+from skglm.solvers.cd_solver import (
+    construct_grad, construct_grad_sparse, dist_fix_point)
 # from numpy.linalg import norm
 
-from skglm.utils import BST, ST, ST_vec
+from skglm.utils import ST, ST_vec
 from skglm.datafits import Quadratic
 
 
-def cd_gram_quadratic(X, y, penalty, max_iter, tol, w_init=None, check_freq=100):
-    """Gram solver for quadratic datafit."""
+def cd_gram_quadratic(X, y, penalty, max_iter=100, tol=1e-4, w_init=None,
+                      ws_strategy="subdiff", verbose=0):
+    r"""Run a coordinate descent solver using Gram update for quadratic datafit.
+    
+    This solver should be used when n_samples >> n_features. It does not implement any
+    working set strategy and iteratively updates the gradients (n_features,) instead of
+    the residuals (n_samples,).
+
+    Parameters
+    ----------
+    X : array, shape (n_samples, n_features)
+        Training data.
+    
+    y : array, shape (n_samples,)
+        Target values.
+    
+    penalty : instance of Penalty class
+        Penalty used in the model.
+    
+    max_iter : int, optional
+        Maximum number of CD epochs.
+    
+    tol : float, optional
+        The tolerance for the optimization.
+    
+    ws_strategy : ('subdiff'|'fixpoint'), optional
+        The score used to compute the stopping criterion.
+    
+    verbose : bool or int, optional
+        Amount of verbosity. 0/False is silent.
+    
+    Returns
+    -------
+    w : array, shape (n_features,)
+        Coefficients.
+
+    obj_out : array, shape (n_iter,)
+        Objective value at every outer iteration.
+
+    stop_crit : array, shape (n_alphas,)
+        Value of stopping criterion at convergence along the path.
+    """
     n_features = X.shape[1]
+    all_feats = np.arange(n_features)
+    obj_out = []
     datafit = Quadratic()
-    datafit.initialize(X, y)  # todo sparse
+    is_sparse = sparse.issparse(X)
+    if is_sparse:
+        datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
+    else:
+        datafit.initialize(X, y)
     G = X.T @ X  # gram matrix
-    grads = X.T @ y / len(y)  # this is wrong if an init is used
+    grads = (X.T @ y - G @ w_init) / len(y) if w_init is not None else X.T @ y / len(y)
     w = w_init.copy() if w_init is not None else np.zeros(n_features)
     for n_iter in range(max_iter):
-        _cd_epoch_gram(X, G, grads, w, penalty, datafit)
-        if n_iter % check_freq == 0:
-            # check KKT
-            # print(f"iter {n_iter} :: p_obj {p_obj:.5f} :: d_obj {d_obj:.5f}" +
-            #       f" :: gap {d_gap:.5f}")
-            # if d_gap < tol:
-            #     print("Convergence reached!")
-            #     break
-    return w
+        if is_sparse:
+            _cd_epoch_gram_sparse(
+                X.data, X.indptr, X.indices, G, grads, w, penalty, datafit)
+        else:
+            _cd_epoch_gram(X, G, grads, w, penalty, datafit)
+        if n_iter % 50 == 0:
+            # TODO: X @ w
+            Xw = X @ w
+            p_obj = datafit.value(y, w, Xw) + penalty.value(w)
 
+            if is_sparse:
+                grad = construct_grad_sparse(
+                    X.data, X.indptr, X.indices, y, w, Xw, datafit, all_feats)
+            else:
+                grad = construct_grad(X, y, w, Xw, datafit, all_feats)
+            if ws_strategy == "subdiff":
+                opt_ws = penalty.subdiff_distance(w, grad, all_feats)
+            elif ws_strategy == "fixpoint":
+                opt_ws = dist_fix_point(w, grad, datafit, penalty, all_feats)
 
-def fista_gram_quadratic(
-        X, y, penalty, max_iter, tol, w_init=None, check_freq=100):
-    n_samples, n_features = X.shape
-    norm_y2 = y @ y
-    t_new = 1
-    w = w_init.copy() if w_init is not None else np.zeros(n_features)
-    z = w_init.copy() if w_init is not None else np.zeros(n_features)
-    G = X.T @ X
-    Xty = X.T @ y
-    L = np.linalg.norm(X, ord=2) ** 2 / n_samples
-    for n_iter in range(max_iter):
-        t_old = t_new
-        t_new = (1 + np.sqrt(1 + 4 * t_old ** 2)) / 2
-        w_old = w.copy()
-        z -= (G @ z - Xty) / L / n_samples
-        w = ST_vec(z, alpha / L)  # use penalty.prox
-        z = w + (t_old - 1.) / t_new * (w - w_old)
-        if n_iter % check_freq == 0:
-            pass
-            # use KKT instead
-            # print(f"iter {n_iter} :: p_obj {p_obj:.5f} :: d_obj {d_obj:.5f} " +
-            #   f":: gap {d_gap:.5f}")
-            # if d_gap < tol:
-            # print("Convergence reached!")
-            # break
-    return w
+            stop_crit = np.max(opt_ws)
+            if max(verbose - 1, 0):
+                print(f"Epoch {n_iter + 1}, objective {p_obj:.10f}, "
+                      f"stopping crit {stop_crit:.2e}")
+            if stop_crit <= tol:
+                break
+            obj_out.append(p_obj)
+    return w, np.array(obj_out), stop_crit
+
 
 
 @njit
@@ -66,3 +107,32 @@ def _cd_epoch_gram(X, G, grads, w, penalty, datafit):
                   alpha / lipschitz[j] * )
         if old_w_j != w[j]:
             grads += G[j, :] * (old_w_j - w[j]) / len(X)
+
+
+
+# def fista_gram_quadratic(
+#         X, y, penalty, max_iter, tol, w_init=None, check_freq=100):
+#     n_samples, n_features = X.shape
+#     norm_y2 = y @ y
+#     t_new = 1
+#     w = w_init.copy() if w_init is not None else np.zeros(n_features)
+#     z = w_init.copy() if w_init is not None else np.zeros(n_features)
+#     G = X.T @ X
+#     Xty = X.T @ y
+#     L = np.linalg.norm(X, ord=2) ** 2 / n_samples
+#     for n_iter in range(max_iter):
+#         t_old = t_new
+#         t_new = (1 + np.sqrt(1 + 4 * t_old ** 2)) / 2
+#         w_old = w.copy()
+#         z -= (G @ z - Xty) / L / n_samples
+#         w = ST_vec(z, alpha / L)  # use penalty.prox
+#         z = w + (t_old - 1.) / t_new * (w - w_old)
+#         if n_iter % check_freq == 0:
+#             pass
+#             # use KKT instead
+#             # print(f"iter {n_iter} :: p_obj {p_obj:.5f} :: d_obj {d_obj:.5f} " +
+#             #   f":: gap {d_gap:.5f}")
+#             # if d_gap < tol:
+#             # print("Convergence reached!")
+#             # break
+#     return w

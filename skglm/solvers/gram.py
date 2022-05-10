@@ -4,7 +4,7 @@ from scipy import sparse
 
 from skglm.datafits import Quadratic, Quadratic_32
 from skglm.solvers.cd_utils import (
-    construct_grad, construct_grad_sparse, dist_fix_point)
+    construct_grad, construct_grad_sparse, dist_fix_point, prox_vec)
 
 
 def cd_gram_quadratic(X, y, penalty, max_epochs=1000, tol=1e-4, w_init=None,
@@ -73,7 +73,6 @@ def cd_gram_quadratic(X, y, penalty, max_epochs=1000, tol=1e-4, w_init=None,
         else:
             _cd_epoch_gram(G, grads, w, datafit, penalty, n_samples, n_features)
         if epoch % 50 == 0:
-            # TODO: X @ w
             Xw = X @ w
             p_obj = datafit.value(y, w, Xw) + penalty.value(w)
 
@@ -118,6 +117,9 @@ def _cd_epoch_gram(G, grads, w, datafit, penalty, n_samples, n_features):
     penalty : Penalty
         Penalty.
 
+    n_samples : int
+        Number of samples.
+
     n_features : int
         Number of features.
     """
@@ -160,6 +162,9 @@ def _cd_epoch_gram_sparse(G_data, G_indptr, G_indices, grads, w, datafit, penalt
     penalty : Penalty
         Penalty.
 
+    n_samples : int
+        Number of samples.
+
     n_features : int
         Number of features.
     """
@@ -176,29 +181,92 @@ def _cd_epoch_gram_sparse(G_data, G_indptr, G_indices, grads, w, datafit, penalt
                 grads[G_indices[i]] += diff * G_data[i] / n_samples
 
 
-# def fista_gram_quadratic(
-#         X, y, penalty, max_iter, tol, w_init=None, check_freq=100):
-#     n_samples, n_features = X.shape
-#     norm_y2 = y @ y
-#     t_new = 1
-#     w = w_init.copy() if w_init is not None else np.zeros(n_features)
-#     z = w_init.copy() if w_init is not None else np.zeros(n_features)
-#     G = X.T @ X
-#     Xty = X.T @ y
-#     L = np.linalg.norm(X, ord=2) ** 2 / n_samples
-#     for n_iter in range(max_iter):
-#         t_old = t_new
-#         t_new = (1 + np.sqrt(1 + 4 * t_old ** 2)) / 2
-#         w_old = w.copy()
-#         z -= (G @ z - Xty) / L / n_samples
-#         w = ST_vec(z, alpha / L)  # use penalty.prox
-#         z = w + (t_old - 1.) / t_new * (w - w_old)
-#         if n_iter % check_freq == 0:
-#             pass
-#             # use KKT instead
-#             # print(f"iter {n_iter} :: p_obj {p_obj:.5f} :: d_obj {d_obj:.5f} " +
-#             #   f":: gap {d_gap:.5f}")
-#             # if d_gap < tol:
-#             # print("Convergence reached!")
-#             # break
-#     return w
+def fista_gram_quadratic(X, y, penalty, max_epochs=1000, tol=1e-4, w_init=None,
+                         ws_strategy="subdiff", verbose=False):
+    r"""Run an accelerated proximal gradient descent for quadratic datafit.
+
+    This solver should be used when n_samples >> n_features. It does not implement any
+    working set strategy and iteratively updates the gradients (n_features,) instead of
+    the residuals (n_samples,).
+
+    Parameters
+    ----------
+    X : array, shape (n_samples, n_features)
+        Training data.
+
+    y : array, shape (n_samples,)
+        Target values.
+
+    penalty : instance of Penalty class
+        Penalty used in the model.
+
+    max_epochs : int, optional
+        Maximum number of proximal steps.
+
+    tol : float, optional
+        The tolerance for the optimization.
+
+    w_init : array, shape (n_features,), optional
+        Initial coefficient vector.
+
+    ws_strategy : ('subdiff'|'fixpoint'), optional
+        The score used to compute the stopping criterion.
+
+    verbose : bool or int, optional
+        Amount of verbosity. 0/False is silent.
+
+    Returns
+    -------
+    w : array, shape (n_features,)
+        Coefficients.
+
+    obj_out : array, shape (n_iter,)
+        Objective value at every outer iteration.
+
+    stop_crit : array, shape (n_alphas,)
+        Value of stopping criterion at convergence along the path.
+    """
+    is_sparse = sparse.issparse(X)
+    n_samples = len(y)
+    n_features = len(X.indptr) - 1 if is_sparse else X.shape[1]
+    all_feats = np.arange(n_features)
+    obj_out = []
+    datafit = Quadratic_32() if X.dtype == np.float32 else Quadratic()
+    if is_sparse:
+        datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
+    else:
+        datafit.initialize(X, y)
+    t_new = 1
+    w = w_init.copy() if w_init is not None else np.zeros(n_features)
+    z = w_init.copy() if w_init is not None else np.zeros(n_features)
+    G = X.T @ X
+    lc = np.linalg.norm(X, ord=2) ** 2 / n_samples
+    for epoch in range(max_epochs):
+        t_old = t_new
+        t_new = (1 + np.sqrt(1 + 4 * t_old ** 2)) / 2
+        w_old = w.copy()
+        z -= (G @ z - datafit.Xty) / lc / n_samples
+        w = prox_vec(penalty, z, 1/lc, n_features)
+        z = w + (t_old - 1.) / t_new * (w - w_old)
+        if epoch % 10 == 0:
+            Xw = X @ w
+            p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+
+            if is_sparse:
+                grad = construct_grad_sparse(
+                    X.data, X.indptr, X.indices, y, w, Xw, datafit, all_feats)
+            else:
+                grad = construct_grad(X, y, w, Xw, datafit, all_feats)
+            if ws_strategy == "subdiff":
+                opt_ws = penalty.subdiff_distance(w, grad, all_feats)
+            elif ws_strategy == "fixpoint":
+                opt_ws = dist_fix_point(w, grad, datafit, penalty, all_feats)
+
+            stop_crit = np.max(opt_ws)
+            if max(verbose - 1, 0):
+                print(f"Epoch {epoch + 1}, objective {p_obj:.10f}, "
+                      f"stopping crit {stop_crit:.2e}")
+            if stop_crit <= tol:
+                break
+            obj_out.append(p_obj)
+    return w, np.array(obj_out), stop_crit

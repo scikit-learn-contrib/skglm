@@ -112,3 +112,27 @@ def construct_grad_sparse(data, indptr, indices, y, w, Xw, datafit, ws):
         grad[idx] = datafit.gradient_scalar_sparse(
             data, indptr, indices, y, Xw, j)
     return grad
+
+
+@njit
+def prox_vec(penalty, z, stepsize, n_features):
+    """Apply the proximal operator iteratively to a vector of weight.
+    
+    Parameters
+    ----------
+    penalty : instance of Penalty
+        Penalty.
+    
+    z : array, shape (n_features,)
+        Coefficient vector.
+    
+    stepsize : float
+        Step size.
+    
+    n_features : int
+        Number of features.
+    """
+    w = np.zeros(n_features)
+    for j in range(n_features):
+        w[j] = penalty.prox_1d(z[j], stepsize, j)
+    return w

@@ -2,12 +2,12 @@ import numpy as np
 from numba import njit
 from scipy import sparse
 
+from skglm.datafits import Quadratic
 from skglm.solvers.cd_solver import (
     construct_grad, construct_grad_sparse, dist_fix_point)
-from skglm.datafits import Quadratic
 
 
-def cd_gram_quadratic(X, y, penalty, max_iter=100, tol=1e-4, w_init=None,
+def cd_gram_quadratic(X, y, penalty, max_epochs=1000, tol=1e-4, w_init=None,
                       ws_strategy="subdiff", verbose=0):
     r"""Run a coordinate descent solver using Gram update for quadratic datafit.
 
@@ -26,7 +26,7 @@ def cd_gram_quadratic(X, y, penalty, max_iter=100, tol=1e-4, w_init=None,
     penalty : instance of Penalty class
         Penalty used in the model.
 
-    max_iter : int, optional
+    max_epochs : int, optional
         Maximum number of CD epochs.
 
     tol : float, optional
@@ -64,9 +64,9 @@ def cd_gram_quadratic(X, y, penalty, max_iter=100, tol=1e-4, w_init=None,
     G = X.T @ X  # gram matrix
     grads = (X.T @ y - G @ w_init) / len(y) if w_init is not None else X.T @ y / len(y)
     w = w_init.copy() if w_init is not None else np.zeros(n_features)
-    for n_iter in range(max_iter):
+    for epoch in range(max_epochs):
         _cd_epoch_gram(X, G, grads, w, datafit, penalty)
-        if n_iter % 50 == 0:
+        if epoch % 50 == 0:
             # TODO: X @ w
             Xw = X @ w
             p_obj = datafit.value(y, w, Xw) + penalty.value(w)
@@ -83,7 +83,7 @@ def cd_gram_quadratic(X, y, penalty, max_iter=100, tol=1e-4, w_init=None,
 
             stop_crit = np.max(opt_ws)
             if max(verbose - 1, 0):
-                print(f"Epoch {n_iter + 1}, objective {p_obj:.10f}, "
+                print(f"Epoch {epoch + 1}, objective {p_obj:.10f}, "
                       f"stopping crit {stop_crit:.2e}")
             if stop_crit <= tol:
                 break

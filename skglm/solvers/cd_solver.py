@@ -2,6 +2,8 @@ import numpy as np
 from numba import njit
 from scipy import sparse
 from sklearn.utils import check_array
+from skglm.datafits.single_task import Quadratic
+from skglm.solvers.gram import cd_gram_quadratic
 
 
 def cd_solver_path(X, y, datafit, penalty, alphas=None,
@@ -109,6 +111,7 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
     # else:
         # alphas = np.sort(alphas)[::-1]
 
+    n_samples = len(y)
     n_alphas = len(alphas)
 
     coefs = np.zeros((n_features, n_alphas), order='F', dtype=X.dtype)
@@ -144,10 +147,16 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
                 w = np.zeros(n_features, dtype=X.dtype)
                 Xw = np.zeros(X.shape[0], dtype=X.dtype)
 
-        sol = cd_solver(
-            X, y, datafit, penalty, w, Xw,
-            max_iter=max_iter, max_epochs=max_epochs, p0=p0, tol=tol,
-            use_acc=use_acc, verbose=verbose, ws_strategy=ws_strategy)
+        if isinstance(datafit, Quadratic) and n_samples > n_features * 10:
+            # XXX: does n_samples > n_features * 10 look correct?
+            sol = cd_gram_quadratic(
+                X, y, penalty, max_epochs=max_epochs, tol=tol, w_init=None,
+                ws_strategy=ws_strategy, verbose=verbose)
+        else:
+            sol = cd_solver(
+                X, y, datafit, penalty, w, Xw,
+                max_iter=max_iter, max_epochs=max_epochs, p0=p0, tol=tol,
+                use_acc=use_acc, verbose=verbose, ws_strategy=ws_strategy)
 
         coefs[:, t] = w
         stop_crits[t] = sol[-1]

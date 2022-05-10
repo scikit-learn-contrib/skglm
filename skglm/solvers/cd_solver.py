@@ -11,7 +11,7 @@ from skglm.solvers.gram import cd_gram_quadratic, fista_gram_quadratic
 def cd_solver_path(X, y, datafit, penalty, alphas=None,
                    coef_init=None, max_iter=20, max_epochs=50_000,
                    p0=10, tol=1e-4, use_acc=True, return_n_iter=False,
-                   ws_strategy="subdiff", verbose=0):
+                   solver="cd_ws", ws_strategy="subdiff", verbose=0):
     r"""Compute optimization path with Anderson accelerated coordinate descent.
 
     The loss is customized by passing various choices of datafit and penalty:
@@ -55,6 +55,9 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
 
     return_n_iter : bool, optional
         If True, number of iterations along the path are returned.
+
+    solver : ('cd_ws'|'cd_gram'|'fista'), optional
+        The solver used to solve the optimization problem.
 
     ws_strategy : ('subdiff'|'fixpoint'), optional
         The score used to build the working set.
@@ -150,10 +153,13 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
                 Xw = np.zeros(X.shape[0], dtype=X.dtype)
 
         if (isinstance(datafit, (Quadratic, Quadratic_32)) and n_samples > n_features
-                and n_features < 10_000):
+                and n_features < 10_000) or solver in ("cd_gram", "fista"):
             # Gram matrix must fit in memory hence the restriction n_features < 1e5
-            if (hasattr(penalty, "alpha_max")
-                    and penalty.alpha / penalty.alpha_max(datafit.Xty) < 1e-3):
+            if not isinstance(datafit, (Quadratic, Quadratic_32)):
+                raise ValueError("`cd_gram` and `fista` solvers are only supported " +
+                                 "for `Quadratic` datafits.")
+            if (hasattr(penalty, "alpha_max") and penalty.alpha /
+                    penalty.alpha_max(datafit.Xty) < 1e-3) or solver == "fista":
                 sol = fista_gram_quadratic(
                     X, y, penalty, max_epochs=max_epochs, tol=tol, w_init=None,
                     ws_strategy=ws_strategy, verbose=verbose)

@@ -132,7 +132,7 @@ def prox_vec(penalty, z, stepsize, n_features):
     n_features : int
         Number of features.
     """
-    w = np.zeros(n_features)
+    w = np.zeros(n_features, dtype=z.dtype)
     for j in range(n_features):
         w[j] = penalty.prox_1d(z[j], stepsize, j)
     return w

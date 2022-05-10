@@ -5,7 +5,7 @@ from sklearn.utils import check_array
 from skglm.datafits.single_task import Quadratic, Quadratic_32
 from skglm.solvers.cd_utils import (
     dist_fix_point, construct_grad, construct_grad_sparse)
-from skglm.solvers.gram import cd_gram_quadratic
+from skglm.solvers.gram import cd_gram_quadratic, fista_gram_quadratic
 
 
 def cd_solver_path(X, y, datafit, penalty, alphas=None,
@@ -151,10 +151,16 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
 
         if (isinstance(datafit, (Quadratic, Quadratic_32)) and n_samples > n_features
                 and n_features < 10_000):
-            # Gram matrix must fit in memory
-            sol = cd_gram_quadratic(
-                X, y, penalty, max_epochs=max_epochs, tol=tol, w_init=None,
-                ws_strategy=ws_strategy, verbose=verbose)
+            # Gram matrix must fit in memory hence the restriction n_features < 1e5
+            if (hasattr(penalty, "alpha_max")
+                    and penalty.alpha / penalty.alpha_max(datafit.Xty) < 1e-3):
+                sol = fista_gram_quadratic(
+                    X, y, penalty, max_epochs=max_epochs, tol=tol, w_init=None,
+                    ws_strategy=ws_strategy, verbose=verbose)
+            else:
+                sol = cd_gram_quadratic(
+                    X, y, penalty, max_epochs=max_epochs, tol=tol, w_init=None,
+                    ws_strategy=ws_strategy, verbose=verbose)
             w = sol[0]
         else:
             sol = cd_solver(

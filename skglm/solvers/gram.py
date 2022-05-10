@@ -237,8 +237,8 @@ def fista_gram_quadratic(X, y, penalty, max_epochs=1000, tol=1e-4, w_init=None,
     else:
         datafit.initialize(X, y)
     t_new = 1
-    w = w_init.copy() if w_init is not None else np.zeros(n_features)
-    z = w_init.copy() if w_init is not None else np.zeros(n_features)
+    w = w_init.copy() if w_init is not None else np.zeros(n_features, dtype=X.dtype)
+    z = w_init.copy() if w_init is not None else np.zeros(n_features, dtype=X.dtype)
     G = X.T @ X
     lc = np.linalg.norm(X, ord=2) ** 2 / n_samples
     for epoch in range(max_epochs):

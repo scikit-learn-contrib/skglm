@@ -117,18 +117,18 @@ def construct_grad_sparse(data, indptr, indices, y, w, Xw, datafit, ws):
 @njit
 def prox_vec(penalty, z, stepsize, n_features):
     """Apply the proximal operator iteratively to a vector of weight.
-    
+
     Parameters
     ----------
     penalty : instance of Penalty
         Penalty.
-    
+
     z : array, shape (n_features,)
         Coefficient vector.
-    
+
     stepsize : float
         Step size.
-    
+
     n_features : int
         Number of features.
     """

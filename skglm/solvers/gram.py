@@ -3,7 +3,7 @@ from numba import njit
 from scipy import sparse
 
 from skglm.datafits import Quadratic
-from skglm.solvers.cd_solver import (
+from skglm.solvers.cd_utils import (
     construct_grad, construct_grad_sparse, dist_fix_point)
 
 

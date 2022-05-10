@@ -2,7 +2,9 @@ import numpy as np
 from numba import njit
 from scipy import sparse
 from sklearn.utils import check_array
-from skglm.datafits.single_task import Quadratic
+from skglm.datafits.single_task import Quadratic, Quadratic_32
+from skglm.solvers.cd_utils import (
+    dist_fix_point, construct_grad, construct_grad_sparse)
 from skglm.solvers.gram import cd_gram_quadratic
 
 
@@ -147,8 +149,9 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
                 w = np.zeros(n_features, dtype=X.dtype)
                 Xw = np.zeros(X.shape[0], dtype=X.dtype)
 
-        if isinstance(datafit, Quadratic) and n_samples > n_features * 10:
-            # XXX: does n_samples > n_features * 10 look correct?
+        if (isinstance(datafit, (Quadratic, Quadratic_32)) and n_samples > n_features
+            and n_features < 10_000):
+            # Gram matrix must fit in memory
             sol = cd_gram_quadratic(
                 X, y, penalty, max_epochs=max_epochs, tol=tol, w_init=None,
                 ws_strategy=ws_strategy, verbose=verbose)
@@ -354,118 +357,6 @@ def cd_solver(
                         break
         obj_out.append(p_obj)
     return w, np.array(obj_out), stop_crit
-
-
-@njit
-def dist_fix_point(w, grad, datafit, penalty, ws):
-    """Compute the violation of the fixed point iterate scheme.
-
-    Parameters
-    ----------
-    w : array, shape (n_features,)
-        Coefficient vector.
-
-    grad : array, shape (n_features,)
-        Gradient.
-
-    datafit: instance of BaseDatafit
-        Datafit.
-
-    penalty: instance of BasePenalty
-        Penalty.
-
-    ws : array, shape (n_features,)
-        The working set.
-
-    Returns
-    -------
-    dist_fix_point : array, shape (n_features,)
-        Violation score for every feature.
-    """
-    dist_fix_point = np.zeros(ws.shape[0])
-    for idx, j in enumerate(ws):
-        lcj = datafit.lipschitz[j]
-        if lcj != 0:
-            dist_fix_point[idx] = np.abs(
-                w[j] - penalty.prox_1d(w[j] - grad[idx] / lcj, 1. / lcj, j))
-    return dist_fix_point
-
-
-@njit
-def construct_grad(X, y, w, Xw, datafit, ws):
-    """Compute the gradient of the datafit restricted to the working set.
-
-    Parameters
-    ----------
-    X : array, shape (n_samples, n_features)
-        Design matrix.
-
-    y : array, shape (n_samples,)
-        Target vector.
-
-    w : array, shape (n_features,)
-        Coefficient vector.
-
-    Xw : array, shape (n_samples, )
-        Model fit.
-
-    datafit : Datafit
-        Datafit.
-
-    ws : array, shape (n_features,)
-        The working set.
-
-    Returns
-    -------
-    grad : array, shape (ws_size, n_tasks)
-        The gradient restricted to the working set.
-    """
-    grad = np.zeros(ws.shape[0])
-    for idx, j in enumerate(ws):
-        grad[idx] = datafit.gradient_scalar(X, y, w, Xw, j)
-    return grad
-
-
-@njit
-def construct_grad_sparse(data, indptr, indices, y, w, Xw, datafit, ws):
-    """Compute the gradient of the datafit restricted to the working set.
-
-    Parameters
-    ----------
-    data : array-like
-        Data array of the matrix in CSC format.
-
-    indptr : array-like
-        CSC format index point array.
-
-    indices : array-like
-        CSC format index array.
-
-    y : array, shape (n_samples, )
-        Target matrix.
-
-    w : array, shape (n_features,)
-        Coefficient matrix.
-
-    Xw : array, shape (n_samples, )
-        Model fit.
-
-    datafit : Datafit
-        Datafit.
-
-    ws : array, shape (n_features,)
-        The working set.
-
-    Returns
-    -------
-    grad : array, shape (ws_size, n_tasks)
-        The gradient restricted to the working set.
-    """
-    grad = np.zeros(ws.shape[0])
-    for idx, j in enumerate(ws):
-        grad[idx] = datafit.gradient_scalar_sparse(
-            data, indptr, indices, y, Xw, j)
-    return grad
 
 
 @njit

@@ -127,7 +127,7 @@ def _cd_epoch_gram(G, grads, w, datafit, penalty, n_samples, n_features):
             continue
         old_w_j = w[j]
         stepsize = 1 / lc[j] if lc[j] != 0 else 1000
-        w[j] = penalty.prox_1d(old_w_j + grads[j] / lc[j], stepsize, j)
+        w[j] = penalty.prox_1d(old_w_j + grads[j] * stepsize, stepsize, j)
         if old_w_j != w[j]:
             grads += G[j, :] * (old_w_j - w[j]) / n_samples
 

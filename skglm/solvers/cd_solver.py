@@ -155,6 +155,7 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
             sol = cd_gram_quadratic(
                 X, y, penalty, max_epochs=max_epochs, tol=tol, w_init=None,
                 ws_strategy=ws_strategy, verbose=verbose)
+            w = sol[0]
         else:
             sol = cd_solver(
                 X, y, datafit, penalty, w, Xw,

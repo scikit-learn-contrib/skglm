@@ -59,9 +59,9 @@ def cd_gram_quadratic(X, y, penalty, max_epochs=1000, tol=1e-4, w_init=None,
         datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
     else:
         datafit.initialize(X, y)
-    XtX = (X.T @ X).toarray() if is_sparse else X.T @ X # gram matrix
+    XtX = (X.T @ X).toarray() if is_sparse else X.T @ X  # gram matrix
     grad = ((datafit.Xty - XtX @ w_init) / len(y) if w_init is not None
-                else datafit.Xty / len(y))
+            else datafit.Xty / len(y))
     w = w_init.copy() if w_init is not None else np.zeros(n_features, dtype=X.dtype)
     for epoch in range(max_epochs):
         _cd_epoch_gram(XtX, grad, w, datafit, penalty, n_samples, n_features)

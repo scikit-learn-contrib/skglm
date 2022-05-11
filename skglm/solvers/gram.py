@@ -13,7 +13,7 @@ def cd_gram_quadratic(X, y, penalty, max_epochs=1000, tol=1e-4, w_init=None,
 
     This solver should be used when n_samples >> n_features. It does not implement any
     working set strategy and iteratively updates the gradients (n_features,) instead of
-    the residuals (n_samples,).
+    the prediction Xw (n_samples,).
 
     Parameters
     ----------

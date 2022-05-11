@@ -154,7 +154,7 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
 
         if (isinstance(datafit, (Quadratic, Quadratic_32)) and n_samples > n_features
                 and n_features < 10_000) or solver in ("cd_gram", "fista"):
-            # Gram matrix must fit in memory hence the restriction n_features < 1e5
+            # Gram matrix must fit in memory hence the restriction n_features < 1e4
             if not isinstance(datafit, (Quadratic, Quadratic_32)):
                 raise ValueError("`cd_gram` and `fista` solvers are only supported " +
                                  "for `Quadratic` datafits.")

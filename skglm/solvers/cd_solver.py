@@ -161,11 +161,11 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
             if (hasattr(penalty, "alpha_max") and penalty.alpha /
                     penalty.alpha_max(datafit.Xty) < 1e-3) or solver == "fista":
                 sol = fista_gram_quadratic(
-                    X, y, penalty, max_epochs=max_epochs, tol=tol, w_init=None,
+                    X, y, penalty, max_epochs=max_epochs, tol=tol, w_init=coef_init,
                     verbose=verbose)
             else:
                 sol = cd_gram_quadratic(
-                    X, y, penalty, max_epochs=max_epochs, tol=tol, w_init=None,
+                    X, y, penalty, max_epochs=max_epochs, tol=tol, w_init=coef_init,
                     verbose=verbose)
             w = sol[0]
         else:

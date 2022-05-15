@@ -83,14 +83,6 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
         datafit.initialize(X, y)
     n_features = X.shape[1]
 
-    # if X_offset is not None:
-    #     X_sparse_scaling = X_offset / X_scale
-    #     X_sparse_scaling = np.asarray(X_sparse_scaling, dtype=X.dtype)
-    # else:
-    #     X_sparse_scaling = np.zeros(n_features, dtype=X.dtype)
-
-    # X_dense, X_data, X_indices, X_indptr = _sparse_and_dense(X)
-
     if alphas is None:
         raise ValueError('alphas should be passed explicitely')
         # if hasattr(penalty, "alpha_max"):

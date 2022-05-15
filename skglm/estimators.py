@@ -155,10 +155,10 @@ class GeneralizedLinearEstimator(LinearModel):
         path_func = cd_solver_path if y.ndim == 1 else bcd_solver_path
         return path_func(
             X, y, self.datafit, self.penalty, alphas=alphas,
-            coef_init=coef_init, max_iter=self.max_iter,
-            return_n_iter=return_n_iter, max_epochs=self.max_epochs, p0=self.p0,
-            tol=self.tol, use_acc=True, ws_strategy=self.ws_strategy,
-            verbose=self.verbose)
+            fit_intercept=self.fit_intercept, coef_init=coef_init,
+            max_iter=self.max_iter, return_n_iter=return_n_iter,
+            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
+            use_acc=True, ws_strategy=self.ws_strategy, verbose=self.verbose)
 
     def fit(self, X, y):
         """Fit estimator.
@@ -236,9 +236,9 @@ class GeneralizedLinearEstimator(LinearModel):
 
         _, coefs, kkt = path_func(
             X_, y, self.datafit, self.penalty, alphas=[self.penalty.alpha],
-            coef_init=self.coef_, max_iter=self.max_iter,
-            max_epochs=self.max_epochs, p0=self.p0, verbose=self.verbose,
-            tol=self.tol, ws_strategy=self.ws_strategy)
+            fit_intercept=self.fit_intercept, coef_init=self.coef_,
+            max_iter=self.max_iter, max_epochs=self.max_epochs, p0=self.p0,
+            verbose=self.verbose, tol=self.tol, ws_strategy=self.ws_strategy)
 
         self.coef_, self.stop_crit_ = coefs[..., 0], kkt[-1]
         self.n_iter_ = len(kkt)
@@ -424,10 +424,10 @@ class Lasso(Lasso_sklearn):
         penalty = L1(self.alpha)
         return cd_solver_path(
             X, y, datafit, penalty, alphas=alphas,
-            coef_init=coef_init, max_iter=self.max_iter,
-            return_n_iter=return_n_iter, max_epochs=self.max_epochs,
-            p0=self.p0, tol=self.tol, verbose=self.verbose,
-            ws_strategy=self.ws_strategy)
+            fit_intercept=self.fit_intercept, coef_init=coef_init,
+            max_iter=self.max_iter, return_n_iter=return_n_iter,
+            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
+            verbose=self.verbose, ws_strategy=self.ws_strategy)
 
 
 class WeightedLasso(Lasso_sklearn):
@@ -551,8 +551,8 @@ class WeightedLasso(Lasso_sklearn):
         penalty = WeightedL1(self.alpha, weights)
 
         return cd_solver_path(
-            X, y, datafit, penalty, alphas=alphas, coef_init=coef_init,
-            max_iter=self.max_iter, return_n_iter=return_n_iter,
+            X, y, datafit, penalty, alphas=alphas, fit_intercept=self.fit_intercept,
+            coef_init=coef_init, max_iter=self.max_iter, return_n_iter=return_n_iter,
             max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
             verbose=self.verbose)
 
@@ -622,8 +622,7 @@ class ElasticNet(ElasticNet_sklearn):
                  warm_start=False, verbose=0):
         super(ElasticNet, self).__init__(
             alpha=alpha, l1_ratio=l1_ratio, tol=tol, max_iter=max_iter,
-            fit_intercept=fit_intercept,
-            warm_start=warm_start)
+            fit_intercept=fit_intercept, warm_start=warm_start)
         self.verbose = verbose
         self.max_epochs = max_epochs
         self.p0 = p0
@@ -671,10 +670,9 @@ class ElasticNet(ElasticNet_sklearn):
         penalty = L1_plus_L2(self.alpha, self.l1_ratio)
 
         return cd_solver_path(
-            X, y, datafit, penalty, alphas=alphas, coef_init=coef_init,
-            max_iter=self.max_iter, return_n_iter=return_n_iter,
-            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
-            verbose=self.verbose)
+            X, y, datafit, penalty, alphas=alphas, fit_intercept=self.fit_intercept,
+            coef_init=coef_init, max_iter=self.max_iter, return_n_iter=return_n_iter,
+            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol, verbose=self.verbose)
 
 
 class MCPRegression(Lasso_sklearn):
@@ -795,10 +793,9 @@ class MCPRegression(Lasso_sklearn):
         penalty = MCPenalty(self.alpha, self.gamma)
 
         return cd_solver_path(
-            X, y, datafit, penalty, alphas=alphas, coef_init=coef_init,
-            max_iter=self.max_iter, return_n_iter=return_n_iter,
-            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
-            verbose=self.verbose)
+            X, y, datafit, penalty, alphas=alphas, fit_intercept=self.fit_intercept,
+            coef_init=coef_init, max_iter=self.max_iter, return_n_iter=return_n_iter,
+            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol, verbose=self.verbose)
 
 
 class SparseLogisticRegression(LogReg_sklearn):
@@ -861,14 +858,12 @@ class SparseLogisticRegression(LogReg_sklearn):
             max_epochs=50000, p0=10, warm_start=False):
 
         super(SparseLogisticRegression, self).__init__(
-            tol=tol, max_iter=max_iter,
-            fit_intercept=fit_intercept,
+            tol=tol, max_iter=max_iter, fit_intercept=fit_intercept,
             warm_start=warm_start)
         self.verbose = verbose
         self.max_epochs = max_epochs
         self.p0 = p0
         self.max_iter = max_iter
-        self.fit_intercept = fit_intercept
         self.alpha = alpha
 
     def fit(self, X, y):
@@ -961,9 +956,10 @@ class SparseLogisticRegression(LogReg_sklearn):
         penalty = L1(self.alpha)
         return cd_solver_path(
             X, y, datafit, penalty, alphas=alphas,
-            coef_init=coef_init, max_iter=self.max_iter,
-            return_n_iter=return_n_iter, max_epochs=self.max_epochs,
-            p0=self.p0, tol=self.tol, verbose=self.verbose)
+            fit_intercept=self.fit_intercept, coef_init=coef_init,
+            max_iter=self.max_iter, return_n_iter=return_n_iter,
+            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
+            verbose=self.verbose)
 
 
 class LinearSVC(LinearSVC_sklearn):
@@ -1072,13 +1068,8 @@ class LinearSVC(LinearSVC_sklearn):
                 "Penalty term must be positive; got (C=%r)" % self.C)
 
         X, y = self._validate_data(
-            X,
-            y,
-            accept_sparse="csc",
-            dtype=np.float64,
-            order="C",
-            accept_large_sparse=True,
-        )
+            X, y, accept_sparse="csc", dtype=np.float64, order="C",
+            accept_large_sparse=True)
         check_classification_targets(y)
         self.classes_ = np.unique(y)
 
@@ -1162,9 +1153,10 @@ class LinearSVC(LinearSVC_sklearn):
 
         return cd_solver_path(
             yXT, y, datafit, penalty_dual, alphas=Cs,
-            coef_init=coef_init, max_iter=self.max_iter,
-            return_n_iter=return_n_iter, max_epochs=self.max_epochs,
-            p0=self.p0, tol=self.tol, verbose=self.verbose)
+            fit_intercept=self.fit_intercept, coef_init=coef_init,
+            max_iter=self.max_iter, return_n_iter=return_n_iter,
+            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
+            verbose=self.verbose)
 
 
 class MultiTaskLasso(MultiTaskLasso_sklearn):

@@ -4,7 +4,7 @@ from scipy import sparse
 from sklearn.utils import check_array
 
 
-def cd_solver_path(X, y, datafit, penalty, alphas=None,
+def cd_solver_path(X, y, datafit, penalty, alphas=None, fit_intercept=True,
                    coef_init=None, max_iter=20, max_epochs=50_000,
                    p0=10, tol=1e-4, use_acc=True, return_n_iter=False,
                    ws_strategy="subdiff", verbose=0):
@@ -29,6 +29,9 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
 
     alphas : ndarray
         List of alphas where to compute the models.
+
+    fit_intercept : bool
+        Fit an intercept.
 
     coef_init : ndarray, shape (n_features,) | None, optional, (default=None)
         Initial value of coefficients. If None, np.zeros(n_features) is used.
@@ -137,7 +140,7 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
                 Xw = np.zeros(X.shape[0], dtype=X.dtype)
 
         sol = cd_solver(
-            X, y, datafit, penalty, w, Xw,
+            X, y, datafit, penalty, w, Xw, fit_intercept=fit_intercept,
             max_iter=max_iter, max_epochs=max_epochs, p0=p0, tol=tol,
             use_acc=use_acc, verbose=verbose, ws_strategy=ws_strategy)
 
@@ -155,8 +158,9 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
 
 
 def cd_solver(
-        X, y, datafit, penalty, w, Xw, max_iter=50, max_epochs=50_000, p0=10,
-        tol=1e-4, use_acc=True, K=5, ws_strategy="subdiff", verbose=0):
+        X, y, datafit, penalty, w, Xw, fit_intercept=True, max_iter=50,
+        max_epochs=50_000, p0=10, tol=1e-4, use_acc=True, K=5, ws_strategy="subdiff",
+        verbose=0):
     r"""Run a coordinate descent solver.
 
     Parameters
@@ -178,6 +182,9 @@ def cd_solver(
 
     Xw : array, shape (n_samples,)
         Model fit.
+
+    fit_intercept : bool
+        Fit an intercept.
 
     max_iter : int, optional
         The maximum number of iterations (definition of working set and

@@ -7,7 +7,7 @@ from sklearn.utils import check_array
 
 
 def bcd_solver_path(
-        X, Y, datafit, penalty, alphas=None,
+        X, Y, datafit, penalty, alphas=None, fit_intercept=True,
         coef_init=None, max_iter=100, max_epochs=50_000, p0=10, tol=1e-6,
         use_acc=True, return_n_iter=False, ws_strategy="subdiff", verbose=0):
     r"""Compute optimization path for multi-task optimization problem.
@@ -32,6 +32,9 @@ def bcd_solver_path(
     alphas : ndarray, optional
         List of alphas where to compute the models.
         If ``None`` alphas are set automatically.
+    
+    fit_intercept : bool
+        Fit an intercept.
 
     coef_init : ndarray, shape (n_features, n_tasks) | None, optional, (default=None)
         Initial value of coefficients. If None, np.zeros(n_features, n_tasks) is used.

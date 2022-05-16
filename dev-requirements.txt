@@ -1,0 +1,9 @@
+benchopt
+libsvmdata>=0.2
+matplotlib>=2.0.0
+numpydoc
+pillow
+seaborn>=0.7
+sphinx-bootstrap-theme
+sphinx-gallery
+pytest

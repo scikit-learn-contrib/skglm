@@ -1,12 +1,8 @@
 import numpy as np
-import seaborn as sns
 from numba import njit
 
 from numpy.linalg import norm
 from sklearn.utils import check_random_state
-
-
-C_LIST = sns.color_palette()
 
 
 @njit

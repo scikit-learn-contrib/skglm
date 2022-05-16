@@ -215,13 +215,14 @@ class BlockSCAD(BasePenalty):
                 norm_grad_j = norm(grad[idx])
                 subdiff_dist[idx] = max(0, norm_grad_j - self.alpha)
             elif norm_Wj <= self.alpha:
-                # distance of -grad_j to alpha
-                # TODO: check!
-                subdiff_dist[idx] = norm(grad[idx] + self.alpha)
+                # distance of -grad_j to alpha * W[j] / ||W[j]||
+                subdiff_dist[idx] = norm(grad[idx] + self.alpha * W[j] / norm_Wj)
             elif norm_Wj > self.alpha and norm_Wj < self.gamma * self.alpha:
-                # distance of -grad_j to (alpha * gamma - W[j] / ||W_j||) / (gamma - 1)
-                # TODO
-                pass
+                # distance of -grad_j to (alpha * gamma - ||W[j]||)
+                # / ((gamma - 1) * ||W[j]||) * W[j]
+                subdiff_dist[idx] = norm(grad[idx] + (
+                    (self.alpha * self.gamma - norm_Wj) / (norm_Wj * (self.gamma - 1))
+                ) * W[j])
             else:
                 # distance of -grad_j to 0
                 subdiff_dist[idx] = norm(grad[idx])

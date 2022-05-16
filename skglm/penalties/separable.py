@@ -274,7 +274,8 @@ class SCAD(BasePenalty):
             return ST(value, tau)
         if np.abs(value) > g * tau:
             return value
-        return ((g - 1) * value - np.sign(value) * g * tau) / (g - 2)
+        # TODO: simplify expression
+        return ((g - 1) / (g - 2)) * ST(value, (g * tau) / (g - 1))
 
     def subdiff_distance(self, w, grad, ws):
         """Compute distance of negative gradient to the subdifferential at w."""

@@ -196,6 +196,9 @@ class GeneralizedLinearEstimator(LinearModel):
             elif isinstance(self.datafit, Logistic):
                 self.datafit = Logistic_32()
 
+        if not hasattr(self, "n_features_in_"):
+            self.n_features_in_ = X.shape[1]
+
         self.classes_ = None
         n_classes_ = 0
 
@@ -259,8 +262,10 @@ class GeneralizedLinearEstimator(LinearModel):
                 self.coef_ = np.empty([len(self.classes_), X.shape[1]])
                 self.intercept_ = 0
                 multiclass = OneVsRestClassifier(self).fit(X, y)
-                self.coef_ = np.array([clf.coef_[0] for clf in multiclass.estimators_])
-                self.n_iter_ = max(clf.n_iter_ for clf in multiclass.estimators_)
+                self.coef_ = np.array([clf.coef_[0]
+                                       for clf in multiclass.estimators_])
+                self.n_iter_ = max(
+                    clf.n_iter_ for clf in multiclass.estimators_)
         elif isinstance(self.datafit, Logistic):
             self.coef_ = coefs.T
         return self
@@ -905,6 +910,9 @@ class SparseLogisticRegression(LogReg_sklearn):
         self.classes_ = enc.classes_
         n_classes = len(enc.classes_)
 
+        if not hasattr(self, "n_features_in_"):
+            self.n_features_in_ = X.shape[1]
+
         if n_classes <= 2:
             _, coefs, _, self.n_iter_ = self.path(
                 X, 2 * y_ind - 1, np.array([self.alpha]), solver=self.solver)
@@ -914,7 +922,8 @@ class SparseLogisticRegression(LogReg_sklearn):
             self.coef_ = np.empty([n_classes, X.shape[1]])
             self.intercept_ = 0.
             multiclass = OneVsRestClassifier(self).fit(X, y)
-            self.coef_ = multiclass.coef_
+            self.coef_ = np.array([clf.coef_[0]
+                                   for clf in multiclass.estimators_])
             self.n_iter_ = max(clf.n_iter_ for clf in multiclass.estimators_)
         return self
 
@@ -1082,10 +1091,14 @@ class LinearSVC(LinearSVC_sklearn):
         check_classification_targets(y)
         self.classes_ = np.unique(y)
 
+        if not hasattr(self, "n_features_in_"):
+            self.n_features_in_ = X.shape[1]
+
         enc = LabelEncoder()
         y_ind = enc.fit_transform(y)
         self.classes_ = enc.classes_
         n_classes = len(enc.classes_)
+
         if n_classes <= 2:
             y_ind = 2 * y_ind - 1
             is_sparse = issparse(X)
@@ -1114,7 +1127,8 @@ class LinearSVC(LinearSVC_sklearn):
             self.coef_ = np.empty([n_classes, X.shape[1]])
             self.intercept_ = 0.
             multiclass = OneVsRestClassifier(self).fit(X, y)
-            self.coef_ = np.array([clf.coef_[0] for clf in multiclass.estimators_])
+            self.coef_ = np.array([clf.coef_[0]
+                                   for clf in multiclass.estimators_])
             self.n_iter_ = max(clf.n_iter_ for clf in multiclass.estimators_)
         return self
 

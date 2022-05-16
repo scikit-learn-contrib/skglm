@@ -284,12 +284,13 @@ class SCAD(BasePenalty):
                 # distance of -grad_j to alpha * [-1, 1]
                 subdiff_dist[idx] = max(0, np.abs(grad[idx]) - self.alpha)
             elif np.abs(w[j]) <= self.alpha:
-                # distance of -grad_j to alpha
-                subdiff_dist[idx] = np.abs(grad[idx] + self.alpha)
+                # distance of -grad_j to alpha * sgn(w[j])
+                subdiff_dist[idx] = np.abs(grad[idx] + self.alpha * np.sign(w[j]))
             elif np.abs(w[j]) > self.alpha and np.abs(w[j]) < self.alpha * self.gamma:
-                # distance of -grad_j to (alpha * gamma - np.abs(w_j)) / (gamma - 1)
+                # distance of -grad_j to (alpha * gamma - np.abs(w[j])) / (gamma - 1)
+                #                        * sgn(w[j])
                 subdiff_dist[idx] = np.abs(
-                    grad[idx] +
+                    grad[idx] + np.sign(w[j]) *
                     (self.alpha * self.gamma - np.abs(w[j])) / (self.gamma - 1))
             else:
                 # distance of -grad_j to 0

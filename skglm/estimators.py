@@ -1080,9 +1080,6 @@ class LinearSVC(LinearSVC_sklearn):
             raise ValueError(
                 "Penalty term must be positive; got (C=%r)" % self.C)
 
-        if not hasattr(self, "n_features_in_"):
-            self.n_features_in_ = X.shape[1]
-
         X, y = self._validate_data(
             X,
             y,
@@ -1093,6 +1090,9 @@ class LinearSVC(LinearSVC_sklearn):
         )
         check_classification_targets(y)
         self.classes_ = np.unique(y)
+
+        if not hasattr(self, "n_features_in_"):
+            self.n_features_in_ = X.shape[1]
 
         enc = LabelEncoder()
         y_ind = enc.fit_transform(y)

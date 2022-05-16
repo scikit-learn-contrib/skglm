@@ -145,7 +145,7 @@ html_theme_options = {
         ("Examples", "auto_examples/index"),
         ("API", "api"),
         ("Add custom penalty and datafit", "add"),
-        ("GitHub", "https://github.com/mathurinm/skglm", True)
+        ("GitHub", "https://github.com/scikit-learn-contrib/skglm", True)
     ],
     'bootswatch_theme': "united"
 }
@@ -331,7 +331,8 @@ intersphinx_mapping = {
 }
 
 sphinx_gallery_conf = {
-    'backreferences_dir': 'gen_modules/backreferences',
+    # 'backreferences_dir': 'gen_modules/backreferences',
+    'backreferences_dir': 'generated',
     'doc_module': ('skglm', 'sklearn', 'benchopt'),
     'examples_dirs': '../examples',
     'gallery_dirs': 'auto_examples',

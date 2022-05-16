@@ -4,13 +4,13 @@ skglm
 |image0|
 
 
-``skglm`` is a library that provide better sparse generalized linear models for scikit-learn.
+``skglm`` is a library that provides better sparse generalized linear models for scikit-learn.
 Its main features are:
 
-- **speed**: problems with millions of features can be solved in seconds. Default solvers rely on efficient coordinate descent with numba just in time compilation.
+- **speed**: problems with millions of features can be solved in seconds. Default solvers rely on efficient coordinate descent with Numba just in time compilation.
 - **flexibility**: virtually any combination of datafit and penalty can be implemented in a few lines of code.
-- **sklearn API**: all estimators are drop-in replacements for scikit-learn.
-- **scope**: support for many missing models in scikit-learn - weighted Lasso, arbitrary group penalties, non convex sparse penalties, etc.
+- **scikit-learn API**: all estimators are drop-in replacements for scikit-learn.
+- **scope**: support for many missing models in scikit-learn - weighted Lasso, arbitrary group penalties, non-convex sparse penalties, etc.
 
 
 Currently, the package handles any combination of the following datafits:
@@ -35,16 +35,16 @@ The estimators follow the scikit-learn API, come with automated parallel cross-v
 Documentation
 =============
 
-Please visit https://mathurinm.github.io/skglm/ for the latest version
+Please visit https://contrib.scikit-learn.org/skglm/ for the latest version
 of the documentation.
 
 
 Install and work with the development version
 =============================================
 
-First clone the repository available at https://github.com/mathurinm/skglm::
+First clone the repository available at https://github.com/scikit-learn-contrib/skglm::
 
-    $ git clone https://github.com/mathurinm/skglm.git
+    $ git clone https://github.com/scikit-learn-contrib/skglm.git
     $ cd skglm/
 
 Then, install the package with::
@@ -62,9 +62,9 @@ and it should not give any error message.
 Demos & Examples
 ================
 
-In the `example section <https://mathurinm.github.io/skglm/auto_examples/index.html>`__ of the documentation,
-you will find numerous examples on real life datasets,
-timing comparison with other estimators, easy and fast ways to perform cross validation, etc.
+In the `example section <https://contrib.scikit-learn.org/skglm/auto_examples/index.html>`__ of the documentation,
+you will find numerous examples on real-life datasets,
+timing comparison with other estimators, easy and fast ways to perform cross-validation, etc.
 
 
 Dependencies
@@ -94,5 +94,5 @@ ArXiv links:
 
 - https://arxiv.org/pdf/2204.07826.pdf
 
-.. |image0| image:: https://github.com/mathurinm/skglm/workflows/pytest/badge.svg
-   :target: https://github.com/mathurinm/skglm/actions?query=workflow%3Abuild
+.. |image0| image:: https://github.com/scikit-learn-contrib/skglm/workflows/pytest/badge.svg
+   :target: https://github.com/scikit-learn-contrib/skglm/actions?query=workflow%3Abuild

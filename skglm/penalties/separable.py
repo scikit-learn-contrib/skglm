@@ -207,10 +207,9 @@ class MCPenalty(BasePenalty):
                 # distance of -grad to alpha * [-1, 1]
                 subdiff_dist[idx] = max(0, np.abs(grad[idx]) - self.alpha)
             elif np.abs(w[j]) < self.alpha * self.gamma:
-                # distance of -grad_j to (alpha - abs(w[j])/gamma) * sign(w[j])
+                # distance of -grad_j to (alpha * sign(w[j]) - w[j] / gamma)
                 subdiff_dist[idx] = np.abs(
-                    grad[idx] + self.alpha * np.sign(w[j])
-                    - w[j] / self.gamma)
+                    grad[idx] + self.alpha * np.sign(w[j]) - w[j] / self.gamma)
             else:
                 # distance of grad to 0
                 subdiff_dist[idx] = np.abs(grad[idx])
@@ -274,7 +273,6 @@ class SCAD(BasePenalty):
             return ST(value, tau)
         if np.abs(value) > g * tau:
             return value
-        # TODO: simplify expression
         return ((g - 1) / (g - 2)) * ST(value, (g * tau) / (g - 1))
 
     def subdiff_distance(self, w, grad, ws):
@@ -288,11 +286,12 @@ class SCAD(BasePenalty):
                 # distance of -grad_j to alpha * sgn(w[j])
                 subdiff_dist[idx] = np.abs(grad[idx] + self.alpha * np.sign(w[j]))
             elif np.abs(w[j]) > self.alpha and np.abs(w[j]) < self.alpha * self.gamma:
-                # distance of -grad_j to (alpha * gamma - np.abs(w[j])) / (gamma - 1)
-                #                        * sgn(w[j])
+                # distance of -grad_j to (alpha * gamma * sign(w[j]) - w[j]) 
+                #                        / (gamma - 1)
                 subdiff_dist[idx] = np.abs(
-                    grad[idx] + np.sign(w[j]) *
-                    (self.alpha * self.gamma - np.abs(w[j])) / (self.gamma - 1))
+                    grad[idx] + 
+                    (self.alpha * self.gamma * np.sign(w[j]) - w[j]) / (self.gamma - 1)
+                )
             else:
                 # distance of -grad_j to 0
                 subdiff_dist[idx] = np.abs(grad[idx])

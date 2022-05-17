@@ -23,7 +23,7 @@ Sparse recovery with non-convex penalties
 =========================================
 Illustrate the superior performance of penalties for sparse recovery.
 
-.. GENERATED FROM PYTHON SOURCE LINES 7-133
+.. GENERATED FROM PYTHON SOURCE LINES 7-132
 
 
 
@@ -59,7 +59,6 @@ Illustrate the superior performance of penalties for sparse recovery.
     #         Quentin Klopfenstein
 
     import numpy as np
-    import seaborn as sns
     from numpy.linalg import norm
     import matplotlib.pyplot as plt
     from sklearn.model_selection import train_test_split
@@ -70,7 +69,7 @@ Illustrate the superior performance of penalties for sparse recovery.
     from skglm.datafits import Quadratic
     from skglm.penalties import L1, MCPenalty, L0_5, L2_3
 
-    current_palette = sns.color_palette("colorblind")
+    cmap = plt.get_cmap('tab10')
 
     # Simulate sparse data
     n_features = 1000
@@ -105,10 +104,10 @@ Illustrate the superior performance of penalties for sparse recovery.
     penalties['l23'] = L2_3(alpha=1)
 
     colors = {}
-    colors['lasso'] = current_palette[0]
-    colors['mcp'] = current_palette[1]
-    colors['l05'] = current_palette[2]
-    colors['l23'] = current_palette[3]
+    colors['lasso'] = cmap(0)
+    colors['mcp'] = cmap(1)
+    colors['l05'] = cmap(2)
+    colors['l23'] = cmap(3)
 
     f1 = {}
     estimation_error = {}
@@ -183,7 +182,7 @@ Illustrate the superior performance of penalties for sparse recovery.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  4.641 seconds)
+   **Total running time of the script:** ( 0 minutes  5.156 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_sparse_recovery.py:

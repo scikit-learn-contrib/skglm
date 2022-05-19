@@ -15,12 +15,13 @@ from sklearn.utils.estimator_checks import check_estimator
 
 from scipy.sparse import csc_matrix, issparse
 
-from skglm.utils import make_correlated_data
 from skglm.estimators import (
     GeneralizedLinearEstimator, Lasso, MultiTaskLasso, WeightedLasso, ElasticNet,
     MCPRegression, SparseLogisticRegression, LinearSVC)
 from skglm.datafits import Logistic, Quadratic, QuadraticSVC, QuadraticMultiTask
 from skglm.penalties import L1, IndicatorBox, L1_plus_L2, MCPenalty, WeightedL1
+
+from benchopt.datasets import make_correlated_data
 
 
 n_samples = 50

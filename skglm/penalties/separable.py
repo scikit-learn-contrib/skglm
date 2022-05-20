@@ -273,7 +273,7 @@ class SCAD(BasePenalty):
             self.gamma - 1 - stepsize)
         x_2 = abs(x_2)
 
-        x_3 = np.abs(value)
+        x_3 = abs(value)
 
         objs = np.zeros(3)
         objs[0] = (0.5 / stepsize) * (

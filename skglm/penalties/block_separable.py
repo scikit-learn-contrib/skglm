@@ -181,9 +181,9 @@ class BlockSCAD(BasePenalty):
 
     def value(self, W):
         """Compute the value of the SCAD penalty at W."""
-        n_features = W.shape[1]
+        n_features = W.shape[0]
         norm_rows = np.sqrt(np.sum(W ** 2, axis=1))
-        value = np.full_like(norm_rows, ((self.gamma + 1) * self.alpha ** 2) / 2.)
+        value = np.full_like(norm_rows, (self.gamma + 1) * self.alpha ** 2 / 2.)
         for j in range(n_features):
             if norm_rows[j] <= self.alpha:
                 value[j] = self.alpha * norm_rows[j]

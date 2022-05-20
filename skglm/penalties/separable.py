@@ -174,7 +174,7 @@ class MCPenalty(BasePenalty):
     With x >= 0
     pen(x) =
     alpha * x - x^2 / (2 * gamma) if x =< gamma * alpha
-    gamma * alpha ** 2 / 2           if x > gamma * alpha
+    gamma * alpha^2 / 2           if x > gamma * alpha
     value = sum_{j=1}^{n_features} pen(abs(w_j))
     """
 
@@ -243,9 +243,9 @@ class SCAD(BasePenalty):
     With x >= 0
     pen(x) =
     alpha * x                         if x =< alpha
-    (2 * gamma * alpha * x - x ** 2 - alpha ** 2) \
-        / (2 * (gamma - 1))           if alpha < x < alpha * gamma
-    (alpha ** 2 * (gamma + 1)) / 2    if x > gamma * alpha
+    2 * gamma * alpha * x - x^2 - alpha^2 \
+        / 2 * (gamma - 1))            if alpha < x < alpha * gamma
+    alpha^2 * (gamma + 1) / 2      if x > gamma * alpha
     value = sum_{j=1}^{n_features} pen(abs(w_j))
     """
 
@@ -255,11 +255,11 @@ class SCAD(BasePenalty):
 
     def value(self, w):
         """Compute the value of the SCAD penalty at w."""
-        value = np.full_like(w, (self.alpha ** 2 * (self.gamma + 1)) / 2)
+        value = np.full_like(w, self.alpha ** 2 * (self.gamma + 1) / 2)
         for j in range(len(w)):
             if np.abs(w[j]) <= self.alpha:
                 value[j] = self.alpha * np.abs(w[j])
-            elif np.abs(w[j]) > self.alpha and np.abs(w[j]) < self.alpha * self.gamma:
+            elif np.abs(w[j]) < self.alpha * self.gamma:
                 value[j] = (
                     2 * self.gamma * self.alpha * np.abs(w[j])
                     - np.abs(w[j]) ** 2 - self.alpha ** 2) / (2 * (self.gamma - 1))

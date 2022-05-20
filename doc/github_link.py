@@ -1,4 +1,4 @@
-# this code is a copy/paste of
+# this code is inspired from
 # https://github.com/scikit-learn/scikit-learn/blob/
 # b0b8a39d8bb80611398e4c57895420d5cb1dfe09/doc/sphinxext/github_link.py
 
@@ -19,6 +19,16 @@ def _get_git_revision():
         print("Failed to execute git to get revision")
         return None
     return revision.decode("utf-8")
+
+
+def _get_callable_member(obj):
+    for attr in reversed(dir(obj)):
+        if attr.startswith(('__', '_')):
+            continue
+
+        member = getattr(obj, attr)
+        if callable(member):
+            return member
 
 
 def _linkcode_resolve(domain, info, package, url_fmt, revision):
@@ -44,6 +54,10 @@ def _linkcode_resolve(domain, info, package, url_fmt, revision):
     class_name = info["fullname"].split(".")[0]
     module = __import__(info["module"], fromlist=[class_name])
     obj = attrgetter(info["fullname"])(module)
+
+    # handle case of jitclass
+    if 'jitclass' in str(type(obj)):
+        obj = _get_callable_member(obj)
 
     # Unwrap the object to get the correct source
     # file in case that is wrapped by a decorator

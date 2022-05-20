@@ -262,7 +262,7 @@ class SCAD(BasePenalty):
             elif np.abs(w[j]) < self.alpha * self.gamma:
                 value[j] = (
                     2 * self.gamma * self.alpha * np.abs(w[j])
-                    - np.abs(w[j]) ** 2 - self.alpha ** 2) / (2 * (self.gamma - 1))
+                    - w[j] ** 2 - self.alpha ** 2) / (2 * (self.gamma - 1))
         return np.sum(value)
 
     def prox_1d(self, value, stepsize, j):

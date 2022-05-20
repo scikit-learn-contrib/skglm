@@ -259,7 +259,7 @@ class SCAD(BasePenalty):
         for j in range(len(w)):
             if np.abs(w[j]) <= self.alpha:
                 value[j] = self.alpha * np.abs(w[j])
-            elif np.abs(w[j]) > self.alpha and np.abs(w[j]) < self.alpha * self.gamma:
+            elif np.abs(w[j]) <= self.alpha * self.gamma:
                 value[j] = (
                     2 * self.gamma * self.alpha * np.abs(w[j])
                     - np.abs(w[j]) ** 2 - self.alpha ** 2) / (2 * (self.gamma - 1))
@@ -268,28 +268,28 @@ class SCAD(BasePenalty):
     def prox_1d(self, value, stepsize, j):
         """Compute the proximal operator of SCAD penalty."""
         tau = self.gamma * self.alpha
-        x_1 = np.sign(value) * min(
-            self.alpha, max(0, np.abs(value) - self.alpha * stepsize))
+        x_1 = max(0, np.abs(value) - self.alpha * stepsize)
+        x_2 = ((self.gamma - 1) * np.abs(value) - stepsize * tau) / (
+            self.gamma - 1 - stepsize)
+        x_2 = abs(x_2)
 
-        x_2 = np.sign(value) * min(tau, max(
-            self.alpha, (
-                stepsize * np.abs(value) * (self.gamma - 1) - tau) / (
-                    stepsize * (self.gamma - 2))))
-
-        x_3 = np.sign(value) * max(tau, np.abs(value))
+        x_3 = np.abs(value)
 
         objs = np.zeros(3)
-        objs[0] = 0.5 * (x_1 - value) ** 2 + stepsize * self.value(np.array([x_1]))
-        objs[1] = 0.5 * (x_2 - value) ** 2 + stepsize * self.value(np.array([x_2]))
-        objs[2] = 0.5 * (x_3 - value) ** 2 + stepsize * self.value(np.array([x_3]))
+        objs[0] = (0.5 / stepsize) * (
+            x_1 - np.abs(value)) ** 2 + self.value(np.array([x_1]))
+        objs[1] = (0.5 / stepsize) * (
+            x_2 - np.abs(value)) ** 2 + self.value(np.array([x_2]))
+        objs[2] = (0.5 / stepsize) * (
+            x_3 - np.abs(value)) ** 2 + self.value(np.array([x_3]))
 
         idx_min = np.argmin(objs)
         if idx_min == 0:
-            return x_1
+            return np.sign(value) * x_1
         elif idx_min == 1:
-            return x_2
+            return np.sign(value) * x_2
         else:
-            return x_3
+            return np.sign(value) * x_3
 
     def subdiff_distance(self, w, grad, ws):
         """Compute distance of negative gradient to the subdifferential at w."""
@@ -301,12 +301,12 @@ class SCAD(BasePenalty):
             elif np.abs(w[j]) <= self.alpha:
                 # distance of -grad_j to alpha * sgn(w[j])
                 subdiff_dist[idx] = np.abs(grad[idx] + self.alpha * np.sign(w[j]))
-            elif np.abs(w[j]) > self.alpha and np.abs(w[j]) < self.alpha * self.gamma:
+            elif np.abs(w[j]) <= self.alpha * self.gamma:
                 # distance of -grad_j to (alpha * gamma * sign(w[j]) - w[j])
                 #                        / (gamma - 1)
                 subdiff_dist[idx] = np.abs(
                     grad[idx] +
-                    (self.alpha * self.gamma * np.sign(w[j]) - w[j]) / (self.gamma - 1)
+                    (np.sign(w[j]) * self.alpha * self.gamma - w[j]) / (self.gamma - 1)
                 )
             else:
                 # distance of -grad_j to 0

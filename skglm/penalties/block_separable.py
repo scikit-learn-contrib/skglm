@@ -1,5 +1,5 @@
 import numpy as np
-from numpy.linalg.linalg import norm
+from numpy.linalg import norm
 from numba import float64
 from numba.experimental import jitclass
 from numba.types import bool_

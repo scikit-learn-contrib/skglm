@@ -187,3 +187,24 @@ def make_correlated_data(
         return X, Y.flatten(), w_true.flatten()
     else:
         return X, Y, w_true
+
+
+def grp_converter(groups, n_features):
+    if isinstance(groups, int):
+        grp_size = groups
+        if n_features % grp_size != 0:
+            raise ValueError("n_features (%d) is not a multiple of the desired"
+                             " group size (%d)" % (n_features, grp_size))
+        n_groups = n_features // grp_size
+        grp_ptr = grp_size * np.arange(n_groups + 1)
+        grp_indices = np.arange(n_features)
+    elif isinstance(groups, list) and isinstance(groups[0], int):
+        grp_indices = np.arange(n_features).astype(np.int32)
+        grp_ptr = np.cumsum(np.hstack([[0], groups]))
+    elif isinstance(groups, list) and isinstance(groups[0], list):
+        grp_sizes = np.array([len(ls) for ls in groups])
+        grp_ptr = np.cumsum(np.hstack([[0], grp_sizes]))
+        grp_indices = np.array([idx for grp in groups for idx in grp])
+    else:
+        raise ValueError("Unsupported group format.")
+    return grp_ptr.astype(np.int32), grp_indices.astype(np.int32)

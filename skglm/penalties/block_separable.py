@@ -1,12 +1,11 @@
 import numpy as np
 from numpy.linalg import norm
-from numba import float64, int64
+from numba import float64, int32
 from numba.experimental import jitclass
 from numba.types import bool_
-from pkg_resources import cleanup_resources
 
 from skglm.penalties.base import BasePenalty
-from skglm.utils import BST, BST_vec, prox_block_2_05, ST_vec
+from skglm.utils import BST, prox_block_2_05, ST_vec
 
 
 spec_L21 = [
@@ -156,11 +155,12 @@ class BlockMCPenalty(BasePenalty):
         return np.ones(n_features, bool_)
 
 
-spec_SparseGroupL1 = {
-    'alpha': float64,
-    'tau': float64,
-    'weights': float64[:]
-}
+spec_SparseGroupL1 = [
+    ('alpha', float64),
+    ('tau', float64),
+    ('weights', float64[:]),
+    ('grp_ptr', int32[:]),
+]
 
 
 @jitclass(spec_SparseGroupL1)
@@ -169,45 +169,47 @@ class SparseGroupL1(BasePenalty):
 
     :math::
 
-        \alpha (\tau \Vert \beta \Vert_1 
+        \alpha (\tau \Vert \beta \Vert_1
         + (1-\tau) \sum_g \omega_g \Vert \beta_g \Vert_2)
 
     where :math:`\beta` is the vector of coefficients, :math:`\omega_g` are
-    the weights of the groups, :math:`\alpha` the intensity of the penalty, 
+    the weights of the groups, :math:`\alpha` the intensity of the penalty,
     and :math:`\tau` the ratio individual/group penalty.
-
     """
 
     def __init__(self, alpha: float, tau: float,
-                 weights: np.ndarray, groups: np.ndarray):
+                 weights: np.ndarray, grp_ptr: np.ndarray):
         self.alpha, self.tau = alpha, tau
-        self.weights, self.groups = weights, groups
+        self.weights = weights
+        self.grp_ptr = grp_ptr
 
     def value(self, w: np.ndarray) -> float:
         alpha, tau = self.alpha, self.tau
-        weights, groups = self.weights, self.groups
+        weights, grp_ptr = self.weights, self.grp_ptr
 
         pen_l1_term = alpha * tau * norm(w, ord=1)
 
         pen_group_term = 0.
-        for g in groups:
+        for g in range(len(weights)):
             if weights[g] == np.inf:
                 continue
-            pen_group_term += alpha * (1-tau) * weights[g] * norm(w[g], ord=2)
+
+            w_g = w[grp_ptr[g]: grp_ptr[g + 1]]
+            pen_group_term += alpha * (1-tau) * weights[g] * norm(w_g, ord=2)
 
         return pen_l1_term + pen_group_term
 
     def prox_1feat(self, value: np.ndarray, stepsize: float, j: int) -> np.ndarray:
-        tau, weight_j = self.tau, self.weights[j]
+        alpha, tau, weight_j = self.alpha, self.tau, self.weights[j]
         mask_zero_coefs = value != 0
 
         # ST for each features
         value[mask_zero_coefs] = ST_vec(
             value[mask_zero_coefs],
-            tau * stepsize
+            alpha * tau * stepsize
         )
         # bloc ST
-        return BST(value, (1-tau) * stepsize * weight_j)
+        return BST(value, alpha * (1-tau) * stepsize * weight_j)
 
     def is_penalized(self, _):
         "Groups of features with inf weights are not penalized."

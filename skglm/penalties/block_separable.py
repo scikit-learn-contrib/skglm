@@ -1,11 +1,12 @@
 import numpy as np
 from numpy.linalg import norm
-from numba import float64
+from numba import float64, int64
 from numba.experimental import jitclass
 from numba.types import bool_
+from pkg_resources import cleanup_resources
 
 from skglm.penalties.base import BasePenalty
-from skglm.utils import BST, prox_block_2_05
+from skglm.utils import BST, BST_vec, prox_block_2_05, ST_vec
 
 
 spec_L21 = [
@@ -153,3 +154,69 @@ class BlockMCPenalty(BasePenalty):
     def is_penalized(self, n_features):
         """Return a binary mask with the penalized features."""
         return np.ones(n_features, bool_)
+
+
+spec_SparseGroupL1 = {
+    'alpha': float64,
+    'tau': float64,
+    'weights': float64[:]
+}
+
+
+@jitclass(spec_SparseGroupL1)
+class SparseGroupL1(BasePenalty):
+    r"""Sparse Group L1 penalty.
+
+    :math::
+
+        \alpha (\tau \Vert \beta \Vert_1 
+        + (1-\tau) \sum_g \omega_g \Vert \beta_g \Vert_2)
+
+    where :math:`\beta` is the vector of coefficients, :math:`\omega_g` are
+    the weights of the groups, :math:`\alpha` the intensity of the penalty, 
+    and :math:`\tau` the ratio individual/group penalty.
+
+    """
+
+    def __init__(self, alpha: float, tau: float,
+                 weights: np.ndarray, groups: np.ndarray):
+        self.alpha, self.tau = alpha, tau
+        self.weights, self.groups = weights, groups
+
+    def value(self, w: np.ndarray) -> float:
+        alpha, tau = self.alpha, self.tau
+        weights, groups = self.weights, self.groups
+
+        pen_l1_term = alpha * tau * norm(w, ord=1)
+
+        pen_group_term = 0.
+        for g in groups:
+            if weights[g] == np.inf:
+                continue
+            pen_group_term += alpha * (1-tau) * weights[g] * norm(w[g], ord=2)
+
+        return pen_l1_term + pen_group_term
+
+    def prox_1feat(self, value: np.ndarray, stepsize: float, j: int) -> np.ndarray:
+        tau, weight_j = self.tau, self.weights[j]
+        mask_zero_coefs = value != 0
+
+        # ST for each features
+        value[mask_zero_coefs] = ST_vec(
+            value[mask_zero_coefs],
+            tau * stepsize
+        )
+        # bloc ST
+        return BST(value, (1-tau) * stepsize * weight_j)
+
+    def is_penalized(self, _):
+        "Groups of features with inf weights are not penalized."
+        n_feature_groups = [len(g) for g in self.groups]
+        return np.repeat(self.weights, n_feature_groups) != np.inf
+
+    def generalized_support(self, w):
+        return w != 0
+
+    def subdiff_distance(self, w, grad, ws):
+        # still not implemented
+        return

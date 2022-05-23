@@ -160,6 +160,7 @@ spec_SparseGroupL1 = [
     ('tau', float64),
     ('weights', float64[:]),
     ('grp_ptr', int32[:]),
+    ('grp_indices', int32[:])
 ]
 
 
@@ -177,27 +178,29 @@ class SparseGroupL1(BasePenalty):
     and :math:`\tau` the ratio individual/group penalty.
     """
 
-    def __init__(self, alpha: float, tau: float,
-                 weights: np.ndarray, grp_ptr: np.ndarray):
+    def __init__(self, alpha: float, tau: float, weights: np.ndarray,
+                 grp_ptr: np.ndarray, grp_indices: np.ndarray):
         self.alpha, self.tau = alpha, tau
         self.weights = weights
-        self.grp_ptr = grp_ptr
+        self.grp_ptr, self.grp_indices = grp_ptr, grp_indices
 
     def value(self, w: np.ndarray) -> float:
         alpha, tau = self.alpha, self.tau
-        weights, grp_ptr = self.weights, self.grp_ptr
+        weights = self.weights
+        grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
 
-        pen_l1_term = alpha * tau * norm(w, ord=1)
+        l1_term = alpha * tau * norm(w, ord=1)
 
-        pen_group_term = 0.
+        group_term = 0.
         for g in range(len(weights)):
             if weights[g] == np.inf:
                 continue
 
-            w_g = w[grp_ptr[g]: grp_ptr[g + 1]]
-            pen_group_term += alpha * (1-tau) * weights[g] * norm(w_g, ord=2)
+            grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
+            w_g = w[grp_g_indices]
+            group_term += alpha * (1-tau) * weights[g] * norm(w_g, ord=2)
 
-        return pen_l1_term + pen_group_term
+        return l1_term + group_term
 
     def prox_1feat(self, value: np.ndarray, stepsize: float, j: int) -> np.ndarray:
         alpha, tau, weight_j = self.alpha, self.tau, self.weights[j]

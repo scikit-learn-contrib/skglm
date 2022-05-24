@@ -11,6 +11,7 @@ from skglm.datafits.single_task import Quadratic
 from skglm.solvers.cd_solver import cd_solver_path
 from skglm.solvers.group_cd import group_solver
 
+from celer import GroupLasso
 from skglm.utils import grp_converter, make_correlated_data
 
 
@@ -98,5 +99,35 @@ def test_equivalence_cd_solver():
     assert_allclose(w_l1_solver.flatten(), w_group_solver, atol=1e-3, rtol=1e-3)
 
 
+def test_group_lasso():
+    n_samples, n_features = 100, 1000
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=42)
+
+    groups = 10  # contiguous groups of 10 elements
+    n_groups = n_features // groups
+
+    grp_ptr, grp_indices = grp_converter(groups, n_features)
+    weights = abs(np.random.randn(n_groups))
+
+    alpha_max = norm(X.T@y / np.repeat(weights, groups), ord=np.inf) / n_samples
+    alpha = alpha_max / 10.
+
+    # celer group
+    model = GroupLasso(groups=groups, alpha=alpha, weights=weights,
+                       fit_intercept=False, tol=1e-14)
+    model.fit(X, y)
+
+    # group solver
+    quad_group = QuadraticGroup(grp_ptr, grp_indices)
+    group_penalty = SparseGroupL1(
+        alpha, tau=0., grp_ptr=grp_ptr, grp_indices=grp_indices, weights=weights)
+
+    w_group_solver = group_solver(
+        X, y, quad_group, group_penalty, max_iter=10000, verbose=False, stop_tol=0.)
+
+    assert_allclose(w_group_solver, model.coef_, atol=1e-3, rtol=1e-4)
+
+
 if __name__ == '__main__':
+    test_group_lasso()
     pass

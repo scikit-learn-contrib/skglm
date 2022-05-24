@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.linalg import norm
 from numpy.testing import assert_allclose
 
 from skglm.penalties.block_separable import SparseGroupL1
@@ -6,7 +7,10 @@ from skglm.datafits.multi_task import QuadraticGroup
 
 from skglm.penalties.separable import L1
 from skglm.datafits.single_task import Quadratic
-from skglm.solvers import group_cd
+
+from skglm.solvers.cd_solver import cd_solver_path
+from skglm.solvers.group_cd import group_solver
+
 from skglm.utils import grp_converter, make_correlated_data
 
 
@@ -33,14 +37,15 @@ def test_equivalence_SparseGroupLasso_L1():
 
     rnd = np.random.RandomState(42)
     w = rnd.normal(loc=5, scale=4, size=n_features)
+    idx = rnd.choice(n_features, size=1)[0]
 
     values = np.array([penalty.value(w)
                        for penalty in penalties])
 
     proxs = np.array([
-        l1_penalty.prox_1d(w[0], 1., 0),
-        lasso_penalty.prox_1feat(+w[0:1], 1., 0)[0],
-        single_group_penalty.prox_1feat(+w[0:1], 1., 0)[0]
+        l1_penalty.prox_1d(w[idx], 1., 0),
+        lasso_penalty.prox_1feat(+w[idx:idx+1], 1., 0)[0],
+        single_group_penalty.prox_1feat(+w[idx:idx+1], 1., 0)[0]
     ])
 
     assert_allclose(values.std(), 0)
@@ -67,8 +72,30 @@ def test_equivalence_Quadratic_datafit():
     assert_allclose(quad_usual.lipschitz, quad_group.lipschitz)
 
 
-def test__group_solver():
-    return
+def test_equivalence_cd_solver():
+    n_samples, n_features = 100, 1000
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=42)
+    alpha_max = norm(X.T@y, ord=np.inf) / n_samples
+
+    grp_ptr, grp_indices = grp_converter(1, n_features)
+    weights = np.array([1 for _ in range(n_features)], dtype=np.float64)
+    alpha = alpha_max / 10.
+
+    # group solver
+    quad_group = QuadraticGroup(grp_ptr, grp_indices)
+    group_penalty = SparseGroupL1(
+        alpha, tau=0., grp_ptr=grp_ptr, grp_indices=grp_indices, weights=weights)
+
+    w_group_solver = group_solver(
+        X, y, quad_group, group_penalty, max_iter=1000, verbose=False, stop_tol=0.)
+
+    # usual L1 solver
+    l1_penalty = L1(alpha)
+    usual_quad = Quadratic()
+
+    _, w_l1_solver, *_ = cd_solver_path(X, y, usual_quad, l1_penalty, alphas=[alpha])
+
+    assert_allclose(w_l1_solver.flatten(), w_group_solver, atol=1e-3, rtol=1e-3)
 
 
 if __name__ == '__main__':

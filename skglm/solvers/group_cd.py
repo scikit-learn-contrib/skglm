@@ -13,7 +13,7 @@ from skglm.utils import make_correlated_data, grp_converter
 
 def group_solver(X: np.ndarray, y: np.ndarray,
                  datafit: BaseMultitaskDatafit, penalty: BasePenalty,
-                 max_iter: int = 1000, stop_tol=1e-7,
+                 max_iter: int = 1000, stop_tol: float = 1e-7,
                  verbose: bool = False) -> np.ndarray:
 
     n_features = X.shape[1]
@@ -28,7 +28,7 @@ def group_solver(X: np.ndarray, y: np.ndarray,
     datafit.initialize(X, y)
 
     for k in range(1, max_iter+1):
-        prev_obj, current_obj = _cycle_group_cd(datafit, penalty,
+        prev_obj, current_obj = _cycle_group_cd(datafit, penalty, y, X,
                                                 w, Xw, grp_ptr, grp_indices)
         # naive stopping criterion
         if abs(current_obj - prev_obj) < stop_tol:
@@ -41,7 +41,7 @@ def group_solver(X: np.ndarray, y: np.ndarray,
 
 
 @njit
-def _cycle_group_cd(datafit, penalty, w, Xw, grp_ptr, grp_indices):
+def _cycle_group_cd(datafit, penalty, y, X, w, Xw, grp_ptr, grp_indices):
     n_groups = len(grp_ptr) - 1
 
     prev_obj = datafit.value(y, w, Xw) + penalty.value(w)

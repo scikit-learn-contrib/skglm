@@ -190,6 +190,7 @@ def make_correlated_data(
 
 
 def grp_converter(groups, n_features):
+    """Create group partition and group indices."""
     if isinstance(groups, int):
         grp_size = groups
         if n_features % grp_size != 0:

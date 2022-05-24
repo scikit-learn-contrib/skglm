@@ -1,9 +1,13 @@
 import numpy as np
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_equal
+from sklearn.utils import assert_all_finite
 
 from skglm.penalties.block_separable import SparseGroupL1
+from skglm.datafits.multi_task import QuadraticGroup
+
 from skglm.penalties.separable import L1
-from skglm.utils import grp_converter
+from skglm.datafits.single_task import Quadratic
+from skglm.utils import grp_converter, make_correlated_data
 
 
 def test_equivalence_SparseGroupLasso_L1():
@@ -44,4 +48,20 @@ def test_equivalence_SparseGroupLasso_L1():
 
 
 if __name__ == '__main__':
-    test_equivalence_SparseGroupLasso_L1()
+    n_samples, n_features = 100, 1000
+    X, y, _ = make_correlated_data(n_samples, n_features)
+    grp_ptr, grp_indices = grp_converter(1, n_features)
+
+    quad_usual = Quadratic()
+    quad_group = QuadraticGroup(grp_ptr, grp_indices)
+
+    rnd = np.random.RandomState(42)
+    w = rnd.normal(loc=5, scale=4, size=n_features)
+    Xw = X @ w
+
+    assert_allclose(quad_group.value(y, w, Xw), quad_usual.value(y, w, Xw))
+
+    quad_usual.initialize(X, y)
+    quad_group.initialize(X, y)
+
+    assert_allclose(quad_usual.lipschitz, quad_group.lipschitz)

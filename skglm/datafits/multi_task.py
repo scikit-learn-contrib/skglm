@@ -94,25 +94,24 @@ class QuadraticMultiTask(BaseMultitaskDatafit):
 spec_QuadraticGroup = [
     ('lipschitz', float64[:]),
     ('grp_ptr', int32[:]),
-    ('grp_ind', int32[:])
+    ('grp_indices', int32[:])
 ]
 
 
 @jitclass(spec_QuadraticGroup)
 class QuadraticGroup(BaseMultitaskDatafit):
     def __init__(self, grp_ptr: np.ndarray, grp_indices: np.ndarray):
-        self.grp_prt, self.grp_indices = grp_ptr, grp_indices
-        self.n_groups = len(grp_ptr) - 1
+        self.grp_ptr, self.grp_indices = grp_ptr, grp_indices
 
     def initialize(self, X: np.ndarray, y: np.ndarray):
         n_samples = y.shape[0]
-        n_groups = self.n_groups
-        grp_prt, grp_indices = self.grp_prt, self.grp_indices
+        grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
+        n_groups = len(grp_ptr) - 1
 
-        lipschitz = np.zeros(self.n_groups, dtype=np.float64)
+        lipschitz = np.zeros(n_groups, dtype=np.float64)
 
         for g in range(n_groups):
-            grp_g_indices = grp_indices[grp_prt[g]:grp_prt[g+1]]
+            grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
             X_g = X[:, grp_g_indices]
             lipschitz[g] = norm(X_g, ord=2) ** 2 / n_samples
 
@@ -124,10 +123,10 @@ class QuadraticGroup(BaseMultitaskDatafit):
 
     def gradient_j(self, X: np.ndarray, y: np.ndarray,
                    w: np.ndarray, Xw: np.ndarray, g: int) -> np.ndarray:
-        grp_prt, grp_indices = self.grp_prt, self.grp_indices
+        grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
         n_samples = y.shape[0]
 
-        grp_p_indices = grp_indices[grp_prt[g]:grp_prt[g+1]]
+        grp_p_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
         X_g = X[:, grp_p_indices]
 
         return - 1 / n_samples * X_g.T @ (y - Xw)

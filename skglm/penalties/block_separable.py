@@ -244,26 +244,36 @@ class SparseGroupL1(BasePenalty):
 
         return gsupp
 
-    def subdiff_distance(self, w_g: np.ndarray,
+    def subdiff_distance(self, w: np.ndarray,
                          grad: np.ndarray, ws: np.ndarray) -> np.ndarray:
         """Compute distance of negative gradient to the subdifferential at w_g.
 
         Parameter:
         ---------
-        ws: list of group indices
+        grad: np.ndarray
+            Gradient, stacked grad_g
+
+        ws: np.ndarray
+            List of group indices.
         """
         alpha, weights = self.alpha, self.weights
+        grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
+
         scores = np.zeros(len(ws), dtype=np.float64)
 
         for idx, g in enumerate(ws):
             if weights[g] == np.inf:
                 continue
 
+            grad_g = grad[idx]
+            grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
+            w_g = w[grp_g_indices]
+
             if np.all(w_g == 0):
-                scores[idx] = max(0, norm(grad) - alpha * weights[g])
+                scores[idx] = max(0, norm(grad_g) - alpha * weights[g])
                 continue
 
             subdiff = alpha * weights[g] * w_g / norm(w_g)
-            scores[idx] = norm(grad - subdiff)
+            scores[idx] = norm(grad_g - subdiff)
 
         return scores

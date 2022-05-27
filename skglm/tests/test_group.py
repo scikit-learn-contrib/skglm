@@ -129,5 +129,4 @@ def test_group_lasso():
 
 
 if __name__ == '__main__':
-    test_group_lasso()
     pass

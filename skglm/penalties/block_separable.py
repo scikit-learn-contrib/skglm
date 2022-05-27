@@ -1,5 +1,8 @@
+from typing import List
+
 import numpy as np
 from numpy.linalg import norm
+
 from numba import float64, int32
 from numba.experimental import jitclass
 from numba.types import bool_
@@ -214,14 +217,53 @@ class SparseGroupL1(BasePenalty):
         # bloc ST
         return BST(value, alpha * (1-tau) * stepsize * weight_j)
 
-    def is_penalized(self, _):
-        "Groups of features with inf weights are not penalized."
-        n_feature_groups = [len(g) for g in self.groups]
-        return np.repeat(self.weights, n_feature_groups) != np.inf
+    def is_penalized(self, w):
+        "Groups with inf weights are not penalized."
+        return self.weights != np.inf
 
-    def generalized_support(self, w):
-        return w != 0
+    def generalized_support(self, w: np.ndarray) -> np.ndarray:
+        """Support in terms of groups.
 
-    def subdiff_distance(self, w, grad, ws):
-        # still not implemented
-        return
+        Return:
+        -------
+        support: np.ndarray
+            Boolean array of shape (n_groups,).
+        """
+        grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
+        n_groups = len(grp_ptr) - 1
+        not_penalized_groups = ~self.is_penalized(w)
+
+        gsupp = np.zeros(n_groups, dtype=np.bool_)
+        for g in range(n_groups):
+            if not_penalized_groups[g]:
+                gsupp[g] = True
+                continue
+
+            grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
+            gsupp[g] = np.all(w[grp_g_indices] != 0)
+
+        return gsupp
+
+    def subdiff_distance(self, w_g: np.ndarray,
+                         grad: np.ndarray, ws: np.ndarray) -> np.ndarray:
+        """Compute distance of negative gradient to the subdifferential at w_g.
+
+        Parameter:
+        ---------
+        ws: list of group indices
+        """
+        alpha, weights = self.alpha, self.weights
+        scores = np.zeros(len(ws), dtype=np.float64)
+
+        for idx, g in enumerate(ws):
+            if weights[g] == np.inf:
+                continue
+
+            if np.all(w_g == 0):
+                scores[idx] = max(0, norm(grad) - alpha * weights[g])
+                continue
+
+            subdiff = alpha * weights[g] * w_g / norm(w_g)
+            scores[idx] = norm(grad - subdiff)
+
+        return scores

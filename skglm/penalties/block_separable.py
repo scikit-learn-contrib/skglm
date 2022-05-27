@@ -187,7 +187,7 @@ class BlockSCAD(BasePenalty):
         for j in range(n_features):
             if norm_rows[j] <= self.alpha:
                 value[j] = self.alpha * norm_rows[j]
-            elif norm_rows[j] > self.alpha and norm_rows[j] < self.alpha * self.gamma:
+            elif norm_rows[j] <= self.alpha * self.gamma:
                 value[j] = (
                     2 * self.gamma * self.alpha * norm_rows[j] - norm_rows[j] ** 2
                     - self.alpha ** 2) / (2 * (self.gamma - 1))
@@ -195,15 +195,26 @@ class BlockSCAD(BasePenalty):
 
     def prox_1feat(self, value, stepsize, j):
         """Compute the proximal operator of BlockSCAD."""
-        tau = self.alpha * stepsize
-        g = self.gamma / stepsize
-        norm_value = norm(value)
-        if norm_value <= 2 * tau:
-            return BST(value, tau)
-        if norm_value > g * tau:
-            return value
-        # TODO: simplify expression
-        return ((g - 1) / (g - 2)) * BST(value, (g * tau) / (g - 1))
+        tau = self.gamma * self.alpha
+        x_1 = max(0, norm(value) - self.alpha * stepsize)
+        x_2 = ((self.gamma - 1) * norm(value) - stepsize * tau) / (
+            self.gamma - 1 - stepsize)
+        x_2 = np.abs(x_2)
+        x_3 = norm(value)
+
+        objs = np.zeros(3)
+        # TODO
+        objs[0] = 0.
+        objs[1] = 0.
+        objs[2] = 0.
+
+        idx_min = np.argmin(objs)
+        if idx_min == 0:
+            return norm(value) * x_1
+        elif idx_min == 1:
+            return norm(value) * x_2
+        else:
+            return norm(value) * x_3
 
     def subdiff_distance(self, W, grad, ws):
         """Compute distance of negative gradient to the subdifferential at W."""
@@ -212,12 +223,11 @@ class BlockSCAD(BasePenalty):
             norm_Wj = norm(W[j])
             if not np.any(W[j]):
                 # distance of -grad_j to alpha * unit_ball
-                norm_grad_j = norm(grad[idx])
-                subdiff_dist[idx] = max(0, norm_grad_j - self.alpha)
+                subdiff_dist[idx] = max(0, norm(grad[idx]) - self.alpha)
             elif norm_Wj <= self.alpha:
                 # distance of -grad_j to alpha * W[j] / ||W[j]||
                 subdiff_dist[idx] = norm(grad[idx] + self.alpha * W[j] / norm_Wj)
-            elif norm_Wj > self.alpha and norm_Wj < self.gamma * self.alpha:
+            elif norm_Wj <= self.gamma * self.alpha:
                 # distance of -grad_j to (alpha * gamma - ||W[j]||)
                 # / ((gamma - 1) * ||W[j]||) * W[j]
                 subdiff_dist[idx] = norm(grad[idx] + (

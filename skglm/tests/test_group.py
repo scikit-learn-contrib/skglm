@@ -123,10 +123,12 @@ def test_group_lasso():
         alpha, tau=0., grp_ptr=grp_ptr, grp_indices=grp_indices, weights=weights)
 
     w_group_solver = group_solver(
-        X, y, quad_group, group_penalty, max_iter=10000, verbose=False, stop_tol=0.)
+        X, y, quad_group, group_penalty, max_iter=10000,
+        verbose=False, stop_tol=1e-14, p0=n_groups//10)
 
-    assert_allclose(w_group_solver, model.coef_, atol=1e-3, rtol=1e-4)
+    assert_allclose(w_group_solver, model.coef_, atol=1e-7, rtol=1e-4)
 
 
 if __name__ == '__main__':
+    test_group_lasso()
     pass

@@ -41,8 +41,6 @@ def group_solver(X: np.ndarray, y: np.ndarray,
 
         ws, ws_size = _select_ws(w, n_groups, penalty, scores, p0)
 
-        print(ws)
-
         if verbose == 1:
             p_obj = datafit.value(y, w, Xw) + penalty.value(w)
             print(f"Iteration {k}: {p_obj}, support: {ws_size} / {n_groups}")
@@ -114,22 +112,4 @@ def _select_ws(w, n_groups, penalty, scores, p0):
 
 
 if __name__ == '__main__':
-    n_samples, n_features = 1000, 1000
-    groups = 10  # contiguous groups of 10 features
-    X, y, _ = make_correlated_data(n_samples, n_features, random_state=42)
-    grp_ptr, grp_indices = grp_converter(groups, n_features)
-
-    n_groups = n_features // groups
-    weights = np.ones(n_groups)
-
-    alpha_max = norm(X.T @ y / np.repeat(weights, groups), ord=np.inf) / n_samples
-    alpha = alpha_max / 10.
-
-    group_penalty = SparseGroupL1(
-        alpha=alpha, tau=0., weights=weights, grp_ptr=grp_ptr, grp_indices=grp_indices)
-
-    group_datafit = QuadraticGroup(grp_ptr, grp_indices)
-
-    group_solver(X, y, group_datafit, group_penalty,
-                 verbose=0, p0=n_groups // 5, max_epochs=100)
     pass

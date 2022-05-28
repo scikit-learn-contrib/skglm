@@ -41,6 +41,8 @@ def group_solver(X: np.ndarray, y: np.ndarray,
 
         ws, ws_size = _select_ws(w, n_groups, penalty, scores, p0)
 
+        print(ws)
+
         if verbose == 1:
             p_obj = datafit.value(y, w, Xw) + penalty.value(w)
             print(f"Iteration {k}: {p_obj}, support: {ws_size} / {n_groups}")
@@ -102,16 +104,18 @@ def _select_ws(w, n_groups, penalty, scores, p0):
                   min(n_groups, 2 * size_support))
 
     ws = np.zeros(ws_size, np.int32)
-    for i in range(ws_size):
-        ws[i] = np.argmax(scores)
-        scores = np.delete(scores, ws[i])
+    for k in range(ws_size):
+        top_kth_grp = np.argmax(scores)
+
+        ws[k] = top_kth_grp
+        scores[top_kth_grp] = -np.inf
 
     return ws, ws_size
 
 
 if __name__ == '__main__':
     n_samples, n_features = 1000, 1000
-    groups = 100  # contiguous groups of 100 features
+    groups = 10  # contiguous groups of 10 features
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=42)
     grp_ptr, grp_indices = grp_converter(groups, n_features)
 
@@ -119,7 +123,7 @@ if __name__ == '__main__':
     weights = np.ones(n_groups)
 
     alpha_max = norm(X.T @ y / np.repeat(weights, groups), ord=np.inf) / n_samples
-    alpha = alpha_max / 1.
+    alpha = alpha_max / 10.
 
     group_penalty = SparseGroupL1(
         alpha=alpha, tau=0., weights=weights, grp_ptr=grp_ptr, grp_indices=grp_indices)

@@ -109,8 +109,10 @@ def test_group_lasso():
     grp_ptr, grp_indices = grp_converter(groups, n_features)
     weights = abs(np.random.randn(n_groups))
 
-    alpha_max = norm(X.T@y / np.repeat(weights, groups), ord=np.inf) / n_samples
-    alpha = alpha_max / 10.
+    weighted_XTy = X.T@y / np.repeat(weights, groups)
+    alpha_max = np.max(
+        norm(weighted_XTy.reshape(-1, groups), ord=2, axis=1)) / n_samples
+    alpha = alpha_max / 1.
 
     # celer group
     model = GroupLasso(groups=groups, alpha=alpha, weights=weights,

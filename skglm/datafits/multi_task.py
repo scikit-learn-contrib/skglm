@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.linalg import norm
-from numba import float64, int32
+from numba import float64
 from numba.experimental import jitclass
 
 from skglm.datafits.base import BaseMultitaskDatafit
@@ -89,52 +89,3 @@ class QuadraticMultiTask(BaseMultitaskDatafit):
                     XjTXW[t] += X_data[i] * XW[X_indices[i], t]
             grad[j, :] = (XjTXW - self.XtY[j, :]) / n_samples
         return grad
-
-
-spec_QuadraticGroup = [
-    ('lipschitz', float64[:]),
-    ('grp_ptr', int32[:]),
-    ('grp_indices', int32[:])
-]
-
-
-@jitclass(spec_QuadraticGroup)
-class QuadraticGroup(BaseMultitaskDatafit):
-    def __init__(self, grp_ptr: np.ndarray, grp_indices: np.ndarray):
-        self.grp_ptr, self.grp_indices = grp_ptr, grp_indices
-
-    def initialize(self, X: np.ndarray, y: np.ndarray):
-        n_samples = y.shape[0]
-        grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
-        n_groups = len(grp_ptr) - 1
-
-        lipschitz = np.zeros(n_groups, dtype=np.float64)
-
-        for g in range(n_groups):
-            grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
-            X_g = X[:, grp_g_indices]
-            lipschitz[g] = norm(X_g, ord=2) ** 2 / n_samples
-
-        self.lipschitz = lipschitz
-
-    def value(self, y: np.ndarray, w: np.ndarray, Xw: np.ndarray) -> float:
-        n_samples = y.shape[0]
-        return 1 / (2*n_samples) * norm(y - Xw, ord=2) ** 2
-
-    def gradient_j(self, X: np.ndarray, y: np.ndarray,
-                   w: np.ndarray, Xw: np.ndarray, g: int) -> np.ndarray:
-        grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
-        n_samples = y.shape[0]
-
-        grp_p_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
-        X_g = X[:, grp_p_indices]
-
-        return - 1 / n_samples * X_g.T @ (y - Xw)
-
-    def initialize_sparse(self, X_data, X_indptr, X_indices, Y):
-        # still unimplemented
-        return
-
-    def full_grad_sparse(self, X_data, X_indptr, X_indices, Y, XW):
-        # still unimplemented
-        return

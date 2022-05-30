@@ -1,5 +1,3 @@
-from typing import List
-
 import numpy as np
 from numpy.linalg import norm
 
@@ -8,7 +6,7 @@ from numba.experimental import jitclass
 from numba.types import bool_
 
 from skglm.penalties.base import BasePenalty
-from skglm.utils import BST, prox_block_2_05, ST_vec
+from skglm.utils import BST, prox_block_2_05
 
 
 spec_L21 = [
@@ -158,122 +156,54 @@ class BlockMCPenalty(BasePenalty):
         return np.ones(n_features, bool_)
 
 
-spec_SparseGroupL1 = [
+spec_WeightedGroupL1 = [
     ('alpha', float64),
-    ('tau', float64),
     ('weights', float64[:]),
-    ('grp_ptr', int32[:]),
-    ('grp_indices', int32[:])
+    ('grp_partition', int32[:]),
+    ('grp_indices', int32[:]),
 ]
 
 
-@jitclass(spec_SparseGroupL1)
-class SparseGroupL1(BasePenalty):
-    r"""Sparse Group L1 penalty.
+@jitclass(spec_WeightedGroupL1)
+class WeightedGroupL1(BasePenalty):
+    def __init__(self, alpha, weights, grp_partition, grp_indices):
+        self.alpha, self.weights = alpha, weights
+        self.grp_partition, self.grp_indices = grp_partition, grp_indices
 
-    :math::
-
-        \alpha (\tau \Vert \beta \Vert_1
-        + (1-\tau) \sum_g \omega_g \Vert \beta_g \Vert_2)
-
-    where :math:`\beta` is the vector of coefficients, :math:`\omega_g` are
-    the weights of the groups, :math:`\alpha` the intensity of the penalty,
-    and :math:`\tau` the ratio individual/group penalty.
-    """
-
-    def __init__(self, alpha: float, tau: float, weights: np.ndarray,
-                 grp_ptr: np.ndarray, grp_indices: np.ndarray):
-        self.alpha, self.tau = alpha, tau
-        self.weights = weights
-        self.grp_ptr, self.grp_indices = grp_ptr, grp_indices
-
-    def value(self, w: np.ndarray) -> float:
-        alpha, tau = self.alpha, self.tau
-        weights = self.weights
-        grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
-
-        l1_term = alpha * tau * norm(w, ord=1)
-
-        group_term = 0.
-        for g in range(len(weights)):
-            if weights[g] == np.inf:
-                continue
-
-            grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
-            w_g = w[grp_g_indices]
-            group_term += alpha * (1-tau) * weights[g] * norm(w_g, ord=2)
-
-        return l1_term + group_term
-
-    def prox_1feat(self, value: np.ndarray, stepsize: float, j: int) -> np.ndarray:
-        alpha, tau, weight_j = self.alpha, self.tau, self.weights[j]
-        mask_zero_coefs = value != 0
-
-        # ST for each features
-        value[mask_zero_coefs] = ST_vec(
-            value[mask_zero_coefs],
-            alpha * tau * stepsize
-        )
-        # bloc ST
-        return BST(value, alpha * (1-tau) * stepsize * weight_j)
-
-    def is_penalized(self, w):
-        "Groups with inf weights are not penalized."
-        return self.weights != np.inf
-
-    def generalized_support(self, w: np.ndarray) -> np.ndarray:
-        """Support in terms of groups.
-
-        Return:
-        -------
-        support: np.ndarray
-            Boolean array of shape (n_groups,).
-        """
-        grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
-        n_groups = len(grp_ptr) - 1
-        not_penalized_groups = ~self.is_penalized(w)
-
-        gsupp = np.zeros(n_groups, dtype=np.bool_)
-        for g in range(n_groups):
-            if not_penalized_groups[g]:
-                gsupp[g] = True
-                continue
-
-            grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
-            gsupp[g] = np.all(w[grp_g_indices] != 0)
-
-        return gsupp
-
-    def subdiff_distance(self, w: np.ndarray,
-                         grad: np.ndarray, ws: np.ndarray) -> np.ndarray:
-        """Compute distance of negative gradient to the subdifferential at w_g.
-
-        Parameter:
-        ---------
-        grad: np.ndarray
-            Gradient, stacked grad_g
-
-        ws: np.ndarray
-            List of group indices.
-        """
+    def value(self, w):
         alpha, weights = self.alpha, self.weights
-        grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
+        grp_partition, grp_indices = self.grp_partition, self.grp_indices
+        n_grp = len(grp_partition) - 1
 
-        scores = np.zeros(len(ws), dtype=np.float64)
-
-        for idx, g in enumerate(ws):
-            if weights[g] == np.inf:
-                continue
-
-            grad_g = grad[idx]
-            grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
+        sum_weighted_L2 = 0.
+        for g in range(n_grp):
+            grp_g_indices = grp_indices[grp_partition[g]:grp_partition[g+1]]
             w_g = w[grp_g_indices]
 
-            if np.all(w_g == 0):
-                scores[idx] = max(0, norm(grad_g) - alpha * weights[g])
-                continue
+            sum_weighted_L2 += alpha * weights[g] * norm(w_g)
 
-            subdiff = alpha * weights[g] * w_g / norm(w_g)
-            scores[idx] = norm(grad_g - subdiff)
+        return sum_weighted_L2
+
+    def prox_1group(self, value, stepsize, g):
+        alpha = self.alpha
+        return BST(value, alpha * stepsize * self.weights[g])
+
+    def subdiff_distance(self, w, grad, ws):
+        alpha, weights = self.alpha, self.weights
+        grp_partition, grp_indices = self.grp_partition, self.grp_indices
+
+        scores = np.zeros(len(ws))
+        for idx, g in enumerate(ws):
+            grad_g = grad[idx]
+
+            grp_g_indices = grp_indices[grp_partition[g]:grp_partition[g+1]]
+            w_g = w[grp_g_indices]
+            norm_w_g = norm(w_g)
+
+            if norm_w_g == 0:
+                scores[idx] = max(0, norm(grad_g) - alpha * weights[g])
+            else:
+                subdiff = alpha * weights[g] * w_g / norm_w_g
+                scores[idx] = norm(grad_g - subdiff)
 
         return scores

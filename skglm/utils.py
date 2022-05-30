@@ -208,10 +208,13 @@ def grp_converter(groups, n_features):
 
     Returns
     -------
-    grp_partition : np.array, shape (n_groups+1,)
-        Group partition of features.
-    grp_indices : np.array, shape (n_features,)
-        Group indices of features.
+    grp_indices : array, shape (n_features,)
+        The group indices stacked contiguously
+        (e.g. [grp1_indices, grp2_indices, ...]).
+
+    grp_ptr : array, shape (n_groups + 1,)
+        The group pointers such that two consecutive elements delimit
+        the indices of a group in ``grp_indices``.
     """
     if isinstance(groups, int):
         grp_size = groups

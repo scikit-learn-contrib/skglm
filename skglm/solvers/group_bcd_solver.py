@@ -2,8 +2,8 @@ import numpy as np
 from numba import njit
 
 
-def grp_bcd_solver(X, y, datafit, penalty,
-                   max_iter=1000, tol=1e-7, verbose=False):
+def bcd_solver(X, y, datafit, penalty, w_init=None,
+               max_iter=1000, tol=1e-7, verbose=False):
     """Run a group BCD solver.
 
     Parameters
@@ -20,6 +20,10 @@ def grp_bcd_solver(X, y, datafit, penalty,
     penalty : WeightedGroupL1
         Penalty object.
 
+    w_init : array, shape (n_features,), default None
+        Initial value of coefficients.
+        If set to None, a zero vector is used instead.
+
     max_iter : int, default 1000
         Maximum number of iterations.
 
@@ -32,26 +36,26 @@ def grp_bcd_solver(X, y, datafit, penalty,
     Returns
     -------
     w : array, shape (n_features,)
-        Vector that minimizes ``datafit() + penalty()``.
+        Solution that minimizes the problem defined by datafit and penalty.
     """
-    n_samples, n_features = X.shape
-    n_groups = len(penalty.grp_partition) - 1
+    n_features = X.shape[1]
+    n_groups = len(penalty.grp_ptr) - 1
 
     # init
-    w = np.zeros(n_features)
-    Xw = np.zeros(n_samples)  # X @ w in general
+    w = np.zeros(n_features) if w_init is None else X @ w_init
+    Xw = X @ w
     datafit.initialize(X, y)
     all_groups = np.arange(n_groups)
 
     for k in range(max_iter):
         prev_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
         _bcd_epoch(X, y, w, Xw, datafit, penalty, all_groups)
-        current_obj = datafit.value(y, w, Xw) + penalty.value(w)
+        current_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
 
         if verbose:
-            print(f"Iteration {k}: {current_obj}")
+            print(f"Iteration {k}: {current_p_obj}")
 
-        if np.abs(current_obj - prev_p_obj) < tol:  # naive stopping criterion
+        if np.abs(current_p_obj - prev_p_obj) < tol:  # naive stopping criterion
             print("Early exit")
             break
 
@@ -60,29 +64,11 @@ def grp_bcd_solver(X, y, datafit, penalty,
 
 @njit
 def _bcd_epoch(X, y, w, Xw, datafit, penalty, ws):
-    """Perform a single BCD epoch on groups in ws.
-
-    Parameters
-    ----------
-    X : array, shape (n_samples, n_features)
-        Design matrix.
-    y : array, shape (n_samples,)
-        Target vector.
-    w : array, shape (n_features,)
-        Vector that minimizes ``datafit() + penalty()``.
-    Xw : array, shape (n_samples,)
-        X @ w in general.
-    datafit : QuadraticGroup
-        DataFit object.
-    penalty : WeightedGroupL1
-        Penalty object.
-    ws : array or list,
-        Groups to consider.
-    """
-    grp_partition, grp_indices = penalty.grp_partition, penalty.grp_indices
+    """Perform a single BCD epoch on groups in ws."""
+    grp_ptr, grp_indices = penalty.grp_ptr, penalty.grp_indices
 
     for g in ws:
-        grp_g_indices = grp_indices[grp_partition[g]: grp_partition[g+1]]
+        grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
         old_w_g = w[grp_g_indices].copy()
 
         inv_lipschitz_g = 1 / datafit.lipschitz[g]

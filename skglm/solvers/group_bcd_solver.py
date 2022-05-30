@@ -4,6 +4,36 @@ from numba import njit
 
 def grp_bcd_solver(X, y, datafit, penalty,
                    max_iter=1000, tol=1e-7, verbose=False):
+    """Run a group BCD solver.
+
+    Parameters
+    ----------
+    X : array, shape (n_samples, n_features)
+        Design matrix.
+
+    y : array, shape (n_samples,)
+        Target vector.
+
+    datafit : QuadraticGroup
+        DataFit object.
+
+    penalty : WeightedGroupL1
+        Penalty object.
+
+    max_iter : int, default 1000
+        Maximum number of iterations.
+
+    tol : float, default 1e-7
+        Tolerance for convergence.
+
+    verbose : bool, default False
+        Log or not the objective at each iteration.
+
+    Returns
+    -------
+    w : array, shape (n_features,)
+        Vector that minimizes ``datafit() + penalty()``.
+    """
     n_samples, n_features = X.shape
     n_groups = len(penalty.grp_partition) - 1
 
@@ -30,6 +60,25 @@ def grp_bcd_solver(X, y, datafit, penalty,
 
 @njit
 def _bcd_epoch(X, y, w, Xw, datafit, penalty, ws):
+    """Perform a single BCD epoch on groups in ws.
+
+    Parameters
+    ----------
+    X : array, shape (n_samples, n_features)
+        Design matrix.
+    y : array, shape (n_samples,)
+        Target vector.
+    w : array, shape (n_features,)
+        Vector that minimizes ``datafit() + penalty()``.
+    Xw : array, shape (n_samples,)
+        X @ w in general.
+    datafit : QuadraticGroup
+        DataFit object.
+    penalty : WeightedGroupL1
+        Penalty object.
+    ws : array or list,
+        Groups to consider.
+    """
     grp_partition, grp_indices = penalty.grp_partition, penalty.grp_indices
 
     for g in ws:

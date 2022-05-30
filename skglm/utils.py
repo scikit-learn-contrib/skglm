@@ -190,7 +190,29 @@ def make_correlated_data(
 
 
 def grp_converter(groups, n_features):
-    """Create group partition and group indices."""
+    """Create group partition and group indices.
+
+    Parameters
+    ----------
+    groups : int | list of ints | list of lists of ints
+        Partition of features used in the penalty on `w`.
+        If an int is passed, groups are contiguous blocks of features, of size
+        `groups`.
+        If a list of ints is passed, groups are assumed to be contiguous,
+        group number `g` being of size `groups[g]`.
+        If a list of lists of ints is passed, `groups[g]` contains the
+        feature indices of the group number `g`.
+
+    n_features : int
+        Number of features.
+
+    Returns
+    -------
+    grp_partition : np.array, shape (n_groups+1,)
+        Group partition of features.
+    grp_indices : np.array, shape (n_features,)
+        Group indices of features.
+    """
     if isinstance(groups, int):
         grp_size = groups
         if n_features % grp_size != 0:

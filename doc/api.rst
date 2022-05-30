@@ -51,10 +51,10 @@ Datafits
 .. autosummary::
    :toctree: generated/
 
+   GroupQuadratic
    Logistic
    Quadratic
    QuadraticSVC
-   GroupQuadratic
 
 
 

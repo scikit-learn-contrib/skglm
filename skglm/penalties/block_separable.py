@@ -166,18 +166,41 @@ spec_WeightedGroupL1 = [
 
 @jitclass(spec_WeightedGroupL1)
 class WeightedGroupL1(BasePenalty):
+    r"""Weighted Group L1 penalty.
+
+    The penalty reads::
+
+        \alpha * \sum_{g} weights[g] * ||w_g||_2
+
+
+    Attributes
+    ----------
+    alpha : float
+        The regularization parameter.
+
+    weights : array, shape (n_groups,)
+        The weights of the groups.
+
+    grp_partition : array, shape (n_groups + 1,)
+        The group partition.
+
+    grp_indices : array, shape (n_features,)
+        The group indices.
+    """
+
     def __init__(self, alpha, weights, grp_partition, grp_indices):
         self.alpha, self.weights = alpha, weights
         self.grp_partition, self.grp_indices = grp_partition, grp_indices
 
     def value(self, w):
+        """Value of penalty at vector w."""
         alpha, weights = self.alpha, self.weights
         grp_partition, grp_indices = self.grp_partition, self.grp_indices
         n_grp = len(grp_partition) - 1
 
         sum_weighted_L2 = 0.
         for g in range(n_grp):
-            grp_g_indices = grp_indices[grp_partition[g]:grp_partition[g+1]]
+            grp_g_indices = grp_indices[grp_partition[g]: grp_partition[g+1]]
             w_g = w[grp_g_indices]
 
             sum_weighted_L2 += alpha * weights[g] * norm(w_g)
@@ -185,10 +208,12 @@ class WeightedGroupL1(BasePenalty):
         return sum_weighted_L2
 
     def prox_1group(self, value, stepsize, g):
+        """Compute the proximal operator of a given group."""
         alpha = self.alpha
         return BST(value, alpha * stepsize * self.weights[g])
 
     def subdiff_distance(self, w, grad, ws):
+        """Compute distance of negative gradient to the subdifferential at w"""
         alpha, weights = self.alpha, self.weights
         grp_partition, grp_indices = self.grp_partition, self.grp_indices
 
@@ -196,7 +221,7 @@ class WeightedGroupL1(BasePenalty):
         for idx, g in enumerate(ws):
             grad_g = grad[idx]
 
-            grp_g_indices = grp_indices[grp_partition[g]:grp_partition[g+1]]
+            grp_g_indices = grp_indices[grp_partition[g]: grp_partition[g+1]]
             w_g = w[grp_g_indices]
             norm_w_g = norm(w_g)
 

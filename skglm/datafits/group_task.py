@@ -15,6 +15,26 @@ spec_QuadraticGroup = [
 
 @ jitclass(spec_QuadraticGroup)
 class QuadraticGroup(BaseDatafit):
+    """Quadratic datafit used with group penalties.
+
+    The datafit reads::
+
+    (1 / (2 * n_samples)) * ||y - X w||^2_2
+
+    where coordinates of ``w`` admits a group partitions.
+
+    Attributes
+    ----------
+    grp_partition : array, shape (n_groups + 1,)
+        The group partition.
+
+    grp_indices : array, shape (n_features,)
+        The group indices.
+
+    lipschitz : array, shape (n_groups,)
+        The lipschitz constants for each group.
+    """
+
     def __init__(self, grp_partition, grp_indices):
         self.grp_partition, self.grp_indices = grp_partition, grp_indices
 

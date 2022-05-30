@@ -48,16 +48,20 @@ def group_solver(X: np.ndarray, y: np.ndarray,
             print(f"Iteration {k}: {p_obj}, support: {ws_size} / {n_groups}")
 
         for epoch in range(1, max_epochs+1):
+            if use_acc and len(residuals) == 0:  # init residuals
+                w_ws = _get_w_ws(w, grp_ptr, grp_indices, ws)
+                residuals = np.concatenate((residuals, w_ws), axis=1)
+
             # inplace update of w
             _cycle_group_cd(datafit, penalty, y, X,
                             w, Xw, grp_ptr, grp_indices, ws)
 
             if use_acc:  # form residuals
                 w_ws = _get_w_ws(w, grp_ptr, grp_indices, ws)
-                old_w_ws = residuals[:, -1]  # prob in init
+                old_w_ws = residuals[:, -1]
                 residuals = np.concatenate((residuals, w_ws - old_w_ws), axis=1)
 
-            if use_acc and len(residuals) == FREQ_ACC:  # extrapolate
+            if use_acc and len(residuals) == FREQ_ACC:
                 # inplace update of w
                 _extrapolate_w_ws(w, ws, residuals, grp_ptr, grp_indices)
                 residuals = np.array([], dtype=np.float64)

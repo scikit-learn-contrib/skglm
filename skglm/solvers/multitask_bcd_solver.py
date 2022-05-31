@@ -194,14 +194,14 @@ def bcd_solver(
 
     Returns
     -------
-    alphas : array, shape (n_alphas,)
-        The alphas along the path where models are computed.
-
     coefs : array, shape (n_features, n_tasks, n_alphas)
         Coefficients along the path.
 
-    stop_crit : array, shape (n_alphas,)
-        Value of stopping criterion at convergence along the path.
+    obj_out : array, shape (n_iter,)
+        The objective values at every outer iteration.
+
+    stop_crit : float
+        Value of stopping criterion at convergence.
     """
     n_tasks = Y.shape[1]
     n_features = X.shape[1]

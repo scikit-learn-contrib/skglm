@@ -11,7 +11,7 @@ from celer import GroupLasso, Lasso
 
 
 def _generate_random_grp(n_groups, n_features, shuffle=True):
-    all_features = np.arange(n_features)
+    all_features = np.arange(n_features, dtype=np.int32)
     if shuffle:
         np.random.shuffle(all_features)
     splits = np.random.choice(all_features, size=n_groups+1, replace=False)

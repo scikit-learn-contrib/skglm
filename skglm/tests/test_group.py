@@ -129,5 +129,33 @@ def test_vs_celer_GroupLasso():
 
 
 if __name__ == '__main__':
-    test_alpha_max(_generate_random_grp(100, 1000), 1000)
-    pass
+    groups = _generate_random_grp(10, 50, 0)
+    n_features = 50
+    n_samples = 10
+    random_state = 1563
+    rnd = np.random.RandomState(random_state)
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=random_state)
+
+    grp_indices, grp_ptr = grp_converter(groups, n_features)
+    n_groups = len(grp_ptr) - 1
+    weights = abs(rnd.randn(n_groups))
+
+    alpha_max = 0.
+    for g in range(n_groups):
+        grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
+        alpha_max = max(
+            alpha_max,
+            norm(X[:, grp_g_indices].T @ y) / n_samples / weights[g]
+        )
+
+    # group solver
+    quad_group = QuadraticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
+    group_penalty = WeightedGroupL1(
+        alpha=alpha_max/1.1, grp_ptr=grp_ptr,
+        grp_indices=grp_indices, weights=weights)
+
+    w_group_solver = bcd_solver(
+        X, y, quad_group, group_penalty, max_iter=10000,
+        verbose=True, tol=1e-10)
+
+    print(norm(w_group_solver, ord=np.inf))

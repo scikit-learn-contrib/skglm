@@ -199,14 +199,14 @@ class WeightedGroupL1(BasePenalty):
         grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
         n_grp = len(grp_ptr) - 1
 
-        sum_weighted_L2 = 0.
+        sum_weighted_norms = 0.
         for g in range(n_grp):
             grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
             w_g = w[grp_g_indices]
 
-            sum_weighted_L2 += alpha * weights[g] * norm(w_g)
+            sum_weighted_norms += alpha * weights[g] * norm(w_g)
 
-        return sum_weighted_L2
+        return sum_weighted_norms
 
     def prox_1group(self, value, stepsize, g):
         """Compute the proximal operator of group ``g``."""

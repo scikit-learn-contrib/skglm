@@ -172,7 +172,6 @@ class WeightedGroupL1(BasePenalty):
 
         \sum_{g} weights[g] * ||w_g||_2
 
-
     Attributes
     ----------
     alpha : float

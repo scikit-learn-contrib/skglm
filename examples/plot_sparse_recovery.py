@@ -54,16 +54,16 @@ datafit = Quadratic()
 penalties = {}
 penalties['lasso'] = L1(alpha=1)
 penalties['mcp'] = MCPenalty(alpha=1, gamma=3)
+penalties['scad'] = SCAD(alpha=1, gamma=3)
 penalties['l05'] = L0_5(alpha=1)
 penalties['l23'] = L2_3(alpha=1)
-penalties['scad'] = SCAD(alpha=1, gamma=3)
 
 colors = {}
 colors['lasso'] = current_palette[0]
 colors['mcp'] = current_palette[1]
+colors['scad'] = current_palette[4]
 colors['l05'] = current_palette[2]
 colors['l23'] = current_palette[3]
-colors['scad'] = current_palette[4]
 
 f1 = {}
 estimation_error = {}
@@ -88,9 +88,9 @@ for idx, estimator in enumerate(penalties.keys()):
 
 name_estimators = {'lasso': "Lasso"}
 name_estimators['mcp'] = r"MCP, $\gamma=%s$" % 3
+name_estimators['scad'] = r"SCAD, $\gamma=%s$" % 3
 name_estimators['l05'] = r"$\ell_{1/2}$"
 name_estimators['l23'] = r"$\ell_{2/3}$"
-name_estimators['scad'] = r"SCAD, $\gamma=%s$" % 3
 
 
 plt.close('all')
@@ -134,7 +134,7 @@ for idx, estimator in enumerate(penalties.keys()):
     axarr[1].set_ylabel("pred. RMSE left-out")
     axarr[0].legend(
         bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left",
-        mode="expand", borderaxespad=0, ncol=4)
+        mode="expand", borderaxespad=0, ncol=5)
 
 fig.savefig("sparse_recovery.pdf")
 plt.show(block=False)

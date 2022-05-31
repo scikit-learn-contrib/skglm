@@ -42,7 +42,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None,
     n_groups = len(penalty.grp_ptr) - 1
 
     # init
-    w = np.zeros(n_features) if w_init is None else X @ w_init
+    w = w_init or np.zeros(n_features)
     Xw = X @ w
     datafit.initialize(X, y)
     all_groups = np.arange(n_groups)
@@ -55,7 +55,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None,
         if verbose:
             print(f"Iteration {k}: {current_p_obj}")
 
-        if np.abs(current_p_obj - prev_p_obj) < tol:  # naive stopping criterion
+        if np.abs(current_p_obj - prev_p_obj) <= tol:  # naive stopping criterion
             print("Early exit")
             break
 

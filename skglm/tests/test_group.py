@@ -11,12 +11,10 @@ from skglm.utils import grp_converter, make_correlated_data
 from celer import GroupLasso, Lasso
 
 
-def _generate_random_grp(n_groups, n_features, random_state=123654):
-    rnd = np.random.RandomState(random_state)
-
+def _generate_random_grp(n_groups, n_features):
     all_features = np.arange(n_features)
-    rnd.shuffle(all_features)
-    splits = rnd.choice(all_features, size=n_groups+1, replace=False)
+    np.random.shuffle(all_features)
+    splits = np.random.choice(all_features, size=n_groups+1, replace=False)
     splits.sort()
     splits[0], splits[-1] = 0, n_features
 
@@ -29,9 +27,8 @@ def _generate_random_grp(n_groups, n_features, random_state=123654):
                           [_generate_random_grp(30, 500), 500]])
 def test_alpha_max(groups, n_features):
     n_samples = 100
-    random_state = 1563
-    rnd = np.random.RandomState(random_state)
-    X, y, _ = make_correlated_data(n_samples, n_features, random_state=random_state)
+    rnd = np.random.RandomState(1563)
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=rnd)
 
     grp_indices, grp_ptr = grp_converter(groups, n_features)
     n_groups = len(grp_ptr) - 1
@@ -55,15 +52,13 @@ def test_alpha_max(groups, n_features):
         X, y, quad_group, group_penalty, max_iter=10000,
         verbose=True, tol=0)
 
-    np.testing.assert_array_almost_equal(
-        w_group_solver, np.zeros(n_features), decimal=10)
+    np.testing.assert_almost_equal(norm(w_group_solver), 0, decimal=10)
 
 
 def test_equivalence_lasso():
     n_samples, n_features = 100, 1000
-    random_state = 1123
-    rnd = np.random.RandomState(random_state)
-    X, y, _ = make_correlated_data(n_samples, n_features, random_state=random_state)
+    rnd = np.random.RandomState(1123)
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=rnd)
 
     grp_indices, grp_ptr = grp_converter(1, n_features)
     weights = abs(rnd.randn(n_features))
@@ -93,8 +88,7 @@ def test_equivalence_lasso():
                           [_generate_random_grp(30, 500), 500]])
 def test_vs_celer_GroupLasso(groups, n_features):
     n_samples = 100
-    random_state = 42
-    rnd = np.random.RandomState(random_state)
+    rnd = np.random.RandomState(42)
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=rnd)
 
     grp_indices, grp_ptr = grp_converter(groups, n_features)

@@ -1,5 +1,6 @@
 import numpy as np
 from numpy.linalg import norm
+from sklearn.utils import check_random_state
 
 from skglm.penalties.block_separable import WeightedGroupL1
 from skglm.datafits.group import QuadraticGroup
@@ -9,7 +10,7 @@ from skglm.utils import grp_converter, make_correlated_data
 
 
 def _generate_random_grp(n_groups, n_features, random_state=123654):
-    rnd = np.random.RandomState(random_state)
+    rnd = check_random_state(random_state)
 
     all_features = np.arange(n_features)
     rnd.shuffle(all_features)

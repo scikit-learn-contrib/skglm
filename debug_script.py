@@ -42,11 +42,11 @@ for g in range(n_groups):
 # group solver
 quad_group = QuadraticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
 group_penalty = WeightedGroupL1(
-    alpha=alpha_max, grp_ptr=grp_ptr,
+    alpha=alpha_max * 1.0000001, grp_ptr=grp_ptr,
     grp_indices=grp_indices, weights=weights)
 
 w_group_solver = bcd_solver(
     X, y, quad_group, group_penalty, max_iter=10000,
-    verbose=True, tol=0)
+    verbose=True, tol=1e-10)
 
 print(norm(w_group_solver, ord=np.inf))

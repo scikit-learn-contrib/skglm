@@ -21,8 +21,8 @@ def _generate_random_grp(n_groups, n_features, random_state=123654):
             for i in range(n_groups)]
 
 
-random_state = 156
-n_samples, n_features, n_groups = 100, 1000, 1
+random_state = 1563
+n_samples, n_features, n_groups = 100, 1000, 60
 groups = _generate_random_grp(n_groups, n_features)
 
 rnd = np.random.RandomState(random_state)
@@ -47,6 +47,6 @@ group_penalty = WeightedGroupL1(
 
 w_group_solver = bcd_solver(
     X, y, quad_group, group_penalty, max_iter=10000,
-    verbose=True, tol=0)
+    verbose=True, tol=1e-7)
 
 print(norm(w_group_solver, ord=np.inf))

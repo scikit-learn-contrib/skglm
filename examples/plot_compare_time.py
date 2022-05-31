@@ -73,7 +73,7 @@ for ax, model, l1_ratio in zip(axarr, models, [1, 0.5]):
         time_dict["sklearn"].append(time.time() - t_start)
         pobj_dict["sklearn"].append(compute_obj(X, y, w_sklearn, alpha, l1_ratio))
 
-    for n_iter_us in range(10):
+    for n_iter_us in range(1, 10):
         dict_ours[model].max_iter = n_iter_us
         t_start = time.time()
         w = dict_ours[model].fit(X, y).coef_

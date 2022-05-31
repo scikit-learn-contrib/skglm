@@ -10,7 +10,6 @@ Illustrate the superior performance of penalties for sparse recovery.
 #         Quentin Klopfenstein
 
 import numpy as np
-import seaborn as sns
 from numpy.linalg import norm
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
@@ -22,7 +21,7 @@ from skglm.solvers import cd_solver_path
 from skglm.datafits import Quadratic
 from skglm.penalties import L1, MCPenalty, L0_5, L2_3, SCAD
 
-current_palette = sns.color_palette("colorblind")
+cmap = plt.get_cmap('tab10')
 
 configure_plt()
 # Simulate sparse data
@@ -59,11 +58,11 @@ penalties['l05'] = L0_5(alpha=1)
 penalties['l23'] = L2_3(alpha=1)
 
 colors = {}
-colors['lasso'] = current_palette[0]
-colors['mcp'] = current_palette[1]
-colors['scad'] = current_palette[4]
-colors['l05'] = current_palette[2]
-colors['l23'] = current_palette[3]
+colors['lasso'] = cmap(0)
+colors['mcp'] = cmap(1)
+colors['scad'] = cmap(2)
+colors['l05'] = cmap(3)
+colors['l23'] = cmap(4)
 
 f1 = {}
 estimation_error = {}

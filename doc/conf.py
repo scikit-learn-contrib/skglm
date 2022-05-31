@@ -331,7 +331,8 @@ intersphinx_mapping = {
 }
 
 sphinx_gallery_conf = {
-    'backreferences_dir': 'gen_modules/backreferences',
+    # 'backreferences_dir': 'gen_modules/backreferences',
+    'backreferences_dir': 'generated',
     'doc_module': ('skglm', 'sklearn', 'benchopt'),
     'examples_dirs': '../examples',
     'gallery_dirs': 'auto_examples',

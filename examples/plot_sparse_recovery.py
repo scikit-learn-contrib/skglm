@@ -20,7 +20,7 @@ from celer.plot_utils import configure_plt
 from skglm.utils import make_correlated_data
 from skglm.solvers import cd_solver_path
 from skglm.datafits import Quadratic
-from skglm.penalties import L1, MCPenalty, L0_5, L2_3
+from skglm.penalties import L1, MCPenalty, L0_5, L2_3, SCAD
 
 current_palette = sns.color_palette("colorblind")
 
@@ -56,12 +56,14 @@ penalties['lasso'] = L1(alpha=1)
 penalties['mcp'] = MCPenalty(alpha=1, gamma=3)
 penalties['l05'] = L0_5(alpha=1)
 penalties['l23'] = L2_3(alpha=1)
+penalties['scad'] = SCAD(alpha=1, gamma=3)
 
 colors = {}
 colors['lasso'] = current_palette[0]
 colors['mcp'] = current_palette[1]
 colors['l05'] = current_palette[2]
 colors['l23'] = current_palette[3]
+colors['scad'] = current_palette[4]
 
 f1 = {}
 estimation_error = {}
@@ -88,6 +90,7 @@ name_estimators = {'lasso': "Lasso"}
 name_estimators['mcp'] = r"MCP, $\gamma=%s$" % 3
 name_estimators['l05'] = r"$\ell_{1/2}$"
 name_estimators['l23'] = r"$\ell_{2/3}$"
+name_estimators['scad'] = r"SCAD, $\gamma=%s$" % 3
 
 
 plt.close('all')

@@ -50,13 +50,13 @@ def test_alpha_max(groups, n_features):
 
     w_group_solver = bcd_solver(
         X, y, quad_group, group_penalty, max_iter=10000,
-        verbose=True, tol=0)
+        verbose=False, tol=0)
 
     np.testing.assert_almost_equal(norm(w_group_solver), 0, decimal=10)
 
 
 def test_equivalence_lasso():
-    n_samples, n_features = 100, 1000
+    n_samples, n_features = 30, 50
     rnd = np.random.RandomState(1123)
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=rnd)
 

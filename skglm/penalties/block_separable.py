@@ -195,7 +195,7 @@ class WeightedGroupL1(BasePenalty):
         self.grp_ptr, self.grp_indices = grp_ptr, grp_indices
 
     def value(self, w):
-        """Value of penalty at vector w."""
+        """Value of penalty at vector ``w``."""
         alpha, weights = self.alpha, self.weights
         grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
         n_grp = len(grp_ptr) - 1
@@ -210,7 +210,7 @@ class WeightedGroupL1(BasePenalty):
         return sum_weighted_L2
 
     def prox_1group(self, value, stepsize, g):
-        """Compute the proximal operator of a given group."""
+        """Compute the proximal operator of group ``g``."""
         return BST(value, self.alpha * stepsize * self.weights[g])
 
     def subdiff_distance(self, w, grad, ws):

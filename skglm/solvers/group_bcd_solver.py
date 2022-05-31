@@ -71,16 +71,16 @@ def _bcd_epoch(X, y, w, Xw, datafit, penalty, ws):
         grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
         old_w_g = w[grp_g_indices].copy()
 
-        inv_lipschitz_g = 1 / datafit.lipschitz[g]
+        lipschitz_g = datafit.lipschitz[g]
         grad_g = datafit.gradient_g(X, y, w, Xw, g)
 
         w[grp_g_indices] = penalty.prox_1group(
-            old_w_g - inv_lipschitz_g * grad_g,
-            inv_lipschitz_g, g
+            old_w_g - grad_g / lipschitz_g,
+            1 / lipschitz_g, g
         )
 
         # update Xw without copying w_g
-        for i, g_i in enumerate(grp_g_indices):
-            if old_w_g[i] != w[g_i]:
-                Xw += (w[g_i] - old_w_g[i]) * X[:, g_i]
+        for j, g_j in enumerate(grp_g_indices):
+            if old_w_g[j] != w[g_j]:
+                Xw += (w[g_j] - old_w_g[j]) * X[:, g_j]
     return

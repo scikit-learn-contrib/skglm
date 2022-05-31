@@ -21,8 +21,6 @@ class QuadraticGroup(BaseDatafit):
 
     (1 / (2 * n_samples)) * ||y - X w||^2_2
 
-    where coordinates of ``w`` admits a group partitions.
-
     Attributes
     ----------
     grp_indices : array, shape (n_features,)
@@ -41,7 +39,6 @@ class QuadraticGroup(BaseDatafit):
         self.grp_ptr, self.grp_indices = grp_ptr, grp_indices
 
     def initialize(self, X, y):
-        n_samples = len(y)
         grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
         n_groups = len(grp_ptr) - 1
 
@@ -49,24 +46,22 @@ class QuadraticGroup(BaseDatafit):
         for g in range(n_groups):
             grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
             X_g = X[:, grp_g_indices]
-            lipschitz[g] = norm(X_g) ** 2 / n_samples
+            lipschitz[g] = norm(X_g, ord=2) ** 2 / len(y)
 
         self.lipschitz = lipschitz
 
     def value(self, y, w, Xw):
-        n_samples = len(y)
-        return norm(y - Xw) ** 2 / (2 * n_samples)
+        return norm(y - Xw) ** 2 / (2 * len(y))
 
     def gradient_g(self, X, y, w, Xw, g):
         grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
         grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
 
         grad_g = np.zeros(len(grp_g_indices))
-        for i, g in enumerate(grp_g_indices):
-            grad_g[i] = self.gradient_scalar(X, y, w, Xw, g)
+        for j, g_j in enumerate(grp_g_indices):
+            grad_g[j] = self.gradient_scalar(X, y, w, Xw, g_j)
 
         return grad_g
 
     def gradient_scalar(self, X, y, w, Xw, j):
-        n_samples = len(y)
-        return X[:, j] @ (Xw - y) / n_samples
+        return X[:, j] @ (Xw - y) / len(y)

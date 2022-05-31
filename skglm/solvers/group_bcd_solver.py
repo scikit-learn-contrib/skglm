@@ -3,7 +3,7 @@ from numba import njit
 
 
 def bcd_solver(X, y, datafit, penalty, w_init=None,
-               max_iter=1000, tol=1e-7, verbose=False):
+               max_iter=1000, max_epochs=100, tol=1e-7, verbose=False):
     """Run a group BCD solver.
 
     Parameters
@@ -14,10 +14,10 @@ def bcd_solver(X, y, datafit, penalty, w_init=None,
     y : array, shape (n_samples,)
         Target vector.
 
-    datafit : QuadraticGroup
+    datafit : instance of BaseDataFit
         DataFit object.
 
-    penalty : WeightedGroupL1
+    penalty : instance of BasePenalty
         Penalty object.
 
     w_init : array, shape (n_features,), default None
@@ -27,16 +27,25 @@ def bcd_solver(X, y, datafit, penalty, w_init=None,
     max_iter : int, default 1000
         Maximum number of iterations.
 
-    tol : float, default 1e-7
+    max_epochs : int, default 100
+        Maximum number of epochs.
+
+    tol : float, default 1e-6
         Tolerance for convergence.
 
     verbose : bool, default False
-        Log or not the objective at each iteration.
+        Amount of verbosity. 0/False is silent.
 
     Returns
     -------
     w : array, shape (n_features,)
         Solution that minimizes the problem defined by datafit and penalty.
+
+    p_objs_out: array
+        Array of p_obj values at each iteration.
+
+    stop_crit: float
+        The value of the stop criterion.
     """
     n_features = X.shape[1]
     n_groups = len(penalty.grp_ptr) - 1
@@ -46,20 +55,40 @@ def bcd_solver(X, y, datafit, penalty, w_init=None,
     Xw = X @ w
     datafit.initialize(X, y)
     all_groups = np.arange(n_groups)
+    p_objs_out = np.array([])
 
-    for k in range(max_iter):
-        prev_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-        _bcd_epoch(X, y, w, Xw, datafit, penalty, all_groups)
+    for t in range(max_iter):
+        if t == 0:  # avoid computing p_obj twice
+            prev_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+
+        for epoch in range(max_epochs):
+            _bcd_epoch(X, y, w, Xw, datafit, penalty, all_groups)
+
+            if verbose > 1:
+                current_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+                print(f"\t | Epoch {epoch}: {current_p_obj}")
+
+            if epoch % 10 == 0:
+                current_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+                stop_crit = np.abs(current_p_obj - prev_p_obj)
+                if stop_crit <= tol:
+                    print("Inner Solver: Early exit")
+                    break
+                prev_p_obj = current_p_obj
+
         current_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+        if verbose > 0:
+            print(f"Iteration {t}: {current_p_obj}")
 
-        if verbose:
-            print(f"Iteration {k}: {current_p_obj}")
-
-        if np.abs(current_p_obj - prev_p_obj) <= tol:  # naive stopping criterion
-            print("Early exit")
+        stop_crit = np.abs(current_p_obj - prev_p_obj)
+        if stop_crit <= tol:
+            print("Outer solver: Early exit")
             break
 
-    return w
+        prev_p_obj = current_p_obj
+        p_objs_out = np.append(p_objs_out, current_p_obj)
+
+    return w, p_objs_out, stop_crit
 
 
 @njit
@@ -80,7 +109,7 @@ def _bcd_epoch(X, y, w, Xw, datafit, penalty, ws):
         )
 
         # update Xw without copying w_g
-        for j, g_j in enumerate(grp_g_indices):
-            if old_w_g[j] != w[g_j]:
-                Xw += (w[g_j] - old_w_g[j]) * X[:, g_j]
+        for idx, g_j in enumerate(grp_g_indices):
+            if old_w_g[idx] != w[g_j]:
+                Xw += (w[g_j] - old_w_g[idx]) * X[:, g_j]
     return

@@ -1,5 +1,4 @@
 import pytest
-
 import numpy as np
 from numpy.linalg import norm
 
@@ -11,27 +10,28 @@ from skglm.utils import grp_converter, make_correlated_data
 from celer import GroupLasso, Lasso
 
 
-def _generate_random_grp(n_groups, n_features):
+def _generate_random_grp(n_groups, n_features, shuffle=True):
     all_features = np.arange(n_features)
-    np.random.shuffle(all_features)
+    if shuffle:
+        np.random.shuffle(all_features)
     splits = np.random.choice(all_features, size=n_groups+1, replace=False)
     splits.sort()
     splits[0], splits[-1] = 0, n_features
 
-    return [list(all_features[splits[i]: splits[i+1]])
-            for i in range(n_groups)]
+    groups = [list(all_features[splits[i]: splits[i+1]])
+              for i in range(n_groups)]
+
+    return all_features, splits, groups   # grp_indices, grp_prt, groups
 
 
-@pytest.mark.parametrize("groups, n_features",
-                         [[5, 50], [[8 for _ in range(6)], 48],
-                          [_generate_random_grp(30, 100), 100]])
-def test_alpha_max(groups, n_features):
+@pytest.mark.parametrize("n_groups, n_features, shuffle",
+                         [[10, 50, True], [10, 50, False], [17, 53, False]])
+def test_alpha_max(n_groups, n_features, shuffle):
     n_samples = 30
     rnd = np.random.RandomState(1563)
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=rnd)
 
-    grp_indices, grp_ptr = grp_converter(groups, n_features)
-    n_groups = len(grp_ptr) - 1
+    grp_indices, grp_ptr, _ = _generate_random_grp(n_groups, n_features, shuffle)
     weights = abs(rnd.randn(n_groups))
 
     alpha_max = 0.
@@ -48,7 +48,7 @@ def test_alpha_max(groups, n_features):
         alpha=alpha_max, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    w_group_solver = bcd_solver(
+    w_group_solver, *_ = bcd_solver(
         X, y, quad_group, group_penalty, max_iter=10000,
         verbose=False, tol=0)
 
@@ -72,7 +72,7 @@ def test_equivalence_lasso():
         alpha=alpha, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    w_group_solver = bcd_solver(
+    w_group_solver, *_ = bcd_solver(
         X, y, quad_group, group_penalty, max_iter=10000,
         verbose=False, tol=1e-14)
 
@@ -83,16 +83,14 @@ def test_equivalence_lasso():
     np.testing.assert_allclose(celer_lasso.coef_, w_group_solver, atol=1e-4, rtol=1e-3)
 
 
-@pytest.mark.parametrize("groups, n_features",
-                         [[10, 50], [[3 for _ in range(20)], 60],
-                          [_generate_random_grp(30, 50), 50]])
-def test_vs_celer_GroupLasso(groups, n_features):
+@pytest.mark.parametrize("n_groups, n_features, shuffle",
+                         [[15, 50, True], [5, 50, False], [19, 59, False]])
+def test_vs_celer_grouplasso(n_groups, n_features, shuffle):
     n_samples = 100
     rnd = np.random.RandomState(42)
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=rnd)
 
-    grp_indices, grp_ptr = grp_converter(groups, n_features)
-    n_groups = len(grp_ptr) - 1
+    grp_indices, grp_ptr, groups = _generate_random_grp(n_groups, n_features, shuffle)
     weights = abs(rnd.randn(n_groups))
 
     alpha_max = 0.
@@ -110,7 +108,7 @@ def test_vs_celer_GroupLasso(groups, n_features):
         alpha=alpha, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    w_group_solver = bcd_solver(
+    w_group_solver, *_ = bcd_solver(
         X, y, quad_group, group_penalty, max_iter=10000,
         verbose=False, tol=1e-14)
 

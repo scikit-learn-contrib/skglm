@@ -58,8 +58,8 @@ class QuadraticGroup(BaseDatafit):
         grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
 
         grad_g = np.zeros(len(grp_g_indices))
-        for j, g_j in enumerate(grp_g_indices):
-            grad_g[j] = self.gradient_scalar(X, y, w, Xw, g_j)
+        for idx, g_j in enumerate(grp_g_indices):
+            grad_g[idx] = self.gradient_scalar(X, y, w, Xw, g_j)
 
         return grad_g
 

@@ -1,3 +1,5 @@
+import pytest
+
 import numpy as np
 from numpy.linalg import norm
 
@@ -5,25 +7,47 @@ from skglm.penalties.block_separable import WeightedGroupL1
 from skglm.datafits.group import QuadraticGroup
 from skglm.solvers.group_bcd_solver import bcd_solver
 
-from celer import GroupLasso, Lasso
 from skglm.utils import grp_converter, make_correlated_data
+from celer import GroupLasso, Lasso
 
 
-def test_alpha_max():
-    n_samples, n_features = 100, 1000
+def _generate_random_grp(n_groups, n_features, random_state=123654):
+    rnd = np.random.RandomState(random_state)
+
+    all_features = np.arange(n_features)
+    rnd.shuffle(all_features)
+    splits = rnd.choice(all_features, size=n_groups+1, replace=False)
+    splits.sort()
+    splits[0], splits[-1] = 0, n_features
+
+    return [list(all_features[splits[i]: splits[i+1]])
+            for i in range(n_groups)]
+
+
+@pytest.mark.parametrize("groups, n_features",
+                         [[20, 1000], [[50 for _ in range(6)], 300],
+                          [_generate_random_grp(30, 500), 500]])
+def test_alpha_max(groups, n_features):
+    n_samples = 100
     random_state = 1563
     rnd = np.random.RandomState(random_state)
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=random_state)
 
-    groups = 20  # contiguous groups of 20 elements
-    n_groups = n_features // groups
-
     grp_ptr, grp_indices = grp_converter(groups, n_features)
+    n_groups = len(grp_ptr) - 1
     weights = abs(rnd.randn(n_groups))
 
-    weighted_XTy = X.T@y / np.repeat(weights, groups)
-    alpha_max = np.max(
-        norm(weighted_XTy.reshape(-1, groups), ord=2, axis=1)) / n_samples
+    weighted_XTy = X.T@y / \
+        np.repeat(weights, [grp_ptr[i+1] - grp_ptr[i]
+                  for i in range(n_groups)])
+
+    alpha_max = 0.
+    for g in range(n_groups):
+        grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
+        alpha_max = max(
+            alpha_max,
+            norm(weighted_XTy[grp_g_indices]) / n_samples
+        )
 
     # group solver
     quad_group = QuadraticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
@@ -33,9 +57,11 @@ def test_alpha_max():
 
     w_group_solver = bcd_solver(
         X, y, quad_group, group_penalty, max_iter=10000,
-        verbose=False, tol=1e-14)
+        verbose=True, tol=0)
 
-    np.testing.assert_equal(w_group_solver, np.zeros(n_features))
+    print(norm(w_group_solver, ord=np.inf))
+    # np.testing.assert_array_almost_equal(
+    #     w_group_solver, np.zeros(n_features), decimal=10)
 
 
 def test_equivalence_lasso():
@@ -74,14 +100,21 @@ def test_vs_celer_GroupLasso():
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=random_state)
 
     groups = 10  # contiguous groups of 10 elements
-    n_groups = n_features // groups
 
     grp_ptr, grp_indices = grp_converter(groups, n_features)
+    n_groups = len(grp_ptr) - 1
     weights = abs(rnd.randn(n_groups))
 
-    weighted_XTy = X.T@y / np.repeat(weights, groups)
-    alpha_max = np.max(
-        norm(weighted_XTy.reshape(-1, groups), ord=2, axis=1)) / n_samples
+    weighted_XTy = X.T@y / np.repeat(weights, n_groups)
+
+    alpha_max = 0.
+    for g in range(n_groups):
+        grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
+        alpha_max = max(
+            alpha_max,
+            norm(weighted_XTy[grp_g_indices]) / n_samples
+        )
+
     alpha = alpha_max / 10.
 
     # group solver
@@ -103,4 +136,5 @@ def test_vs_celer_GroupLasso():
 
 
 if __name__ == '__main__':
+    test_alpha_max(_generate_random_grp(50, 1000), 1000)
     pass

@@ -14,7 +14,8 @@ def _generate_random_grp(n_groups, n_features, shuffle=True):
     all_features = np.arange(n_features, dtype=np.int32)
     if shuffle:
         np.random.shuffle(all_features)
-    splits = np.random.choice(all_features, size=n_groups+1, replace=False)
+    splits = np.random.choice(all_features, size=n_groups+1,
+                              replace=False).astype(np.int32)
     splits.sort()
     splits[0], splits[-1] = 0, n_features
 

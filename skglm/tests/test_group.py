@@ -55,9 +55,8 @@ def test_alpha_max(groups, n_features):
         X, y, quad_group, group_penalty, max_iter=10000,
         verbose=True, tol=0)
 
-    print(norm(w_group_solver, ord=np.inf))
-    # np.testing.assert_array_almost_equal(
-    #     w_group_solver, np.zeros(n_features), decimal=10)
+    np.testing.assert_array_almost_equal(
+        w_group_solver, np.zeros(n_features), decimal=10)
 
 
 def test_equivalence_lasso():
@@ -89,13 +88,14 @@ def test_equivalence_lasso():
     np.testing.assert_allclose(celer_lasso.coef_, w_group_solver, atol=1e-4, rtol=1e-3)
 
 
-def test_vs_celer_GroupLasso():
-    n_samples, n_features = 100, 1000
+@pytest.mark.parametrize("groups, n_features",
+                         [[50, 1000], [[50 for _ in range(6)], 300],
+                          [_generate_random_grp(30, 500), 500]])
+def test_vs_celer_GroupLasso(groups, n_features):
+    n_samples = 100
     random_state = 42
     rnd = np.random.RandomState(random_state)
-    X, y, _ = make_correlated_data(n_samples, n_features, random_state=random_state)
-
-    groups = 10  # contiguous groups of 10 elements
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=rnd)
 
     grp_indices, grp_ptr = grp_converter(groups, n_features)
     n_groups = len(grp_ptr) - 1
@@ -125,37 +125,8 @@ def test_vs_celer_GroupLasso():
                        fit_intercept=False, tol=1e-14)
     model.fit(X, y)
 
-    np.testing.assert_allclose(model.coef_, w_group_solver, atol=1e-6, rtol=1e-6)
+    np.testing.assert_allclose(model.coef_, w_group_solver, atol=1e-6, rtol=1e-4)
 
 
 if __name__ == '__main__':
-    groups = _generate_random_grp(10, 50, 0)
-    n_features = 50
-    n_samples = 10
-    random_state = 1563
-    rnd = np.random.RandomState(random_state)
-    X, y, _ = make_correlated_data(n_samples, n_features, random_state=random_state)
-
-    grp_indices, grp_ptr = grp_converter(groups, n_features)
-    n_groups = len(grp_ptr) - 1
-    weights = abs(rnd.randn(n_groups))
-
-    alpha_max = 0.
-    for g in range(n_groups):
-        grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
-        alpha_max = max(
-            alpha_max,
-            norm(X[:, grp_g_indices].T @ y) / n_samples / weights[g]
-        )
-
-    # group solver
-    quad_group = QuadraticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
-    group_penalty = WeightedGroupL1(
-        alpha=alpha_max/1.1, grp_ptr=grp_ptr,
-        grp_indices=grp_indices, weights=weights)
-
-    w_group_solver = bcd_solver(
-        X, y, quad_group, group_penalty, max_iter=10000,
-        verbose=True, tol=1e-10)
-
-    print(norm(w_group_solver, ord=np.inf))
+    pass

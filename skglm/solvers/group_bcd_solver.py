@@ -55,7 +55,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None,
         if verbose:
             print(f"Iteration {k}: {current_p_obj}")
 
-        if np.abs(current_p_obj - prev_p_obj) <= tol:  # naive stopping criterion
+        if np.abs(current_p_obj - prev_p_obj) < tol:  # naive stopping criterion
             print("Early exit")
             break
 

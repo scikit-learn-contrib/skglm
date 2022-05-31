@@ -233,4 +233,4 @@ def grp_converter(groups, n_features):
         grp_indices = np.array([idx for grp in groups for idx in grp])
     else:
         raise ValueError("Unsupported group format.")
-    return grp_ptr.astype(np.int32), grp_indices.astype(np.int32)
+    return grp_indices.astype(np.int32), grp_ptr.astype(np.int32)

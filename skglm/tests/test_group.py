@@ -25,7 +25,7 @@ def _generate_random_grp(n_groups, n_features, random_state=123654):
 
 
 @pytest.mark.parametrize("groups, n_features",
-                         [[20, 1000], [[50 for _ in range(6)], 300],
+                         [[200, 1000], [[50 for _ in range(6)], 300],
                           [_generate_random_grp(30, 500), 500]])
 def test_alpha_max(groups, n_features):
     n_samples = 100
@@ -33,20 +33,16 @@ def test_alpha_max(groups, n_features):
     rnd = np.random.RandomState(random_state)
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=random_state)
 
-    grp_ptr, grp_indices = grp_converter(groups, n_features)
+    grp_indices, grp_ptr = grp_converter(groups, n_features)
     n_groups = len(grp_ptr) - 1
     weights = abs(rnd.randn(n_groups))
-
-    weighted_XTy = X.T@y / \
-        np.repeat(weights, [grp_ptr[i+1] - grp_ptr[i]
-                  for i in range(n_groups)])
 
     alpha_max = 0.
     for g in range(n_groups):
         grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
         alpha_max = max(
             alpha_max,
-            norm(weighted_XTy[grp_g_indices]) / n_samples
+            norm(X[:, grp_g_indices].T @ y) / n_samples / weights[g]
         )
 
     # group solver
@@ -70,7 +66,7 @@ def test_equivalence_lasso():
     rnd = np.random.RandomState(random_state)
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=random_state)
 
-    grp_ptr, grp_indices = grp_converter(1, n_features)
+    grp_indices, grp_ptr = grp_converter(1, n_features)
     weights = abs(rnd.randn(n_features))
 
     alpha_max = norm(X.T @ y / weights, ord=np.inf) / n_samples
@@ -101,20 +97,17 @@ def test_vs_celer_GroupLasso():
 
     groups = 10  # contiguous groups of 10 elements
 
-    grp_ptr, grp_indices = grp_converter(groups, n_features)
+    grp_indices, grp_ptr = grp_converter(groups, n_features)
     n_groups = len(grp_ptr) - 1
     weights = abs(rnd.randn(n_groups))
-
-    weighted_XTy = X.T@y / np.repeat(weights, n_groups)
 
     alpha_max = 0.
     for g in range(n_groups):
         grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
         alpha_max = max(
             alpha_max,
-            norm(weighted_XTy[grp_g_indices]) / n_samples
+            norm(X[:, grp_g_indices].T @ y) / n_samples / weights[g]
         )
-
     alpha = alpha_max / 10.
 
     # group solver
@@ -136,5 +129,5 @@ def test_vs_celer_GroupLasso():
 
 
 if __name__ == '__main__':
-    test_alpha_max(_generate_random_grp(50, 1000), 1000)
+    test_alpha_max(_generate_random_grp(100, 1000), 1000)
     pass

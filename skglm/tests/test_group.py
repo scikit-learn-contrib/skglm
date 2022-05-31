@@ -23,10 +23,10 @@ def _generate_random_grp(n_groups, n_features):
 
 
 @pytest.mark.parametrize("groups, n_features",
-                         [[200, 1000], [[50 for _ in range(6)], 300],
-                          [_generate_random_grp(30, 500), 500]])
+                         [[5, 50], [[8 for _ in range(6)], 48],
+                          [_generate_random_grp(30, 100), 100]])
 def test_alpha_max(groups, n_features):
-    n_samples = 100
+    n_samples = 30
     rnd = np.random.RandomState(1563)
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=rnd)
 
@@ -84,8 +84,8 @@ def test_equivalence_lasso():
 
 
 @pytest.mark.parametrize("groups, n_features",
-                         [[50, 1000], [[50 for _ in range(6)], 300],
-                          [_generate_random_grp(30, 500), 500]])
+                         [[10, 50], [[3 for _ in range(20)], 60],
+                          [_generate_random_grp(30, 50), 50]])
 def test_vs_celer_GroupLasso(groups, n_features):
     n_samples = 100
     rnd = np.random.RandomState(42)

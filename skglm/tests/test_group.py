@@ -49,9 +49,9 @@ def test_alpha_max(n_groups, n_features, shuffle):
         alpha=alpha_max, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    w_group_solver, *_ = bcd_solver(
+    w_group_solver = bcd_solver(
         X, y, quad_group, group_penalty, max_iter=10000,
-        verbose=False, tol=0)
+        verbose=False, tol=0)[0]
 
     np.testing.assert_almost_equal(norm(w_group_solver), 0, decimal=10)
 
@@ -73,9 +73,9 @@ def test_equivalence_lasso():
         alpha=alpha, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    w_group_solver, *_ = bcd_solver(
+    w_group_solver = bcd_solver(
         X, y, quad_group, group_penalty, max_iter=10000,
-        verbose=False, tol=1e-14)
+        verbose=False, tol=1e-14)[0]
 
     # celer lasso
     celer_lasso = Lasso(alpha=alpha, fit_intercept=False, tol=1e-14, weights=weights)
@@ -109,9 +109,9 @@ def test_vs_celer_grouplasso(n_groups, n_features, shuffle):
         alpha=alpha, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    w_group_solver, *_ = bcd_solver(
+    w_group_solver = bcd_solver(
         X, y, quad_group, group_penalty, max_iter=10000,
-        verbose=False, tol=1e-14)
+        verbose=False, tol=1e-14)[0]
 
     # celer group
     model = GroupLasso(groups=groups, alpha=alpha, weights=weights,

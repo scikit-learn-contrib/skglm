@@ -14,8 +14,8 @@ def bcd_solver(X, y, datafit, penalty, w_init=None,
     y : array, shape (n_samples,)
         Target vector.
 
-    datafit : instance of BaseDataFit
-        DataFit object.
+    datafit : instance of BaseDatafit
+        Datafit object.
 
     penalty : instance of BasePenalty
         Penalty object.
@@ -42,7 +42,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None,
         Solution that minimizes the problem defined by datafit and penalty.
 
     p_objs_out: array
-        Array of p_obj values at each iteration.
+        The objective values at every outer iteration.
 
     stop_crit: float
         The value of the stop criterion.
@@ -64,23 +64,27 @@ def bcd_solver(X, y, datafit, penalty, w_init=None,
         for epoch in range(max_epochs):
             _bcd_epoch(X, y, w, Xw, datafit, penalty, all_groups)
 
-            if verbose > 1:
+            if max(verbose - 1, 0):
                 current_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-                print(f"\t | Epoch {epoch}: {current_p_obj}")
+                print(f"\t | Epoch {epoch+1}: {current_p_obj}")
 
             if epoch % 10 == 0:
                 current_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
                 stop_crit = np.abs(current_p_obj - prev_p_obj)
-                if stop_crit <= tol:
-                    print("Inner Solver: Early exit")
+                if stop_crit <= 0.3 * tol:
+                    print("Early exit")
                     break
                 prev_p_obj = current_p_obj
 
         current_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-        if verbose > 0:
-            print(f"Iteration {t}: {current_p_obj}")
-
         stop_crit = np.abs(current_p_obj - prev_p_obj)
+
+        if max(verbose, 0):
+            print(
+                f"Iteration {t+1}: {current_p_obj:.10f}, "
+                f"stopping crit: {stop_crit:.2f}"
+            )
+
         if stop_crit <= tol:
             print("Outer solver: Early exit")
             break

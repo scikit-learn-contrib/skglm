@@ -15,6 +15,7 @@ from numpy.linalg import norm
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score, mean_squared_error
+from celer.plot_utils import configure_plt
 
 from skglm.utils import make_correlated_data
 from skglm.solvers import cd_solver_path
@@ -23,6 +24,7 @@ from skglm.penalties import L1, MCPenalty, L0_5, L2_3
 
 current_palette = sns.color_palette("colorblind")
 
+configure_plt()
 # Simulate sparse data
 n_features = 1000
 density = 0.1
@@ -89,7 +91,8 @@ name_estimators['l23'] = r"$\ell_{2/3}$"
 
 
 plt.close('all')
-fig, axarr = plt.subplots(2, 1, sharex=True, sharey=False, figsize=[8.2, 5.7])
+fig, axarr = plt.subplots(2, 1, sharex=True, sharey=False, figsize=[
+                          6.3, 3.7], constrained_layout=True)
 
 for idx, estimator in enumerate(penalties.keys()):
 
@@ -129,4 +132,6 @@ for idx, estimator in enumerate(penalties.keys()):
     axarr[0].legend(
         bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left",
         mode="expand", borderaxespad=0, ncol=4)
-    plt.show(block=False)
+
+fig.savefig("sparse_recovery.pdf")
+plt.show(block=False)

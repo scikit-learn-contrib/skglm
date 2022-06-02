@@ -37,8 +37,6 @@ for pen in penalties:
                   label=pen.__class__.__name__)
 
 axarr[0].legend()
-# axarr[1].legend()
 axarr[0].set_title("Penalty value")
 axarr[1].set_title("Proximal operator of penalty")
-fig.savefig("pen_prox.pdf")
 plt.show(block=False)

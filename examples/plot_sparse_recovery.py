@@ -14,7 +14,6 @@ from numpy.linalg import norm
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score, mean_squared_error
-from celer.plot_utils import configure_plt
 
 from skglm.utils import make_correlated_data
 from skglm.solvers import cd_solver_path
@@ -23,7 +22,6 @@ from skglm.penalties import L1, MCPenalty, L0_5, L2_3, SCAD
 
 cmap = plt.get_cmap('tab10')
 
-configure_plt()
 # Simulate sparse data
 n_features = 1000
 density = 0.1
@@ -133,7 +131,6 @@ for idx, estimator in enumerate(penalties.keys()):
     axarr[1].set_ylabel("pred. RMSE left-out")
     axarr[0].legend(
         bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left",
-        mode="expand", borderaxespad=0, ncol=5)
+        mode="expand", borderaxespad=0, ncol=1)
 
-fig.savefig("sparse_recovery.pdf")
 plt.show(block=False)

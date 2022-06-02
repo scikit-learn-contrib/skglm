@@ -41,7 +41,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None,
     w : array, shape (n_features,)
         Solution that minimizes the problem defined by datafit and penalty.
 
-    p_objs_out: array
+    p_objs_out: array (max_iter,)
         The objective values at every outer iteration.
 
     stop_crit: float
@@ -55,7 +55,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None,
     Xw = X @ w
     datafit.initialize(X, y)
     all_groups = np.arange(n_groups)
-    p_objs_out = np.array([])
+    p_objs_out = np.zeros(max_iter)
 
     for t in range(max_iter):
         if t == 0:  # avoid computing p_obj twice
@@ -93,7 +93,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None,
             break
 
         prev_p_obj = current_p_obj
-        p_objs_out = np.append(p_objs_out, current_p_obj)
+        p_objs_out[t] = current_p_obj
 
     return w, p_objs_out, stop_crit
 

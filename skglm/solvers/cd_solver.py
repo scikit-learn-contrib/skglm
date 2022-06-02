@@ -214,14 +214,14 @@ def cd_solver(
 
     Returns
     -------
-    alphas : array, shape (n_alphas,)
-        The alphas along the path where models are computed.
-
     coefs : array, shape (n_features, n_alphas)
         Coefficients along the path.
 
-    stop_crit : array, shape (n_alphas,)
-        Value of stopping criterion at convergence along the path.
+    obj_out : array, shape (n_iter,)
+        The objective values at every outer iteration.
+
+    stop_crit : float
+        Value of stopping criterion at convergence.
     """
     if ws_strategy not in ("subdiff", "fixpoint"):
         raise ValueError(f'Unsupported value for ws_strategy: {ws_strategy}')

@@ -74,7 +74,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None,
                         f"stopping crit: {stop_crit_in:.2f}"
                     )
 
-                if stop_crit_in <= 0.3 * tol:
+                if stop_crit_in <= tol:
                     print("Early exit")
                     break
                 prev_p_obj = current_p_obj

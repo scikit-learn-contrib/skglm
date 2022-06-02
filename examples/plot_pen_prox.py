@@ -8,13 +8,12 @@ Illustrate the value and proximal operators of some sparse penalties.
 
 import numpy as np
 import matplotlib.pyplot as plt
-from celer.plot_utils import configure_plt
 
 from skglm.penalties import WeightedL1, L1, L1_plus_L2, MCPenalty, SCAD, L0_5, L2_3
 
-configure_plt()
 
-penalties = [  # WeightedL1(alpha=1, weights=np.array([2.])),
+penalties = [
+    WeightedL1(alpha=1, weights=np.array([2.])),
     L1(alpha=1),
     L1_plus_L2(alpha=1, l1_ratio=0.7),
     MCPenalty(alpha=1, gamma=3.),

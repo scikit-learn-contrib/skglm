@@ -51,7 +51,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None,
     n_groups = len(penalty.grp_ptr) - 1
 
     # init
-    w = w_init or np.zeros(n_features)
+    w = np.zeros(n_features) if w_init is None else w_init
     Xw = X @ w
     datafit.initialize(X, y)
     all_groups = np.arange(n_groups)
@@ -64,20 +64,23 @@ def bcd_solver(X, y, datafit, penalty, w_init=None,
         for epoch in range(max_epochs):
             _bcd_epoch(X, y, w, Xw, datafit, penalty, all_groups)
 
-            if max(verbose - 1, 0):
-                current_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-                print(f"\t | Epoch {epoch+1}: {current_p_obj}")
-
             if epoch % 10 == 0:
                 current_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-                stop_crit = np.abs(current_p_obj - prev_p_obj)
-                if stop_crit <= 0.3 * tol:
+                stop_crit_in = prev_p_obj - current_p_obj
+
+                if max(verbose - 1, 0):
+                    print(
+                        f"Epoch {epoch+1}: {current_p_obj:.10f}"
+                        f"stopping crit: {stop_crit_in:.2f}"
+                    )
+
+                if stop_crit_in <= 0.3 * tol:
                     print("Early exit")
                     break
                 prev_p_obj = current_p_obj
 
         current_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-        stop_crit = np.abs(current_p_obj - prev_p_obj)
+        stop_crit = prev_p_obj - current_p_obj
 
         if max(verbose, 0):
             print(
@@ -112,8 +115,8 @@ def _bcd_epoch(X, y, w, Xw, datafit, penalty, ws):
             1 / lipschitz_g, g
         )
 
-        # update Xw without copying w_g
-        for idx, g_j in enumerate(grp_g_indices):
-            if old_w_g[idx] != w[g_j]:
-                Xw += (w[g_j] - old_w_g[idx]) * X[:, g_j]
+        # update Xw without copying w_g and X_g
+        for idx, j in enumerate(grp_g_indices):
+            if old_w_g[idx] != w[j]:
+                Xw += (w[j] - old_w_g[idx]) * X[:, j]
     return

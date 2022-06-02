@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 from numpy.linalg import norm
 
-from skglm.penalties.block_separable import WeightedGroupL1
+from skglm.penalties.block_separable import WeightedGroupL2
 from skglm.datafits.group import QuadraticGroup
 from skglm.solvers.group_bcd_solver import bcd_solver
 
@@ -45,7 +45,7 @@ def test_alpha_max(n_groups, n_features, shuffle):
 
     # group solver
     quad_group = QuadraticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
-    group_penalty = WeightedGroupL1(
+    group_penalty = WeightedGroupL2(
         alpha=alpha_max, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
@@ -69,7 +69,7 @@ def test_equivalence_lasso():
 
     # group solver
     quad_group = QuadraticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
-    group_penalty = WeightedGroupL1(
+    group_penalty = WeightedGroupL2(
         alpha=alpha, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
@@ -105,7 +105,7 @@ def test_vs_celer_grouplasso(n_groups, n_features, shuffle):
 
     # group solver
     quad_group = QuadraticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
-    group_penalty = WeightedGroupL1(
+    group_penalty = WeightedGroupL2(
         alpha=alpha, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 

@@ -40,7 +40,7 @@ Penalties
    L2_3
    MCPenalty
    WeightedL1
-   WeightedGroupL1
+   WeightedGroupL2
 
 
 Datafits

@@ -115,7 +115,6 @@ def _bcd_epoch(X, y, w, Xw, datafit, penalty, ws):
             1 / lipschitz_g, g
         )
 
-        # update Xw without copying w_g and X_g
         for idx, j in enumerate(grp_g_indices):
             if old_w_g[idx] != w[j]:
                 Xw += (w[j] - old_w_g[idx]) * X[:, j]

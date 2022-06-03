@@ -70,8 +70,8 @@ def bcd_solver(X, y, datafit, penalty, w_init=None,
 
                 if max(verbose - 1, 0):
                     print(
-                        f"Epoch {epoch+1}: {current_p_obj:.10f}"
-                        f"stopping crit: {stop_crit_in:.2f}"
+                        f"Epoch {epoch+1}: {current_p_obj:.10f} "
+                        f"obj. variation: {stop_crit_in:.2e}"
                     )
 
                 if stop_crit_in <= tol:

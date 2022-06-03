@@ -49,11 +49,10 @@ def test_alpha_max(n_groups, n_features, shuffle):
         alpha=alpha_max, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    w_group_solver = bcd_solver(
-        X, y, quad_group, group_penalty, max_iter=10000,
-        verbose=False, tol=0)[0]
+    w = bcd_solver(
+        X, y, quad_group, group_penalty, max_iter=10000, tol=0)[0]
 
-    np.testing.assert_almost_equal(norm(w_group_solver), 0, decimal=10)
+    np.testing.assert_allclose(norm(w), 0, atol=1e-14)
 
 
 def test_equivalence_lasso():
@@ -67,21 +66,17 @@ def test_equivalence_lasso():
     alpha_max = norm(X.T @ y / weights, ord=np.inf) / n_samples
     alpha = alpha_max / 10.
 
-    # group solver
     quad_group = QuadraticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
     group_penalty = WeightedGroupL2(
         alpha=alpha, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    w_group_solver = bcd_solver(
-        X, y, quad_group, group_penalty, max_iter=10000,
-        verbose=False, tol=1e-14)[0]
+    w = bcd_solver(X, y, quad_group, group_penalty, max_iter=10000, tol=1e-12)[0]
 
-    # celer lasso
-    celer_lasso = Lasso(alpha=alpha, fit_intercept=False, tol=1e-14, weights=weights)
-    celer_lasso.fit(X, y)
+    celer_lasso = Lasso(
+        alpha=alpha, fit_intercept=False, tol=1e-12, weights=weights).fit(X, y)
 
-    np.testing.assert_allclose(celer_lasso.coef_, w_group_solver, atol=1e-4, rtol=1e-3)
+    np.testing.assert_allclose(celer_lasso.coef_, w)
 
 
 @pytest.mark.parametrize("n_groups, n_features, shuffle",
@@ -103,22 +98,18 @@ def test_vs_celer_grouplasso(n_groups, n_features, shuffle):
         )
     alpha = alpha_max / 10.
 
-    # group solver
     quad_group = QuadraticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
     group_penalty = WeightedGroupL2(
         alpha=alpha, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    w_group_solver = bcd_solver(
-        X, y, quad_group, group_penalty, max_iter=10000,
-        verbose=False, tol=1e-14)[0]
+    w = bcd_solver(X, y, quad_group, group_penalty, tol=1e-12)[0]
 
-    # celer group
     model = GroupLasso(groups=groups, alpha=alpha, weights=weights,
-                       fit_intercept=False, tol=1e-14)
+                       fit_intercept=False, tol=1e-12)
     model.fit(X, y)
 
-    np.testing.assert_allclose(model.coef_, w_group_solver, atol=1e-6, rtol=1e-4)
+    np.testing.assert_allclose(model.coef_, w, atol=1e-7, rtol=1e-5)
 
 
 if __name__ == '__main__':

@@ -195,26 +195,30 @@ class BlockSCAD(BasePenalty):
 
     def prox_1feat(self, value, stepsize, j):
         """Compute the proximal operator of BlockSCAD."""
+        nrm_value = norm(value)
         tau = self.gamma * self.alpha
-        x_1 = max(0, norm(value) - self.alpha * stepsize)
-        x_2 = ((self.gamma - 1) * norm(value) - stepsize * tau) / (
+        x_1 = max(0, nrm_value - self.alpha * stepsize)
+        x_2 = ((self.gamma - 1) * nrm_value - stepsize * tau) / (
             self.gamma - 1 - stepsize)
-        x_2 = np.abs(x_2)
-        x_3 = norm(value)
+        x_2 = abs(x_2)
+        x_3 = nrm_value
 
         objs = np.zeros(3)
-        # TODO
-        objs[0] = 0.
-        objs[1] = 0.
-        objs[2] = 0.
+        objs[0] = (0.5 / stepsize) * (
+            x_1 - nrm_value) ** 2 + self.value(np.array([x_1]))
+        objs[1] = (0.5 / stepsize) * (
+            x_2 - nrm_value) ** 2 + self.value(np.array([x_2]))
+        objs[2] = (0.5 / stepsize) * (
+            x_3 - nrm_value) ** 2 + self.value(np.array([x_3]))
 
+        # see prop 18, appendix D for multi-task prox
         idx_min = np.argmin(objs)
         if idx_min == 0:
-            return norm(value) * x_1
+            return x_1 * value / nrm_value
         elif idx_min == 1:
-            return norm(value) * x_2
+            return x_2 * value / nrm_value
         else:
-            return norm(value) * x_3
+            return x_3 * value / nrm_value
 
     def subdiff_distance(self, W, grad, ws):
         """Compute distance of negative gradient to the subdifferential at W."""

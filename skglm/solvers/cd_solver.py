@@ -92,7 +92,7 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
     # X_dense, X_data, X_indices, X_indptr = _sparse_and_dense(X)
 
     if alphas is None:
-        raise ValueError('alphas should be passed explicitely')
+        raise ValueError('alphas should be passed explicitly')
         # if hasattr(penalty, "alpha_max"):
         #     if sparse.issparse(X):
         #         grad0 = construct_grad_sparse(

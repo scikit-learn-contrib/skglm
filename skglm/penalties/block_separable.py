@@ -205,11 +205,11 @@ class BlockSCAD(BasePenalty):
 
         objs = np.zeros(3)
         objs[0] = (0.5 / stepsize) * (
-            x_1 - nrm_value) ** 2 + self.value(np.array([x_1]))
+            x_1 - nrm_value) ** 2 + self.value(np.array([[x_1]]))
         objs[1] = (0.5 / stepsize) * (
-            x_2 - nrm_value) ** 2 + self.value(np.array([x_2]))
+            x_2 - nrm_value) ** 2 + self.value(np.array([[x_2]]))
         objs[2] = (0.5 / stepsize) * (
-            x_3 - nrm_value) ** 2 + self.value(np.array([x_3]))
+            x_3 - nrm_value) ** 2 + self.value(np.array([[x_3]]))
 
         # see prop 18, appendix D for multi-task prox
         idx_min = np.argmin(objs)

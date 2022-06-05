@@ -11,18 +11,19 @@ from celer import GroupLasso, Lasso
 
 
 def _generate_random_grp(n_groups, n_features, shuffle=True):
-    all_features = np.arange(n_features, dtype=np.int32)
+    grp_indices = np.arange(n_features, dtype=np.int32)
+    np.random.seed(0)
     if shuffle:
-        np.random.shuffle(all_features)
-    splits = np.random.choice(all_features, size=n_groups+1,
-                              replace=False).astype(np.int32)
+        np.random.shuffle(grp_indices)
+    splits = np.random.choice(
+        n_features, size=n_groups+1, replace=False).astype(np.int32)
     splits.sort()
     splits[0], splits[-1] = 0, n_features
 
-    groups = [list(all_features[splits[i]: splits[i+1]])
+    groups = [list(grp_indices[splits[i]: splits[i+1]])
               for i in range(n_groups)]
 
-    return all_features, splits, groups   # grp_indices, grp_prt, groups
+    return grp_indices, splits, groups
 
 
 @pytest.mark.parametrize("n_groups, n_features, shuffle",
@@ -43,7 +44,6 @@ def test_alpha_max(n_groups, n_features, shuffle):
             norm(X[:, grp_g_indices].T @ y) / n_samples / weights[g]
         )
 
-    # group solver
     quad_group = QuadraticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
     group_penalty = WeightedGroupL2(
         alpha=alpha_max, grp_ptr=grp_ptr,
@@ -109,7 +109,7 @@ def test_vs_celer_grouplasso(n_groups, n_features, shuffle):
                        fit_intercept=False, tol=1e-12)
     model.fit(X, y)
 
-    np.testing.assert_allclose(model.coef_, w, atol=1e-7, rtol=1e-5)
+    np.testing.assert_allclose(model.coef_, w, atol=1e-5)
 
 
 if __name__ == '__main__':

@@ -218,10 +218,13 @@ class WeightedGroupL2(BasePenalty):
         grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
 
         scores = np.zeros(len(ws))
+        grad_ptr = 0
         for idx, g in enumerate(ws):
-            grad_g = grad[idx]
-
             grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
+
+            grad_g = grad[grad_ptr: grad_ptr + len(grp_g_indices)]
+            grad_ptr += len(grp_g_indices)
+
             w_g = w[grp_g_indices]
             norm_w_g = norm(w_g)
 

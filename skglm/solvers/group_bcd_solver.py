@@ -1,8 +1,11 @@
 import numpy as np
 from numba import njit
 
+from skglm.datafits.group import QuadraticGroup
+from skglm.penalties.block_separable import WeightedGroupL2
 
-def bcd_solver(X, y, datafit, penalty, w_init=None,
+
+def bcd_solver(X, y, datafit, penalty: WeightedGroupL2, w_init=None, p0=2,
                max_iter=1000, max_epochs=100, tol=1e-7, verbose=False):
     """Run a group BCD solver.
 
@@ -23,6 +26,9 @@ def bcd_solver(X, y, datafit, penalty, w_init=None,
     w_init : array, shape (n_features,), default None
         Initial value of coefficients.
         If set to None, a zero vector is used instead.
+
+    p0 : int, default 2
+        Min number of groups to be included in the working set.
 
     max_iter : int, default 1000
         Maximum number of iterations.
@@ -58,41 +64,54 @@ def bcd_solver(X, y, datafit, penalty, w_init=None,
     p_objs_out = np.zeros(max_iter)
 
     for t in range(max_iter):
-        if t == 0:  # avoid computing p_obj twice
-            prev_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+        if t == 0:  # avoid computing grad and opt twice
+            grad = _construct_grad(X, y, w, Xw, datafit, all_groups)
+            opt = penalty.subdiff_distance(w, grad, all_groups)
+            stop_crit = np.max(opt)
+
+            if stop_crit <= tol:
+                print("Outer solver: Early exit")
+                break
+
+        gsupp_size = penalty.generalized_support(w).sum()
+        ws_size = max(min(p0, n_features),
+                      min(n_features, 2 * gsupp_size))
+        ws = np.argpartition(opt, -ws_size)[-ws_size:]
 
         for epoch in range(max_epochs):
-            _bcd_epoch(X, y, w, Xw, datafit, penalty, all_groups)
+            _bcd_epoch(X, y, w, Xw, datafit, penalty, ws)
 
             if epoch % 10 == 0:
-                current_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-                stop_crit_in = prev_p_obj - current_p_obj
+                grad_ws = _construct_grad(X, y, w, Xw, datafit, ws)
+                opt_in = penalty.subdiff_distance(w, grad_ws, ws)
+                stop_crit_in = np.max(opt_in)
 
                 if max(verbose - 1, 0):
+                    current_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
                     print(
                         f"Epoch {epoch+1}: {current_p_obj:.10f} "
                         f"obj. variation: {stop_crit_in:.2e}"
                     )
 
-                if stop_crit_in <= tol:
+                if stop_crit_in <= 0.3 * stop_crit:
                     print("Early exit")
                     break
-                prev_p_obj = current_p_obj
 
         current_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-        stop_crit = prev_p_obj - current_p_obj
+        grad = _construct_grad(X, y, w, Xw, datafit, all_groups)
+        opt = penalty.subdiff_distance(w, grad, all_groups)
+        stop_crit = np.max(opt)
 
         if max(verbose, 0):
             print(
                 f"Iteration {t+1}: {current_p_obj:.10f}, "
-                f"stopping crit: {stop_crit:.2f}"
+                f"stopping crit: {stop_crit:.2e}"
             )
 
         if stop_crit <= tol:
             print("Outer solver: Early exit")
             break
 
-        prev_p_obj = current_p_obj
         p_objs_out[t] = current_p_obj
 
     return w, p_objs_out, stop_crit
@@ -100,7 +119,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None,
 
 @njit
 def _bcd_epoch(X, y, w, Xw, datafit, penalty, ws):
-    """Perform a single BCD epoch on groups in ws."""
+    """Perform a single BCD epoch on groups in ``ws``."""
     grp_ptr, grp_indices = penalty.grp_ptr, penalty.grp_indices
 
     for g in ws:
@@ -119,3 +138,27 @@ def _bcd_epoch(X, y, w, Xw, datafit, penalty, ws):
             if old_w_g[idx] != w[j]:
                 Xw += (w[j] - old_w_g[idx]) * X[:, j]
     return
+
+
+def _construct_grad(X, y, w, Xw, datafit: QuadraticGroup, ws):
+    """Compute the -gradient according to each group in ``ws``.
+
+    Note: -gradients are stacked in a 1d array (e.g. [-grad_g1, -grad_g2, ...]).
+    """
+    grads = np.array([])
+    for g in ws:
+        grad_g = -datafit.gradient_g(X, y, w, Xw, g)
+        grads = np.concatenate((grads, grad_g))
+    return grads
+
+
+def _construct_ws(w, opt, penalty: WeightedGroupL2, p0):
+    """Construct working set."""
+    n_features = len(w)
+    gsupp_size = penalty.generalized_support(w).sum()
+
+    ws_size = max(min(p0, n_features),
+                  min(n_features, 2 * gsupp_size))
+
+    ws = np.argpartition(opt, -ws_size)[-ws_size:]
+    return ws

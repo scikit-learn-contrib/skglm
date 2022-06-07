@@ -112,28 +112,5 @@ def test_vs_celer_grouplasso(n_groups, n_features, shuffle):
     np.testing.assert_allclose(model.coef_, w, atol=1e-5)
 
 
-def test_gsupp():
-    n_groups, n_features, shuffle = 5, 50, False
-    grp_indices, grp_ptr, _ = _generate_random_grp(n_groups, n_features, shuffle)
-
-    grp_penalty = WeightedGroupL2(
-        alpha=1., grp_ptr=grp_ptr,
-        grp_indices=grp_indices, weights=np.ones(n_groups))
-
-    assert np.all(grp_penalty.is_penalized(n_groups))
-
-    w = np.zeros(n_features)
-    in_gsupp_grps = np.random.choice(n_groups, size=2, replace=False)
-    out_gsupp_grps = np.setdiff1d(np.arange(n_groups), in_gsupp_grps)
-    for g in in_gsupp_grps:
-        grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
-        w[grp_g_indices] = 1.
-
-    gsupp = grp_penalty.generalized_support(w)
-    assert np.all(gsupp[in_gsupp_grps])
-    assert np.any(gsupp[out_gsupp_grps]) == False
-
-
 if __name__ == '__main__':
-    test_gsupp()
     pass

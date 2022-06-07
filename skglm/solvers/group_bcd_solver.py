@@ -150,15 +150,3 @@ def _construct_grad(X, y, w, Xw, datafit: QuadraticGroup, ws):
         grad_g = -datafit.gradient_g(X, y, w, Xw, g)
         grads = np.concatenate((grads, grad_g))
     return grads
-
-
-def _construct_ws(w, opt, penalty: WeightedGroupL2, p0):
-    """Construct working set."""
-    n_features = len(w)
-    gsupp_size = penalty.generalized_support(w).sum()
-
-    ws_size = max(min(p0, n_features),
-                  min(n_features, 2 * gsupp_size))
-
-    ws = np.argpartition(opt, -ws_size)[-ws_size:]
-    return ws

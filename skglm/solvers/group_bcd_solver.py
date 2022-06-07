@@ -76,7 +76,7 @@ def bcd_solver(X, y, datafit, penalty: WeightedGroupL2, w_init=None, p0=2,
         gsupp_size = penalty.generalized_support(w).sum()
         ws_size = max(min(p0, n_groups),
                       min(n_groups, 2 * gsupp_size))
-        ws = np.argpartition(opt, -ws_size)[-ws_size:]
+        ws = np.argpartition(opt, -ws_size)[-ws_size:]  # k-largest items [no sort]
 
         for epoch in range(max_epochs):
             _bcd_epoch(X, y, w, Xw, datafit, penalty, ws)

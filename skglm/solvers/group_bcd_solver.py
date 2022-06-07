@@ -74,8 +74,8 @@ def bcd_solver(X, y, datafit, penalty: WeightedGroupL2, w_init=None, p0=2,
                 break
 
         gsupp_size = penalty.generalized_support(w).sum()
-        ws_size = max(min(p0, n_features),
-                      min(n_features, 2 * gsupp_size))
+        ws_size = max(min(p0, n_groups),
+                      min(n_groups, 2 * gsupp_size))
         ws = np.argpartition(opt, -ws_size)[-ws_size:]
 
         for epoch in range(max_epochs):

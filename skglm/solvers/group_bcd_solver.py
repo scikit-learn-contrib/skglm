@@ -2,7 +2,7 @@ import numpy as np
 from numba import njit
 
 
-def bcd_solver(X, y, datafit, penalty, w_init=None, p0=2,
+def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
                max_iter=1000, max_epochs=100, tol=1e-7, verbose=False):
     """Run a group BCD solver.
 
@@ -25,7 +25,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=2,
         If set to None, a zero vector is used instead.
 
     p0 : int, default 2
-        Min number of groups to be included in the working set.
+        Minimum number of groups to be included in the working set.
 
     max_iter : int, default 1000
         Maximum number of iterations.

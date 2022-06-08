@@ -138,13 +138,19 @@ def _bcd_epoch(X, y, w, Xw, datafit, penalty, ws):
     return
 
 
+@njit
 def _construct_grad(X, y, w, Xw, datafit, ws):
     """Compute the -gradient according to each group in ``ws``.
 
     Note: -gradients are stacked in a 1d array (e.g. [-grad_g1, -grad_g2, ...]).
     """
-    grads = np.array([])
+    grp_ptr = datafit.grp_ptr
+    n_features_ws = sum([grp_ptr[g+1] - grp_ptr[g] for g in ws])
+
+    grads = np.zeros(n_features_ws)
+    grad_ptr = 0
     for g in ws:
-        grad_g = -datafit.gradient_g(X, y, w, Xw, g)
-        grads = np.concatenate((grads, grad_g))
+        grad_g = datafit.gradient_g(X, y, w, Xw, g)
+        grads[grad_ptr: grad_ptr+len(grad_g)] = -grad_g
+        grad_ptr += len(grad_g)
     return grads

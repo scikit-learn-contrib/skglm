@@ -62,6 +62,7 @@ def bcd_solver(X, y, datafit, penalty: WeightedGroupL2, w_init=None, p0=2,
     datafit.initialize(X, y)
     all_groups = np.arange(n_groups)
     p_objs_out = np.zeros(max_iter)
+    stop_crit = 0  # prevent ref before assignment when max_iter == 0
 
     for t in range(max_iter):
         if t == 0:  # avoid computing grad and opt twice

@@ -3,7 +3,7 @@ from numba import njit
 
 
 def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
-               max_iter=1000, max_epochs=100, tol=1e-7, verbose=False):
+               max_iter=1000, max_epochs=100, tol=1e-6, verbose=False):
     """Run a group BCD solver.
 
     Parameters
@@ -24,7 +24,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
         Initial value of coefficients.
         If set to None, a zero vector is used instead.
 
-    p0 : int, default 2
+    p0 : int, default 10
         Minimum number of groups to be included in the working set.
 
     max_iter : int, default 1000
@@ -117,7 +117,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
 
 @njit
 def _bcd_epoch(X, y, w, Xw, datafit, penalty, ws):
-    """Perform a single BCD epoch on groups in ``ws``."""
+    # perform a single BCD epoch on groups in ``ws``
     grp_ptr, grp_indices = penalty.grp_ptr, penalty.grp_indices
 
     for g in ws:
@@ -140,10 +140,8 @@ def _bcd_epoch(X, y, w, Xw, datafit, penalty, ws):
 
 @njit
 def _construct_grad(X, y, w, Xw, datafit, ws):
-    """Compute the -gradient according to each group in ``ws``.
-
-    Note: -gradients are stacked in a 1d array (e.g. [-grad_g1, -grad_g2, ...]).
-    """
+    # compute the -gradient according to each group in ``ws``
+    # note: -gradients are stacked in a 1d array (e.g. [-grad_g1, -grad_g2, ...])
     grp_ptr = datafit.grp_ptr
     n_features_ws = sum([grp_ptr[g+1] - grp_ptr[g] for g in ws])
 

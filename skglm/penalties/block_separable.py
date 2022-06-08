@@ -242,11 +242,11 @@ class WeightedGroupL2(BasePenalty):
     def generalized_support(self, w):
         grp_indices, grp_ptr = self.grp_indices, self.grp_ptr
         n_groups = len(grp_ptr) - 1
-        is_not_penalized = ~self.is_penalized(n_groups)
+        is_penalized = self.is_penalized(n_groups)
 
         gsupp = np.zeros(n_groups, dtype=np.bool_)
         for g in range(n_groups):
-            if is_not_penalized[g]:
+            if not is_penalized[g]:
                 gsupp[g] = True
                 continue
 

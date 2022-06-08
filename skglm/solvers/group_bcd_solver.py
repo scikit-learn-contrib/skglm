@@ -1,11 +1,8 @@
 import numpy as np
 from numba import njit
 
-from skglm.datafits.group import QuadraticGroup
-from skglm.penalties.block_separable import WeightedGroupL2
 
-
-def bcd_solver(X, y, datafit, penalty: WeightedGroupL2, w_init=None, p0=2,
+def bcd_solver(X, y, datafit, penalty, w_init=None, p0=2,
                max_iter=1000, max_epochs=100, tol=1e-7, verbose=False):
     """Run a group BCD solver.
 
@@ -141,7 +138,7 @@ def _bcd_epoch(X, y, w, Xw, datafit, penalty, ws):
     return
 
 
-def _construct_grad(X, y, w, Xw, datafit: QuadraticGroup, ws):
+def _construct_grad(X, y, w, Xw, datafit, ws):
     """Compute the -gradient according to each group in ``ws``.
 
     Note: -gradients are stacked in a 1d array (e.g. [-grad_g1, -grad_g2, ...]).

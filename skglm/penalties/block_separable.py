@@ -212,8 +212,13 @@ class WeightedGroupL2(BasePenalty):
         """Compute the proximal operator of group ``g``."""
         return BST(value, self.alpha * stepsize * self.weights[g])
 
-    def subdiff_distance(self, w, grad, ws):
-        """Compute distance of negative gradient to the subdifferential at ``w``."""
+    def subdiff_distance(self, w, grad_ws, ws):
+        """Compute distance of negative gradient restricted to groups in ``ws``
+        to the subdifferential at ``w``.
+
+        Note: ``grad_ws`` is a stacked array of ``-``gradients.
+        ([-grad_ws_1, -grad_ws_2, ...])
+        """
         alpha, weights = self.alpha, self.weights
         grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
 
@@ -222,7 +227,7 @@ class WeightedGroupL2(BasePenalty):
         for idx, g in enumerate(ws):
             grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
 
-            grad_g = grad[grad_ptr: grad_ptr + len(grp_g_indices)]
+            grad_g = grad_ws[grad_ptr: grad_ptr + len(grp_g_indices)]
             grad_ptr += len(grp_g_indices)
 
             w_g = w[grp_g_indices]

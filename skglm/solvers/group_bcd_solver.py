@@ -3,7 +3,7 @@ from numba import njit
 
 
 def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
-               max_iter=1000, max_epochs=100, tol=1e-6, verbose=False):
+               max_iter=1000, max_epochs=100, tol=1e-4, verbose=False):
     """Run a group BCD solver.
 
     Parameters
@@ -33,7 +33,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
     max_epochs : int, default 100
         Maximum number of epochs.
 
-    tol : float, default 1e-6
+    tol : float, default 1e-4
         Tolerance for convergence.
 
     verbose : bool, default False
@@ -68,7 +68,6 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
             stop_crit = np.max(opt)
 
             if stop_crit <= tol:
-                print("Outer solver: Early exit")
                 break
 
         gsupp_size = penalty.generalized_support(w).sum()
@@ -85,32 +84,30 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
                 stop_crit_in = np.max(opt_in)
 
                 if max(verbose - 1, 0):
-                    current_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+                    p_obj = datafit.value(y, w, Xw) + penalty.value(w)
                     print(
-                        f"Epoch {epoch+1}: {current_p_obj:.10f} "
+                        f"Epoch {epoch+1}: {p_obj:.10f} "
                         f"obj. variation: {stop_crit_in:.2e}"
                     )
 
                 if stop_crit_in <= 0.3 * stop_crit:
-                    print("Early exit")
                     break
 
-        current_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+        p_obj = datafit.value(y, w, Xw) + penalty.value(w)
         grad = _construct_grad(X, y, w, Xw, datafit, all_groups)
         opt = penalty.subdiff_distance(w, grad, all_groups)
         stop_crit = np.max(opt)
 
         if max(verbose, 0):
             print(
-                f"Iteration {t+1}: {current_p_obj:.10f}, "
+                f"Iteration {t+1}: {p_obj:.10f}, "
                 f"stopping crit: {stop_crit:.2e}"
             )
 
         if stop_crit <= tol:
-            print("Outer solver: Early exit")
             break
 
-        p_objs_out[t] = current_p_obj
+        p_objs_out[t] = p_obj
 
     return w, p_objs_out, stop_crit
 
@@ -141,7 +138,7 @@ def _bcd_epoch(X, y, w, Xw, datafit, penalty, ws):
 @njit
 def _construct_grad(X, y, w, Xw, datafit, ws):
     # compute the -gradient according to each group in ``ws``
-    # note: -gradients are stacked in a 1d array (e.g. [-grad_g1, -grad_g2, ...])
+    # note: -gradients are stacked in a 1d array ([-grad_ws_1, -grad_ws_2, ...])
     grp_ptr = datafit.grp_ptr
     n_features_ws = sum([grp_ptr[g+1] - grp_ptr[g] for g in ws])
 

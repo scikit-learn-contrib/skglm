@@ -76,7 +76,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
         gsupp_size = penalty.generalized_support(w).sum()
         ws_size = max(min(p0, n_groups),
                       min(n_groups, 2 * gsupp_size))
-        ws = np.argpartition(opt, -ws_size)[-ws_size:]  # k-largest items [no sort]
+        ws = np.argpartition(opt, -ws_size)[-ws_size:]  # k-largest items (no sort)
 
         for epoch in range(max_epochs):
             _bcd_epoch(X, y, w, Xw, datafit, penalty, ws)
@@ -101,7 +101,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
         opt = penalty.subdiff_distance(w, grad, all_groups)
         stop_crit = np.max(opt)
 
-        if max(verbose, 0):
+        if verbose:
             print(
                 f"Iteration {t+1}: {p_obj:.10f}, "
                 f"stopping crit: {stop_crit:.2e}"
@@ -117,7 +117,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
 
 @njit
 def _bcd_epoch(X, y, w, Xw, datafit, penalty, ws):
-    # perform a single BCD epoch on groups in ``ws``
+    # perform a single BCD epoch on groups in ws
     grp_ptr, grp_indices = penalty.grp_ptr, penalty.grp_indices
 
     for g in ws:
@@ -140,7 +140,7 @@ def _bcd_epoch(X, y, w, Xw, datafit, penalty, ws):
 
 @njit
 def _construct_grad(X, y, w, Xw, datafit, ws):
-    # compute the -gradient according to each group in ``ws``
+    # compute the -gradient according to each group in ws
     # note: -gradients are stacked in a 1d array ([-grad_ws_1, -grad_ws_2, ...])
     grp_ptr = datafit.grp_ptr
     n_features_ws = sum([grp_ptr[g+1] - grp_ptr[g] for g in ws])

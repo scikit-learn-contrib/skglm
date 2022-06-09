@@ -2,6 +2,8 @@ import pytest
 import numpy as np
 from numpy.linalg import norm
 
+from skglm.penalties import L1
+from skglm.datafits import Quadratic
 from skglm.penalties.block_separable import WeightedGroupL2
 from skglm.datafits.group import QuadraticGroup
 from skglm.solvers.group_bcd_solver import bcd_solver
@@ -24,6 +26,15 @@ def _generate_random_grp(n_groups, n_features, shuffle=True):
               for i in range(n_groups)]
 
     return grp_indices, splits, groups
+
+
+def test_check_group_compatible():
+    l1_penalty = L1(1e-3)
+    quad_datafit = Quadratic()
+    X, y = np.random.randn(5, 5), np.random.randn(5)
+
+    with np.testing.assert_raises(Exception):
+        bcd_solver(X, y, quad_datafit, l1_penalty)
 
 
 @pytest.mark.parametrize("n_groups, n_features, shuffle",

@@ -255,8 +255,7 @@ class WeightedGroupL2(BasePenalty):
                 continue
 
             grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
-            w_g = w[grp_g_indices]
-            if np.any(w_g):
+            if np.any(w[grp_g_indices]):
                 gsupp[g] = True
 
         return gsupp

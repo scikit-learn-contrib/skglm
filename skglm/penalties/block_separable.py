@@ -213,9 +213,7 @@ class WeightedGroupL2(BasePenalty):
         return BST(value, self.alpha * stepsize * self.weights[g])
 
     def subdiff_distance(self, w, grad_ws, ws):
-        """
-        Compute distance to the subdifferential at ``w`` of
-        negative gradient restricted to groups in ``ws``.
+        """Compute distance to the subdifferential at ``w`` of negative gradient.
 
         Note: ``grad_ws`` is a stacked array of ``-``gradients.
         ([-grad_ws_1, -grad_ws_2, ...])

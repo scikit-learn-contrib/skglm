@@ -156,10 +156,12 @@ def _construct_grad(X, y, w, Xw, datafit, ws):
 
 def _check_group_compatible(obj):
     obj_name = obj.__class__.__name__
-    group_attrs = ['grp_ptr', 'grp_indices']
+    group_attrs = ('grp_ptr', 'grp_indices')
 
     for attr in group_attrs:
         if not hasattr(obj, attr):
             raise Exception(
-                f"Missing {attr} attribute from {obj_name}."
+                f"datafit and penalty must be compatible with bcd_solver.\n"
+                f"'{obj_name}' is not block-separable. "
+                f"Missing '{attr}' attribute."
             )

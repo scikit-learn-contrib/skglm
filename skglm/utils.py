@@ -237,7 +237,7 @@ def grp_converter(groups, n_features):
 
 
 def check_group_compatible(obj):
-    """Check whether obj is compatible with ``bcd_solver``.
+    """Check whether ``obj`` is compatible with ``bcd_solver``.
 
     Parameters
     ----------

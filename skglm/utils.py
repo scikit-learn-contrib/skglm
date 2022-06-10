@@ -234,3 +234,23 @@ def grp_converter(groups, n_features):
     else:
         raise ValueError("Unsupported group format.")
     return grp_indices.astype(np.int32), grp_ptr.astype(np.int32)
+
+
+def check_group_compatible(obj):
+    """Check whether obj is compatible with ``bcd_solver``.
+
+    Parameters
+    ----------
+    obj : instance of BaseDatafit or BasePenalty
+        Object to check.
+    """
+    obj_name = obj.__class__.__name__
+    group_attrs = ('grp_ptr', 'grp_indices')
+
+    for attr in group_attrs:
+        if not hasattr(obj, attr):
+            raise Exception(
+                f"datafit and penalty must be compatible with 'bcd_solver'.\n"
+                f"'{obj_name}' is not block-separable. "
+                f"Missing '{attr}' attribute."
+            )

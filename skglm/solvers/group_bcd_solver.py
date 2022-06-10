@@ -1,6 +1,8 @@
 import numpy as np
 from numba import njit
 
+from skglm.utils import check_group_compatible
+
 
 def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
                max_iter=1000, max_epochs=100, tol=1e-4, verbose=False):
@@ -50,8 +52,8 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
     stop_crit: float
         The value of the stop criterion.
     """
-    _check_group_compatible(datafit)
-    _check_group_compatible(penalty)
+    check_group_compatible(datafit)
+    check_group_compatible(penalty)
 
     n_features = X.shape[1]
     n_groups = len(penalty.grp_ptr) - 1
@@ -152,16 +154,3 @@ def _construct_grad(X, y, w, Xw, datafit, ws):
         grads[grad_ptr: grad_ptr+len(grad_g)] = -grad_g
         grad_ptr += len(grad_g)
     return grads
-
-
-def _check_group_compatible(obj):
-    obj_name = obj.__class__.__name__
-    group_attrs = ('grp_ptr', 'grp_indices')
-
-    for attr in group_attrs:
-        if not hasattr(obj, attr):
-            raise Exception(
-                f"datafit and penalty must be compatible with bcd_solver.\n"
-                f"'{obj_name}' is not block-separable. "
-                f"Missing '{attr}' attribute."
-            )

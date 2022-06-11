@@ -182,7 +182,7 @@ class WeightedGroupL2(BasePenalty):
 
     grp_indices : array, shape (n_features,)
         The group indices stacked contiguously
-        (e.g. [grp1_indices, grp2_indices, ...]).
+        ([grp1_indices, grp2_indices, ...]).
 
     grp_ptr : array, shape (n_groups + 1,)
         The group pointers such that two consecutive elements delimit

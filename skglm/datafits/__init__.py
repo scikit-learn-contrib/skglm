@@ -5,3 +5,5 @@ from .single_task import (  # noqa F401
 )
 
 from .multi_task import QuadraticMultiTask  # noqa F401
+
+from .group import QuadraticGroup  # noqa F401

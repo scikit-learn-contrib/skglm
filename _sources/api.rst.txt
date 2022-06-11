@@ -51,9 +51,9 @@ Datafits
 .. autosummary::
    :toctree: generated/
 
-   GroupQuadratic
    Logistic
    Quadratic
+   QuadraticGroup
    QuadraticSVC
 
 

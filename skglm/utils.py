@@ -1,5 +1,6 @@
 import numpy as np
-from numba import njit
+from numba import njit, float64, int32
+from numba.experimental import jitclass
 
 from numpy.linalg import norm
 from sklearn.utils import check_random_state
@@ -254,3 +255,44 @@ def check_group_compatible(obj):
                 f"'{obj_name}' is not block-separable. "
                 f"Missing '{attr}' attribute."
             )
+
+
+spec_AndersonAcceleration = [
+    ('K', int32),
+    ('n_features', int32),
+    ('current_iter', int32),
+    ('arr_w', float64[:, ::1]),
+]
+
+
+@jitclass(spec_AndersonAcceleration)
+class AndersonAcceleration:
+    def __init__(self, K, n_features):
+        self.K, self.n_features = K, n_features
+
+        self.current_iter = 0
+        self.arr_w = np.zeros(shape=(self.n_features, self.K+1))
+
+    def extrapolate(self, w):
+        """Inplace update of ``w``."""
+        K, current_iter = self.current_iter, self.K
+        arr_w = self.arr_w
+        n_features = self.n_features
+
+        if current_iter <= K:
+            self.arr_w[:, current_iter] = w.copy()
+            self.current_iter += 1
+            return
+
+        # compute residuals
+        U = np.zeros((n_features, K))
+        for j in range(K):
+            U[:, j] = arr_w[:, j+1] - arr_w[:, j]
+
+        # compte extrapolation coefs
+        ones_K = np.ones(K)
+        inv_UTU_ones = np.linalg.solve(U.T @ U, ones_K)
+        C = inv_UTU_ones / ones_K @ inv_UTU_ones
+
+        w = arr_w[:, 1:] @ C  # extrapolate
+        self.current_iter = 0  # reset

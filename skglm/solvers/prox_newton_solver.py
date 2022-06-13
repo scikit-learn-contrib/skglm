@@ -4,7 +4,7 @@ from numba import njit
 from skglm.datafits import Logistic, Logistic_32
 from skglm.solvers.common import construct_grad, construct_grad_sparse, dist_fix_point
 from skglm.utils import (
-    sigmoid, weighted_dot, weighted_dot_sparse, xj_dot, xj_dot_sparse)
+    sigmoid, weighted_dot, weighted_dot_sparse, xj_dot_sparse)
 
 
 def prox_newton_solver(
@@ -188,16 +188,16 @@ def _prox_newton_iter(
 
     for idx, j in enumerate(ws):
         lipschitz[idx] = weighted_dot(X, Xw, weights, j, ignore_b=True)
-        bias[idx] = xj_dot(X, j, grad)
+        bias[idx] = X[:, j] @ grad
 
-    _newton_cd(
-        X, w, delta_w, X_delta_w, ws, weights, bias, lipschitz, penalty,
-        max_inner_cd, min_inner_cd, tol)
+    delta_w, X_delta_w = _newton_cd(
+        X, w, ws, weights, bias, lipschitz, penalty, max_inner_cd, min_inner_cd, tol)
 
     step_size = _backtrack_line_search(
         w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack)
 
-    w[ws] += step_size * delta_w
+    for idx, j in enumerate(ws):
+        w[j] += step_size * delta_w[idx]
     Xw += step_size * X_delta_w
 
 
@@ -218,8 +218,8 @@ def _prox_newton_iter_sparse(
         bias[idx] = xj_dot_sparse(data, indptr, indices, j, grad)
 
     _newton_cd_sparse(
-        data, indptr, indices, w, delta_w, X_delta_w, ws, weights, bias, lipschitz,
-        penalty, max_inner_cd, min_inner_cd, tol)
+        data, indptr, indices, w, ws, weights, bias, lipschitz,
+        penalty, n_samples, max_inner_cd, min_inner_cd, tol)
 
     step_size = _backtrack_line_search(
         w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack)
@@ -231,17 +231,17 @@ def _prox_newton_iter_sparse(
 
 @njit
 def _newton_cd(
-    X, w, delta_w, X_delta_w, ws, weights, bias, lipschitz, penalty, max_inner_cd,
-    min_inner_cd, eps
+    X, w, ws, weights, bias, lipschitz, penalty, max_inner_cd, min_inner_cd, eps
 ):
+    delta_w = np.zeros(len(ws))
+    X_delta_w = np.zeros(X.shape[0])
     for cd_itr in range(max_inner_cd):
         sum_sq_hess_diff = 0
         for idx, j in enumerate(ws):
             old_value = w[j] + delta_w[j]
-            tmp = weighted_dot(X, X_delta_w, weights, j)
+            tmp = weighted_dot(X, X_delta_w, weights, j, ignore_b=False)
             new_value = penalty.prox_1d(
-                old_value - (bias[idx] + tmp) / lipschitz[idx],
-                penalty.alpha / lipschitz[idx], j)
+                old_value - (bias[idx] + tmp) / lipschitz[idx], 1 / lipschitz[idx], j)
             diff = new_value - old_value
             if diff != 0:
                 sum_sq_hess_diff += (diff * lipschitz[idx]) ** 2
@@ -249,13 +249,16 @@ def _newton_cd(
                 X_delta_w += diff * X[:, j]  # XXX: write the loop explicitly?
         if sum_sq_hess_diff <= eps and cd_itr + 1 >= min_inner_cd:
             break
+    return delta_w, X_delta_w
 
 
 @njit
 def _newton_cd_sparse(
-    data, indptr, indices, w, delta_w, X_delta_w, ws, weights, bias, lipschitz,
-    penalty, max_inner_cd, min_inner_cd, eps
+    data, indptr, indices, w, ws, weights, bias, lipschitz, penalty, n_samples,
+    max_inner_cd, min_inner_cd, eps
 ):
+    delta_w = np.zeros(len(ws))
+    X_delta_w = np.zeros(n_samples)
     for cd_itr in range(max_inner_cd):
         sum_sq_hess_diff = 0
         for idx, j in enumerate(ws):

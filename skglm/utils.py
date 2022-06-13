@@ -115,16 +115,6 @@ def weighted_dot_sparse(data, indptr, indices, b, weights, j, ignore_b=False):
 
 
 @njit
-def xj_dot(X, j, b):
-    """Dot product of X[:, j] and b."""
-    res = 0.
-    n_samples = X.shape[0]
-    for i in range(n_samples):
-        res += X[i, j] * b[i]
-    return res
-
-
-@njit
 def xj_dot_sparse(data, indptr, indices, j, b):
     """Dot product of X[:, j] with X sparse and b."""
     res = 0.

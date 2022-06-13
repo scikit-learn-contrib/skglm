@@ -182,8 +182,9 @@ def _prox_newton_iter(
     n_samples = len(y)
     for i in range(n_samples):
         prob = 1. / (1. + np.exp(y[i] * Xw[i]))
-        weights[i] = prob * (1. - prob)
-        grad[i] = -y[i] * prob
+        # this supposes that the datafit is scaled by n_samples
+        weights[i] = prob * (1. - prob) / n_samples
+        grad[i] = -y[i] * prob / n_samples
 
     for idx, j in enumerate(ws):
         lipschitz[idx] = weighted_dot(X, Xw, weights, j, ignore_b=True)
@@ -208,8 +209,8 @@ def _prox_newton_iter_sparse(
     n_samples = len(y)
     for i in range(n_samples):
         prob = 1. / (1. + np.exp(y[i] * Xw[i]))
-        weights[i] = prob * (1. - prob)
-        grad[i] = -y[i] * prob
+        weights[i] = prob * (1. - prob) / n_samples
+        grad[i] = -y[i] * prob / n_samples
 
     for idx, j in enumerate(ws):
         lipschitz[idx] = weighted_dot_sparse(

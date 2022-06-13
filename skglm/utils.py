@@ -80,6 +80,56 @@ def prox_2_3(x, u):
     return res
 
 
+@njit
+def sigmoid(x):
+    """Vectorwise sigmoid."""
+    return 1. / (1. + np.exp(-x))
+
+
+@njit
+def weighted_dot(X, b, weights, j, ignore_b=False):
+    """Weighted dot product between X[:, j] and b"""
+    res = 0.
+    if ignore_b:
+        # if ignore_b, weighted dot product between X[:, j] and X[:, j]
+        for i in range(X.shape[0]):
+            res += (X[i, j] ** 2) * weights[i]
+    else:
+        for i in range(X.shape[0]):
+            res += X[i, j] * b[i] * weights[i]
+    return res
+
+
+@njit
+def weighted_dot_sparse(data, indptr, indices, b, weights, j, ignore_b=False):
+    """Weighted dot product between X[:, j] with X sparse and b"""
+    res = 0.
+    if ignore_b:
+        for i in range(indptr[j], indptr[j + 1]):
+            res += (data[i] ** 2) * weights[indices[i]]
+    else:
+        for i in range(indptr[j], indptr[j + 1]):
+            res += data[i] * b[indices[i]] * weights[indices[i]]
+    return res
+
+
+@njit
+def xj_dot(X, j, b):
+    res = 0.
+    n_samples = X.shape[0]
+    for i in range(n_samples):
+        res += X[i, j] * b[i]
+    return res
+
+
+@njit
+def xj_dot_sparse(data, indptr, indices, j, b):
+    res = 0.
+    for i in range(indptr[j], indptr[j + 1]):
+        res += data[i] * b[indices[i]]
+    return res
+
+
 def make_correlated_data(
         n_samples=100, n_features=50, n_tasks=1, rho=0.6, snr=3,
         w_true=None, density=0.2, X_density=1, random_state=None):

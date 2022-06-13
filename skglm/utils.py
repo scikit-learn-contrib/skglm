@@ -5,6 +5,8 @@ from numba.experimental import jitclass
 from numpy.linalg import norm
 from sklearn.utils import check_random_state
 
+import scipy
+
 
 @njit
 def ST(x, u):
@@ -267,6 +269,8 @@ spec_AndersonAcceleration = [
 
 @jitclass(spec_AndersonAcceleration)
 class AndersonAcceleration:
+    """Anderson Accelerator."""
+
     def __init__(self, K, n_features):
         self.K, self.n_features = K, n_features
 
@@ -275,7 +279,7 @@ class AndersonAcceleration:
 
     def extrapolate(self, w):
         """Inplace update of ``w``."""
-        K, current_iter = self.current_iter, self.K
+        K, current_iter = self.K, self.current_iter
         arr_w = self.arr_w
         n_features = self.n_features
 
@@ -291,8 +295,8 @@ class AndersonAcceleration:
 
         # compte extrapolation coefs
         ones_K = np.ones(K)
-        inv_UTU_ones = np.linalg.solve(U.T @ U, ones_K)
-        C = inv_UTU_ones / ones_K @ inv_UTU_ones
+        inv_UTU_ones = np.linalg.lstsq(U.T @ U, ones_K)[0]
+        C = inv_UTU_ones / (ones_K @ inv_UTU_ones)
 
         w = arr_w[:, 1:] @ C  # extrapolate
         self.current_iter = 0  # reset

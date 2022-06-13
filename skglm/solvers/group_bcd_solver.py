@@ -1,10 +1,10 @@
 import numpy as np
 from numba import njit
 
-from skglm.utils import check_group_compatible
+from skglm.utils import AndersonAcceleration, check_group_compatible
 
 
-def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
+def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10, use_acc=True,
                max_iter=1000, max_epochs=100, tol=1e-4, verbose=False):
     """Run a group BCD solver.
 
@@ -65,6 +65,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
     all_groups = np.arange(n_groups)
     p_objs_out = np.zeros(max_iter)
     stop_crit = 0.  # prevent ref before assign when max_iter == 0
+    accelerator = AndersonAcceleration(K=5, n_features=n_features) if use_acc else None
 
     for t in range(max_iter):
         if t == 0:  # avoid computing grad and opt twice
@@ -82,6 +83,9 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
 
         for epoch in range(max_epochs):
             _bcd_epoch(X, y, w, Xw, datafit, penalty, ws)
+
+            if use_acc:
+                accelerator.extrapolate(w)
 
             if epoch % 10 == 0:
                 grad_ws = _construct_grad(X, y, w, Xw, datafit, ws)

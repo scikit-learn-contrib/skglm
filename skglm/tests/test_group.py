@@ -8,7 +8,7 @@ from skglm.penalties.block_separable import WeightedGroupL2
 from skglm.datafits.group import QuadraticGroup
 from skglm.solvers.group_bcd_solver import bcd_solver
 
-from skglm.utils import grp_converter, make_correlated_data
+from skglm.utils import grp_converter, make_correlated_data, AndersonAcceleration
 from celer import GroupLasso, Lasso
 
 
@@ -121,6 +121,17 @@ def test_vs_celer_grouplasso(n_groups, n_features, shuffle):
     model.fit(X, y)
 
     np.testing.assert_allclose(model.coef_, w, atol=1e-5)
+
+
+def test_anderson_acceleration():
+    n_features, max_iter = 10, 100
+
+    acc = AndersonAcceleration(K=3, n_features=n_features)
+    w = np.ones(n_features)
+
+    for i in range(max_iter):
+        acc.extrapolate(w)
+        w = np.random.randn(n_features)
 
 
 if __name__ == '__main__':

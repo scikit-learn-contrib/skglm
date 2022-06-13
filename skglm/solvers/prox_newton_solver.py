@@ -12,6 +12,69 @@ def prox_newton_solver(
     min_pn_cd_itr=2, max_pn_cd_itr=10, p0=10, tol=1e-4, ws_strategy="subdiff",
     verbose=0
 ):
+    r"""Run a prox-Newton solver.
+
+    Parameters
+    ----------
+    X : array, shape (n_samples, n_features)
+        Training data.
+
+    y : array, shape (n_samples,)
+        Target values.
+
+    datafit : instance of Datafit class
+        Datafitting term.
+
+    penalty : instance of Penalty class
+        Penalty used in the model.
+
+    w : array, shape (n_features,)
+        Coefficient vector.
+
+    Xw : array, shape (n_samples,)
+        Model fit.
+
+    max_iter : int, optional
+        Maximum number of iterations (definition of working set and
+        resolution of problem restricted to features in working set).
+
+    max_epochs : int, optional
+        Maximum number of prox-Newton epochs on each subproblem.
+
+    max_backtrack : int, optinal
+        Maximum number of backtracking steps for the line search.
+
+    min_pn_cd_itr : int, optional
+        Minimum number of iterations used in the prox-Newton coordinate
+        descent.
+
+    max_pn_cd_itr : int, optional
+        Maximum number of iterations used in the prox-Newton coordinate
+        descent.
+
+    p0 : int, optional
+        First working set size.
+
+    tol : float, optional
+        The tolerance for the optimization.
+
+    ws_strategy : ('subdiff'|'fixpoint'), optional
+        The score used to build the working set.
+
+    verbose : bool or int, optional
+        Amount of verbosity. 0/False is silent.
+
+    Returns
+    -------
+    w : array, shape (n_features,)
+        Coefficient vector.
+
+    obj_out : array, shape (n_iter,)
+        The objective values at every outer iteration.
+
+    stop_crit : float
+        Value of stopping criterion at convergence.
+    """
     if ws_strategy not in ("subdiff", "fixpoint"):
         raise ValueError(f"Unsupported value for ws_strategy: {ws_strategy}")
     if not isinstance(datafit, (Logistic, Logistic_32)):

@@ -88,7 +88,7 @@ def sigmoid(x):
 
 @njit
 def weighted_dot(X, b, weights, j, ignore_b=False):
-    """Weighted dot product between X[:, j] and b"""
+    """Weighted dot product between X[:, j] and b."""
     res = 0.
     if ignore_b:
         # if ignore_b, weighted dot product between X[:, j] and X[:, j]
@@ -102,7 +102,7 @@ def weighted_dot(X, b, weights, j, ignore_b=False):
 
 @njit
 def weighted_dot_sparse(data, indptr, indices, b, weights, j, ignore_b=False):
-    """Weighted dot product between X[:, j] with X sparse and b"""
+    """Weighted dot product between X[:, j] with X sparse and b."""
     res = 0.
     if ignore_b:
         for i in range(indptr[j], indptr[j + 1]):
@@ -115,6 +115,7 @@ def weighted_dot_sparse(data, indptr, indices, b, weights, j, ignore_b=False):
 
 @njit
 def xj_dot(X, j, b):
+    """Dot product of X[:, j] and b."""
     res = 0.
     n_samples = X.shape[0]
     for i in range(n_samples):
@@ -124,6 +125,7 @@ def xj_dot(X, j, b):
 
 @njit
 def xj_dot_sparse(data, indptr, indices, j, b):
+    """Dot product of X[:, j] with X sparse and b."""
     res = 0.
     for i in range(indptr[j], indptr[j + 1]):
         res += data[i] * b[indices[i]]

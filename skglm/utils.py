@@ -83,7 +83,8 @@ def prox_2_3(x, u):
 @njit
 def sigmoid(x):
     """Vectorwise sigmoid."""
-    return 1. / (1. + np.exp(-x))
+    out = 1 / (1 + np.exp(-x))
+    return out
 
 
 @njit

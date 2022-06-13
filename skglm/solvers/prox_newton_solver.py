@@ -92,7 +92,7 @@ def prox_newton_solver(
     stop_crit = np.inf  # initialize for case n_iter=0
 
     weights = np.zeros(n_samples)
-    grad = np.zeros(n_samples)
+    grad_df = np.zeros(n_samples)
 
     is_sparse = sparse.issparse(X)
     for t in range(max_iter):
@@ -127,6 +127,7 @@ def prox_newton_solver(
 
         lipschitz = np.zeros(ws_size)  # weighted Lipschitz
         bias = np.zeros(ws_size)
+
         delta_w = np.zeros(ws_size)
         X_delta_w = np.zeros(n_samples)
 
@@ -137,12 +138,12 @@ def prox_newton_solver(
             if is_sparse:
                 _prox_newton_iter_sparse(
                     X.data, X.indptr, X.indices, Xw, w, delta_w, X_delta_w, y, penalty,
-                    ws, lipschitz, weights, bias, grad, min_pn_cd_itr, max_cd_itr,
+                    ws, lipschitz, weights, bias, grad_df, min_pn_cd_itr, max_cd_itr,
                     max_backtrack, pn_tol)
             else:
                 _prox_newton_iter(
                     X, Xw, w, delta_w, X_delta_w, y, penalty, ws, lipschitz, weights,
-                    bias, grad, min_pn_cd_itr, max_cd_itr, max_backtrack,
+                    bias, grad_df, min_pn_cd_itr, max_cd_itr, max_backtrack,
                     pn_tol)
 
             if epoch % 10 == 0:
@@ -246,7 +247,7 @@ def _newton_cd(
             if diff != 0:
                 sum_sq_hess_diff += (diff * lipschitz[idx]) ** 2
                 delta_w[idx] = new_value - w[j]
-                X_delta_w += diff * X[:, j]  # XXX: write the loop explicitly?
+                X_delta_w += diff * X[:, j]
         if sum_sq_hess_diff <= eps and cd_itr + 1 >= min_inner_cd:
             break
     return delta_w, X_delta_w

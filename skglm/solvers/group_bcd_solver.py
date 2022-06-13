@@ -29,6 +29,9 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10, use_acc=True,
     p0 : int, default 10
         Minimum number of groups to be included in the working set.
 
+    use_acc : bool, default True
+        Whether to use Anderson acceleration.
+
     max_iter : int, default 1000
         Maximum number of iterations.
 

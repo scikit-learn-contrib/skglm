@@ -5,8 +5,6 @@ from numba.experimental import jitclass
 from numpy.linalg import norm
 from sklearn.utils import check_random_state
 
-import scipy
-
 
 @njit
 def ST(x, u):

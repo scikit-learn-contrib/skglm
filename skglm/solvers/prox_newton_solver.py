@@ -8,7 +8,7 @@ from skglm.utils import (
 
 
 def prox_newton_solver(
-    X, y, datafit, penalty, w, Xw, max_iter=50, max_epochs=50_000, max_backtrack=10,
+    X, y, datafit, penalty, w, Xw, max_iter=50, max_epochs=1000, max_backtrack=10,
     min_pn_cd_epochs=2, max_pn_cd_epochs=10, p0=10, tol=1e-4, ws_strategy="subdiff",
     verbose=0
 ):
@@ -125,7 +125,7 @@ def prox_newton_solver(
         # 2) run prox newton on smaller subproblem
         for epoch in range(max_epochs):
             _max_pn_cd_epochs = 1 if epoch == 0 else max_pn_cd_epochs
-            pn_tol = tol  # TODO: needs adjustment
+            pn_tol = 0 if epoch == 0 else tol  # TODO: needs adjustment
             if is_sparse:
                 _prox_newton_iter_sparse(
                     X.data, X.indptr, X.indices, Xw, w, y, penalty, ws,
@@ -282,17 +282,17 @@ def _newton_cd_sparse(
 
 
 @njit
-def _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack):
+def _backtrack_line_search(w, Xw, delta_w, X_delta_w, feats, y, penalty, max_backtrack):
     step_size = 1.
     for _ in range(max_backtrack):
         delta = 0.
-        for j in ws:
-            if w[j] + step_size * delta_w[j] < 0:
-                delta -= penalty.alpha * delta_w[j]
-            elif w[j] + step_size * delta_w[j] > 0:
-                delta += penalty.alpha * delta_w[j]
+        for idx, j in enumerate(feats):
+            if w[j] + step_size * delta_w[idx] < 0:
+                delta -= penalty.alpha * delta_w[idx]
+            elif w[j] + step_size * delta_w[idx] > 0:
+                delta += penalty.alpha * delta_w[idx]
             else:
-                delta -= penalty.alpha * abs(delta_w[j])
+                delta -= penalty.alpha * abs(delta_w[idx])
         theta = -y * sigmoid(-y * (Xw + step_size * X_delta_w))
         delta += X_delta_w @ theta
         if delta < 1e-7:

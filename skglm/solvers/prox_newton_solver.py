@@ -133,7 +133,7 @@ def prox_newton_solver(
 
         # 2) run prox newton on smaller subproblem
         for epoch in range(max_epochs):
-            max_cd_itr = min_pn_cd_itr if epoch == 0 else max_pn_cd_itr
+            max_cd_itr = 1 if epoch == 0 else max_pn_cd_itr
             pn_tol = tol  # TODO: needs adjustment
             if is_sparse:
                 _prox_newton_iter_sparse(
@@ -180,7 +180,7 @@ def _prox_newton_iter(
     X, Xw, w, delta_w, X_delta_w, y, penalty, ws, lipschitz, weights, bias, grad,
     min_inner_cd, max_inner_cd, max_backtrack, tol
 ):
-    n_samples = len(y)
+    n_samples = X.shape[0]
     for i in range(n_samples):
         prob = 1. / (1. + np.exp(y[i] * Xw[i]))
         # this supposes that the datafit is scaled by n_samples
@@ -218,7 +218,7 @@ def _prox_newton_iter_sparse(
             data, indptr, indices, Xw, weights, j, ignore_b=True)
         bias[idx] = xj_dot_sparse(data, indptr, indices, j, grad)
 
-    _newton_cd_sparse(
+    delta_w, X_delta_w = _newton_cd_sparse(
         data, indptr, indices, w, ws, weights, bias, lipschitz,
         penalty, n_samples, max_inner_cd, min_inner_cd, tol)
 
@@ -232,23 +232,24 @@ def _prox_newton_iter_sparse(
 
 @njit
 def _newton_cd(
-    X, w, ws, weights, bias, lipschitz, penalty, max_inner_cd, min_inner_cd, eps
+    X, w, feats, weights, bias, lc, penalty, max_epochs, min_epochs, eps
 ):
-    delta_w = np.zeros(len(ws))
-    X_delta_w = np.zeros(X.shape[0])
-    for cd_itr in range(max_inner_cd):
+    delta_w, X_delta_w = np.zeros(len(feats)), np.zeros(X.shape[0])
+    for epoch in range(max_epochs):
         sum_sq_hess_diff = 0
-        for idx, j in enumerate(ws):
-            old_value = w[j] + delta_w[j]
+        for idx, j in enumerate(feats):
+            stepsize = 1/lc[idx] if lc[idx] != 0 else 1000
+            old_value = w[j] + delta_w[idx]
             tmp = weighted_dot(X, X_delta_w, weights, j, ignore_b=False)
             new_value = penalty.prox_1d(
-                old_value - (bias[idx] + tmp) / lipschitz[idx], 1 / lipschitz[idx], j)
+                old_value - (bias[idx] + tmp) * stepsize, stepsize, j)
             diff = new_value - old_value
             if diff != 0:
-                sum_sq_hess_diff += (diff * lipschitz[idx]) ** 2
+                sum_sq_hess_diff += (diff * lc[idx]) ** 2
                 delta_w[idx] = new_value - w[j]
-                X_delta_w += diff * X[:, j]
-        if sum_sq_hess_diff <= eps and cd_itr + 1 >= min_inner_cd:
+                for i in range(X.shape[0]):
+                    X_delta_w[i] += diff * X[i, j]
+        if sum_sq_hess_diff <= eps and epoch + 1 >= min_epochs:
             break
     return delta_w, X_delta_w
 
@@ -277,6 +278,7 @@ def _newton_cd_sparse(
                     X_delta_w[indices[i]] += diff * data[i]
         if sum_sq_hess_diff <= eps and cd_itr + 1 >= min_inner_cd:
             break
+    return delta_w, X_delta_w
 
 
 @njit

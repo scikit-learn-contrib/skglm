@@ -87,7 +87,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10, use_acc=True,
         for epoch in range(max_epochs):
             _bcd_epoch(X, y, w, Xw, datafit, penalty, ws)
 
-            if use_acc:
+            if use_acc:  # inplace update of w
                 accelerator.extrapolate(w)
 
             if epoch % 10 == 0:

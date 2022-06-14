@@ -291,10 +291,15 @@ class AndersonAcceleration:
         for j in range(K):
             U[:, j] = arr_w[:, j+1] - arr_w[:, j]
 
-        # compte extrapolation coefs
+        # compute extrapolation coefs
         ones_K = np.ones(K)
-        inv_UTU_ones = np.linalg.lstsq(U.T @ U, ones_K)[0]
-        C = inv_UTU_ones / (ones_K @ inv_UTU_ones)
+        try:
+            inv_UTU_ones = np.linalg.solve(U.T.dot(U), ones_K)
+        except:  # Singular matrix: don't update w
+            self.current_iter = 0  # reset
+            return
 
-        w = arr_w[:, 1:] @ C  # extrapolate
+        # extrapolate
+        C = inv_UTU_ones / (ones_K @ inv_UTU_ones)
+        w = arr_w[:, 1:] @ C
         self.current_iter = 0  # reset

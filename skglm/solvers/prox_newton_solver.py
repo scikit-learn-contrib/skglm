@@ -9,7 +9,7 @@ from skglm.utils import (
 
 def prox_newton_solver(
     X, y, datafit, penalty, w, Xw, max_iter=50, max_epochs=50_000, max_backtrack=10,
-    min_pn_cd_itr=2, max_pn_cd_itr=10, p0=10, tol=1e-4, ws_strategy="subdiff",
+    min_pn_cd_epochs=2, max_pn_cd_epochs=10, p0=10, tol=1e-4, ws_strategy="subdiff",
     verbose=0
 ):
     r"""Run a prox-Newton solver.
@@ -44,11 +44,11 @@ def prox_newton_solver(
     max_backtrack : int, optinal
         Maximum number of backtracking steps for the line search.
 
-    min_pn_cd_itr : int, optional
+    min_pn_cd_epochs : int, optional
         Minimum number of iterations used in the prox-Newton coordinate
         descent.
 
-    max_pn_cd_itr : int, optional
+    max_pn_cd_epochs : int, optional
         Maximum number of iterations used in the prox-Newton coordinate
         descent.
 
@@ -91,9 +91,6 @@ def prox_newton_solver(
     all_feats = np.arange(n_features)
     stop_crit = np.inf  # initialize for case n_iter=0
 
-    weights = np.zeros(n_samples)
-    grad_df = np.zeros(n_samples)
-
     is_sparse = sparse.issparse(X)
     for t in range(max_iter):
         if is_sparse:
@@ -125,26 +122,18 @@ def prox_newton_solver(
         if verbose:
             print(f"Iteration {t + 1}, {ws_size} feats in subpb.")
 
-        lipschitz = np.zeros(ws_size)  # weighted Lipschitz
-        bias = np.zeros(ws_size)
-
-        delta_w = np.zeros(ws_size)
-        X_delta_w = np.zeros(n_samples)
-
         # 2) run prox newton on smaller subproblem
         for epoch in range(max_epochs):
-            max_cd_itr = 1 if epoch == 0 else max_pn_cd_itr
+            _max_pn_cd_epochs = 1 if epoch == 0 else max_pn_cd_epochs
             pn_tol = tol  # TODO: needs adjustment
             if is_sparse:
                 _prox_newton_iter_sparse(
-                    X.data, X.indptr, X.indices, Xw, w, delta_w, X_delta_w, y, penalty,
-                    ws, lipschitz, weights, bias, grad_df, min_pn_cd_itr, max_cd_itr,
-                    max_backtrack, pn_tol)
+                    X.data, X.indptr, X.indices, Xw, w, y, penalty, ws,
+                    min_pn_cd_epochs, _max_pn_cd_epochs, max_backtrack, pn_tol)
             else:
                 _prox_newton_iter(
-                    X, Xw, w, delta_w, X_delta_w, y, penalty, ws, lipschitz, weights,
-                    bias, grad_df, min_pn_cd_itr, max_cd_itr, max_backtrack,
-                    pn_tol)
+                    X, Xw, w, y, penalty, ws, min_pn_cd_epochs, _max_pn_cd_epochs,
+                    max_backtrack, pn_tol)
 
             if epoch % 10 == 0:
                 p_obj = datafit.value(y, w[ws], Xw) + penalty.value(w)
@@ -177,23 +166,28 @@ def prox_newton_solver(
 
 @njit
 def _prox_newton_iter(
-    X, Xw, w, delta_w, X_delta_w, y, penalty, ws, lipschitz, weights, bias, grad,
-    min_inner_cd, max_inner_cd, max_backtrack, tol
+    X, Xw, w, y, penalty, ws, min_cd_epochs, max_cd_epochs, max_backtrack, tol
 ):
-    n_samples = X.shape[0]
+    n_samples, ws_size = X.shape[0], ws.shape[0]
+
+    hessian_diag = np.zeros(n_samples)  # hessian = X^T D X, with D = diag(f_i'')
+    grad_datafit = np.zeros(n_samples)  # gradient of F(Xw)
+
+    lc = np.zeros(ws_size)  # weighted Lipschitz constants
+    bias = np.zeros(ws_size)
+
     for i in range(n_samples):
         prob = 1. / (1. + np.exp(y[i] * Xw[i]))
         # this supposes that the datafit is scaled by n_samples
-        weights[i] = prob * (1. - prob) / n_samples
-        grad[i] = -y[i] * prob / n_samples
+        hessian_diag[i] = prob * (1. - prob) / n_samples
+        grad_datafit[i] = -y[i] * prob / n_samples
 
     for idx, j in enumerate(ws):
-        lipschitz[idx] = weighted_dot(X, Xw, weights, j, ignore_b=True)
-        bias[idx] = X[:, j] @ grad
+        lc[idx] = weighted_dot(X, Xw, hessian_diag, j, ignore_b=True)
+        bias[idx] = X[:, j] @ grad_datafit
 
     delta_w, X_delta_w = _newton_cd(
-        X, w, ws, weights, bias, lipschitz, penalty, max_inner_cd, min_inner_cd, tol)
-
+        X, w, ws, hessian_diag, bias, lc, penalty, min_cd_epochs, max_cd_epochs, tol)
     step_size = _backtrack_line_search(
         w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack)
 
@@ -204,24 +198,31 @@ def _prox_newton_iter(
 
 @njit
 def _prox_newton_iter_sparse(
-    data, indptr, indices, Xw, w, delta_w, X_delta_w, y, penalty, ws, lipschitz,
-    weights, bias, grad, min_inner_cd, max_inner_cd, max_backtrack, tol
+    data, indptr, indices, Xw, w, y, penalty, ws, min_cd_epochs, max_cd_epochs,
+    max_backtrack, tol
 ):
-    n_samples = len(y)
+    n_samples, ws_size = len(y), ws.shape[0]
+
+    hessian_diag = np.zeros(n_samples)  # hessian = X^T D X, with D = diag(f_i'')
+    grad_datafit = np.zeros(n_samples)  # gradient of F(Xw)
+
+    lc = np.zeros(ws_size)  # weighted Lipschitz constants
+    bias = np.zeros(ws_size)
+
     for i in range(n_samples):
         prob = 1. / (1. + np.exp(y[i] * Xw[i]))
-        weights[i] = prob * (1. - prob) / n_samples
-        grad[i] = -y[i] * prob / n_samples
+        # this supposes that the datafit is scaled by n_samples
+        hessian_diag[i] = prob * (1. - prob) / n_samples
+        grad_datafit[i] = -y[i] * prob / n_samples
 
     for idx, j in enumerate(ws):
-        lipschitz[idx] = weighted_dot_sparse(
-            data, indptr, indices, Xw, weights, j, ignore_b=True)
-        bias[idx] = xj_dot_sparse(data, indptr, indices, j, grad)
+        lc[idx] = weighted_dot_sparse(
+            data, indptr, indices, Xw, hessian_diag, j, ignore_b=True)
+        bias[idx] = xj_dot_sparse(data, indptr, indices, j, grad_datafit)
 
     delta_w, X_delta_w = _newton_cd_sparse(
-        data, indptr, indices, w, ws, weights, bias, lipschitz,
-        penalty, n_samples, max_inner_cd, min_inner_cd, tol)
-
+        data, indptr, indices, w, ws, hessian_diag, bias, lc, penalty,
+        min_cd_epochs, max_cd_epochs, tol)
     step_size = _backtrack_line_search(
         w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack)
 
@@ -232,15 +233,15 @@ def _prox_newton_iter_sparse(
 
 @njit
 def _newton_cd(
-    X, w, feats, weights, bias, lc, penalty, max_epochs, min_epochs, eps
+    X, w, feats, hessian_diag, bias, lc, penalty, min_epochs, max_epochs, tol
 ):
-    delta_w, X_delta_w = np.zeros(len(feats)), np.zeros(X.shape[0])
+    delta_w, X_delta_w = np.zeros(feats.shape[0]), np.zeros(X.shape[0])
     for epoch in range(max_epochs):
         sum_sq_hess_diff = 0
         for idx, j in enumerate(feats):
             stepsize = 1/lc[idx] if lc[idx] != 0 else 1000
             old_value = w[j] + delta_w[idx]
-            tmp = weighted_dot(X, X_delta_w, weights, j, ignore_b=False)
+            tmp = weighted_dot(X, X_delta_w, hessian_diag, j, ignore_b=False)
             new_value = penalty.prox_1d(
                 old_value - (bias[idx] + tmp) * stepsize, stepsize, j)
             diff = new_value - old_value
@@ -249,34 +250,33 @@ def _newton_cd(
                 delta_w[idx] = new_value - w[j]
                 for i in range(X.shape[0]):
                     X_delta_w[i] += diff * X[i, j]
-        if sum_sq_hess_diff <= eps and epoch + 1 >= min_epochs:
+        if sum_sq_hess_diff <= tol and epoch + 1 >= min_epochs:
             break
     return delta_w, X_delta_w
 
 
 @njit
 def _newton_cd_sparse(
-    data, indptr, indices, w, ws, weights, bias, lipschitz, penalty, n_samples,
-    max_inner_cd, min_inner_cd, eps
+    data, indptr, indices, w, feats, hessian_diag, bias, lc, penalty, min_epochs,
+    max_epochs, tol
 ):
-    delta_w = np.zeros(len(ws))
-    X_delta_w = np.zeros(n_samples)
-    for cd_itr in range(max_inner_cd):
+    delta_w, X_delta_w = np.zeros(feats.shape[0]), np.zeros(hessian_diag.shape[0])
+    for epoch in range(max_epochs):
         sum_sq_hess_diff = 0
-        for idx, j in enumerate(ws):
-            old_value = w[j] + delta_w[j]
+        for idx, j in enumerate(feats):
+            stepsize = 1/lc[idx] if lc[idx] != 0 else 1000
+            old_value = w[j] + delta_w[idx]
             tmp = weighted_dot_sparse(
-                data, indptr, indices, X_delta_w, weights, j)
+                data, indptr, indices, X_delta_w, hessian_diag, j)
             new_value = penalty.prox_1d(
-                old_value - (bias[idx] + tmp) / lipschitz[idx],
-                penalty.alpha / lipschitz[idx], j)
+                old_value - (bias[idx] + tmp) * stepsize, stepsize, j)
             diff = new_value - old_value
             if diff != 0:
-                sum_sq_hess_diff += (diff * lipschitz[idx]) ** 2
+                sum_sq_hess_diff += (diff * lc[idx]) ** 2
                 delta_w[idx] = new_value - w[j]
                 for i in range(indptr[j], indptr[j + 1]):
                     X_delta_w[indices[i]] += diff * data[i]
-        if sum_sq_hess_diff <= eps and cd_itr + 1 >= min_inner_cd:
+        if sum_sq_hess_diff <= tol and epoch + 1 >= min_epochs:
             break
     return delta_w, X_delta_w
 
@@ -285,7 +285,7 @@ def _newton_cd_sparse(
 def _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack):
     step_size = 1.
     for _ in range(max_backtrack):
-        delta = 0
+        delta = 0.
         for j in ws:
             if w[j] + step_size * delta_w[j] < 0:
                 delta -= penalty.alpha * delta_w[j]

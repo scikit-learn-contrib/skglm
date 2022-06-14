@@ -135,4 +135,5 @@ def test_anderson_acceleration():
 
 
 if __name__ == '__main__':
+    test_anderson_acceleration()
     pass

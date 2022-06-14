@@ -295,11 +295,11 @@ class AndersonAcceleration:
         ones_K = np.ones(K)
         try:
             inv_UTU_ones = np.linalg.solve(U.T.dot(U), ones_K)
-        except:  # Singular matrix: don't update w
-            self.current_iter = 0  # reset
+        except Exception('Singular matrix'):  # don't update w
+            self.current_iter = 0
             return
 
         # extrapolate
         C = inv_UTU_ones / (ones_K @ inv_UTU_ones)
         w = arr_w[:, 1:] @ C
-        self.current_iter = 0  # reset
+        self.current_iter = 0

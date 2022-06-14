@@ -4,7 +4,7 @@ from numba import njit
 from skglm.utils import AndersonAcceleration, check_group_compatible
 
 
-def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10, use_acc=True,
+def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10, use_acc=True, K=5,
                max_iter=1000, max_epochs=100, tol=1e-4, verbose=False):
     """Run a group BCD solver.
 
@@ -31,6 +31,9 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10, use_acc=True,
 
     use_acc : bool, default True
         Whether to use Anderson acceleration.
+
+    K : int, optional
+        The number of past primal iterates used to build an extrapolated point.
 
     max_iter : int, default 1000
         Maximum number of iterations.
@@ -68,7 +71,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10, use_acc=True,
     all_groups = np.arange(n_groups)
     p_objs_out = np.zeros(max_iter)
     stop_crit = 0.  # prevent ref before assign when max_iter == 0
-    accelerator = AndersonAcceleration(K=5, n_features=n_features) if use_acc else None
+    accelerator = AndersonAcceleration(K=K, n_features=n_features) if use_acc else None
 
     for t in range(max_iter):
         if t == 0:  # avoid computing grad and opt twice

@@ -3,13 +3,13 @@ from scipy import sparse
 from numba import njit
 from skglm.datafits import Logistic, Logistic_32
 from skglm.solvers.common import construct_grad, construct_grad_sparse, dist_fix_point
-from skglm.utils import weighted_dot, weighted_dot_sparse, xj_dot_sparse
+from skglm.utils import weighted_dot, weighted_dot_sparse, xj_dot_sparse, sigmoid
 
 
 def prox_newton_solver(
     X, y, datafit, penalty, w, Xw, max_iter=50, max_epochs=1000, max_backtrack=10,
-    min_pn_cd_epochs=2, max_pn_cd_epochs=10, p0=10, tol=1e-4, ws_strategy="subdiff",
-    verbose=0
+    min_pn_cd_epochs=2, max_pn_cd_epochs=10, p0=10, tol=1e-4, use_acc=True, K=5,
+    ws_strategy="subdiff", verbose=0
 ):
     r"""Run a prox-Newton solver.
 
@@ -56,6 +56,12 @@ def prox_newton_solver(
 
     tol : float, optional
         The tolerance for the optimization.
+
+    use_acc : bool, optional
+        Usage of Anderson acceleration for faster convergence.
+
+    K : int, optional
+        The number of past primal iterates used to build an extrapolated point.
 
     ws_strategy : ('subdiff'|'fixpoint'), optional
         The score used to build the working set.
@@ -118,6 +124,10 @@ def prox_newton_solver(
         # taking arg_top_K features violating the stopping criterion
         ws = np.argpartition(opt, -ws_size)[-ws_size:]
 
+        if use_acc:
+            last_K_w = np.zeros([K + 1, ws_size])
+            U = np.zeros([K, ws_size])
+
         if verbose:
             print(f"Iteration {t + 1}, {ws_size} feats in subpb.")
 
@@ -133,6 +143,38 @@ def prox_newton_solver(
                 _prox_newton_iter(
                     X, Xw, w, y, penalty, ws, min_pn_cd_epochs, _max_pn_cd_epochs,
                     max_backtrack, pn_tol)
+
+            # 3) do Anderson acceleration on smaller problem
+            if use_acc:
+                last_K_w[epoch % (K + 1)] = w[ws]
+
+                if epoch % (K + 1) == K:
+                    for k in range(K):
+                        U[k] = last_K_w[k + 1] - last_K_w[k]
+                    C = np.dot(U, U.T)
+
+                    try:
+                        z = np.linalg.solve(C, np.ones(K))
+                        # When C is ill-conditioned, z can take very large finite
+                        # positive and negative values (1e35 and -1e35), which leads
+                        # to z.sum() being null.
+                        if z.sum() == 0:
+                            raise np.linalg.LinAlgError
+                    except np.linalg.LinAlgError:
+                        if max(verbose - 1, 0):
+                            print("----------Linalg error")
+                    else:
+                        c = z / z.sum()
+                        w_acc = np.zeros(n_features)
+                        w_acc[ws] = np.sum(
+                            last_K_w[:-1] * c[:, None], axis=0)
+                        p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+                        Xw_acc = X[:, ws] @ w_acc[ws]
+                        p_obj_acc = datafit.value(
+                            y, w_acc, Xw_acc) + penalty.value(w_acc)
+                        if p_obj_acc < p_obj:
+                            w[:] = w_acc
+                            Xw[:] = Xw_acc
 
             if epoch % 5 == 0:  # check every 5 epochs, PN epochs are expensive
                 p_obj = datafit.value(y, w[ws], Xw) + penalty.value(w)
@@ -280,63 +322,64 @@ def _newton_cd_sparse(
     return delta_w, X_delta_w
 
 
-# @njit
-# def _backtrack_line_search(w, Xw, delta_w, X_delta_w, feats, y, penalty, max_backtrack):
-#     step_size = 1.
-#     for _ in range(max_backtrack):
-#         delta = 0.
-#         for idx, j in enumerate(feats):
-#             if w[j] + step_size * delta_w[idx] < 0:
-#                 delta -= penalty.alpha * delta_w[idx]
-#             elif w[j] + step_size * delta_w[idx] > 0:
-#                 delta += penalty.alpha * delta_w[idx]
-#             else:
-#                 delta -= penalty.alpha * abs(delta_w[idx])
-#         theta = -y * sigmoid(-y * (Xw + step_size * X_delta_w))
-#         delta += X_delta_w @ theta
-#         if delta < 1e-7:
-#             break
-#         step_size = step_size / 2
-#     return step_size
-
 @njit
 def _backtrack_line_search(w, Xw, delta_w, X_delta_w, feats, y, penalty, max_backtrack):
     step_size = 1.
-    exp_Xw = np.zeros_like(Xw)
-    for i in range(Xw.shape[0]):
-        exp_Xw[i] = np.exp(Xw[i] + X_delta_w[i])
     for _ in range(max_backtrack):
-        aux = _compute_aux(y, exp_Xw)
-        deriv = _compute_derivative(
-            w, feats, delta_w, X_delta_w, penalty.alpha, aux, step_size)
-        if deriv < 1e-7:
+        delta = 0.
+        for idx, j in enumerate(feats):
+            if w[j] + step_size * delta_w[idx] < 0:
+                delta -= penalty.alpha * delta_w[idx]
+            elif w[j] + step_size * delta_w[idx] > 0:
+                delta += penalty.alpha * delta_w[idx]
+            else:
+                delta -= penalty.alpha * abs(delta_w[idx])
+        theta = -y * sigmoid(-y * (Xw + step_size * X_delta_w))
+        delta += X_delta_w @ theta
+        if delta < 1e-7:
             break
-        else:
-            step_size = step_size / 2
+        step_size = step_size / 2
     return step_size
 
 
-@njit
-def _compute_aux(y, exp_Xw):
-    n_samples = len(y)
-    aux = np.zeros_like(exp_Xw)
-    for i in range(n_samples):
-        # this supposes that y is filled only with 1 and -1 (or 0)
-        if y[i] == 1.:
-            aux[i] = -1 / (1. + exp_Xw[i])
-        else:
-            aux[i] = 1. - 1 / (1. + exp_Xw[i])
-    return aux
+# @njit
+# def _backtrack_line_search(w, Xw, delta_w, X_delta_w, feats, y, penalty, max_backtrack):
+#     step_size = 1.
+#     exp_Xw = np.zeros_like(Xw)
+#     for i in range(Xw.shape[0]):
+#         exp_Xw[i] = np.exp(Xw[i] + X_delta_w[i])
+#     for _ in range(max_backtrack):
+#         aux = _compute_aux(y, exp_Xw)
+#         deriv = _compute_derivative(
+#             w, feats, delta_w, X_delta_w, penalty.alpha, aux, step_size)
+#         if deriv < 1e-7:
+#             break
+#         else:
+#             step_size = step_size / 2
+#     return step_size
 
 
-@njit
-def _compute_derivative(w, feats, delta_w, X_delta_w, alpha, aux, step_size):
-    deriv_l1 = 0.
-    for idx, j in enumerate(feats):
-        w_j = w[j] + step_size * delta_w[idx]
-        if w_j == 0.:
-            deriv_l1 -= abs(delta_w[idx])
-        else:
-            deriv_l1 += w_j / abs(w_j) * delta_w[idx]
-    deriv_loss = X_delta_w @ aux
-    return deriv_loss + alpha * deriv_l1
+# @njit
+# def _compute_aux(y, exp_Xw):
+#     n_samples = len(y)
+#     aux = np.zeros_like(exp_Xw)
+#     for i in range(n_samples):
+#         # this supposes that y is filled only with 1 and -1 (or 0)
+#         if y[i] == 1.:
+#             aux[i] = -1 / (1. + exp_Xw[i])
+#         else:
+#             aux[i] = 1. - 1 / (1. + exp_Xw[i])
+#     return aux
+
+
+# @njit
+# def _compute_derivative(w, feats, delta_w, X_delta_w, alpha, aux, step_size):
+#     deriv_l1 = 0.
+#     for idx, j in enumerate(feats):
+#         w_j = w[j] + step_size * delta_w[idx]
+#         if w_j == 0.:
+#             deriv_l1 -= abs(delta_w[idx])
+#         else:
+#             deriv_l1 += w_j / abs(w_j) * delta_w[idx]
+#     deriv_loss = X_delta_w @ aux
+#     return deriv_loss + alpha * deriv_l1

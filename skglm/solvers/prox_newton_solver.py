@@ -3,8 +3,7 @@ from scipy import sparse
 from numba import njit
 from skglm.datafits import Logistic, Logistic_32
 from skglm.solvers.common import construct_grad, construct_grad_sparse, dist_fix_point
-from skglm.utils import (
-    sigmoid, weighted_dot, weighted_dot_sparse, xj_dot_sparse)
+from skglm.utils import weighted_dot, weighted_dot_sparse, xj_dot_sparse
 
 
 def prox_newton_solver(
@@ -79,7 +78,7 @@ def prox_newton_solver(
         raise ValueError(f"Unsupported value for ws_strategy: {ws_strategy}")
     if not isinstance(datafit, (Logistic, Logistic_32)):
         raise ValueError("Prox-Newton solver only supports Logistic datafits.")
-    n_samples, n_features = X.shape
+    n_features = X.shape[1]
     if n_features >= 10_000:
         raise Warning(
             "Prox-Newton solver can be prohibitively slow for high-dimensional " +
@@ -135,7 +134,7 @@ def prox_newton_solver(
                     X, Xw, w, y, penalty, ws, min_pn_cd_epochs, _max_pn_cd_epochs,
                     max_backtrack, pn_tol)
 
-            if epoch % 10 == 0:
+            if epoch % 5 == 0:  # check every 5 epochs, PN epochs are expensive
                 p_obj = datafit.value(y, w[ws], Xw) + penalty.value(w)
 
                 if is_sparse:
@@ -281,21 +280,63 @@ def _newton_cd_sparse(
     return delta_w, X_delta_w
 
 
+# @njit
+# def _backtrack_line_search(w, Xw, delta_w, X_delta_w, feats, y, penalty, max_backtrack):
+#     step_size = 1.
+#     for _ in range(max_backtrack):
+#         delta = 0.
+#         for idx, j in enumerate(feats):
+#             if w[j] + step_size * delta_w[idx] < 0:
+#                 delta -= penalty.alpha * delta_w[idx]
+#             elif w[j] + step_size * delta_w[idx] > 0:
+#                 delta += penalty.alpha * delta_w[idx]
+#             else:
+#                 delta -= penalty.alpha * abs(delta_w[idx])
+#         theta = -y * sigmoid(-y * (Xw + step_size * X_delta_w))
+#         delta += X_delta_w @ theta
+#         if delta < 1e-7:
+#             break
+#         step_size = step_size / 2
+#     return step_size
+
 @njit
 def _backtrack_line_search(w, Xw, delta_w, X_delta_w, feats, y, penalty, max_backtrack):
     step_size = 1.
+    exp_Xw = np.zeros_like(Xw)
+    for i in range(Xw.shape[0]):
+        exp_Xw[i] = np.exp(Xw[i] + X_delta_w[i])
     for _ in range(max_backtrack):
-        delta = 0.
-        for idx, j in enumerate(feats):
-            if w[j] + step_size * delta_w[idx] < 0:
-                delta -= penalty.alpha * delta_w[idx]
-            elif w[j] + step_size * delta_w[idx] > 0:
-                delta += penalty.alpha * delta_w[idx]
-            else:
-                delta -= penalty.alpha * abs(delta_w[idx])
-        theta = -y * sigmoid(-y * (Xw + step_size * X_delta_w))
-        delta += X_delta_w @ theta
-        if delta < 1e-7:
+        aux = _compute_aux(y, exp_Xw)
+        deriv = _compute_derivative(
+            w, feats, delta_w, X_delta_w, penalty.alpha, aux, step_size)
+        if deriv < 1e-7:
             break
-        step_size = step_size / 2
+        else:
+            step_size = step_size / 2
     return step_size
+
+
+@njit
+def _compute_aux(y, exp_Xw):
+    n_samples = len(y)
+    aux = np.zeros_like(exp_Xw)
+    for i in range(n_samples):
+        # this supposes that y is filled only with 1 and -1 (or 0)
+        if y[i] == 1.:
+            aux[i] = -1 / (1. + exp_Xw[i])
+        else:
+            aux[i] = 1. - 1 / (1. + exp_Xw[i])
+    return aux
+
+
+@njit
+def _compute_derivative(w, feats, delta_w, X_delta_w, alpha, aux, step_size):
+    deriv_l1 = 0.
+    for idx, j in enumerate(feats):
+        w_j = w[j] + step_size * delta_w[idx]
+        if w_j == 0.:
+            deriv_l1 -= abs(delta_w[idx])
+        else:
+            deriv_l1 += w_j / abs(w_j) * delta_w[idx]
+    deriv_loss = X_delta_w @ aux
+    return deriv_loss + alpha * deriv_l1

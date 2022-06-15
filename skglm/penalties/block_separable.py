@@ -274,7 +274,7 @@ class WeightedGroupL2(BasePenalty):
 
     grp_indices : array, shape (n_features,)
         The group indices stacked contiguously
-        (e.g. [grp1_indices, grp2_indices, ...]).
+        ([grp1_indices, grp2_indices, ...]).
 
     grp_ptr : array, shape (n_groups + 1,)
         The group pointers such that two consecutive elements delimit
@@ -304,16 +304,23 @@ class WeightedGroupL2(BasePenalty):
         """Compute the proximal operator of group ``g``."""
         return BST(value, self.alpha * stepsize * self.weights[g])
 
-    def subdiff_distance(self, w, grad, ws):
-        """Compute distance of negative gradient to the subdifferential at ``w``."""
+    def subdiff_distance(self, w, grad_ws, ws):
+        """Compute distance to the subdifferential at ``w`` of negative gradient.
+
+        Note: ``grad_ws`` is a stacked array of ``-``gradients.
+        ([-grad_ws_1, -grad_ws_2, ...])
+        """
         alpha, weights = self.alpha, self.weights
         grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
 
         scores = np.zeros(len(ws))
+        grad_ptr = 0
         for idx, g in enumerate(ws):
-            grad_g = grad[idx]
-
             grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
+
+            grad_g = grad_ws[grad_ptr: grad_ptr + len(grp_g_indices)]
+            grad_ptr += len(grp_g_indices)
+
             w_g = w[grp_g_indices]
             norm_w_g = norm(w_g)
 
@@ -324,3 +331,23 @@ class WeightedGroupL2(BasePenalty):
                 scores[idx] = norm(grad_g - subdiff)
 
         return scores
+
+    def is_penalized(self, n_groups):
+        return np.ones(n_groups, dtype=np.bool_)
+
+    def generalized_support(self, w):
+        grp_indices, grp_ptr = self.grp_indices, self.grp_ptr
+        n_groups = len(grp_ptr) - 1
+        is_penalized = self.is_penalized(n_groups)
+
+        gsupp = np.zeros(n_groups, dtype=np.bool_)
+        for g in range(n_groups):
+            if not is_penalized[g]:
+                gsupp[g] = True
+                continue
+
+            grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
+            if np.any(w[grp_g_indices]):
+                gsupp[g] = True
+
+        return gsupp

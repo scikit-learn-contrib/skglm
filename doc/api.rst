@@ -40,6 +40,7 @@ Penalties
    L2_3
    MCPenalty
    WeightedL1
+   WeightedGroupL2
 
 
 Datafits
@@ -50,6 +51,7 @@ Datafits
 .. autosummary::
    :toctree: generated/
 
+   GroupQuadratic
    Logistic
    Quadratic
    QuadraticSVC

@@ -40,6 +40,7 @@ Penalties
    L2_3
    MCPenalty
    WeightedL1
+   WeightedGroupL2
 
 
 Datafits
@@ -52,6 +53,7 @@ Datafits
 
    Logistic
    Quadratic
+   QuadraticGroup
    QuadraticSVC
 
 

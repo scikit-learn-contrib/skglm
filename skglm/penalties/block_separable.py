@@ -1,6 +1,7 @@
 import numpy as np
-from numpy.linalg.linalg import norm
-from numba import float64
+from numpy.linalg import norm
+
+from numba import float64, int32
 from numba.experimental import jitclass
 from numba.types import bool_
 
@@ -153,3 +154,108 @@ class BlockMCPenalty(BasePenalty):
     def is_penalized(self, n_features):
         """Return a binary mask with the penalized features."""
         return np.ones(n_features, bool_)
+
+
+spec_WeightedGroupL2 = [
+    ('alpha', float64),
+    ('weights', float64[:]),
+    ('grp_ptr', int32[:]),
+    ('grp_indices', int32[:]),
+]
+
+
+@jitclass(spec_WeightedGroupL2)
+class WeightedGroupL2(BasePenalty):
+    r"""Weighted Group L2 penalty.
+
+    The penalty reads::
+
+        \sum_{g} weights[g] * ||w_g||_2
+
+    Attributes
+    ----------
+    alpha : float
+        The regularization parameter.
+
+    weights : array, shape (n_groups,)
+        The weights of the groups.
+
+    grp_indices : array, shape (n_features,)
+        The group indices stacked contiguously
+        ([grp1_indices, grp2_indices, ...]).
+
+    grp_ptr : array, shape (n_groups + 1,)
+        The group pointers such that two consecutive elements delimit
+        the indices of a group in ``grp_indices``.
+    """
+
+    def __init__(self, alpha, weights, grp_ptr, grp_indices):
+        self.alpha, self.weights = alpha, weights
+        self.grp_ptr, self.grp_indices = grp_ptr, grp_indices
+
+    def value(self, w):
+        """Value of penalty at vector ``w``."""
+        alpha, weights = self.alpha, self.weights
+        grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
+        n_grp = len(grp_ptr) - 1
+
+        sum_weighted_L2 = 0.
+        for g in range(n_grp):
+            grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
+            w_g = w[grp_g_indices]
+
+            sum_weighted_L2 += alpha * weights[g] * norm(w_g)
+
+        return sum_weighted_L2
+
+    def prox_1group(self, value, stepsize, g):
+        """Compute the proximal operator of group ``g``."""
+        return BST(value, self.alpha * stepsize * self.weights[g])
+
+    def subdiff_distance(self, w, grad_ws, ws):
+        """Compute distance to the subdifferential at ``w`` of negative gradient.
+
+        Note: ``grad_ws`` is a stacked array of ``-``gradients.
+        ([-grad_ws_1, -grad_ws_2, ...])
+        """
+        alpha, weights = self.alpha, self.weights
+        grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
+
+        scores = np.zeros(len(ws))
+        grad_ptr = 0
+        for idx, g in enumerate(ws):
+            grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
+
+            grad_g = grad_ws[grad_ptr: grad_ptr + len(grp_g_indices)]
+            grad_ptr += len(grp_g_indices)
+
+            w_g = w[grp_g_indices]
+            norm_w_g = norm(w_g)
+
+            if norm_w_g == 0:
+                scores[idx] = max(0, norm(grad_g) - alpha * weights[g])
+            else:
+                subdiff = alpha * weights[g] * w_g / norm_w_g
+                scores[idx] = norm(grad_g - subdiff)
+
+        return scores
+
+    def is_penalized(self, n_groups):
+        return np.ones(n_groups, dtype=np.bool_)
+
+    def generalized_support(self, w):
+        grp_indices, grp_ptr = self.grp_indices, self.grp_ptr
+        n_groups = len(grp_ptr) - 1
+        is_penalized = self.is_penalized(n_groups)
+
+        gsupp = np.zeros(n_groups, dtype=np.bool_)
+        for g in range(n_groups):
+            if not is_penalized[g]:
+                gsupp[g] = True
+                continue
+
+            grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
+            if np.any(w[grp_g_indices]):
+                gsupp[g] = True
+
+        return gsupp

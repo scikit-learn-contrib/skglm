@@ -1,12 +1,8 @@
 import numpy as np
-import seaborn as sns
 from numba import njit
 
 from numpy.linalg import norm
 from sklearn.utils import check_random_state
-
-
-C_LIST = sns.color_palette()
 
 
 @njit
@@ -191,3 +187,70 @@ def make_correlated_data(
         return X, Y.flatten(), w_true.flatten()
     else:
         return X, Y, w_true
+
+
+def grp_converter(groups, n_features):
+    """Create group partition and group indices.
+
+    Parameters
+    ----------
+    groups : int | list of ints | list of lists of ints
+        Partition of features used in the penalty on `w`.
+        If an int is passed, groups are contiguous blocks of features, of size
+        `groups`.
+        If a list of ints is passed, groups are assumed to be contiguous,
+        group number `g` being of size `groups[g]`.
+        If a list of lists of ints is passed, `groups[g]` contains the
+        feature indices of the group number `g`.
+
+    n_features : int
+        Number of features.
+
+    Returns
+    -------
+    grp_indices : array, shape (n_features,)
+        The group indices stacked contiguously
+        (e.g. [grp1_indices, grp2_indices, ...]).
+
+    grp_ptr : array, shape (n_groups + 1,)
+        The group pointers such that two consecutive elements delimit
+        the indices of a group in ``grp_indices``.
+    """
+    if isinstance(groups, int):
+        grp_size = groups
+        if n_features % grp_size != 0:
+            raise ValueError("n_features (%d) is not a multiple of the desired"
+                             " group size (%d)" % (n_features, grp_size))
+        n_groups = n_features // grp_size
+        grp_ptr = grp_size * np.arange(n_groups + 1)
+        grp_indices = np.arange(n_features)
+    elif isinstance(groups, list) and isinstance(groups[0], int):
+        grp_indices = np.arange(n_features)
+        grp_ptr = np.cumsum(np.hstack([[0], groups]))
+    elif isinstance(groups, list) and isinstance(groups[0], list):
+        grp_sizes = np.array([len(ls) for ls in groups])
+        grp_ptr = np.cumsum(np.hstack([[0], grp_sizes]))
+        grp_indices = np.array([idx for grp in groups for idx in grp])
+    else:
+        raise ValueError("Unsupported group format.")
+    return grp_indices.astype(np.int32), grp_ptr.astype(np.int32)
+
+
+def check_group_compatible(obj):
+    """Check whether ``obj`` is compatible with ``bcd_solver``.
+
+    Parameters
+    ----------
+    obj : instance of BaseDatafit or BasePenalty
+        Object to check.
+    """
+    obj_name = obj.__class__.__name__
+    group_attrs = ('grp_ptr', 'grp_indices')
+
+    for attr in group_attrs:
+        if not hasattr(obj, attr):
+            raise Exception(
+                f"datafit and penalty must be compatible with 'bcd_solver'.\n"
+                f"'{obj_name}' is not block-separable. "
+                f"Missing '{attr}' attribute."
+            )

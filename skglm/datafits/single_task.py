@@ -242,19 +242,27 @@ spec_huber = [
 
 class _Huber(BaseDatafit):
     """Huber datafit.
+
     The datafit reads::
 
-    1 / n_samples * sum (f(y_k - (X w)_k))
+    (1 / n_samples) * sum_{i=1}^{n_samples} (f(y_i - Xw_i))
 
-    f(x) = 1 / 2 * x^2 if x <= delta
-    f(x) = delta * | x | - 1 /2 * delta^2 if x > delta
-
+    f(x) =
+    1 / 2 * x^2                         if x <= delta
+    delta * | x | - 1 /2 * delta^2      if x > delta
 
     Attributes
     ----------
     lipschitz : array, shape (n_features,)
         The coordinatewise gradient Lipschitz constants.
+
+    Note
+    ----
+    The class _Huber is subsequently decorated with a @jitclass decorator with
+    the `jit_factory` function to be compiled. This allows for faster computations
+    using Numba JIT compiler.
     """
+
     def __init__(self, delta):
         self.delta = delta
 
@@ -275,26 +283,35 @@ class _Huber(BaseDatafit):
             self.lipschitz[j] = nrm2 / len(y)
 
     def value(self, y, w, Xw):
-        norm_1 = np.abs(y - Xw)
-        loss = np.where(norm_1 < self.delta,
-                        0.5 * norm_1 ** 2,
-                        self.delta * norm_1 - 0.5 * self.delta ** 2)
-        return np.sum(loss) / len(Xw)
+        n_samples = len(y)
+        res = 0.
+        for i in range(n_samples):
+            tmp = abs(y[i] - Xw[i])
+            if tmp < self.delta:
+                res += 0.5 * tmp ** 2
+            else:
+                res += self.delta * tmp - 0.5 * self.delta ** 2
+        return res / n_samples
 
     def gradient_scalar(self, X, y, w, Xw, j):
-        R = y - Xw
-        return - X[:, j] @ np.where(np.abs(R) < self.delta,
-                                    R,
-                                    np.sign(R) * self.delta) / len(Xw)
+        n_samples = len(y)
+        grad_j = 0.
+        for i in range(n_samples):
+            tmp = y[i] - Xw[i]
+            if abs(tmp) < self.delta:
+                grad_j += - X[i, j] * tmp
+            else:
+                grad_j += - X[i, j] * np.sign(tmp) * self.delta
+        return grad_j / n_samples
 
     def gradient_scalar_sparse(self, X_data, X_indptr, X_indices, y, Xw, j):
         grad_j = 0.
         for i in range(X_indptr[j], X_indptr[j + 1]):
-            diff_indice_i = y[X_indices[i]] - Xw[X_indices[i]]
-            if np.abs(diff_indice_i) < self.delta:
-                grad_j += X_data[i] * (-diff_indice_i)
+            tmp = y[X_indices[i]] - Xw[X_indices[i]]
+            if np.abs(tmp) < self.delta:
+                grad_j += - X_data[i] * tmp
             else:
-                grad_j += X_data[i] * np.sign(-diff_indice_i) * self.delta
+                grad_j += - X_data[i] * np.sign(tmp) * self.delta
         return grad_j / len(Xw)
 
     def full_grad_sparse(
@@ -305,11 +322,11 @@ class _Huber(BaseDatafit):
         for j in range(n_features):
             grad_j = 0.
             for i in range(X_indptr[j], X_indptr[j + 1]):
-                diff_indice_i = y[X_indices[i]] - Xw[X_indices[i]]
-                if np.abs(diff_indice_i) < self.delta:
-                    grad_j += X_data[i] * (-diff_indice_i)
+                tmp = y[X_indices[i]] - Xw[X_indices[i]]
+                if np.abs(tmp) < self.delta:
+                    grad_j += - X_data[i] * tmp
                 else:
-                    grad_j += X_data[i] * np.sign(-diff_indice_i) * self.delta
+                    grad_j += - X_data[i] * np.sign(tmp) * self.delta
             grad[j] = grad_j / n_samples
         return grad
 

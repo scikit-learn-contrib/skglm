@@ -299,7 +299,7 @@ class AndersonAcceleration:
         # compute extrapolation coefs
         ones_K = np.ones(self.K)
         try:
-            inv_UTU_ones = np.linalg.solve(U.T.dot(U), ones_K)
+            inv_UTU_ones = np.linalg.solve(U.T @ U, ones_K)
         except Exception('Singular matrix'):  # don't update w
             self.current_iter = 0
             return

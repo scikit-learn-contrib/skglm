@@ -71,7 +71,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10, use_acc=True, K=5,
     all_groups = np.arange(n_groups)
     p_objs_out = np.zeros(max_iter)
     stop_crit = 0.  # prevent ref before assign when max_iter == 0
-    accelerator = AndersonAcceleration(K=K, n_features=n_features) if use_acc else None
+    accelerator = AndersonAcceleration(K, n_features) if use_acc else None
 
     for t in range(max_iter):
         if t == 0:  # avoid computing grad and opt twice

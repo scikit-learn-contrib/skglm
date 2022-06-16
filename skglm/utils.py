@@ -267,32 +267,37 @@ spec_AndersonAcceleration = [
 
 @jitclass(spec_AndersonAcceleration)
 class AndersonAcceleration:
-    """Anderson Accelerator."""
+    """Abstraction of Anderson Acceleration.
+
+    Parameters
+    ----------
+    K : int
+        Number of previous iterates to consider for extrapolation.
+
+    n_features : int
+        Number of features.
+    """
 
     def __init__(self, K, n_features):
         self.K, self.n_features = K, n_features
 
         self.current_iter = 0
-        self.arr_w = np.zeros(shape=(self.n_features, self.K+1))
+        self.arr_w = np.zeros(shape=(n_features, K+1))
 
     def extrapolate(self, w):
         """Inplace update of ``w``."""
-        K, current_iter = self.K, self.current_iter
-        arr_w = self.arr_w
-        n_features = self.n_features
-
-        if current_iter <= K:
-            self.arr_w[:, current_iter] = w.copy()
+        if self.current_iter <= self.K:
+            self.arr_w[:, self.current_iter] = w.copy()
             self.current_iter += 1
             return
 
         # compute residuals
-        U = np.zeros((n_features, K))
-        for j in range(K):
-            U[:, j] = arr_w[:, j+1] - arr_w[:, j]
+        U = np.zeros((self.n_features, self.K))
+        for j in range(self.K):
+            U[:, j] = self.arr_w[:, j+1] - self.arr_w[:, j]
 
         # compute extrapolation coefs
-        ones_K = np.ones(K)
+        ones_K = np.ones(self.K)
         try:
             inv_UTU_ones = np.linalg.solve(U.T.dot(U), ones_K)
         except Exception('Singular matrix'):  # don't update w
@@ -301,5 +306,5 @@ class AndersonAcceleration:
 
         # extrapolate
         C = inv_UTU_ones / (ones_K @ inv_UTU_ones)
-        w = arr_w[:, 1:] @ C
+        w = self.arr_w[:, 1:] @ C
         self.current_iter = 0

@@ -260,13 +260,19 @@ def check_group_compatible(obj):
 class AndersonAcceleration:
     """Abstraction of Anderson Acceleration.
 
+    Extrapolate the asymptotic VAR ``w`` and ``Xw``
+    based on ``K`` previous iterations.
+
     Parameters
     ----------
     K : int
         Number of previous iterates to consider for extrapolation.
 
     n_features : int
-        Number of features.
+        Number of elements in ``w``.
+
+    n_samples: int
+        Number of elements in ``Xw``.
     """
 
     def __init__(self, K, n_samples, n_features):

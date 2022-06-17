@@ -5,7 +5,7 @@ from skglm.utils import AndersonAcceleration, check_group_compatible
 
 
 def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10, use_acc=True, K=5,
-               max_iter=1000, max_epochs=100, tol=1e-4, verbose=False, return_p_objs=False):
+               max_iter=1000, max_epochs=100, tol=1e-4, verbose=False):
     """Run a group BCD solver.
 
     Parameters

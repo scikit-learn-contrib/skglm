@@ -257,15 +257,6 @@ def check_group_compatible(obj):
             )
 
 
-spec_AndersonAcceleration = [
-    ('K', int32),
-    ('n_features', int32),
-    ('current_iter', int32),
-    ('arr_w', float64[:, ::1]),
-]
-
-
-@jitclass(spec_AndersonAcceleration)
 class AndersonAcceleration:
     """Abstraction of Anderson Acceleration.
 
@@ -292,19 +283,17 @@ class AndersonAcceleration:
             return
 
         # compute residuals
-        U = np.zeros((self.n_features, self.K))
-        for j in range(self.K):
-            U[:, j] = self.arr_w[:, j+1] - self.arr_w[:, j]
+        U = self.arr_w[:, 1:] - self.arr_w[:, :-1]
 
         # compute extrapolation coefs
         ones_K = np.ones(self.K)
         try:
             inv_UTU_ones = np.linalg.solve(U.T @ U, ones_K)
-        except Exception('Singular matrix'):  # don't update w
-            self.current_iter = 0
+        except np.linalg.LinAlgError:
             return
+        finally:
+            self.current_iter = 0
 
         # extrapolate
         C = inv_UTU_ones / (ones_K @ inv_UTU_ones)
-        w = self.arr_w[:, 1:] @ C
-        self.current_iter = 0
+        w[:] = self.arr_w[:, 1:] @ C

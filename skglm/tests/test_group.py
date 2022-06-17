@@ -60,8 +60,7 @@ def test_alpha_max(n_groups, n_features, shuffle):
         alpha=alpha_max, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    w = bcd_solver(
-        X, y, quad_group, group_penalty, max_iter=10000, tol=0)[0]
+    w = bcd_solver(X, y, quad_group, group_penalty, tol=1e-12)[0]
 
     np.testing.assert_allclose(norm(w), 0, atol=1e-14)
 
@@ -82,7 +81,7 @@ def test_equivalence_lasso():
         alpha=alpha, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    w = bcd_solver(X, y, quad_group, group_penalty, max_iter=10000, tol=1e-12)[0]
+    w = bcd_solver(X, y, quad_group, group_penalty, K=6, tol=1e-12)[0]
 
     celer_lasso = Lasso(
         alpha=alpha, fit_intercept=False, tol=1e-12, weights=weights).fit(X, y)
@@ -114,7 +113,7 @@ def test_vs_celer_grouplasso(n_groups, n_features, shuffle):
         alpha=alpha, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    w = bcd_solver(X, y, quad_group, group_penalty, tol=1e-12)[0]
+    w = bcd_solver(X, y, quad_group, group_penalty, tol=1e-12, K=6)[0]
 
     model = GroupLasso(groups=groups, alpha=alpha, weights=weights,
                        fit_intercept=False, tol=1e-12)
@@ -124,14 +123,17 @@ def test_vs_celer_grouplasso(n_groups, n_features, shuffle):
 
 
 def test_anderson_acceleration():
-    n_features, max_iter = 10, 100
+    n_features, max_iter = 2, 100
+    rho = np.array([0.5, 0.8])
 
-    acc = AndersonAcceleration(K=3, n_features=n_features)
+    acc = AndersonAcceleration(K=5, n_features=n_features)
     w = np.ones(n_features)
 
-    for i in range(max_iter):
+    for _ in range(max_iter):
         acc.extrapolate(w)
-        w = np.random.randn(n_features)
+        w = rho * w + 1
+
+    np.testing.assert_allclose(w, 1 / (1 - rho))
 
 
 if __name__ == '__main__':

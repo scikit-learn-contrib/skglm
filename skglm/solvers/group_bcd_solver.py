@@ -5,7 +5,7 @@ from skglm.utils import AndersonAcceleration, check_group_compatible
 
 
 def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10, use_acc=True, K=5,
-               max_iter=1000, max_epochs=100, tol=1e-4, verbose=False):
+               max_iter=1000, max_epochs=100, tol=1e-4, verbose=False, return_p_objs=False):
     """Run a group BCD solver.
 
     Parameters
@@ -61,7 +61,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10, use_acc=True, K=5,
     check_group_compatible(datafit)
     check_group_compatible(penalty)
 
-    n_features = X.shape[1]
+    n_samples, n_features = X.shape
     n_groups = len(penalty.grp_ptr) - 1
 
     # init
@@ -74,13 +74,19 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10, use_acc=True, K=5,
     accelerator = AndersonAcceleration(K, n_features) if use_acc else None
 
     for t in range(max_iter):
-        if t == 0:  # avoid computing grad and opt twice
-            grad = _construct_grad(X, y, w, Xw, datafit, all_groups)
-            opt = penalty.subdiff_distance(w, grad, all_groups)
-            stop_crit = np.max(opt)
+        grad = _construct_grad(X, y, w, Xw, datafit, all_groups)
+        opt = penalty.subdiff_distance(w, grad, all_groups)
+        stop_crit = np.max(opt)
 
-            if stop_crit <= tol:
-                break
+        if verbose:
+            p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+            print(
+                f"Iteration {t+1}: {p_obj:.10f}, "
+                f"stopping crit: {stop_crit:.2e}"
+            )
+
+        if stop_crit <= tol:
+            break
 
         gsupp_size = penalty.generalized_support(w).sum()
         ws_size = max(min(p0, n_groups),
@@ -92,6 +98,8 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10, use_acc=True, K=5,
 
             if use_acc:  # inplace update of w
                 accelerator.extrapolate(w)
+            if epoch % (K+1):
+                Xw[:] = X @ w
 
             if epoch % 10 == 0:
                 grad_ws = _construct_grad(X, y, w, Xw, datafit, ws)
@@ -109,19 +117,6 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10, use_acc=True, K=5,
                     break
 
         p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-        grad = _construct_grad(X, y, w, Xw, datafit, all_groups)
-        opt = penalty.subdiff_distance(w, grad, all_groups)
-        stop_crit = np.max(opt)
-
-        if verbose:
-            print(
-                f"Iteration {t+1}: {p_obj:.10f}, "
-                f"stopping crit: {stop_crit:.2e}"
-            )
-
-        if stop_crit <= tol:
-            break
-
         p_objs_out[t] = p_obj
 
     return w, p_objs_out, stop_crit
@@ -147,7 +142,6 @@ def _bcd_epoch(X, y, w, Xw, datafit, penalty, ws):
         for idx, j in enumerate(grp_g_indices):
             if old_w_g[idx] != w[j]:
                 Xw += (w[j] - old_w_g[idx]) * X[:, j]
-    return
 
 
 @njit

@@ -123,14 +123,16 @@ def test_vs_celer_grouplasso(n_groups, n_features, shuffle):
 
 
 def test_anderson_acceleration():
-    n_features, max_iter = 2, 100
+    max_iter = 100
+    n_samples, n_features = 2, 2
     rho = np.array([0.5, 0.8])
 
-    acc = AndersonAcceleration(K=5, n_features=n_features)
+    acc = AndersonAcceleration(K=5, n_samples=n_samples, n_features=n_features)
     w = np.ones(n_features)
+    Xw = np.ones(n_samples)
 
     for _ in range(max_iter):
-        acc.extrapolate(w)
+        acc.extrapolate(w, Xw)
         w = rho * w + 1
 
     np.testing.assert_allclose(w, 1 / (1 - rho))

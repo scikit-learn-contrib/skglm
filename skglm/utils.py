@@ -269,16 +269,19 @@ class AndersonAcceleration:
         Number of features.
     """
 
-    def __init__(self, K, n_features):
-        self.K, self.n_features = K, n_features
+    def __init__(self, K, n_samples, n_features):
+        self.K = K
+        self.n_samples, self.n_features = n_samples, n_features
 
         self.current_iter = 0
         self.arr_w = np.zeros(shape=(n_features, K+1))
+        self.arr_Xw = np.zeros(shape=(n_samples, K+1))
 
-    def extrapolate(self, w):
-        """Inplace update of ``w``."""
+    def extrapolate(self, w, Xw):
+        """Inplace update of ``w`` and ``Xw``."""
         if self.current_iter <= self.K:
             self.arr_w[:, self.current_iter] = w.copy()
+            self.arr_Xw[:, self.current_iter] = Xw.copy()
             self.current_iter += 1
             return
 
@@ -297,3 +300,4 @@ class AndersonAcceleration:
         # extrapolate
         C = inv_UTU_ones / (ones_K @ inv_UTU_ones)
         w[:] = self.arr_w[:, 1:] @ C
+        Xw[:] = self.arr_Xw[:, 1:] @ C

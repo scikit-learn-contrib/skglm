@@ -1,6 +1,5 @@
 import numpy as np
-from numba import njit, float64, int32
-from numba.experimental import jitclass
+from numba import njit
 
 from numpy.linalg import norm
 from sklearn.utils import check_random_state

@@ -131,6 +131,7 @@ def test_anderson_acceleration():
     w_star = 1 / (1 - rho)
     X = np.diag([2, 5])
 
+    # with acceleration
     acc = AndersonAcceleration(K=5)
     n_iter_acc = 0
     w = np.ones(n_features)
@@ -144,9 +145,21 @@ def test_anderson_acceleration():
             n_iter_acc = i
             break
 
+    # without acceleration
+    n_iter = 0
+    w = np.ones(n_features)
+    for i in range(max_iter):
+        w = rho * w + 1
+
+        if norm(w - w_star, ord=np.inf) < tol:
+            n_iter = i
+            break
+
     np.testing.assert_allclose(w, w_star)
     np.testing.assert_allclose(Xw, X @ w_star)
+
     np.testing.assert_array_equal(n_iter_acc, 13)
+    np.testing.assert_array_equal(n_iter, 99)
 
 
 if __name__ == '__main__':

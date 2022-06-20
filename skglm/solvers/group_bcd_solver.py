@@ -4,7 +4,7 @@ from numba import njit
 from skglm.utils import AndersonAcceleration, check_group_compatible
 
 
-def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10, use_acc=True, K=5,
+def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
                max_iter=1000, max_epochs=100, tol=1e-4, verbose=False):
     """Run a group BCD solver.
 
@@ -28,12 +28,6 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10, use_acc=True, K=5,
 
     p0 : int, default 10
         Minimum number of groups to be included in the working set.
-
-    use_acc : bool, default True
-        Whether to use Anderson acceleration.
-
-    K : int, optional
-        The number of past primal iterates used to build an extrapolated point.
 
     max_iter : int, default 1000
         Maximum number of iterations.
@@ -71,7 +65,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10, use_acc=True, K=5,
     all_groups = np.arange(n_groups)
     p_objs_out = np.zeros(max_iter)
     stop_crit = 0.  # prevent ref before assign when max_iter == 0
-    accelerator = AndersonAcceleration(K) if use_acc else None
+    accelerator = AndersonAcceleration(K=5)
 
     for t in range(max_iter):
         grad = _construct_grad(X, y, w, Xw, datafit, all_groups)
@@ -94,24 +88,24 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10, use_acc=True, K=5,
         ws = np.argpartition(opt, -ws_size)[-ws_size:]  # k-largest items (no sort)
 
         for epoch in range(max_epochs):
+            # inplace update of w and Xw
             _bcd_epoch(X, y, w, Xw, datafit, penalty, ws)
 
-            if use_acc:
-                w_acc, Xw_acc = accelerator.extrapolate(w, Xw)
+            w_acc, Xw_acc = accelerator.extrapolate(w, Xw)
+            p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+            p_obj_acc = datafit.value(y, w_acc, Xw_acc) + penalty.value(w_acc)
 
-                p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-                p_obj_acc = datafit.value(y, w_acc, Xw_acc) + penalty.value(w_acc)
+            if p_obj_acc < p_obj:
+                w, Xw = w_acc, Xw_acc
+                p_obj = p_obj_acc
 
-                if p_obj_acc < p_obj:
-                    w, Xw = w_acc, Xw_acc
-
+            # check sub-optimality every 10 epochs
             if epoch % 10 == 0:
                 grad_ws = _construct_grad(X, y, w, Xw, datafit, ws)
                 opt_in = penalty.subdiff_distance(w, grad_ws, ws)
                 stop_crit_in = np.max(opt_in)
 
                 if max(verbose - 1, 0):
-                    p_obj = datafit.value(y, w, Xw) + penalty.value(w)
                     print(
                         f"Epoch {epoch+1}: {p_obj:.10f} "
                         f"obj. variation: {stop_crit_in:.2e}"
@@ -119,8 +113,6 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10, use_acc=True, K=5,
 
                 if stop_crit_in <= 0.3 * stop_crit:
                     break
-
-        p_obj = datafit.value(y, w, Xw) + penalty.value(w)
         p_objs_out[t] = p_obj
 
     return w, p_objs_out, stop_crit

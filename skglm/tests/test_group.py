@@ -113,7 +113,7 @@ def test_vs_celer_grouplasso(n_groups, n_features, shuffle):
         alpha=alpha, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    w = bcd_solver(X, y, quad_group, group_penalty, tol=1e-12, K=6)[0]
+    w = bcd_solver(X, y, quad_group, group_penalty, tol=1e-12)[0]
 
     model = GroupLasso(groups=groups, alpha=alpha, weights=weights,
                        fit_intercept=False, tol=1e-12)

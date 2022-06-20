@@ -81,7 +81,7 @@ def test_equivalence_lasso():
         alpha=alpha, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    w = bcd_solver(X, y, quad_group, group_penalty, K=6, tol=1e-12)[0]
+    w = bcd_solver(X, y, quad_group, group_penalty, tol=1e-12)[0]
 
     celer_lasso = Lasso(
         alpha=alpha, fit_intercept=False, tol=1e-12, weights=weights).fit(X, y)

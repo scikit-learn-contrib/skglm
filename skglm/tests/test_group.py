@@ -157,7 +157,7 @@ def test_anderson_acceleration():
             n_iter = i
             break
 
-    assert n_iter_acc < n_iter  # AA should twice faster
+    np.testing.assert_array_less(n_iter_acc, n_iter)  # AA should twice faster
 
 
 if __name__ == '__main__':

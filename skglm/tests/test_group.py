@@ -125,13 +125,13 @@ def test_vs_celer_grouplasso(n_groups, n_features, shuffle):
 def test_anderson_acceleration():
     # VAR: w = rho * w + 1 which converges to w_star = 1 / (1 - rho)
     max_iter = 1000
-    n_samples, n_features = 2, 2
+    n_features = 2
     rho = np.array([0.5, 0.8])
     w_star = 1 / (1 - rho)
     X = np.diag([2, 5])
 
     # with extrapolation
-    acc = AndersonAcceleration(K=5, n_samples=n_samples, n_features=n_features)
+    acc = AndersonAcceleration(K=5)
     n_iter_acc = 0
     w = np.ones(n_features)
     Xw = X @ w

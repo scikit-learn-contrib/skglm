@@ -61,7 +61,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10, use_acc=True, K=5,
     check_group_compatible(datafit)
     check_group_compatible(penalty)
 
-    n_samples, n_features = X.shape
+    n_features = X.shape[1]
     n_groups = len(penalty.grp_ptr) - 1
 
     # init
@@ -71,7 +71,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10, use_acc=True, K=5,
     all_groups = np.arange(n_groups)
     p_objs_out = np.zeros(max_iter)
     stop_crit = 0.  # prevent ref before assign when max_iter == 0
-    accelerator = AndersonAcceleration(K, n_samples, n_features) if use_acc else None
+    accelerator = AndersonAcceleration(K) if use_acc else None
 
     for t in range(max_iter):
         grad = _construct_grad(X, y, w, Xw, datafit, all_groups)

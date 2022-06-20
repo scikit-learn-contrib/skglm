@@ -267,31 +267,31 @@ class AndersonAcceleration:
     K : int
         Number of previous iterates to consider for extrapolation.
 
-    n_features : int
-        Number of elements in ``w``.
-
-    n_samples: int
-        Number of elements in ``Xw``.
+    Note:
+    -----
+    the shape of ``w`` and ``Xw`` is inferred in
+    the first call of ``extrapolate``.
     """
 
-    def __init__(self, K, n_samples, n_features):
+    def __init__(self, K):
         self.K = K
-        self.n_samples, self.n_features = n_samples, n_features
-
         self.current_iter = 0
-        self.arr_w = np.zeros(shape=(n_features, K+1))
-        self.arr_Xw = np.zeros(shape=(n_samples, K+1))
+
+        self.arr_w_, self.arr_Xw_ = None, None
 
     def extrapolate(self, w, Xw):
         """Inplace update of ``w`` and ``Xw``."""
+        if self.arr_w_ is None or self.arr_Xw_ is None:
+            self.arr_w_ = np.zeros((w.shape[0], self.K+1))
+            self.arr_Xw_ = np.zeros((Xw.shape[0], self.K+1))
+
         if self.current_iter <= self.K:
-            self.arr_w[:, self.current_iter] = w.copy()
-            self.arr_Xw[:, self.current_iter] = Xw.copy()
+            self.arr_w_[:, self.current_iter] = w
+            self.arr_Xw_[:, self.current_iter] = Xw
             self.current_iter += 1
             return
 
-        # compute residuals
-        U = self.arr_w[:, 1:] - self.arr_w[:, :-1]
+        U = np.diff(self.arr_w_, axis=1)  # compute residuals
 
         # compute extrapolation coefs
         ones_K = np.ones(self.K)
@@ -303,6 +303,7 @@ class AndersonAcceleration:
             self.current_iter = 0
 
         # extrapolate
-        C = inv_UTU_ones / (ones_K @ inv_UTU_ones)
-        w[:] = self.arr_w[:, 1:] @ C
-        Xw[:] = self.arr_Xw[:, 1:] @ C
+        C = inv_UTU_ones / np.sum(inv_UTU_ones)
+        # floating point errors might cause w and Xw to disagree
+        w[:] = self.arr_w_[:, 1:] @ C
+        Xw[:] = self.arr_Xw_[:, 1:] @ C

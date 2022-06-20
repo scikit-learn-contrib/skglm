@@ -274,10 +274,9 @@ class AndersonAcceleration:
     """
 
     def __init__(self, K):
-        self.K = K
-        self.current_iter = 0
-
+        self.K, self.current_iter = K, 0
         self.arr_w_, self.arr_Xw_ = None, None
+        self.ones_K = np.ones(K)
 
     def extrapolate(self, w, Xw):
         """Inplace update of ``w`` and ``Xw``."""
@@ -294,9 +293,8 @@ class AndersonAcceleration:
         U = np.diff(self.arr_w_, axis=1)  # compute residuals
 
         # compute extrapolation coefs
-        ones_K = np.ones(self.K)
         try:
-            inv_UTU_ones = np.linalg.solve(U.T @ U, ones_K)
+            inv_UTU_ones = np.linalg.solve(U.T @ U, self.ones_K)
         except np.linalg.LinAlgError:
             return
         finally:

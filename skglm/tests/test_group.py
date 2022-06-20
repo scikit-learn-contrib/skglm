@@ -124,7 +124,7 @@ def test_vs_celer_grouplasso(n_groups, n_features, shuffle):
 
 def test_anderson_acceleration():
     # VAR: w = rho * w + 1 which converges to w_star = 1 / (1 - rho)
-    max_iter = 1000
+    max_iter, tol = 1000, 1e-9
     n_features = 2
     rho = np.array([0.5, 0.8])
     w_star = 1 / (1 - rho)
@@ -136,11 +136,11 @@ def test_anderson_acceleration():
     w = np.ones(n_features)
     Xw = X @ w
     for i in range(max_iter):
-        acc.extrapolate(w, Xw)
+        w, Xw = acc.extrapolate(w, Xw)
         w = rho * w + 1
         Xw = X @ w
 
-        if norm(w - w_star, ord=np.inf) < 1e-9:
+        if norm(w - w_star, ord=np.inf) < tol:
             n_iter_acc = i
             break
 
@@ -153,11 +153,11 @@ def test_anderson_acceleration():
     for i in range(max_iter):
         w = rho * w + 1
 
-        if norm(w - w_star, ord=np.inf) < 1e-9:
+        if norm(w - w_star, ord=np.inf) < tol:
             n_iter = i
             break
 
-    np.testing.assert_array_less(n_iter_acc, n_iter)  # AA should twice faster
+    np.testing.assert_array_less(n_iter_acc, n_iter)  # AA should be faster
 
 
 if __name__ == '__main__':

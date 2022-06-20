@@ -266,20 +266,14 @@ class AndersonAcceleration:
     ----------
     K : int
         Number of previous iterates to consider for extrapolation.
-
-    Note:
-    -----
-    the shape of ``w`` and ``Xw`` is inferred in
-    the first call of ``extrapolate``.
     """
 
     def __init__(self, K):
         self.K, self.current_iter = K, 0
         self.arr_w_, self.arr_Xw_ = None, None
-        self.ones_K = np.ones(K)
 
     def extrapolate(self, w, Xw):
-        """Inplace update of ``w`` and ``Xw``."""
+        """Returns ``w`` and ``Xw`` extrapolated."""
         if self.arr_w_ is None or self.arr_Xw_ is None:
             self.arr_w_ = np.zeros((w.shape[0], self.K+1))
             self.arr_Xw_ = np.zeros((Xw.shape[0], self.K+1))
@@ -288,20 +282,19 @@ class AndersonAcceleration:
             self.arr_w_[:, self.current_iter] = w
             self.arr_Xw_[:, self.current_iter] = Xw
             self.current_iter += 1
-            return
+            return w, Xw
 
         U = np.diff(self.arr_w_, axis=1)  # compute residuals
 
         # compute extrapolation coefs
         try:
-            inv_UTU_ones = np.linalg.solve(U.T @ U, self.ones_K)
+            inv_UTU_ones = np.linalg.solve(U.T @ U, np.ones(self.K))
         except np.linalg.LinAlgError:
-            return
+            return w, Xw
         finally:
             self.current_iter = 0
 
         # extrapolate
         C = inv_UTU_ones / np.sum(inv_UTU_ones)
         # floating point errors may cause w and Xw to disagree
-        w[:] = self.arr_w_[:, 1:] @ C
-        Xw[:] = self.arr_Xw_[:, 1:] @ C
+        return self.arr_w_[:, 1:] @ C, self.arr_Xw_[:, 1:] @ C

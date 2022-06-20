@@ -302,6 +302,6 @@ class AndersonAcceleration:
 
         # extrapolate
         C = inv_UTU_ones / np.sum(inv_UTU_ones)
-        # floating point errors might cause w and Xw to disagree
+        # floating point errors may cause w and Xw to disagree
         w[:] = self.arr_w_[:, 1:] @ C
         Xw[:] = self.arr_Xw_[:, 1:] @ C

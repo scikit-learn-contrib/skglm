@@ -96,8 +96,14 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10, use_acc=True, K=5,
         for epoch in range(max_epochs):
             _bcd_epoch(X, y, w, Xw, datafit, penalty, ws)
 
-            if use_acc:  # inplace update of w and Xw
-                w, Xw = accelerator.extrapolate(w, Xw)
+            if use_acc:
+                w_acc, Xw_acc = accelerator.extrapolate(w, Xw)
+
+                p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+                p_obj_acc = datafit.value(y, w_acc, Xw_acc) + penalty.value(w_acc)
+
+                if p_obj_acc < p_obj:
+                    w, Xw = w_acc, Xw_acc
 
             if epoch % 10 == 0:
                 grad_ws = _construct_grad(X, y, w, Xw, datafit, ws)

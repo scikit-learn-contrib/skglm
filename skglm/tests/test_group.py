@@ -146,18 +146,7 @@ def test_anderson_acceleration():
 
     np.testing.assert_allclose(w, w_star)
     np.testing.assert_allclose(Xw, X @ w_star)
-
-    # without extrapolation
-    n_iter = 0
-    w = np.ones(n_features)
-    for i in range(max_iter):
-        w = rho * w + 1
-
-        if norm(w - w_star, ord=np.inf) < tol:
-            n_iter = i
-            break
-
-    np.testing.assert_array_less(n_iter_acc, n_iter)  # AA should be faster
+    np.testing.assert_array_equal(n_iter_acc, 13)
 
 
 if __name__ == '__main__':

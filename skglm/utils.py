@@ -332,6 +332,11 @@ class AndersonAcceleration:
         # compute extrapolation coefs
         try:
             inv_UTU_ones = np.linalg.solve(U.T @ U, np.ones(self.K))
+            # When UtU is ill-conditioned, z can take very large finite
+            # positive and negative values (1e35 and -1e35), which leads
+            # to inv_UTU_ones.sum() being null.
+            if inv_UTU_ones.sum() == 0:
+                raise np.linalg.LinAlgError
         except np.linalg.LinAlgError:
             return w, Xw
         finally:

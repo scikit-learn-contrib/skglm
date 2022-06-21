@@ -1,15 +1,17 @@
+import warnings
 import numpy as np
 from scipy import sparse
 from numba import njit
 from skglm.datafits import Logistic, Logistic_32
 from skglm.solvers.common import construct_grad, construct_grad_sparse, dist_fix_point
-from skglm.utils import weighted_dot, weighted_dot_sparse, xj_dot_sparse, sigmoid
+from skglm.utils import (
+    AndersonAcceleration, weighted_dot, weighted_dot_sparse, xj_dot_sparse, sigmoid)
 
 
 def prox_newton_solver(
     X, y, datafit, penalty, w, Xw, max_iter=50, max_epochs=1000, max_backtrack=10,
-    min_pn_cd_epochs=2, max_pn_cd_epochs=10, p0=10, tol=1e-4, use_acc=True, K=5,
-    ws_strategy="subdiff", verbose=0
+    min_pn_cd_epochs=2, max_pn_cd_epochs=10, p0=10, tol=1e-4, ws_strategy="subdiff",
+    verbose=0
 ):
     r"""Run a prox-Newton solver.
 
@@ -57,12 +59,6 @@ def prox_newton_solver(
     tol : float, optional
         The tolerance for the optimization.
 
-    use_acc : bool, optional
-        Usage of Anderson acceleration for faster convergence.
-
-    K : int, optional
-        The number of past primal iterates used to build an extrapolated point.
-
     ws_strategy : ('subdiff'|'fixpoint'), optional
         The score used to build the working set.
 
@@ -86,7 +82,7 @@ def prox_newton_solver(
         raise ValueError("Prox-Newton solver only supports Logistic datafits.")
     n_features = X.shape[1]
     if n_features >= 10_000:
-        raise Warning(
+        warnings.warn(
             "Prox-Newton solver can be prohibitively slow for high-dimensional " +
             "problems. We recommend using `cd_solver` instead for faster convergence")
     pen = penalty.is_penalized(n_features)
@@ -95,6 +91,7 @@ def prox_newton_solver(
     obj_out = []
     all_feats = np.arange(n_features)
     stop_crit = np.inf  # initialize for case n_iter=0
+    accelerator = AndersonAcceleration(K=5)
 
     is_sparse = sparse.issparse(X)
     for t in range(max_iter):
@@ -124,10 +121,6 @@ def prox_newton_solver(
         # taking arg_top_K features violating the stopping criterion
         ws = np.argpartition(opt, -ws_size)[-ws_size:]
 
-        if use_acc:
-            last_K_w = np.zeros([K + 1, ws_size])
-            U = np.zeros([K, ws_size])
-
         if verbose:
             print(f"Iteration {t + 1}, {ws_size} feats in subpb.")
 
@@ -145,36 +138,13 @@ def prox_newton_solver(
                     max_backtrack, pn_tol)
 
             # 3) do Anderson acceleration on smaller problem
-            if use_acc:
-                last_K_w[epoch % (K + 1)] = w[ws]
+            w_acc, Xw_acc = accelerator.extrapolate(w, Xw)
+            p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+            p_obj_acc = datafit.value(y, w_acc, Xw_acc) + penalty.value(w_acc)
 
-                if epoch % (K + 1) == K:
-                    for k in range(K):
-                        U[k] = last_K_w[k + 1] - last_K_w[k]
-                    C = np.dot(U, U.T)
-
-                    try:
-                        z = np.linalg.solve(C, np.ones(K))
-                        # When C is ill-conditioned, z can take very large finite
-                        # positive and negative values (1e35 and -1e35), which leads
-                        # to z.sum() being null.
-                        if z.sum() == 0:
-                            raise np.linalg.LinAlgError
-                    except np.linalg.LinAlgError:
-                        if max(verbose - 1, 0):
-                            print("----------Linalg error")
-                    else:
-                        c = z / z.sum()
-                        w_acc = np.zeros(n_features)
-                        w_acc[ws] = np.sum(
-                            last_K_w[:-1] * c[:, None], axis=0)
-                        p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-                        Xw_acc = X[:, ws] @ w_acc[ws]
-                        p_obj_acc = datafit.value(
-                            y, w_acc, Xw_acc) + penalty.value(w_acc)
-                        if p_obj_acc < p_obj:
-                            w[:] = w_acc
-                            Xw[:] = Xw_acc
+            if p_obj_acc < p_obj:
+                w[:] = w_acc
+                Xw[:] = Xw_acc
 
             if epoch % 5 == 0:  # check every 5 epochs, PN epochs are expensive
                 p_obj = datafit.value(y, w[ws], Xw) + penalty.value(w)
@@ -343,7 +313,8 @@ def _backtrack_line_search(w, Xw, delta_w, X_delta_w, feats, y, penalty, max_bac
 
 
 # @njit
-# def _backtrack_line_search(w, Xw, delta_w, X_delta_w, feats, y, penalty, max_backtrack):
+# def _backtrack_line_search(
+# w, Xw, delta_w, X_delta_w, feats, y, penalty, max_backtrack):
 #     step_size = 1.
 #     exp_Xw = np.zeros_like(Xw)
 #     for i in range(Xw.shape[0]):

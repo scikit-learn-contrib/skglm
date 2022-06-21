@@ -122,7 +122,29 @@ def test_vs_celer_grouplasso(n_groups, n_features, shuffle):
     np.testing.assert_allclose(model.coef_, w, atol=1e-5)
 
 
-def test_anderson_acceleration():
+def test_AA_singularity():
+    # matrix of residuals
+    # UTU has rank 2 --> singular
+    U = np.array([[1, 0, 1],
+                  [0, 1, 1]])
+
+    accelerator = AndersonAcceleration(K=3)
+    inv_UTU_ones, n_K_excluded = accelerator.solve_UTU_ones(U.T @ U)
+
+    np.testing.assert_array_equal(inv_UTU_ones, np.ones(2))
+    np.testing.assert_array_equal(n_K_excluded, 1)
+
+    # UTU has not invertible despite cropping
+    U = np.array([[0, 0, 0],
+                  [0, 0, 0]])
+
+    inv_UTU_ones, n_K_excluded = accelerator.solve_UTU_ones(U.T @ U)
+
+    np.testing.assert_array_equal(inv_UTU_ones, np.ones(1))
+    np.testing.assert_array_equal(n_K_excluded, 2)
+
+
+def test_AA():
     # VAR: w = rho * w + 1 with |rho| < 1
     # converges to w_star = 1 / (1 - rho)
     max_iter, tol = 1000, 1e-9
@@ -158,7 +180,8 @@ def test_anderson_acceleration():
     np.testing.assert_allclose(w, w_star)
     np.testing.assert_allclose(Xw, X @ w_star)
 
-    np.testing.assert_array_equal(n_iter_acc, 13)
+    # AA must converge in 6 iterations
+    np.testing.assert_array_equal(n_iter_acc, 6)
     np.testing.assert_array_equal(n_iter, 99)
 
 

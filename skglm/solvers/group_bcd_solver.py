@@ -1,7 +1,7 @@
 import numpy as np
 from numba import njit
 
-from skglm.utils import check_group_compatible
+from skglm.utils import AndersonAcceleration, check_group_compatible
 
 
 def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
@@ -65,45 +65,15 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
     all_groups = np.arange(n_groups)
     p_objs_out = np.zeros(max_iter)
     stop_crit = 0.  # prevent ref before assign when max_iter == 0
+    accelerator = AndersonAcceleration(K=5)
 
     for t in range(max_iter):
-        if t == 0:  # avoid computing grad and opt twice
-            grad = _construct_grad(X, y, w, Xw, datafit, all_groups)
-            opt = penalty.subdiff_distance(w, grad, all_groups)
-            stop_crit = np.max(opt)
-
-            if stop_crit <= tol:
-                break
-
-        gsupp_size = penalty.generalized_support(w).sum()
-        ws_size = max(min(p0, n_groups),
-                      min(n_groups, 2 * gsupp_size))
-        ws = np.argpartition(opt, -ws_size)[-ws_size:]  # k-largest items (no sort)
-
-        for epoch in range(max_epochs):
-            _bcd_epoch(X, y, w, Xw, datafit, penalty, ws)
-
-            if epoch % 10 == 0:
-                grad_ws = _construct_grad(X, y, w, Xw, datafit, ws)
-                opt_in = penalty.subdiff_distance(w, grad_ws, ws)
-                stop_crit_in = np.max(opt_in)
-
-                if max(verbose - 1, 0):
-                    p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-                    print(
-                        f"Epoch {epoch+1}: {p_obj:.10f} "
-                        f"obj. variation: {stop_crit_in:.2e}"
-                    )
-
-                if stop_crit_in <= 0.3 * stop_crit:
-                    break
-
-        p_obj = datafit.value(y, w, Xw) + penalty.value(w)
         grad = _construct_grad(X, y, w, Xw, datafit, all_groups)
         opt = penalty.subdiff_distance(w, grad, all_groups)
         stop_crit = np.max(opt)
 
         if verbose:
+            p_obj = datafit.value(y, w, Xw) + penalty.value(w)
             print(
                 f"Iteration {t+1}: {p_obj:.10f}, "
                 f"stopping crit: {stop_crit:.2e}"
@@ -112,6 +82,37 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
         if stop_crit <= tol:
             break
 
+        gsupp_size = penalty.generalized_support(w).sum()
+        ws_size = max(min(p0, n_groups),
+                      min(n_groups, 2 * gsupp_size))
+        ws = np.argpartition(opt, -ws_size)[-ws_size:]  # k-largest items (no sort)
+
+        for epoch in range(max_epochs):
+            # inplace update of w and Xw
+            _bcd_epoch(X, y, w, Xw, datafit, penalty, ws)
+
+            w_acc, Xw_acc = accelerator.extrapolate(w, Xw)
+            p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+            p_obj_acc = datafit.value(y, w_acc, Xw_acc) + penalty.value(w_acc)
+
+            if p_obj_acc < p_obj:
+                w, Xw = w_acc, Xw_acc
+                p_obj = p_obj_acc
+
+            # check sub-optimality every 10 epochs
+            if epoch % 10 == 0:
+                grad_ws = _construct_grad(X, y, w, Xw, datafit, ws)
+                opt_in = penalty.subdiff_distance(w, grad_ws, ws)
+                stop_crit_in = np.max(opt_in)
+
+                if max(verbose - 1, 0):
+                    print(
+                        f"Epoch {epoch+1}: {p_obj:.10f} "
+                        f"obj. variation: {stop_crit_in:.2e}"
+                    )
+
+                if stop_crit_in <= 0.3 * stop_crit:
+                    break
         p_objs_out[t] = p_obj
 
     return w, p_objs_out, stop_crit
@@ -137,7 +138,6 @@ def _bcd_epoch(X, y, w, Xw, datafit, penalty, ws):
         for idx, j in enumerate(grp_g_indices):
             if old_w_g[idx] != w[j]:
                 Xw += (w[j] - old_w_g[idx]) * X[:, j]
-    return
 
 
 @njit

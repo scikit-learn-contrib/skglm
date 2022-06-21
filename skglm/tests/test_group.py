@@ -8,7 +8,7 @@ from skglm.penalties.block_separable import WeightedGroupL2
 from skglm.datafits.group import QuadraticGroup
 from skglm.solvers.group_bcd_solver import bcd_solver
 
-from skglm.utils import grp_converter, make_correlated_data
+from skglm.utils import grp_converter, make_correlated_data, AndersonAcceleration
 from celer import GroupLasso, Lasso
 
 
@@ -60,8 +60,7 @@ def test_alpha_max(n_groups, n_features, shuffle):
         alpha=alpha_max, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    w = bcd_solver(
-        X, y, quad_group, group_penalty, max_iter=10000, tol=0)[0]
+    w = bcd_solver(X, y, quad_group, group_penalty, tol=1e-12)[0]
 
     np.testing.assert_allclose(norm(w), 0, atol=1e-14)
 
@@ -82,7 +81,7 @@ def test_equivalence_lasso():
         alpha=alpha, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    w = bcd_solver(X, y, quad_group, group_penalty, max_iter=10000, tol=1e-12)[0]
+    w = bcd_solver(X, y, quad_group, group_penalty, tol=1e-12)[0]
 
     celer_lasso = Lasso(
         alpha=alpha, fit_intercept=False, tol=1e-12, weights=weights).fit(X, y)
@@ -121,6 +120,46 @@ def test_vs_celer_grouplasso(n_groups, n_features, shuffle):
     model.fit(X, y)
 
     np.testing.assert_allclose(model.coef_, w, atol=1e-5)
+
+
+def test_anderson_acceleration():
+    # VAR: w = rho * w + 1 with |rho| < 1
+    # converges to w_star = 1 / (1 - rho)
+    max_iter, tol = 1000, 1e-9
+    n_features = 2
+    rho = np.array([0.5, 0.8])
+    w_star = 1 / (1 - rho)
+    X = np.diag([2, 5])
+
+    # with acceleration
+    acc = AndersonAcceleration(K=5)
+    n_iter_acc = 0
+    w = np.ones(n_features)
+    Xw = X @ w
+    for i in range(max_iter):
+        w, Xw = acc.extrapolate(w, Xw)
+        w = rho * w + 1
+        Xw = X @ w
+
+        if norm(w - w_star, ord=np.inf) < tol:
+            n_iter_acc = i
+            break
+
+    # without acceleration
+    n_iter = 0
+    w = np.ones(n_features)
+    for i in range(max_iter):
+        w = rho * w + 1
+
+        if norm(w - w_star, ord=np.inf) < tol:
+            n_iter = i
+            break
+
+    np.testing.assert_allclose(w, w_star)
+    np.testing.assert_allclose(Xw, X @ w_star)
+
+    np.testing.assert_array_equal(n_iter_acc, 13)
+    np.testing.assert_array_equal(n_iter, 99)
 
 
 if __name__ == '__main__':

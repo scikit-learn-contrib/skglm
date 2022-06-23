@@ -64,7 +64,11 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
     datafit.initialize(X, y)
     all_groups = np.arange(n_groups)
     p_objs_out = np.zeros(max_iter)
-    stop_crit = 0.  # prevent ref before assign when max_iter == 0
+
+    # prevent ref before assign when max_iter == 0
+    p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+    stop_crit = 0.
+
     accelerator = AndersonAcceleration(K=5)
 
     for t in range(max_iter):
@@ -92,6 +96,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
             _bcd_epoch(X, y, w, Xw, datafit, penalty, ws)
 
             w_acc, Xw_acc = accelerator.extrapolate(w, Xw)
+
             p_obj = datafit.value(y, w, Xw) + penalty.value(w)
             p_obj_acc = datafit.value(y, w_acc, Xw_acc) + penalty.value(w_acc)
 

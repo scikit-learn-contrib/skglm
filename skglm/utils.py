@@ -273,7 +273,7 @@ class AndersonAcceleration:
         self.arr_w_, self.arr_Xw_ = None, None
 
     def extrapolate(self, w, Xw):
-        """Return ``w`` and ``Xw`` extrapolated."""
+        """Return ``w``, ``Xw``, and a bool indicating wether they were extrapolated."""
         if self.arr_w_ is None or self.arr_Xw_ is None:
             self.arr_w_ = np.zeros((w.shape[0], self.K+1))
             self.arr_Xw_ = np.zeros((Xw.shape[0], self.K+1))

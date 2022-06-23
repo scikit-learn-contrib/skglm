@@ -282,7 +282,6 @@ def cd_solver(
 
             if epoch % 10 == 0:
                 # TODO : manage penalty.value(w, ws) for weighted Lasso
-                p_obj = datafit.value(y, w[ws], Xw) + penalty.value(w)
 
                 if is_sparse:
                     grad = construct_grad_sparse(

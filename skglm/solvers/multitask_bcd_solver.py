@@ -11,7 +11,7 @@ from skglm.utils import AndersonAcceleration
 def bcd_solver_path(
         X, Y, datafit, penalty, alphas=None,
         coef_init=None, max_iter=100, max_epochs=50_000, p0=10, tol=1e-6,
-        use_acc=True, return_n_iter=False, ws_strategy="subdiff", verbose=0):
+        return_n_iter=False, ws_strategy="subdiff", verbose=0):
     r"""Compute optimization path for multi-task optimization problem.
 
     The loss is customized by passing various choices of datafit and penalty:
@@ -50,9 +50,6 @@ def bcd_solver_path(
 
     tol : float, optional
         The tolerance for the optimization.
-
-    use_acc : bool, optional
-        Usage of Anderson acceleration for faster convergence.
 
     return_n_iter : bool, optional
         If True, number of iterations along the path are returned.
@@ -129,7 +126,7 @@ def bcd_solver_path(
         sol = bcd_solver(
             X, Y, datafit, penalty, W, XW, p0=p_t,
             tol=tol, max_iter=max_iter, max_epochs=max_epochs,
-            verbose=verbose, use_acc=use_acc, ws_strategy=ws_strategy)
+            verbose=verbose, ws_strategy=ws_strategy)
         coefs[:, :, t], stop_crits[t] = sol[0], sol[2]
 
         if return_n_iter:
@@ -146,7 +143,7 @@ def bcd_solver_path(
 
 def bcd_solver(
         X, Y, datafit, penalty, W, XW, max_iter=50, max_epochs=50_000, p0=10,
-        tol=1e-4, use_acc=True, K=5, ws_strategy="subdiff", verbose=0):
+        tol=1e-4, ws_strategy="subdiff", verbose=0):
     r"""Run a block coordinate descent solver.
 
     Parameters
@@ -181,12 +178,6 @@ def bcd_solver(
 
     tol : float, optional
         The tolerance for the optimization.
-
-    use_acc : bool, optional
-        Usage of Anderson acceleration for faster convergence.
-
-    K : int, optional
-        The number of past primal iterates used to build an extrapolated point.
 
     ws_strategy : str, ('subdiff'|'fixpoint'), optional
         The score used to build the working set.
@@ -254,22 +245,19 @@ def bcd_solver(
             else:
                 _bcd_epoch(X, Y, W, XW, datafit, penalty, ws)
 
-            if use_acc:
-                W_acc, XW_acc = accelerator.extrapolate(W.ravel(), XW.ravel())
+            W_acc, XW_acc = accelerator.extrapolate(W.ravel(), XW.ravel())
 
-                p_obj = datafit.value(Y, W, XW) + penalty.value(W)
-                p_obj_acc = (datafit.value(Y, W_acc.reshape(-1, n_tasks),
-                                           XW_acc.reshape(-1, n_tasks))
-                             + penalty.value(W_acc.reshape(-1, n_tasks)))
+            p_obj = datafit.value(Y, W, XW) + penalty.value(W)
+            p_obj_acc = (datafit.value(Y, W_acc.reshape(-1, n_tasks),
+                                       XW_acc.reshape(-1, n_tasks))
+                         + penalty.value(W_acc.reshape(-1, n_tasks)))
 
-                if p_obj_acc < p_obj:
-                    W[:] = W_acc.reshape(-1, n_tasks)
-                    XW[:] = XW_acc.reshape(-1, n_tasks)
-                    p_obj = p_obj_acc
+            if p_obj_acc < p_obj:
+                W[:] = W_acc.reshape(-1, n_tasks)
+                XW[:] = XW_acc.reshape(-1, n_tasks)
+                p_obj = p_obj_acc
 
             if epoch > 0 and epoch % 10 == 0:
-                p_obj = datafit.value(Y, W[ws, :], XW) + penalty.value(W)
-
                 if is_sparse:
                     grad = construct_grad_sparse(
                         X.data, X.indptr, X.indices, Y, XW, datafit, ws)

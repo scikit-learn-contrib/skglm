@@ -71,5 +71,3 @@ def test_prox_newton_vs_cd(X, penalty_name):
     w_cd = cd_solver(X, y_ind, datafit, pen, w, Xw, tol=tol)[0]
 
     np.testing.assert_allclose(w_newton, w_cd, atol=1e-5)
-
-

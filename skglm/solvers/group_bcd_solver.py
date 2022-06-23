@@ -96,7 +96,7 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
             p_obj_acc = datafit.value(y, w_acc, Xw_acc) + penalty.value(w_acc)
 
             if p_obj_acc < p_obj:
-                w, Xw = w_acc, Xw_acc
+                w[:], Xw[:] = w_acc, Xw_acc
                 p_obj = p_obj_acc
 
             # check sub-optimality every 10 epochs

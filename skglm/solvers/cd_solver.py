@@ -3,6 +3,8 @@ from numba import njit
 from scipy import sparse
 from sklearn.utils import check_array
 
+from skglm.utils import AndersonAcceleration
+
 
 def cd_solver_path(X, y, datafit, penalty, alphas=None,
                    coef_init=None, max_iter=20, max_epochs=50_000,
@@ -232,6 +234,7 @@ def cd_solver(
     obj_out = []
     all_feats = np.arange(n_features)
     stop_crit = np.inf  # initialize for case n_iter=0
+    accelerator = AndersonAcceleration(K=5)
 
     is_sparse = sparse.issparse(X)
     for t in range(max_iter):
@@ -263,10 +266,6 @@ def cd_solver(
         ws = np.argpartition(opt, -ws_size)[-ws_size:]
         # is equivalent to ws = np.argsort(opt)[-ws_size:]
 
-        if use_acc:
-            last_K_w = np.zeros([K + 1, ws_size])
-            U = np.zeros([K, ws_size])
-
         if verbose:
             print(f'Iteration {t + 1}, {ws_size} feats in subpb.')
 
@@ -283,39 +282,13 @@ def cd_solver(
             # 3) do Anderson acceleration on smaller problem
             # TODO optimize computation using ws
             if use_acc:
-                last_K_w[epoch % (K + 1)] = w[ws]
+                w_acc, Xw_acc = accelerator.extrapolate(w, Xw)
+                p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+                p_obj_acc = datafit.value(y, w_acc, Xw_acc) + penalty.value(w_acc)
 
-                if epoch % (K + 1) == K:
-                    for k in range(K):
-                        U[k] = last_K_w[k + 1] - last_K_w[k]
-                    C = np.dot(U, U.T)
-
-                    try:
-                        z = np.linalg.solve(C, np.ones(K))
-                        # When C is ill-conditioned, z can take very large finite
-                        # positive and negative values (1e35 and -1e35), which leads
-                        # to z.sum() being null.
-                        if z.sum() == 0:
-                            raise np.linalg.LinAlgError
-                    except np.linalg.LinAlgError:
-                        if max(verbose - 1, 0):
-                            print("----------Linalg error")
-                    else:
-                        c = z / z.sum()
-                        w_acc = np.zeros(n_features)
-                        w_acc[ws] = np.sum(
-                            last_K_w[:-1] * c[:, None], axis=0)
-                        # TODO create a p_obj function ?
-                        # TODO : managed penalty.value(w[ws])
-                        p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-                        # p_obj = datafit.value(y, w, Xw) +penalty.value(w[ws])
-                        Xw_acc = X[:, ws] @ w_acc[ws]
-                        # TODO : managed penalty.value(w[ws])
-                        p_obj_acc = datafit.value(
-                            y, w_acc, Xw_acc) + penalty.value(w_acc)
-                        if p_obj_acc < p_obj:
-                            w[:] = w_acc
-                            Xw[:] = Xw_acc
+                if p_obj_acc < p_obj:
+                    w[:], Xw[:] = w_acc, Xw_acc
+                    p_obj = p_obj_acc
 
             if epoch % 10 == 0:
                 # TODO : manage penalty.value(w, ws) for weighted Lasso

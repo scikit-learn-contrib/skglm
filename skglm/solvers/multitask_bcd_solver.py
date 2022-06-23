@@ -1,9 +1,12 @@
+from asyncio import tasks
 import numpy as np
 
 from scipy import sparse
 from numba import njit
 from numpy.linalg import norm
 from sklearn.utils import check_array
+
+from skglm.utils import AndersonAcceleration
 
 
 def bcd_solver_path(
@@ -211,6 +214,7 @@ def bcd_solver(
     obj_out = []
     all_feats = np.arange(n_features)
     stop_crit = np.inf  # initialize for case n_iter=0
+    accelerator = AndersonAcceleration(K=5)
 
     is_sparse = sparse.issparse(X)
     for t in range(max_iter):
@@ -254,32 +258,19 @@ def bcd_solver(
                     ws)
             else:
                 _bcd_epoch(X, Y, W, XW, datafit, penalty, ws)
+
             if use_acc:
-                last_K_w[epoch % (K + 1)] = W[ws, :].ravel()
+                W_acc, XW_acc = accelerator.extrapolate(W.ravel(), XW.ravel())
 
-                # 3) do Anderson acceleration on smaller problem
-                if epoch % (K + 1) == K:
-                    for k in range(K):
-                        U[k] = last_K_w[k + 1] - last_K_w[k]
-                    C = np.dot(U, U.T)
+                p_obj = datafit.value(Y, W, XW) + penalty.value(W)
+                p_obj_acc = (datafit.value(Y, W_acc.reshape(-1, n_tasks),
+                                           XW_acc.reshape(-1, n_tasks))
+                             + penalty.value(W_acc.reshape(-1, n_tasks)))
 
-                    try:
-                        z = np.linalg.solve(C, np.ones(K))
-                        c = z / z.sum()
-                        W_acc = np.zeros((n_features, n_tasks))
-                        W_acc[ws, :] = np.sum(
-                            last_K_w[:-1] * c[:, None], axis=0).reshape(
-                                (ws_size, n_tasks))
-                        p_obj = datafit.value(Y, W, XW) + penalty.value(W)
-                        Xw_acc = X[:, ws] @ W_acc[ws]
-                        p_obj_acc = datafit.value(
-                            Y, W_acc, Xw_acc) + penalty.value(W_acc)
-                        if p_obj_acc < p_obj:
-                            W[:] = W_acc
-                            XW[:] = Xw_acc
-                    except np.linalg.LinAlgError:
-                        if max(verbose - 1, 0):
-                            print("----------Linalg error")
+                if p_obj_acc < p_obj:
+                    W[:] = W_acc.reshape(-1, n_tasks)
+                    XW[:] = XW_acc.reshape(-1, n_tasks)
+                    p_obj = p_obj_acc
 
             if epoch > 0 and epoch % 10 == 0:
                 p_obj = datafit.value(Y, W[ws, :], XW) + penalty.value(W)

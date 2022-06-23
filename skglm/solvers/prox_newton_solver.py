@@ -127,7 +127,7 @@ def prox_newton_solver(
         # 2) run prox newton on smaller subproblem
         for epoch in range(max_epochs):
             _max_pn_cd_epochs = 1 if epoch == 0 else max_pn_cd_epochs
-            pn_tol = 0 if epoch == 0 else tol  # TODO: needs adjustment
+            pn_tol = 0 if epoch == 0 else tol
             if is_sparse:
                 _prox_newton_iter_sparse(
                     X.data, X.indptr, X.indices, Xw, w, y, penalty, ws,
@@ -310,47 +310,3 @@ def _backtrack_line_search(w, Xw, delta_w, X_delta_w, feats, y, penalty, max_bac
             break
         step_size = step_size / 2
     return step_size
-
-
-# @njit
-# def _backtrack_line_search(
-# w, Xw, delta_w, X_delta_w, feats, y, penalty, max_backtrack):
-#     step_size = 1.
-#     exp_Xw = np.zeros_like(Xw)
-#     for i in range(Xw.shape[0]):
-#         exp_Xw[i] = np.exp(Xw[i] + X_delta_w[i])
-#     for _ in range(max_backtrack):
-#         aux = _compute_aux(y, exp_Xw)
-#         deriv = _compute_derivative(
-#             w, feats, delta_w, X_delta_w, penalty.alpha, aux, step_size)
-#         if deriv < 1e-7:
-#             break
-#         else:
-#             step_size = step_size / 2
-#     return step_size
-
-
-# @njit
-# def _compute_aux(y, exp_Xw):
-#     n_samples = len(y)
-#     aux = np.zeros_like(exp_Xw)
-#     for i in range(n_samples):
-#         # this supposes that y is filled only with 1 and -1 (or 0)
-#         if y[i] == 1.:
-#             aux[i] = -1 / (1. + exp_Xw[i])
-#         else:
-#             aux[i] = 1. - 1 / (1. + exp_Xw[i])
-#     return aux
-
-
-# @njit
-# def _compute_derivative(w, feats, delta_w, X_delta_w, alpha, aux, step_size):
-#     deriv_l1 = 0.
-#     for idx, j in enumerate(feats):
-#         w_j = w[j] + step_size * delta_w[idx]
-#         if w_j == 0.:
-#             deriv_l1 -= abs(delta_w[idx])
-#         else:
-#             deriv_l1 += w_j / abs(w_j) * delta_w[idx]
-#     deriv_loss = X_delta_w @ aux
-#     return deriv_loss + alpha * deriv_l1

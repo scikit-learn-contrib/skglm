@@ -1,4 +1,3 @@
-from asyncio import tasks
 import numpy as np
 
 from scipy import sparse
@@ -241,10 +240,6 @@ def bcd_solver(
         opt[norm(W, axis=1) != 0] = np.inf  # TODO check
         ws = np.argpartition(opt, -ws_size)[-ws_size:]
         # is equivalent to ws = np.argsort(kkt)[-ws_size:]
-
-        if use_acc:
-            last_K_w = np.zeros([K + 1, ws_size * n_tasks])
-            U = np.zeros([K, ws_size * n_tasks])
 
         if verbose:
             print(f'Iteration {t + 1}, {ws_size} feats in subpb.')

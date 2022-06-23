@@ -8,7 +8,7 @@ from skglm.utils import AndersonAcceleration
 
 def cd_solver_path(X, y, datafit, penalty, alphas=None,
                    coef_init=None, max_iter=20, max_epochs=50_000,
-                   p0=10, tol=1e-4, use_acc=True, return_n_iter=False,
+                   p0=10, tol=1e-4, return_n_iter=False,
                    ws_strategy="subdiff", verbose=0):
     r"""Compute optimization path with Anderson accelerated coordinate descent.
 
@@ -47,9 +47,6 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
 
     tol : float, optional
         The tolerance for the optimization.
-
-    use_acc : bool, optional
-        Usage of Anderson acceleration for faster convergence.
 
     return_n_iter : bool, optional
         If True, number of iterations along the path are returned.
@@ -149,7 +146,7 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
         sol = cd_solver(
             X, y, datafit, penalty, w, Xw,
             max_iter=max_iter, max_epochs=max_epochs, p0=p0, tol=tol,
-            use_acc=use_acc, verbose=verbose, ws_strategy=ws_strategy)
+            verbose=verbose, ws_strategy=ws_strategy)
 
         coefs[:, t] = w
         stop_crits[t] = sol[-1]
@@ -166,7 +163,7 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
 
 def cd_solver(
         X, y, datafit, penalty, w, Xw, max_iter=50, max_epochs=50_000, p0=10,
-        tol=1e-4, use_acc=True, K=5, ws_strategy="subdiff", verbose=0):
+        tol=1e-4, ws_strategy="subdiff", verbose=0):
     r"""Run a coordinate descent solver.
 
     Parameters
@@ -201,12 +198,6 @@ def cd_solver(
 
     tol : float, optional
         The tolerance for the optimization.
-
-    use_acc : bool, optional
-        Usage of Anderson acceleration for faster convergence.
-
-    K : int, optional
-        The number of past primal iterates used to build an extrapolated point.
 
     ws_strategy : ('subdiff'|'fixpoint'), optional
         The score used to build the working set.
@@ -281,14 +272,13 @@ def cd_solver(
 
             # 3) do Anderson acceleration on smaller problem
             # TODO optimize computation using ws
-            if use_acc:
-                w_acc, Xw_acc = accelerator.extrapolate(w, Xw)
-                p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-                p_obj_acc = datafit.value(y, w_acc, Xw_acc) + penalty.value(w_acc)
+            w_acc, Xw_acc = accelerator.extrapolate(w, Xw)
+            p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+            p_obj_acc = datafit.value(y, w_acc, Xw_acc) + penalty.value(w_acc)
 
-                if p_obj_acc < p_obj:
-                    w[:], Xw[:] = w_acc, Xw_acc
-                    p_obj = p_obj_acc
+            if p_obj_acc < p_obj:
+                w[:], Xw[:] = w_acc, Xw_acc
+                p_obj = p_obj_acc
 
             if epoch % 10 == 0:
                 # TODO : manage penalty.value(w, ws) for weighted Lasso

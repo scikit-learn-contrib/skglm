@@ -246,15 +246,15 @@ def bcd_solver(
                 _bcd_epoch(X, Y, W, XW, datafit, penalty, ws)
 
             W_acc, XW_acc = accelerator.extrapolate(W.ravel(), XW.ravel())
+            W_acc = W_acc.reshape(-1, n_tasks)
+            XW_acc = XW_acc.reshape(-1, n_tasks)
 
             p_obj = datafit.value(Y, W, XW) + penalty.value(W)
-            p_obj_acc = (datafit.value(Y, W_acc.reshape(-1, n_tasks),
-                                       XW_acc.reshape(-1, n_tasks))
-                         + penalty.value(W_acc.reshape(-1, n_tasks)))
+            p_obj_acc = datafit.value(Y, W_acc, XW_acc) + penalty.value(W_acc)
 
             if p_obj_acc < p_obj:
-                W[:] = W_acc.reshape(-1, n_tasks)
-                XW[:] = XW_acc.reshape(-1, n_tasks)
+                W[:] = W_acc
+                XW[:] = XW_acc
                 p_obj = p_obj_acc
 
             if epoch > 0 and epoch % 10 == 0:

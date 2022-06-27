@@ -19,7 +19,6 @@ X, y, _ = make_correlated_data(
 y_ind = np.sign(y)
 
 np.random.seed(0)
-X_sparse = csc_matrix(X * np.random.binomial(1, 0.1, X.shape))
 
 alpha_max = norm(X.T @ y, ord=np.inf) / n_samples
 alpha = alpha_max * 0.05
@@ -32,7 +31,7 @@ dict_penalties["L1"] = L1(alpha=alpha)
 dict_penalties["L1_plus_L2"] = L1_plus_L2(alpha=alpha, l1_ratio=l1_ratio)
 
 
-@pytest.mark.parametrize("X", [X, X_sparse])
+@pytest.mark.parametrize("X", [X])
 def test_prox_newton_vs_sklearn(X):
     datafit = Logistic()
     if issparse(X):
@@ -52,7 +51,7 @@ def test_prox_newton_vs_sklearn(X):
     np.testing.assert_allclose(w_newton, np.ravel(estimator_sk.coef_), atol=1e-5)
 
 
-@pytest.mark.parametrize("X", [X, X_sparse])
+@pytest.mark.parametrize("X", [X])
 @pytest.mark.parametrize("penalty_name", ["L1", "L1_plus_L2"])
 def test_prox_newton_vs_cd(X, penalty_name):
     datafit = Logistic()

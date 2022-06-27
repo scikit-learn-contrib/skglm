@@ -1,9 +1,8 @@
 import numpy as np
 from numpy.linalg import norm
-from numba import float64
+from numba import float64, njit
 
 from skglm.datafits.base import BaseDatafit, jit_factory
-from skglm.utils import sigmoid
 
 
 spec_quadratic = [
@@ -86,6 +85,13 @@ class Quadratic(BaseDatafit):
 
 
 Quadratic, Quadratic_32 = jit_factory(Quadratic, spec_quadratic)
+
+
+@njit
+def sigmoid(x):
+    """Vectorwise sigmoid."""
+    out = 1 / (1 + np.exp(-x))
+    return out
 
 
 spec_logistic = [

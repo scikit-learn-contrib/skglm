@@ -81,13 +81,6 @@ def prox_2_3(x, u):
 
 
 @njit
-def sigmoid(x):
-    """Vectorwise sigmoid."""
-    out = 1 / (1 + np.exp(-x))
-    return out
-
-
-@njit
 def weighted_dot(X, b, weights, j, ignore_b=False):
     """Weighted dot product between X[:, j] and b."""
     res = 0.
@@ -98,28 +91,6 @@ def weighted_dot(X, b, weights, j, ignore_b=False):
     else:
         for i in range(X.shape[0]):
             res += X[i, j] * b[i] * weights[i]
-    return res
-
-
-@njit
-def weighted_dot_sparse(data, indptr, indices, b, weights, j, ignore_b=False):
-    """Weighted dot product between X[:, j] with X sparse and b."""
-    res = 0.
-    if ignore_b:
-        for i in range(indptr[j], indptr[j + 1]):
-            res += (data[i] ** 2) * weights[indices[i]]
-    else:
-        for i in range(indptr[j], indptr[j + 1]):
-            res += data[i] * b[indices[i]] * weights[indices[i]]
-    return res
-
-
-@njit
-def xj_dot_sparse(data, indptr, indices, j, b):
-    """Dot product of X[:, j] with X sparse and b."""
-    res = 0.
-    for i in range(indptr[j], indptr[j + 1]):
-        res += data[i] * b[indices[i]]
     return res
 
 

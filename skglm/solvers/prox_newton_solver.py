@@ -3,7 +3,7 @@ import numpy as np
 from scipy import sparse
 from numba import njit
 from skglm.datafits import Logistic, Logistic_32
-from skglm.utils import weighted_dot, sigmoid
+from skglm.utils import weighted_dot
 
 
 def prox_newton_solver(
@@ -325,3 +325,10 @@ def construct_grad_sparse(data, indptr, indices, y, w, Xw, datafit, ws):
         grad[idx] = datafit.gradient_scalar_sparse(
             data, indptr, indices, y, Xw, j)
     return grad
+
+
+@njit
+def sigmoid(x):
+    """Vectorwise sigmoid."""
+    out = 1 / (1 + np.exp(-x))
+    return out

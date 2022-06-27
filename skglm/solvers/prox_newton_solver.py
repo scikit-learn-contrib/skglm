@@ -3,15 +3,12 @@ import numpy as np
 from scipy import sparse
 from numba import njit
 from skglm.datafits import Logistic, Logistic_32
-from skglm.solvers.common import construct_grad, construct_grad_sparse, dist_fix_point
-from skglm.utils import (
-    AndersonAcceleration, weighted_dot, weighted_dot_sparse, xj_dot_sparse, sigmoid)
+from skglm.utils import weighted_dot, sigmoid
 
 
 def prox_newton_solver(
     X, y, datafit, penalty, w, Xw, max_iter=50, max_epochs=1000, max_backtrack=10,
-    min_pn_cd_epochs=2, max_pn_cd_epochs=10, p0=10, tol=1e-4, ws_strategy="subdiff",
-    verbose=0
+    min_pn_cd_epochs=2, max_pn_cd_epochs=10, p0=10, tol=1e-4, verbose=0
 ):
     r"""Run a prox-Newton solver.
 
@@ -59,9 +56,6 @@ def prox_newton_solver(
     tol : float, optional
         The tolerance for the optimization.
 
-    ws_strategy : ('subdiff'|'fixpoint'), optional
-        The score used to build the working set.
-
     verbose : bool or int, optional
         Amount of verbosity. 0/False is silent.
 
@@ -76,22 +70,15 @@ def prox_newton_solver(
     stop_crit : float
         Value of stopping criterion at convergence.
     """
-    if ws_strategy not in ("subdiff", "fixpoint"):
-        raise ValueError(f"Unsupported value for ws_strategy: {ws_strategy}")
     if not isinstance(datafit, (Logistic, Logistic_32)):
         raise ValueError("Prox-Newton solver only supports Logistic datafits.")
     n_features = X.shape[1]
-    if n_features >= 10_000:
-        warnings.warn(
-            "Prox-Newton solver can be prohibitively slow for high-dimensional " +
-            "problems. We recommend using `cd_solver` instead for faster convergence")
     pen = penalty.is_penalized(n_features)
     unpen = ~pen
     n_unpen = unpen.sum()
     obj_out = []
     all_feats = np.arange(n_features)
     stop_crit = np.inf  # initialize for case n_iter=0
-    accelerator = AndersonAcceleration(K=5)
 
     is_sparse = sparse.issparse(X)
     for t in range(max_iter):
@@ -101,10 +88,8 @@ def prox_newton_solver(
         else:
             grad = construct_grad(X, y, w, Xw, datafit, all_feats)
 
-        if ws_strategy == "subdiff":
-            opt = penalty.subdiff_distance(w, grad, all_feats)
-        elif ws_strategy == "fixpoint":
-            opt = dist_fix_point(w, grad, datafit, penalty, all_feats)
+        # TODO: support fix point criterion
+        opt = penalty.subdiff_distance(w, grad, all_feats)
         stop_crit = np.max(opt)
         if verbose:
             print(f"Stopping criterion max violation: {stop_crit:.2e}")
@@ -128,37 +113,16 @@ def prox_newton_solver(
         for epoch in range(max_epochs):
             _max_pn_cd_epochs = 1 if epoch == 0 else max_pn_cd_epochs
             pn_tol = 0 if epoch == 0 else tol
-            if is_sparse:
-                _prox_newton_iter_sparse(
-                    X.data, X.indptr, X.indices, Xw, w, y, penalty, ws,
-                    min_pn_cd_epochs, _max_pn_cd_epochs, max_backtrack, pn_tol)
-            else:
-                _prox_newton_iter(
-                    X, Xw, w, y, penalty, ws, min_pn_cd_epochs, _max_pn_cd_epochs,
-                    max_backtrack, pn_tol)
-
-            # 3) do Anderson acceleration on smaller problem
-            w_acc, Xw_acc = accelerator.extrapolate(w, Xw)
-            p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-            p_obj_acc = datafit.value(y, w_acc, Xw_acc) + penalty.value(w_acc)
-
-            if p_obj_acc < p_obj:
-                w[:] = w_acc
-                Xw[:] = Xw_acc
+            # TODO: support sparse matrices
+            _prox_newton_iter(
+                X, Xw, w, y, penalty, ws, min_pn_cd_epochs, _max_pn_cd_epochs,
+                max_backtrack, pn_tol)
 
             if epoch % 5 == 0:  # check every 5 epochs, PN epochs are expensive
                 p_obj = datafit.value(y, w[ws], Xw) + penalty.value(w)
+                grad = construct_grad(X, y, w, Xw, datafit, ws)
 
-                if is_sparse:
-                    grad = construct_grad_sparse(
-                        X.data, X.indptr, X.indices, y, w, Xw, datafit, ws)
-                else:
-                    grad = construct_grad(X, y, w, Xw, datafit, ws)
-                if ws_strategy == "subdiff":
-                    opt_ws = penalty.subdiff_distance(w, grad, ws)
-                elif ws_strategy == "fixpoint":
-                    opt_ws = dist_fix_point(w, grad, datafit, penalty, ws)
-
+                opt_ws = penalty.subdiff_distance(w, grad, ws)
                 stop_crit_in = np.max(opt_ws)
                 if max(verbose - 1, 0):
                     print(f"Epoch {epoch + 1}, objective {p_obj:.10f}, "
@@ -208,41 +172,6 @@ def _prox_newton_iter(
 
 
 @njit
-def _prox_newton_iter_sparse(
-    data, indptr, indices, Xw, w, y, penalty, ws, min_cd_epochs, max_cd_epochs,
-    max_backtrack, tol
-):
-    n_samples, ws_size = len(y), ws.shape[0]
-
-    hessian_diag = np.zeros(n_samples)  # hessian = X^T D X, with D = diag(f_i'')
-    grad_datafit = np.zeros(n_samples)  # gradient of F(Xw)
-
-    lc = np.zeros(ws_size)  # weighted Lipschitz constants
-    bias = np.zeros(ws_size)
-
-    for i in range(n_samples):
-        prob = 1. / (1. + np.exp(y[i] * Xw[i]))
-        # this supposes that the datafit is scaled by n_samples
-        hessian_diag[i] = prob * (1. - prob) / n_samples
-        grad_datafit[i] = -y[i] * prob / n_samples
-
-    for idx, j in enumerate(ws):
-        lc[idx] = weighted_dot_sparse(
-            data, indptr, indices, Xw, hessian_diag, j, ignore_b=True)
-        bias[idx] = xj_dot_sparse(data, indptr, indices, j, grad_datafit)
-
-    delta_w, X_delta_w = _newton_cd_sparse(
-        data, indptr, indices, w, ws, hessian_diag, bias, lc, penalty,
-        min_cd_epochs, max_cd_epochs, tol)
-    step_size = _backtrack_line_search(
-        w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack)
-
-    for idx, j in enumerate(ws):
-        w[j] += step_size * delta_w[idx]
-    Xw += step_size * X_delta_w
-
-
-@njit
 def _newton_cd(
     X, w, feats, hessian_diag, bias, lc, penalty, min_epochs, max_epochs, tol
 ):
@@ -267,32 +196,6 @@ def _newton_cd(
 
 
 @njit
-def _newton_cd_sparse(
-    data, indptr, indices, w, feats, hessian_diag, bias, lc, penalty, min_epochs,
-    max_epochs, tol
-):
-    delta_w, X_delta_w = np.zeros(feats.shape[0]), np.zeros(hessian_diag.shape[0])
-    for epoch in range(max_epochs):
-        sum_sq_hess_diff = 0
-        for idx, j in enumerate(feats):
-            stepsize = 1/lc[idx] if lc[idx] != 0 else 1000
-            old_value = w[j] + delta_w[idx]
-            tmp = weighted_dot_sparse(
-                data, indptr, indices, X_delta_w, hessian_diag, j)
-            new_value = penalty.prox_1d(
-                old_value - (bias[idx] + tmp) * stepsize, stepsize, j)
-            diff = new_value - old_value
-            if diff != 0:
-                sum_sq_hess_diff += (diff * lc[idx]) ** 2
-                delta_w[idx] = new_value - w[j]
-                for i in range(indptr[j], indptr[j + 1]):
-                    X_delta_w[indices[i]] += diff * data[i]
-        if sum_sq_hess_diff <= tol and epoch + 1 >= min_epochs:
-            break
-    return delta_w, X_delta_w
-
-
-@njit
 def _backtrack_line_search(w, Xw, delta_w, X_delta_w, feats, y, penalty, max_backtrack):
     step_size = 1.
     for _ in range(max_backtrack):
@@ -310,3 +213,115 @@ def _backtrack_line_search(w, Xw, delta_w, X_delta_w, feats, y, penalty, max_bac
             break
         step_size = step_size / 2
     return step_size
+
+
+@njit
+def dist_fix_point(w, grad, datafit, penalty, ws):
+    """Compute the violation of the fixed point iterate scheme.
+
+    Parameters
+    ----------
+    w : array, shape (n_features,)
+        Coefficient vector.
+
+    grad : array, shape (n_features,)
+        Gradient.
+
+    datafit: instance of BaseDatafit
+        Datafit.
+
+    penalty: instance of BasePenalty
+        Penalty.
+
+    ws : array, shape (n_features,)
+        The working set.
+
+    Returns
+    -------
+    dist_fix_point : array, shape (n_features,)
+        Violation score for every feature.
+    """
+    dist_fix_point = np.zeros(ws.shape[0])
+    for idx, j in enumerate(ws):
+        lcj = datafit.lipschitz[j]
+        if lcj != 0:
+            dist_fix_point[idx] = np.abs(
+                w[j] - penalty.prox_1d(w[j] - grad[idx] / lcj, 1. / lcj, j))
+    return dist_fix_point
+
+
+@njit
+def construct_grad(X, y, w, Xw, datafit, ws):
+    """Compute the gradient of the datafit restricted to the working set.
+
+    Parameters
+    ----------
+    X : array, shape (n_samples, n_features)
+        Design matrix.
+
+    y : array, shape (n_samples,)
+        Target vector.
+
+    w : array, shape (n_features,)
+        Coefficient vector.
+
+    Xw : array, shape (n_samples, )
+        Model fit.
+
+    datafit : Datafit
+        Datafit.
+
+    ws : array, shape (n_features,)
+        The working set.
+
+    Returns
+    -------
+    grad : array, shape (ws_size, n_tasks)
+        The gradient restricted to the working set.
+    """
+    grad = np.zeros(ws.shape[0])
+    for idx, j in enumerate(ws):
+        grad[idx] = datafit.gradient_scalar(X, y, w, Xw, j)
+    return grad
+
+
+@njit
+def construct_grad_sparse(data, indptr, indices, y, w, Xw, datafit, ws):
+    """Compute the gradient of the datafit restricted to the working set.
+
+    Parameters
+    ----------
+    data : array-like
+        Data array of the matrix in CSC format.
+
+    indptr : array-like
+        CSC format index point array.
+
+    indices : array-like
+        CSC format index array.
+
+    y : array, shape (n_samples, )
+        Target matrix.
+
+    w : array, shape (n_features,)
+        Coefficient matrix.
+
+    Xw : array, shape (n_samples, )
+        Model fit.
+
+    datafit : Datafit
+        Datafit.
+
+    ws : array, shape (n_features,)
+        The working set.
+
+    Returns
+    -------
+    grad : array, shape (ws_size, n_tasks)
+        The gradient restricted to the working set.
+    """
+    grad = np.zeros(ws.shape[0])
+    for idx, j in enumerate(ws):
+        grad[idx] = datafit.gradient_scalar_sparse(
+            data, indptr, indices, y, Xw, j)
+    return grad

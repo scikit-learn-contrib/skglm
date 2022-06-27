@@ -1,4 +1,3 @@
-import warnings
 import numpy as np
 from scipy import sparse
 from numba import njit

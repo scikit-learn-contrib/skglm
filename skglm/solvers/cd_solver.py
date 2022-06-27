@@ -2,12 +2,16 @@ import numpy as np
 from numba import njit
 from scipy import sparse
 from sklearn.utils import check_array
+from skglm.datafits.single_task import Quadratic, Quadratic_32
+from skglm.solvers.cd_utils import (
+    dist_fix_point, construct_grad, construct_grad_sparse)
+from skglm.solvers.gram import cd_gram_quadratic, fista_gram_quadratic
 
 
 def cd_solver_path(X, y, datafit, penalty, alphas=None,
                    coef_init=None, max_iter=20, max_epochs=50_000,
                    p0=10, tol=1e-4, use_acc=True, return_n_iter=False,
-                   ws_strategy="subdiff", verbose=0):
+                   solver="cd_ws", ws_strategy="subdiff", verbose=0):
     r"""Compute optimization path with Anderson accelerated coordinate descent.
 
     The loss is customized by passing various choices of datafit and penalty:
@@ -51,6 +55,9 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
 
     return_n_iter : bool, optional
         If True, number of iterations along the path are returned.
+
+    solver : ('cd_ws'|'cd_gram'|'fista'), optional
+        The solver used to solve the optimization problem.
 
     ws_strategy : ('subdiff'|'fixpoint'), optional
         The score used to build the working set.
@@ -109,6 +116,7 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
     # else:
         # alphas = np.sort(alphas)[::-1]
 
+    n_samples = len(y)
     n_alphas = len(alphas)
 
     coefs = np.zeros((n_features, n_alphas), order='F', dtype=X.dtype)
@@ -144,10 +152,28 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
                 w = np.zeros(n_features, dtype=X.dtype)
                 Xw = np.zeros(X.shape[0], dtype=X.dtype)
 
-        sol = cd_solver(
-            X, y, datafit, penalty, w, Xw,
-            max_iter=max_iter, max_epochs=max_epochs, p0=p0, tol=tol,
-            use_acc=use_acc, verbose=verbose, ws_strategy=ws_strategy)
+        is_quad_df = isinstance(datafit, (Quadratic, Quadratic_32))
+        if ((is_quad_df and n_samples > n_features and n_features < 10_000)
+                or solver in ("cd_gram", "fista")):
+            # Gram matrix must fit in memory hence the restriction n_features < 1e4
+            if not is_quad_df:
+                raise ValueError("`cd_gram` and `fista` solvers are only supported " +
+                                 "for `Quadratic` datafits.")
+            if (hasattr(penalty, "alpha_max") and penalty.alpha /
+                    penalty.alpha_max(datafit.Xty) < 1e-3) or solver == "fista":
+                sol = fista_gram_quadratic(
+                    X, y, penalty, max_epochs=max_epochs, tol=tol, w_init=coef_init,
+                    verbose=verbose)
+            else:
+                sol = cd_gram_quadratic(
+                    X, y, penalty, max_epochs=max_epochs, tol=tol, w_init=coef_init,
+                    verbose=verbose)
+            w = sol[0]
+        else:
+            sol = cd_solver(
+                X, y, datafit, penalty, w, Xw,
+                max_iter=max_iter, max_epochs=max_epochs, p0=p0, tol=tol,
+                use_acc=use_acc, verbose=verbose, ws_strategy=ws_strategy)
 
         coefs[:, t] = w
         stop_crits[t] = sol[-1]
@@ -214,11 +240,11 @@ def cd_solver(
 
     Returns
     -------
-    coefs : array, shape (n_features, n_alphas)
-        Coefficients along the path.
+    w : array, shape (n_features,)
+        Coefficients.
 
     obj_out : array, shape (n_iter,)
-        The objective values at every outer iteration.
+        Objective value at every outer iteration.
 
     stop_crit : float
         Value of stopping criterion at convergence.
@@ -345,118 +371,6 @@ def cd_solver(
                         break
         obj_out.append(p_obj)
     return w, np.array(obj_out), stop_crit
-
-
-@njit
-def dist_fix_point(w, grad, datafit, penalty, ws):
-    """Compute the violation of the fixed point iterate scheme.
-
-    Parameters
-    ----------
-    w : array, shape (n_features,)
-        Coefficient vector.
-
-    grad : array, shape (n_features,)
-        Gradient.
-
-    datafit: instance of BaseDatafit
-        Datafit.
-
-    penalty: instance of BasePenalty
-        Penalty.
-
-    ws : array, shape (n_features,)
-        The working set.
-
-    Returns
-    -------
-    dist_fix_point : array, shape (n_features,)
-        Violation score for every feature.
-    """
-    dist_fix_point = np.zeros(ws.shape[0])
-    for idx, j in enumerate(ws):
-        lcj = datafit.lipschitz[j]
-        if lcj != 0:
-            dist_fix_point[idx] = np.abs(
-                w[j] - penalty.prox_1d(w[j] - grad[idx] / lcj, 1. / lcj, j))
-    return dist_fix_point
-
-
-@njit
-def construct_grad(X, y, w, Xw, datafit, ws):
-    """Compute the gradient of the datafit restricted to the working set.
-
-    Parameters
-    ----------
-    X : array, shape (n_samples, n_features)
-        Design matrix.
-
-    y : array, shape (n_samples,)
-        Target vector.
-
-    w : array, shape (n_features,)
-        Coefficient vector.
-
-    Xw : array, shape (n_samples, )
-        Model fit.
-
-    datafit : Datafit
-        Datafit.
-
-    ws : array, shape (n_features,)
-        The working set.
-
-    Returns
-    -------
-    grad : array, shape (ws_size, n_tasks)
-        The gradient restricted to the working set.
-    """
-    grad = np.zeros(ws.shape[0])
-    for idx, j in enumerate(ws):
-        grad[idx] = datafit.gradient_scalar(X, y, w, Xw, j)
-    return grad
-
-
-@njit
-def construct_grad_sparse(data, indptr, indices, y, w, Xw, datafit, ws):
-    """Compute the gradient of the datafit restricted to the working set.
-
-    Parameters
-    ----------
-    data : array-like
-        Data array of the matrix in CSC format.
-
-    indptr : array-like
-        CSC format index point array.
-
-    indices : array-like
-        CSC format index array.
-
-    y : array, shape (n_samples, )
-        Target matrix.
-
-    w : array, shape (n_features,)
-        Coefficient matrix.
-
-    Xw : array, shape (n_samples, )
-        Model fit.
-
-    datafit : Datafit
-        Datafit.
-
-    ws : array, shape (n_features,)
-        The working set.
-
-    Returns
-    -------
-    grad : array, shape (ws_size, n_tasks)
-        The gradient restricted to the working set.
-    """
-    grad = np.zeros(ws.shape[0])
-    for idx, j in enumerate(ws):
-        grad[idx] = datafit.gradient_scalar_sparse(
-            data, indptr, indices, y, Xw, j)
-    return grad
 
 
 @njit

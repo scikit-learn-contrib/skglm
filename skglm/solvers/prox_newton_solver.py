@@ -2,7 +2,6 @@ import numpy as np
 from scipy import sparse
 from numba import njit
 from skglm.datafits import Logistic, Logistic_32
-from skglm.utils import weighted_dot
 
 
 def prox_newton_solver(
@@ -157,7 +156,7 @@ def _prox_newton_iter(
         grad_datafit[i] = -y[i] * prob / n_samples
 
     for idx, j in enumerate(ws):
-        lc[idx] = weighted_dot(X, Xw, hessian_diag, j, ignore_b=True)
+        lc[idx] = ((X[:, j] ** 2) * hessian_diag).sum()
         bias[idx] = X[:, j] @ grad_datafit
 
     delta_w, X_delta_w = _newton_cd(
@@ -180,7 +179,7 @@ def _newton_cd(
         for idx, j in enumerate(feats):
             stepsize = 1/lc[idx] if lc[idx] != 0 else 1000
             old_value = w[j] + delta_w[idx]
-            tmp = weighted_dot(X, X_delta_w, hessian_diag, j, ignore_b=False)
+            tmp = (X[:, j] * X_delta_w * hessian_diag).sum()
             new_value = penalty.prox_1d(
                 old_value - (bias[idx] + tmp) * stepsize, stepsize, j)
             diff = new_value - old_value

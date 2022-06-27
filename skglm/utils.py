@@ -80,20 +80,6 @@ def prox_2_3(x, u):
     return res
 
 
-@njit
-def weighted_dot(X, b, weights, j, ignore_b=False):
-    """Weighted dot product between X[:, j] and b."""
-    res = 0.
-    if ignore_b:
-        # if ignore_b, weighted dot product between X[:, j] and X[:, j]
-        for i in range(X.shape[0]):
-            res += (X[i, j] ** 2) * weights[i]
-    else:
-        for i in range(X.shape[0]):
-            res += X[i, j] * b[i] * weights[i]
-    return res
-
-
 def make_correlated_data(
         n_samples=100, n_features=50, n_tasks=1, rho=0.6, snr=3,
         w_true=None, density=0.2, X_density=1, random_state=None):

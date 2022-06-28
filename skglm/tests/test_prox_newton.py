@@ -1,7 +1,6 @@
 import pytest
 import numpy as np
 from numpy.linalg import norm
-from scipy.sparse import issparse
 
 from sklearn.linear_model import LogisticRegression as LogReg_sklearn
 

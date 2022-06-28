@@ -460,7 +460,7 @@ def construct_grad_sparse(data, indptr, indices, y, w, Xw, datafit, ws):
 
 
 @njit
-def _cd_epoch(X, y, w, Xw, datafit, penalty, feats):
+def _cd_epoch(X, y, w, Xw, datafit, penalty, ws):
     """Run an epoch of coordinate descent in place.
 
     Parameters
@@ -483,11 +483,11 @@ def _cd_epoch(X, y, w, Xw, datafit, penalty, feats):
     penalty : Penalty
         Penalty.
 
-    feats : array, shape (n_features,)
+    ws : array, shape (n_features,)
         The range of features.
     """
     lc = datafit.lipschitz
-    for j in feats:
+    for j in ws:
         stepsize = 1/lc[j] if lc[j] != 0 else 1000
         Xj = X[:, j]
         old_w_j = w[j]
@@ -499,7 +499,7 @@ def _cd_epoch(X, y, w, Xw, datafit, penalty, feats):
 
 
 @njit
-def _cd_epoch_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, penalty, feats):
+def _cd_epoch_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, penalty, ws):
     """Run an epoch of coordinate descent in place for a sparse CSC array.
 
     Parameters
@@ -528,11 +528,11 @@ def _cd_epoch_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, penalty, fe
     penalty : Penalty
         Penalty.
 
-    feats : array, shape (n_features,)
-        The range of features.
+    ws : array, shape (n_features,)
+        The working set.
     """
     lc = datafit.lipschitz
-    for j in feats:
+    for j in ws:
         stepsize = 1/lc[j] if lc[j] != 0 else 1000
 
         old_w_j = w[j]

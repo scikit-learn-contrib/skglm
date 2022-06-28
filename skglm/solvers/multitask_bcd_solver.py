@@ -423,7 +423,7 @@ def construct_grad_sparse(data, indptr, indices, Y, XW, datafit, ws):
 
 
 @njit
-def _bcd_epoch(X, Y, W, XW, datafit, penalty, feats):
+def _bcd_epoch(X, Y, W, XW, datafit, penalty, ws):
     """Run an epoch of block coordinate descent in place.
 
     Parameters
@@ -446,12 +446,12 @@ def _bcd_epoch(X, Y, W, XW, datafit, penalty, feats):
     penalty : instance of BasePenalty
         Penalty.
 
-    feats : array, shape (ws_size,)
-        Features to be updated.
+    ws : array, shape (ws_size,)
+        The working set.
     """
     lc = datafit.lipschitz
     n_tasks = Y.shape[1]
-    for j in feats:
+    for j in ws:
         if lc[j] == 0.:
             continue
         Xj = X[:, j]
@@ -467,7 +467,7 @@ def _bcd_epoch(X, Y, W, XW, datafit, penalty, feats):
 
 
 @njit
-def _bcd_epoch_sparse(X_data, X_indptr, X_indices, Y, W, XW, datafit, penalty, feats):
+def _bcd_epoch_sparse(X_data, X_indptr, X_indices, Y, W, XW, datafit, penalty, ws):
     """Run an epoch of block coordinate descent in place for a sparse CSC array.
 
     Parameters
@@ -496,11 +496,11 @@ def _bcd_epoch_sparse(X_data, X_indptr, X_indices, Y, W, XW, datafit, penalty, f
     penalty : instance of BasePenalty
         Penalty.
 
-    feats : array, shape (ws_size,)
+    ws : array, shape (ws_size,)
         Features to be updated.
     """
     lc = datafit.lipschitz
-    for j in feats:
+    for j in ws:
         if lc[j] == 0.:
             continue
         old_W_j = W[j, :].copy()

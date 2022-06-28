@@ -136,14 +136,11 @@ def prox_newton_solver(
                 if max(verbose - 1, 0):
                     print(f"Epoch {epoch + 1}, objective {p_obj:.10f}, "
                           f"stopping crit {stop_crit_in:.2e}")
-                if ws_size == n_features:
-                    if stop_crit_in <= tol:
-                        break
-                else:
-                    if stop_crit_in < 0.3 * stop_crit:
-                        if max(verbose - 1, 0):
-                            print("Early exit")
-                        break
+                tol_in = tol if ws_size == n_features else 0.3 * stop_crit
+                if stop_crit_in <= tol_in:
+                    if max(verbose - 1, 0):
+                        print("Early exit")
+                    break
         obj_out.append(p_obj)
     return w, np.array(obj_out), stop_crit
 
@@ -152,7 +149,7 @@ def prox_newton_solver(
 def _prox_newton_iter(
     X, Xw, w, y, penalty, ws, min_cd_epochs, max_cd_epochs, max_backtrack, tol
 ):
-    n_samples, ws_size = X.shape[0], ws.shape[0]
+    n_samples, ws_size = X.shape[0], len(ws)
 
     hessian_diag = np.zeros(n_samples)  # hessian = X^T D X, with D = diag(f_i'')
     grad_datafit = np.zeros(n_samples)  # gradient of F(Xw)

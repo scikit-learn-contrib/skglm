@@ -31,13 +31,9 @@ dict_penalties["L1"] = L1(alpha=alpha)
 dict_penalties["L1_plus_L2"] = L1_plus_L2(alpha=alpha, l1_ratio=l1_ratio)
 
 
-@pytest.mark.parametrize("X", [X])
-def test_prox_newton_vs_sklearn(X):
+def test_prox_newton_vs_sklearn():
     datafit = Logistic()
-    if issparse(X):
-        datafit.initialize_sparse(X.data, X.indptr, X.indices, y_ind)
-    else:
-        datafit.initialize(X, y_ind)
+    datafit.initialize(X, y_ind)
     pen = L1(alpha=alpha)
     w = np.zeros(n_features)
     Xw = np.zeros(n_samples)
@@ -51,14 +47,10 @@ def test_prox_newton_vs_sklearn(X):
     np.testing.assert_allclose(w_newton, np.ravel(estimator_sk.coef_), atol=1e-5)
 
 
-@pytest.mark.parametrize("X", [X])
 @pytest.mark.parametrize("penalty_name", ["L1", "L1_plus_L2"])
-def test_prox_newton_vs_cd(X, penalty_name):
+def test_prox_newton_vs_cd(penalty_name):
     datafit = Logistic()
-    if issparse(X):
-        datafit.initialize_sparse(X.data, X.indptr, X.indices, y_ind)
-    else:
-        datafit.initialize(X, y_ind)
+    datafit.initialize(X, y_ind)
     pen = dict_penalties[penalty_name]
 
     w = np.zeros(n_features)

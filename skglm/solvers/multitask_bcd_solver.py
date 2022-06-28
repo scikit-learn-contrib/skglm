@@ -83,7 +83,7 @@ def bcd_solver_path(
         datafit.initialize_sparse(X.data, X.indptr, X.indices, Y)
     else:
         datafit.initialize(X, Y)
-    n_samples, n_features = X.shape
+    n_features = X.shape[1]
     n_tasks = Y.shape[1]
     if alphas is None:
         raise ValueError("alphas should be provided.")
@@ -285,15 +285,15 @@ def bcd_solver(
                 p_obj = datafit.value(Y, W[ws, :], XW) + penalty.value(W)
 
                 if is_sparse:
-                    grad = construct_grad_sparse(
+                    grad_ws = construct_grad_sparse(
                         X.data, X.indptr, X.indices, Y, XW, datafit, ws)
                 else:
-                    grad = construct_grad(X, Y, W, XW, datafit, ws)
+                    grad_ws = construct_grad(X, Y, W, XW, datafit, ws)
 
                 if ws_strategy == "subdiff":
-                    opt_ws = penalty.subdiff_distance(W, grad, ws)
+                    opt_ws = penalty.subdiff_distance(W, grad_ws, ws)
                 elif ws_strategy == "fixpoint":
-                    opt_ws = dist_fix_point(W, grad, datafit, penalty, ws)
+                    opt_ws = dist_fix_point(W, grad_ws, datafit, penalty, ws)
 
                 stop_crit_in = np.max(opt_ws)
                 if max(verbose - 1, 0):
@@ -312,7 +312,7 @@ def bcd_solver(
 
 
 @njit
-def dist_fix_point(W, grad, datafit, penalty, ws):
+def dist_fix_point(W, grad_ws, datafit, penalty, ws):
     """Compute the violation of the fixed point iterate schema.
 
     Parameters
@@ -320,8 +320,8 @@ def dist_fix_point(W, grad, datafit, penalty, ws):
     W : array, shape (n_features, n_tasks)
         Coefficient matrix.
 
-    grad : array, shape (n_features, n_tasks)
-        Gradient.
+    grad_ws : array, shape (ws_size, n_tasks)
+        Gradient restricted to the working set.
 
     datafit: instance of BaseMultiTaskDatafit
         Datafit.
@@ -342,7 +342,7 @@ def dist_fix_point(W, grad, datafit, penalty, ws):
         lcj = datafit.lipschitz[j]
         if lcj:
             dist_fix_point[idx] = norm(
-                W[j] - penalty.prox_1feat(W[j] - grad[idx] / lcj, 1. / lcj, j))
+                W[j] - penalty.prox_1feat(W[j] - grad_ws[idx] / lcj, 1. / lcj, j))
     return dist_fix_point
 
 

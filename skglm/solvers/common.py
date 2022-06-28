@@ -3,7 +3,7 @@ from numba import njit
 
 
 @njit
-def dist_fix_point(w, grad, datafit, penalty, ws):
+def dist_fix_point(w, grad_ws, datafit, penalty, ws):
     """Compute the violation of the fixed point iterate scheme.
 
     Parameters
@@ -11,8 +11,8 @@ def dist_fix_point(w, grad, datafit, penalty, ws):
     w : array, shape (n_features,)
         Coefficient vector.
 
-    grad : array, shape (n_features,)
-        Gradient.
+    grad_ws : array, shape (ws_size,)
+        Gradient restricted to the working set.
 
     datafit: instance of BaseDatafit
         Datafit.
@@ -33,7 +33,7 @@ def dist_fix_point(w, grad, datafit, penalty, ws):
         lcj = datafit.lipschitz[j]
         if lcj != 0:
             dist_fix_point[idx] = np.abs(
-                w[j] - penalty.prox_1d(w[j] - grad[idx] / lcj, 1. / lcj, j))
+                w[j] - penalty.prox_1d(w[j] - grad_ws[idx] / lcj, 1. / lcj, j))
     return dist_fix_point
 
 

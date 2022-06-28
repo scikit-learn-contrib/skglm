@@ -106,10 +106,8 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
                 stop_crit_in = np.max(opt_in)
 
                 if max(verbose - 1, 0):
-                    print(
-                        f"Epoch {epoch+1}: {p_obj:.10f} "
-                        f"obj. variation: {stop_crit_in:.2e}"
-                    )
+                    print(f"Epoch {epoch + 1}, objective {p_obj:.10f}, "
+                          f"stopping crit {stop_crit_in:.2e}")
 
                 if stop_crit_in <= 0.3 * stop_crit:
                     break
@@ -131,9 +129,7 @@ def _bcd_epoch(X, y, w, Xw, datafit, penalty, ws):
         grad_g = datafit.gradient_g(X, y, w, Xw, g)
 
         w[grp_g_indices] = penalty.prox_1group(
-            old_w_g - grad_g / lipschitz_g,
-            1 / lipschitz_g, g
-        )
+            old_w_g - grad_g / lipschitz_g, 1 / lipschitz_g, g)
 
         for idx, j in enumerate(grp_g_indices):
             if old_w_g[idx] != w[j]:

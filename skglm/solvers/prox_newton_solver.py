@@ -182,6 +182,7 @@ def _prox_newton_iter(
 
 @njit
 def _newton_cd(
+        X, w, feats, hessian_diag, bias, lc, penalty, min_epochs, max_epochs, tol):
     X, w, feats, hessian_diag, bias, lc, penalty, min_epochs, max_epochs, tol
 ):
     delta_w, X_delta_w = np.zeros(feats.shape[0]), np.zeros(X.shape[0])

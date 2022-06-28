@@ -7,8 +7,8 @@ from skglm.utils import AndersonAcceleration
 
 
 def prox_newton_solver(
-    X, y, datafit, penalty, w, Xw, max_iter=50, max_epochs=1000, max_backtrack=10,
-    min_pn_cd_epochs=2, max_pn_cd_epochs=10, p0=10, tol=1e-4, verbose=0):
+        X, y, datafit, penalty, w, Xw, max_iter=50, max_epochs=1000, max_backtrack=10,
+        min_pn_cd_epochs=2, max_pn_cd_epochs=10, p0=10, tol=1e-4, verbose=0):
     r"""Run a prox-Newton solver.
 
     Parameters
@@ -146,7 +146,7 @@ def prox_newton_solver(
 
 @njit
 def _prox_newton_iter(
-    X, Xw, w, y, penalty, ws, min_cd_epochs, max_cd_epochs, max_backtrack, tol):
+        X, Xw, w, y, penalty, ws, min_cd_epochs, max_cd_epochs, max_backtrack, tol):
     n_samples, ws_size = X.shape[0], len(ws)
 
     hessian_diag = np.zeros(n_samples)  # hessian = X^T D X, with D = diag(f_i'')
@@ -177,7 +177,7 @@ def _prox_newton_iter(
 
 @njit
 def _newton_cd(
-    X, w, feats, hessian_diag, bias, lc, penalty, min_epochs, max_epochs, tol):
+        X, w, feats, hessian_diag, bias, lc, penalty, min_epochs, max_epochs, tol):
     delta_w, X_delta_w = np.zeros(feats.shape[0]), np.zeros(X.shape[0])
     for epoch in range(max_epochs):
         sum_sq_hess_diff = 0

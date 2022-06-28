@@ -19,7 +19,7 @@ y_ind = np.sign(y)
 
 np.random.seed(0)
 
-alpha_max = norm(X.T @ y, ord=np.inf) / n_samples
+alpha_max = norm(X.T @ y, ord=np.inf) / (2 * n_samples)
 alpha = alpha_max * 0.05
 tol = 1e-10
 l1_ratio = 0.3

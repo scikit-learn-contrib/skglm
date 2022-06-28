@@ -9,7 +9,9 @@ from skglm.utils import AndersonAcceleration
 def prox_newton_solver(
     X, y, datafit, penalty, w, Xw, max_iter=50, max_epochs=1000, max_backtrack=10,
     min_pn_cd_epochs=2, max_pn_cd_epochs=10, p0=10, tol=1e-4, verbose=0
-):
+def prox_newton_solver(
+        X, y, datafit, penalty, w, Xw, max_iter=50, max_epochs=1000, max_backtrack=10,
+        min_pn_cd_epochs=2, max_pn_cd_epochs=10, p0=10, tol=1e-4, verbose=0):
     r"""Run a prox-Newton solver.
 
     Parameters

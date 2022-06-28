@@ -149,6 +149,7 @@ def prox_newton_solver(
 
 @njit
 def _prox_newton_iter(
+        X, Xw, w, y, penalty, ws, min_cd_epochs, max_cd_epochs, max_backtrack, tol):
     X, Xw, w, y, penalty, ws, min_cd_epochs, max_cd_epochs, max_backtrack, tol
 ):
     n_samples, ws_size = X.shape[0], len(ws)

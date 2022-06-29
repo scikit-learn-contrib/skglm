@@ -107,8 +107,8 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
 
                 if max(verbose - 1, 0):
                     print(
-                        f"Epoch {epoch+1}: {p_obj:.10f} "
-                        f"obj. variation: {stop_crit_in:.2e}"
+                        f"Epoch {epoch + 1}, objective {p_obj:.10f}, "
+                        f"stopping crit {stop_crit_in:.2e}"
                     )
 
                 if stop_crit_in <= 0.3 * stop_crit:

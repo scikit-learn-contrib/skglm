@@ -322,14 +322,14 @@ def cd_solver(
                 p_obj = datafit.value(y, w[ws], Xw) + penalty.value(w)
 
                 if is_sparse:
-                    grad = construct_grad_sparse(
+                    grad_ws = construct_grad_sparse(
                         X.data, X.indptr, X.indices, y, w, Xw, datafit, ws)
                 else:
-                    grad = construct_grad(X, y, w, Xw, datafit, ws)
+                    grad_ws = construct_grad(X, y, w, Xw, datafit, ws)
                 if ws_strategy == "subdiff":
-                    opt_ws = penalty.subdiff_distance(w, grad, ws)
+                    opt_ws = penalty.subdiff_distance(w, grad_ws, ws)
                 elif ws_strategy == "fixpoint":
-                    opt_ws = dist_fix_point(w, grad, datafit, penalty, ws)
+                    opt_ws = dist_fix_point(w, grad_ws, datafit, penalty, ws)
 
                 stop_crit_in = np.max(opt_ws)
                 if max(verbose - 1, 0):
@@ -348,7 +348,7 @@ def cd_solver(
 
 
 @njit
-def _cd_epoch(X, y, w, Xw, datafit, penalty, feats):
+def _cd_epoch(X, y, w, Xw, datafit, penalty, ws):
     """Run an epoch of coordinate descent in place.
 
     Parameters
@@ -371,11 +371,11 @@ def _cd_epoch(X, y, w, Xw, datafit, penalty, feats):
     penalty : Penalty
         Penalty.
 
-    feats : array, shape (n_features,)
+    ws : array, shape (ws_size,)
         The range of features.
     """
     lc = datafit.lipschitz
-    for j in feats:
+    for j in ws:
         stepsize = 1/lc[j] if lc[j] != 0 else 1000
         Xj = X[:, j]
         old_w_j = w[j]
@@ -387,7 +387,7 @@ def _cd_epoch(X, y, w, Xw, datafit, penalty, feats):
 
 
 @njit
-def _cd_epoch_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, penalty, feats):
+def _cd_epoch_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, penalty, ws):
     """Run an epoch of coordinate descent in place for a sparse CSC array.
 
     Parameters
@@ -416,11 +416,11 @@ def _cd_epoch_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, penalty, fe
     penalty : Penalty
         Penalty.
 
-    feats : array, shape (n_features,)
-        The range of features.
+    ws : array, shape (ws_size,)
+        The working set.
     """
     lc = datafit.lipschitz
-    for j in feats:
+    for j in ws:
         stepsize = 1/lc[j] if lc[j] != 0 else 1000
 
         old_w_j = w[j]

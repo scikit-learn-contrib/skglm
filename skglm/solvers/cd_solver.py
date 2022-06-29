@@ -372,7 +372,7 @@ def _cd_epoch(X, y, w, Xw, datafit, penalty, ws):
     penalty : Penalty
         Penalty.
 
-    ws : array, shape (n_features,)
+    ws : array, shape (ws_size,)
         The range of features.
     """
     lc = datafit.lipschitz
@@ -417,7 +417,7 @@ def _cd_epoch_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, penalty, ws
     penalty : Penalty
         Penalty.
 
-    ws : array, shape (n_features,)
+    ws : array, shape (ws_size,)
         The working set.
     """
     lc = datafit.lipschitz

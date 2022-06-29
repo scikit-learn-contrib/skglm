@@ -329,7 +329,7 @@ def dist_fix_point(W, grad_ws, datafit, penalty, ws):
     penalty: instance of BasePenalty
         Penalty.
 
-    ws : array, shape (n_features,)
+    ws : array, shape (ws_size,)
         The working set.
 
     Returns
@@ -367,7 +367,7 @@ def construct_grad(X, Y, W, XW, datafit, ws):
     datafit : instance of BaseMultiTaskDatafit
         Datafit.
 
-    ws : array, shape (n_features,)
+    ws : array, shape (ws_size,)
         The working set.
 
     Returns

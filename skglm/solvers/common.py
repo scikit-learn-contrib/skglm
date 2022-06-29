@@ -20,7 +20,7 @@ def dist_fix_point(w, grad_ws, datafit, penalty, ws):
     penalty: instance of BasePenalty
         Penalty.
 
-    ws : array, shape (n_features,)
+    ws : array, shape (ws_size,)
         The working set.
 
     Returns
@@ -58,7 +58,7 @@ def construct_grad(X, y, w, Xw, datafit, ws):
     datafit : Datafit
         Datafit.
 
-    ws : array, shape (n_features,)
+    ws : array, shape (ws_size,)
         The working set.
 
     Returns
@@ -99,7 +99,7 @@ def construct_grad_sparse(data, indptr, indices, y, w, Xw, datafit, ws):
     datafit : Datafit
         Datafit.
 
-    ws : array, shape (n_features,)
+    ws : array, shape (ws_size,)
         The working set.
 
     Returns

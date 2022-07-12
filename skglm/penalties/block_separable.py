@@ -23,11 +23,18 @@ class L2_1(BasePenalty):
 
     def value(self, W):
         """Compute the L2/1 penalty value."""
-        return self.alpha * np.sqrt(np.sum(W ** 2, axis=1)).sum()
+        val = 0
+        n_features = W.shape[0]
+        for j in range(n_features):
+            val += norm(W[j, :])
+        return self.alpha * val
+        # return self.alpha * (np.sum(W ** 2, axis=1) ** 0.5).sum()
+        # return self.alpha * np.sqrt(np.sum(W ** 2, axis=1)).sum()
 
     def prox_1feat(self, value, stepsize, j):
         """Compute proximal operator of the L2/1 penalty (block soft thresholding)."""
-        return BST(value, self.alpha * stepsize)
+        BST(value, self.alpha * stepsize)
+        # return BST(Wj, value, self.alpha * stepsize)
 
     def subdiff_distance(self, W, grad, ws):
         """Compute distance of negative gradient to the subdifferential at W."""

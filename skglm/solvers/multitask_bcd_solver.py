@@ -270,7 +270,8 @@ def bcd_solver(
                         W_acc[ws, :] = np.sum(
                             last_K_w[:-1] * c[:, None], axis=0).reshape(
                                 (ws_size, n_tasks))
-                        p_obj = datafit.value(Y, W, XW) + penalty.value(W)
+                        p_obj = datafit.value(Y, W, XW)
+                        p_obj += penalty.value(W)
                         Xw_acc = X[:, ws] @ W_acc[ws]
                         p_obj_acc = datafit.value(
                             Y, W_acc, Xw_acc) + penalty.value(W_acc)
@@ -422,6 +423,7 @@ def construct_grad_sparse(data, indptr, indices, Y, XW, datafit, ws):
     return grad
 
 
+# @profile
 @njit
 def _bcd_epoch(X, Y, W, XW, datafit, penalty, ws):
     """Run an epoch of block coordinate descent in place.
@@ -456,9 +458,10 @@ def _bcd_epoch(X, Y, W, XW, datafit, penalty, ws):
             continue
         Xj = X[:, j]
         old_W_j = W[j, :].copy()  # copy is very important here
-        W[j:j+1, :] = penalty.prox_1feat(
-            W[j:j+1, :] - datafit.gradient_j(X, Y, W, XW, j) / lc[j],
-            1 / lc[j], j)
+        grad_j = datafit.gradient_j(X, Y, W, XW, j)
+        W[j, :] -= grad_j / lc[j]
+        penalty.prox_1feat(W[j, :], 1 / lc[j], j)
+
         if not np.all(W[j, :] == old_W_j):
             for k in range(n_tasks):
                 tmp = W[j, k] - old_W_j[k]

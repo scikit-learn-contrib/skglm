@@ -43,24 +43,24 @@ block_penalties = [
 
 @pytest.mark.parametrize('penalty', penalties)
 def test_subdiff_diff(penalty):
-    estimator_ours = GeneralizedLinearEstimator(
+    est = GeneralizedLinearEstimator(
         datafit=Quadratic(),
         penalty=penalty,
         tol=1e-14,
     ).fit(X, y)
     # assert the stopping criterion is satisfied
-    assert_array_less(estimator_ours.stop_crit_, estimator_ours.tol)
+    assert_array_less(est.stop_crit_, est.tol)
 
 
 @pytest.mark.parametrize('block_penalty', block_penalties)
 def test_subdiff_diff_block(block_penalty):
-    estimator_ours = GeneralizedLinearEstimator(
+    est = GeneralizedLinearEstimator(
         datafit=QuadraticMultiTask(),
         penalty=block_penalty,
         tol=1e-14,
     ).fit(X, Y)
     # assert the stopping criterion is satisfied
-    assert_array_less(estimator_ours.stop_crit_, estimator_ours.tol)
+    assert_array_less(est.stop_crit_, est.tol)
 
 
 if __name__ == '__main__':

@@ -51,6 +51,7 @@ Datafits
 .. autosummary::
    :toctree: generated/
 
+   Huber
    Logistic
    Quadratic
    QuadraticGroup

@@ -175,10 +175,8 @@ class BlockSCAD(BasePenalty):
 
     def value(self, W):
         """Compute the value of the SCAD penalty at W."""
-        n_features = W.shape[0]
         norm_rows = np.sqrt(np.sum(W ** 2, axis=1))
         return value_SCAD(norm_rows, self.alpha, self.gamma)
-
 
     def prox_1feat(self, value, stepsize, j):
         """Compute the proximal operator of BlockSCAD."""

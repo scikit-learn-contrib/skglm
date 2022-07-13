@@ -252,7 +252,6 @@ class SCAD(BasePenalty):
         """Compute the proximal operator of SCAD penalty."""
         return prox_SCAD(value, stepsize, self.alpha, self.gamma)
 
-
     def subdiff_distance(self, w, grad, ws):
         """Compute distance of negative gradient to the subdifferential at w."""
         subdiff_dist = np.zeros_like(grad)

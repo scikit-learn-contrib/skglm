@@ -4,7 +4,7 @@ from numba.experimental import jitclass
 from numba.types import bool_
 
 from skglm.penalties.base import BasePenalty
-from skglm.utils import ST, box_proj, prox_05, prox_2_3
+from skglm.utils import ST, box_proj, prox_05, prox_2_3, prox_SCAD
 
 
 spec_L1 = [
@@ -266,30 +266,8 @@ class SCAD(BasePenalty):
         return np.sum(value)
 
     def prox_1d(self, value, stepsize, j):
-        """Compute the proximal operator of SCAD penalty."""
-        tau = self.gamma * self.alpha
-        x_1 = max(0, np.abs(value) - self.alpha * stepsize)
-        x_2 = ((self.gamma - 1) * np.abs(value) - stepsize * tau) / (
-            self.gamma - 1 - stepsize)
-        x_2 = abs(x_2)
+        return prox_SCAD(value, stepsize, self.alpha, self.gamma, self.value)
 
-        x_3 = abs(value)
-
-        objs = np.zeros(3)
-        objs[0] = (0.5 / stepsize) * (
-            x_1 - np.abs(value)) ** 2 + self.value(np.array([x_1]))
-        objs[1] = (0.5 / stepsize) * (
-            x_2 - np.abs(value)) ** 2 + self.value(np.array([x_2]))
-        objs[2] = (0.5 / stepsize) * (
-            x_3 - np.abs(value)) ** 2 + self.value(np.array([x_3]))
-
-        idx_min = np.argmin(objs)
-        if idx_min == 0:
-            return np.sign(value) * x_1
-        elif idx_min == 1:
-            return np.sign(value) * x_2
-        else:
-            return np.sign(value) * x_3
 
     def subdiff_distance(self, w, grad, ws):
         """Compute distance of negative gradient to the subdifferential at w."""

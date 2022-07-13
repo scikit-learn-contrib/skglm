@@ -43,6 +43,34 @@ def box_proj(x, low, up):
         return x
 
 
+@njit
+def prox_SCAD(value, stepsize, alpha, gamma, value_function):
+    """Compute the proximal operator of SCAD penalty."""
+    tau = gamma * alpha
+    x_1 = max(0, np.abs(value) - alpha * stepsize)
+    x_2 = ((gamma - 1) * np.abs(value) - stepsize * tau) / (
+        gamma - 1 - stepsize)
+    x_2 = abs(x_2)
+
+    x_3 = abs(value)
+
+    objs = np.zeros(3)
+    objs[0] = (0.5 / stepsize) * (
+        x_1 - np.abs(value)) ** 2 + value_function(np.array([x_1]))
+    objs[1] = (0.5 / stepsize) * (
+        x_2 - np.abs(value)) ** 2 + value_function(np.array([x_2]))
+    objs[2] = (0.5 / stepsize) * (
+        x_3 - np.abs(value)) ** 2 + value_function(np.array([x_3]))
+
+    idx_min = np.argmin(objs)
+    if idx_min == 0:
+        return np.sign(value) * x_1
+    elif idx_min == 1:
+        return np.sign(value) * x_2
+    else:
+        return np.sign(value) * x_3
+
+
 def BST_vec(x, u, grp_size):
     """Vectorized block soft-thresholding of vector x at level u."""
     norm_grp = norm(x.reshape(-1, grp_size), axis=1)

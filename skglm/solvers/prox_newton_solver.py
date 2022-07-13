@@ -217,5 +217,3 @@ def _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtr
             break
         step_size = step_size / 2
     return step_size
-
-

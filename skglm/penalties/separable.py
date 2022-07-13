@@ -254,9 +254,11 @@ class SCAD(BasePenalty):
         self.gamma = gamma
 
     def value(self, w):
+        """Compute the value of the SCAD penalty at w."""
         return value_SCAD(w, self.alpha, self.gamma)
 
     def prox_1d(self, value, stepsize, j):
+        """Compute the proximal operator of SCAD penalty."""
         return prox_SCAD(value, stepsize, self.alpha, self.gamma)
 
 

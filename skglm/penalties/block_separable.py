@@ -6,7 +6,7 @@ from numba.experimental import jitclass
 from numba.types import bool_
 
 from skglm.penalties.base import BasePenalty
-from skglm.utils import BST, prox_block_2_05, prox_SCAD
+from skglm.utils import BST, prox_block_2_05, prox_SCAD, value_SCAD
 
 
 spec_L21 = [
@@ -184,21 +184,13 @@ class BlockSCAD(BasePenalty):
         """Compute the value of the SCAD penalty at W."""
         n_features = W.shape[0]
         norm_rows = np.sqrt(np.sum(W ** 2, axis=1))
-        value = np.full_like(norm_rows, (self.gamma + 1) * self.alpha ** 2 / 2.)
-        for j in range(n_features):
-            if norm_rows[j] <= self.alpha:
-                value[j] = self.alpha * norm_rows[j]
-            elif norm_rows[j] <= self.alpha * self.gamma:
-                value[j] = (
-                    2 * self.gamma * self.alpha * norm_rows[j] - norm_rows[j] ** 2
-                    - self.alpha ** 2) / (2 * (self.gamma - 1))
-        return np.sum(value)
+        return value_SCAD(norm_rows, self.alpha, self.gamma)
+
 
     def prox_1feat(self, value, stepsize, j):
         """Compute the proximal operator of BlockSCAD."""
         nrm_value = norm(value)
-        prox = prox_SCAD(
-            nrm_value, stepsize, self.alpha, self.gamma, self.value)
+        prox = prox_SCAD(nrm_value, stepsize, self.alpha, self.gamma)
         return prox * value / nrm_value
 
     def subdiff_distance(self, W, grad, ws):

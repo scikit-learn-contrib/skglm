@@ -2,6 +2,7 @@ import numpy as np
 from scipy import sparse
 from numba import njit
 from skglm.datafits import Logistic, Logistic_32
+from skglm.datafits.single_task import sigmoid
 from skglm.solvers.common import construct_grad
 from skglm.utils import AndersonAcceleration
 
@@ -218,8 +219,3 @@ def _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtr
     return step_size
 
 
-@njit
-def sigmoid(x):
-    """Vectorwise sigmoid."""
-    out = 1 / (1 + np.exp(-x))
-    return out

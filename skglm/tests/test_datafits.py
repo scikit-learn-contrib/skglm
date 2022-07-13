@@ -1,7 +1,7 @@
 import numpy as np
 
 from sklearn.linear_model import HuberRegressor
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_array_less
 
 from skglm.datafits import Huber
 from skglm.penalties import WeightedL1

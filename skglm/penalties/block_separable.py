@@ -6,7 +6,8 @@ from numba.experimental import jitclass
 from numba.types import bool_
 
 from skglm.penalties.base import BasePenalty
-from skglm.utils import BST, prox_block_2_05, prox_SCAD, value_SCAD
+from skglm.utils import (
+    BST, prox_block_2_05, prox_SCAD, value_SCAD, prox_MCP, value_MCP)
 
 
 spec_L21 = [
@@ -117,21 +118,13 @@ class BlockMCPenalty(BasePenalty):
     def value(self, W):
         """Compute the value of BlockMCP at W."""
         norm_rows = np.sqrt(np.sum(W ** 2, axis=1))
-        s0 = norm_rows < self.gamma * self.alpha
-        value = np.full_like(norm_rows, self.gamma * self.alpha ** 2 / 2.)
-        value[s0] = self.alpha * norm_rows[s0] - norm_rows[s0]**2 / (2 * self.gamma)
-        return np.sum(value)
+        return value_MCP(norm_rows, self.alpha, self.gamma)
 
     def prox_1feat(self, value, stepsize, j):
         """Compute the proximal operator of BlockMCP."""
-        tau = self.alpha * stepsize
-        g = self.gamma / stepsize
-        norm_value = norm(value)
-        if norm_value <= tau:
-            return np.zeros_like(value)
-        if norm_value > g * tau:
-            return value
-        return (1 - tau / norm_value) * value / (1. - 1./g)
+        norm_rows = norm(value)
+        prox = prox_MCP(norm_rows, stepsize, self.alpha, self.gamma)
+        return prox * value / norm_rows
 
     def subdiff_distance(self, W, grad, ws):
         """Compute distance of negative gradient to the subdifferential at W."""
@@ -189,9 +182,9 @@ class BlockSCAD(BasePenalty):
 
     def prox_1feat(self, value, stepsize, j):
         """Compute the proximal operator of BlockSCAD."""
-        nrm_value = norm(value)
-        prox = prox_SCAD(nrm_value, stepsize, self.alpha, self.gamma)
-        return prox * value / nrm_value
+        norm_rows = norm(value)
+        prox = prox_SCAD(norm_rows, stepsize, self.alpha, self.gamma)
+        return prox * value / norm_rows
 
     def subdiff_distance(self, W, grad, ws):
         """Compute distance of negative gradient to the subdifferential at W."""

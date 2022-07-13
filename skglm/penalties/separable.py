@@ -4,7 +4,8 @@ from numba.experimental import jitclass
 from numba.types import bool_
 
 from skglm.penalties.base import BasePenalty
-from skglm.utils import ST, box_proj, prox_05, prox_2_3, prox_SCAD, value_SCAD
+from skglm.utils import (
+    ST, box_proj, prox_05, prox_2_3, prox_SCAD, value_SCAD, prox_MCP, value_MCP)
 
 
 spec_L1 = [
@@ -183,21 +184,11 @@ class MCPenalty(BasePenalty):
         self.gamma = gamma
 
     def value(self, w):
-        """Compute the value of MCP."""
-        s0 = np.abs(w) < self.gamma * self.alpha
-        value = np.full_like(w, self.gamma * self.alpha ** 2 / 2.)
-        value[s0] = self.alpha * np.abs(w[s0]) - w[s0]**2 / (2 * self.gamma)
-        return np.sum(value)
+        return value_MCP(w, self.alpha, self.gamma)
 
     def prox_1d(self, value, stepsize, j):
         """Compute the proximal operator of MCP."""
-        tau = self.alpha * stepsize
-        g = self.gamma / stepsize  # what does g stand for ?
-        if np.abs(value) <= tau:
-            return 0.
-        if np.abs(value) > g * tau:
-            return value
-        return np.sign(value) * (np.abs(value) - tau) / (1. - 1./g)
+        return prox_MCP(value, stepsize, self.alpha, self.gamma)
 
     def subdiff_distance(self, w, grad, ws):
         """Compute distance of negative gradient to the subdifferential at w."""

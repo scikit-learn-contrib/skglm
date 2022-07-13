@@ -44,6 +44,27 @@ def box_proj(x, low, up):
 
 
 @njit
+def value_MCP(w, alpha, gamma):
+    """Compute the value of MCP."""
+    s0 = np.abs(w) < gamma * alpha
+    value = np.full_like(w, gamma * alpha ** 2 / 2.)
+    value[s0] = alpha * np.abs(w[s0]) - w[s0]**2 / (2 * gamma)
+    return np.sum(value)
+
+
+@njit
+def prox_MCP(value, stepsize, alpha, gamma):
+    """Compute the proximal operator of MCP penalty."""
+    tau = alpha * stepsize
+    g = gamma / stepsize  # what does g stand for ?
+    if np.abs(value) <= tau:
+        return 0.
+    if np.abs(value) > g * tau:
+        return value
+    return np.sign(value) * (np.abs(value) - tau) / (1. - 1./g)
+
+
+@njit
 def value_SCAD(w, alpha, gamma):
     """Compute the value of the SCAD penalty at w."""
     value = np.full_like(w, alpha ** 2 * (gamma + 1) / 2)

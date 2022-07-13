@@ -245,11 +245,13 @@ class _Huber(BaseDatafit):
 
     The datafit reads::
 
-    (1 / n_samples) * sum_{i=1}^{n_samples} (f(y_i - Xw_i))
+    (1 / n_samples) * sum_{i=1}^{n_samples} f(y_i - Xw_i)
+
+    where f is the Huber function:
 
     f(x) =
-    1 / 2 * x^2                         if x <= delta
-    delta * | x | - 1 /2 * delta^2      if x > delta
+    1 / 2 * x^2                      if x <= delta
+    delta * |x| - 1/2 * delta^2      if x > delta
 
     Attributes
     ----------

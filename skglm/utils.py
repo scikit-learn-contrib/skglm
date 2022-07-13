@@ -44,7 +44,21 @@ def box_proj(x, low, up):
 
 
 @njit
-def prox_SCAD(value, stepsize, alpha, gamma, value_function):
+def value_SCAD(w, alpha, gamma):
+    """Compute the value of the SCAD penalty at w."""
+    value = np.full_like(w, alpha ** 2 * (gamma + 1) / 2)
+    for j in range(len(w)):
+        if np.abs(w[j]) <= alpha:
+            value[j] = alpha * np.abs(w[j])
+        elif np.abs(w[j]) <= alpha * gamma:
+            value[j] = (
+                2 * gamma * alpha * np.abs(w[j])
+                - w[j] ** 2 - alpha ** 2) / (2 * (gamma - 1))
+    return np.sum(value)
+
+
+@njit
+def prox_SCAD(value, stepsize, alpha, gamma):
     """Compute the proximal operator of SCAD penalty."""
     tau = gamma * alpha
     x_1 = max(0, np.abs(value) - alpha * stepsize)
@@ -56,11 +70,11 @@ def prox_SCAD(value, stepsize, alpha, gamma, value_function):
 
     objs = np.zeros(3)
     objs[0] = (0.5 / stepsize) * (
-        x_1 - np.abs(value)) ** 2 + value_function(np.array([x_1]))
+        x_1 - np.abs(value)) ** 2 + value_SCAD(np.array([x_1]), alpha, gamma)
     objs[1] = (0.5 / stepsize) * (
-        x_2 - np.abs(value)) ** 2 + value_function(np.array([x_2]))
+        x_2 - np.abs(value)) ** 2 + value_SCAD(np.array([x_2]), alpha, gamma)
     objs[2] = (0.5 / stepsize) * (
-        x_3 - np.abs(value)) ** 2 + value_function(np.array([x_3]))
+        x_3 - np.abs(value)) ** 2 + value_SCAD(np.array([x_3]), alpha, gamma)
 
     idx_min = np.argmin(objs)
     if idx_min == 0:

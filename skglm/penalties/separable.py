@@ -4,7 +4,7 @@ from numba.experimental import jitclass
 from numba.types import bool_
 
 from skglm.penalties.base import BasePenalty
-from skglm.utils import ST, box_proj, prox_05, prox_2_3, prox_SCAD
+from skglm.utils import ST, box_proj, prox_05, prox_2_3, prox_SCAD, value_SCAD
 
 
 spec_L1 = [
@@ -254,19 +254,10 @@ class SCAD(BasePenalty):
         self.gamma = gamma
 
     def value(self, w):
-        """Compute the value of the SCAD penalty at w."""
-        value = np.full_like(w, self.alpha ** 2 * (self.gamma + 1) / 2)
-        for j in range(len(w)):
-            if np.abs(w[j]) <= self.alpha:
-                value[j] = self.alpha * np.abs(w[j])
-            elif np.abs(w[j]) <= self.alpha * self.gamma:
-                value[j] = (
-                    2 * self.gamma * self.alpha * np.abs(w[j])
-                    - w[j] ** 2 - self.alpha ** 2) / (2 * (self.gamma - 1))
-        return np.sum(value)
+        return value_SCAD(w, self.alpha, self.gamma)
 
     def prox_1d(self, value, stepsize, j):
-        return prox_SCAD(value, stepsize, self.alpha, self.gamma, self.value)
+        return prox_SCAD(value, stepsize, self.alpha, self.gamma)
 
 
     def subdiff_distance(self, w, grad, ws):

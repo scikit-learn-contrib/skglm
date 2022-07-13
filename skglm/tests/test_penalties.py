@@ -66,4 +66,5 @@ def test_subdiff_diff_block(block_penalty):
 if __name__ == '__main__':
     # test_subdiff_diff(L1(alpha=alpha))
     # test_subdiff_diff(MCPenalty(alpha=alpha, gamma=4))
-    test_subdiff_diff_block(L2_1(alpha=alpha))
+    test_subdiff_diff(SCAD(alpha=alpha, gamma=4))
+    # test_subdiff_diff_block(BlockSCAD(alpha=alpha, gamma=4))

@@ -422,8 +422,7 @@ def construct_grad_sparse(data, indptr, indices, Y, XW, datafit, ws):
     return grad
 
 
-# @njit
-@profile
+@njit
 def _bcd_epoch(X, Y, W, XW, datafit, penalty, ws):
     """Run an epoch of block coordinate descent in place.
 

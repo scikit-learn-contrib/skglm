@@ -4,7 +4,7 @@ from skglm.estimators import MultiTaskLasso
 
 from skglm.datafits import QuadraticMultiTask
 from skglm.penalties import L2_1
-from skglm.solvers.multitask_bcd_solver import bcd_solver 
+from skglm.solvers.multitask_bcd_solver import bcd_solver
 
 
 n_samples, n_features, n_tasks = 30, 100, 10
@@ -44,3 +44,4 @@ pen = L2_1(alpha=alpha)
 W = np.zeros((n_features, n_tasks))
 XW = np.zeros((n_samples, n_tasks))
 bcd_solver(X, Y, quad, pen, W, XW, max_iter=3, use_acc=False)
+profile(bcd_solver)(X, Y, quad, pen, W, XW, max_iter=3, use_acc=False)

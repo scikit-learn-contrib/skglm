@@ -180,9 +180,9 @@ class BlockSCAD(BasePenalty):
 
     def prox_1feat(self, value, stepsize, j):
         """Compute the proximal operator of BlockSCAD."""
-        norm_rows = norm(value)
-        prox = prox_SCAD(norm_rows, stepsize, self.alpha, self.gamma)
-        return prox * value / norm_rows
+        norm_value = norm(value)
+        prox = prox_SCAD(norm_value, stepsize, self.alpha, self.gamma)
+        return prox * value / norm_value
 
     def subdiff_distance(self, W, grad, ws):
         """Compute distance of negative gradient to the subdifferential at W."""

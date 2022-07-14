@@ -54,7 +54,7 @@ def value_MCP(w, alpha, gamma):
 
 @njit
 def prox_MCP(value, stepsize, alpha, gamma):
-    """Compute the proximal operator of MCP penalty."""
+    """Compute the proximal operator of stepsize * MCP penalty."""
     tau = alpha * stepsize
     g = gamma / stepsize  # what does g stand for ?
     if np.abs(value) <= tau:
@@ -80,30 +80,18 @@ def value_SCAD(w, alpha, gamma):
 
 @njit
 def prox_SCAD(value, stepsize, alpha, gamma):
-    """Compute the proximal operator of SCAD penalty."""
+    """Compute the proximal operator of stepsize * SCAD penalty."""
     tau = gamma * alpha
     x_1 = max(0, np.abs(value) - alpha * stepsize)
     x_2 = ((gamma - 1) * np.abs(value) - stepsize * tau) / (
         gamma - 1 - stepsize)
     x_2 = abs(x_2)
-
     x_3 = abs(value)
+    x_s = [x_1, x_2, x_3]
 
-    objs = np.zeros(3)
-    objs[0] = (0.5 / stepsize) * (
-        x_1 - np.abs(value)) ** 2 + value_SCAD(np.array([x_1]), alpha, gamma)
-    objs[1] = (0.5 / stepsize) * (
-        x_2 - np.abs(value)) ** 2 + value_SCAD(np.array([x_2]), alpha, gamma)
-    objs[2] = (0.5 / stepsize) * (
-        x_3 - np.abs(value)) ** 2 + value_SCAD(np.array([x_3]), alpha, gamma)
-
-    idx_min = np.argmin(objs)
-    if idx_min == 0:
-        return np.sign(value) * x_1
-    elif idx_min == 1:
-        return np.sign(value) * x_2
-    else:
-        return np.sign(value) * x_3
+    objs = np.array([(0.5 / stepsize) * (x - np.abs(value)) ** 2 + value_SCAD(
+        np.array([x]), alpha, gamma) for x in x_s])
+    return np.sign(value) * x_s[np.argmin(objs)]
 
 
 def BST_vec(x, u, grp_size):

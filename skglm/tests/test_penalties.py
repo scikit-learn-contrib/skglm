@@ -61,10 +61,3 @@ def test_subdiff_diff_block(block_penalty):
     ).fit(X, Y)
     # assert the stopping criterion is satisfied
     assert_array_less(est.stop_crit_, est.tol)
-
-
-if __name__ == '__main__':
-    # test_subdiff_diff(L1(alpha=alpha))
-    # test_subdiff_diff(MCPenalty(alpha=alpha, gamma=4))
-    # test_subdiff_diff(SCAD(alpha=alpha, gamma=4))
-    test_subdiff_diff_block(BlockSCAD(alpha=alpha, gamma=4))

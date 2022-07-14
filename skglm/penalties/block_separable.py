@@ -27,7 +27,7 @@ class L2_1(BasePenalty):
 
     def prox_1feat(self, value, stepsize, j):
         """Compute proximal operator of the L2/1 penalty (block soft thresholding)."""
-        return BST(value, self.alpha * stepsize)
+        BST(value, self.alpha * stepsize)
 
     def subdiff_distance(self, W, grad, ws):
         """Compute distance of negative gradient to the subdifferential at W."""

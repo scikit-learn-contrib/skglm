@@ -422,7 +422,8 @@ def construct_grad_sparse(data, indptr, indices, Y, XW, datafit, ws):
     return grad
 
 
-@njit
+# @njit
+@profile
 def _bcd_epoch(X, Y, W, XW, datafit, penalty, ws):
     """Run an epoch of block coordinate descent in place.
 
@@ -456,9 +457,9 @@ def _bcd_epoch(X, Y, W, XW, datafit, penalty, ws):
             continue
         Xj = X[:, j]
         old_W_j = W[j, :].copy()  # copy is very important here
-        W[j:j+1, :] = penalty.prox_1feat(
-            W[j:j+1, :] - datafit.gradient_j(X, Y, W, XW, j) / lc[j],
-            1 / lc[j], j)
+        # arg_prox = W[j, :] - datafit.gradient_j(X, Y, W, XW, j) / lc[j]
+        W[j, :] = W[j, :] - datafit.gradient_j(X, Y, W, XW, j) / lc[j]
+        penalty.prox_1feat(W[j], 1 / lc[j], j)
         if not np.all(W[j, :] == old_W_j):
             for k in range(n_tasks):
                 tmp = W[j, k] - old_W_j[k]

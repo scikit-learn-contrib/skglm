@@ -80,7 +80,7 @@ def prox_newton_solver(
     all_feats = np.arange(n_features)
     stop_crit = np.inf  # initialize for case n_iter=0
 
-    accelerator = AndersonAcceleration(K=5)
+    # accelerator = AndersonAcceleration(K=5)
 
     is_sparse = sparse.issparse(X)
     for t in range(max_iter):
@@ -120,14 +120,14 @@ def prox_newton_solver(
                 X, Xw, w, y, penalty, ws, min_pn_cd_epochs, _max_pn_cd_epochs,
                 max_backtrack, pn_tol)
 
-            w_acc, Xw_acc = accelerator.extrapolate(w, Xw)
+            # w_acc, Xw_acc = accelerator.extrapolate(w, Xw)
             p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-            p_obj_acc = datafit.value(y, w_acc, Xw_acc) + penalty.value(w_acc)
+            # p_obj_acc = datafit.value(y, w_acc, Xw_acc) + penalty.value(w_acc)
 
-            if p_obj_acc < p_obj:
-                w[:] = w_acc
-                Xw[:] = Xw_acc
-                p_obj = p_obj_acc
+            # if p_obj_acc < p_obj:
+            #     w[:] = w_acc
+            #     Xw[:] = Xw_acc
+            #     p_obj = p_obj_acc
 
             if epoch % 5 == 0:  # check every 5 epochs, PN epochs are expensive
                 grad = construct_grad(X, y, w, Xw, datafit, ws)

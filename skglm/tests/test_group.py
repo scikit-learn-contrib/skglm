@@ -137,7 +137,7 @@ def test_anderson_acceleration():
     w = np.ones(n_features)
     Xw = X @ w
     for i in range(max_iter):
-        w, Xw = acc.extrapolate(w, Xw)
+        w, Xw, _ = acc.extrapolate(w, Xw)
         w = rho * w + 1
         Xw = X @ w
 

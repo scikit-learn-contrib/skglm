@@ -273,7 +273,7 @@ class AndersonAcceleration:
         self.arr_w_, self.arr_Xw_ = None, None
 
     def extrapolate(self, w, Xw):
-        """Return ``w`` and ``Xw`` extrapolated."""
+        """Return w, Xw, and a bool indicating whether they were extrapolated."""
         if self.arr_w_ is None or self.arr_Xw_ is None:
             self.arr_w_ = np.zeros((w.shape[0], self.K+1))
             self.arr_Xw_ = np.zeros((Xw.shape[0], self.K+1))
@@ -282,7 +282,7 @@ class AndersonAcceleration:
             self.arr_w_[:, self.current_iter] = w
             self.arr_Xw_[:, self.current_iter] = Xw
             self.current_iter += 1
-            return w, Xw
+            return w, Xw, False
 
         U = np.diff(self.arr_w_, axis=1)  # compute residuals
 
@@ -290,11 +290,11 @@ class AndersonAcceleration:
         try:
             inv_UTU_ones = np.linalg.solve(U.T @ U, np.ones(self.K))
         except np.linalg.LinAlgError:
-            return w, Xw
+            return w, Xw, False
         finally:
             self.current_iter = 0
 
         # extrapolate
         C = inv_UTU_ones / np.sum(inv_UTU_ones)
         # floating point errors may cause w and Xw to disagree
-        return self.arr_w_[:, 1:] @ C, self.arr_Xw_[:, 1:] @ C
+        return self.arr_w_[:, 1:] @ C, self.arr_Xw_[:, 1:] @ C, True

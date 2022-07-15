@@ -9,7 +9,8 @@ from skglm.utils import AndersonAcceleration
 
 def prox_newton_solver(
         X, y, datafit, penalty, w, Xw, max_iter=50, max_epochs=1000, max_backtrack=10,
-        min_pn_cd_epochs=2, max_pn_cd_epochs=10, p0=10, tol=1e-4, verbose=0):
+        min_pn_cd_epochs=2, max_pn_cd_epochs=10, p0=10, tol=1e-4, verbose=0,
+        cst_step_size=False):
     r"""Run a prox-Newton solver.
 
     Parameters
@@ -119,10 +120,10 @@ def prox_newton_solver(
             _max_pn_cd_epochs = 1 if epoch == 0 else max_pn_cd_epochs
             pn_tol = 0 if epoch == 0 else tol
             # TODO: support sparse matrices
-            step_sizes = _prox_newton_iter(
+            _prox_newton_iter(
                 X, Xw, w, y, penalty, ws, min_pn_cd_epochs, _max_pn_cd_epochs,
-                max_backtrack, pn_tol, exp_Xw, low_exp_Xw)
-            print(step_sizes)
+                max_backtrack, pn_tol, exp_Xw, low_exp_Xw,
+                cst_step_size=cst_step_size)
             exp_Xw = np.exp(Xw)
 
             # w_acc, Xw_acc = accelerator.extrapolate(w, Xw)
@@ -134,7 +135,7 @@ def prox_newton_solver(
             #     Xw[:] = Xw_acc
             #     p_obj = p_obj_acc
 
-            if epoch % 5 == 0:  # check every 5 epochs, PN epochs are expensive
+            if epoch % 1 == 0:  # check every 5 epochs, PN epochs are expensive
                 grad = construct_grad(X, y, w, Xw, datafit, ws)
                 opt_ws = penalty.subdiff_distance(w, grad, ws)
                 stop_crit_in = np.max(opt_ws)
@@ -153,7 +154,7 @@ def prox_newton_solver(
 @njit
 def _prox_newton_iter(
         X, Xw, w, y, penalty, ws, min_cd_epochs, max_cd_epochs, max_backtrack, tol,
-        exp_Xw, low_exp_Xw):
+        exp_Xw, low_exp_Xw, cst_step_size=False):
     n_samples, ws_size = X.shape[0], len(ws)
 
     hessian_diag = np.zeros(n_samples)  # hessian = X^T D X, with D = diag(f_i'')
@@ -175,7 +176,10 @@ def _prox_newton_iter(
     delta_w, X_delta_w = _newton_cd(
         X, w, ws, hessian_diag, bias, lc, penalty, min_cd_epochs, max_cd_epochs, tol)
     step_size = _backtrack_line_search(
-        w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack)
+        w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack, exp_Xw, low_exp_Xw, cst_step_size=cst_step_size)
+    # step_size = 1
+    print('step size ')
+    print(step_size)
 
     for idx, j in enumerate(ws):
         w[j] += step_size * delta_w[idx]
@@ -205,61 +209,61 @@ def _newton_cd(
     return delta_w, X_delta_w
 
 
-@njit
-def _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack):
-    step_size = 1.
-    for _ in range(max_backtrack):
-        delta = 0.
-        for idx, j in enumerate(ws):
-            if w[j] + step_size * delta_w[idx] < 0:
-                delta -= penalty.alpha * delta_w[idx]
-            elif w[j] + step_size * delta_w[idx] > 0:
-                delta += penalty.alpha * delta_w[idx]
-            else:
-                delta -= penalty.alpha * abs(delta_w[idx])
-        theta = -y * sigmoid(-y * (Xw + step_size * X_delta_w))
-        delta += X_delta_w @ theta
-        if delta < 1e-7:
-            break
-        step_size = step_size / 2
-    return step_size
-
 # @njit
-# def _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack,
-#                            exp_Xw, low_exp_Xw):
+# def _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack):
 #     step_size = 1.
-#     aux = np.zeros(len(y))
-
-#     low_exp_Xw[:] = exp_Xw
-#     for i in range(len(Xw)):
-#         exp_Xw[i] = np.exp(Xw[i] + X_delta_w[i])
-
 #     for _ in range(max_backtrack):
-#         # compute aux
-#         for i in range(len(y)):
-#             if y[i] == 1:
-#                 aux[i] = -1. / (1. + exp_Xw[i])
+#         delta = 0.
+#         for idx, j in enumerate(ws):
+#             if w[j] + step_size * delta_w[idx] < 0:
+#                 delta -= penalty.alpha * delta_w[idx]
+#             elif w[j] + step_size * delta_w[idx] > 0:
+#                 delta += penalty.alpha * delta_w[idx]
 #             else:
-#                 aux[i] = 1. - 1. / (1. + exp_Xw[i])
-#         # compute deriv
-#         deriv_l1 = 0.
-#         for j in ws:
-#             w_j = w[j] + step_size * delta_w[j]
-#             if w_j == 0.:
-#                 deriv_l1 -= abs(delta_w[j])
-#             else:
-#                 deriv_l1 += w_j / abs(w_j) * delta_w[j]
-#         deriv_loss = X_delta_w @ aux
-#         deriv_loss += penalty.alpha * deriv_l1
-
-#         if deriv_loss < 1e-7:
+#                 delta -= penalty.alpha * abs(delta_w[idx])
+#         theta = -y * sigmoid(-y * (Xw + step_size * X_delta_w))
+#         delta += X_delta_w @ theta
+#         if delta < 1e-7:
 #             break
-#         else:
-#             step_size /= 2.
-#         for i in range(len(Xw)):
-#             exp_Xw[i] = np.sqrt(exp_Xw[i] + low_exp_Xw[i])
-#     else:
-#         pass
-        
+#         step_size = step_size / 2
 #     return step_size
-        
+
+@njit
+def _backtrack_line_search(
+    w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack, exp_Xw, low_exp_Xw, cst_step_size=False):
+    step_size = 1.
+    aux = np.zeros(len(y))
+
+    low_exp_Xw[:] = exp_Xw
+    for i in range(len(Xw)):
+        exp_Xw[i] = np.exp(Xw[i] + X_delta_w[i])
+
+    for _ in range(max_backtrack):
+        # compute aux
+        for i in range(len(y)):
+            if y[i] == 1:
+                aux[i] = -1. / (1. + exp_Xw[i])
+            else:
+                aux[i] = 1. - 1. / (1. + exp_Xw[i])
+        # compute deriv
+        deriv_l1 = 0.
+        for j in ws:
+            w_j = w[j] + step_size * delta_w[j]
+            if w_j == 0.:
+                deriv_l1 -= abs(delta_w[j])
+            else:
+                deriv_l1 += w_j / abs(w_j) * delta_w[j]
+        deriv_loss = X_delta_w @ aux
+        deriv_loss += penalty.alpha * deriv_l1
+
+        if deriv_loss < 1e-7:
+            break
+        else:
+            step_size /= 2.
+        for i in range(len(Xw)):
+            exp_Xw[i] = np.sqrt(exp_Xw[i] + low_exp_Xw[i])
+    else:
+        pass
+    if cst_step_size:
+        step_size = 1
+    return step_size

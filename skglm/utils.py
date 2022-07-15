@@ -22,15 +22,22 @@ def ST_vec(x, u):
     return np.sign(x) * np.maximum(0., np.abs(x) - u)
 
 
-@njit
-def BST(x, u):
-    """Block soft-thresholding of vector x at level u."""
-    norm_x = norm(x)
-    if norm_x < u:
-        return np.zeros_like(x)
-    else:
-        return (1 - u / norm_x) * x
+# @njit
+# def BST(x, u):
+#     """Block soft-thresholding of vector x at level u."""
+#     norm_x = norm(x)
+#     if norm_x < u:
+#         return np.zeros_like(x)
+#     else:
+#         return (1 - u / norm_x) * x
 
+@njit
+def BST(arg_prox, u):
+    norm_arg_prox = norm(arg_prox)
+    if norm_arg_prox < u:
+        arg_prox.fill(0.)
+    else:
+        arg_prox *= (1 - u / norm_arg_prox)
 
 @njit
 def box_proj(x, low, up):

@@ -80,6 +80,9 @@ def prox_newton_solver(
     all_feats = np.arange(n_features)
     stop_crit = np.inf  # initialize for case n_iter=0
 
+    exp_Xw = np.ones(X.shape[0])
+    low_exp_Xw = np.empty(X.shape[0])
+
     # accelerator = AndersonAcceleration(K=5)
 
     is_sparse = sparse.issparse(X)
@@ -116,9 +119,11 @@ def prox_newton_solver(
             _max_pn_cd_epochs = 1 if epoch == 0 else max_pn_cd_epochs
             pn_tol = 0 if epoch == 0 else tol
             # TODO: support sparse matrices
-            _prox_newton_iter(
+            step_sizes = _prox_newton_iter(
                 X, Xw, w, y, penalty, ws, min_pn_cd_epochs, _max_pn_cd_epochs,
-                max_backtrack, pn_tol)
+                max_backtrack, pn_tol, exp_Xw, low_exp_Xw)
+            print(step_sizes)
+            exp_Xw = np.exp(Xw)
 
             # w_acc, Xw_acc = accelerator.extrapolate(w, Xw)
             p_obj = datafit.value(y, w, Xw) + penalty.value(w)
@@ -147,7 +152,8 @@ def prox_newton_solver(
 
 @njit
 def _prox_newton_iter(
-        X, Xw, w, y, penalty, ws, min_cd_epochs, max_cd_epochs, max_backtrack, tol):
+        X, Xw, w, y, penalty, ws, min_cd_epochs, max_cd_epochs, max_backtrack, tol,
+        exp_Xw, low_exp_Xw):
     n_samples, ws_size = X.shape[0], len(ws)
 
     hessian_diag = np.zeros(n_samples)  # hessian = X^T D X, with D = diag(f_i'')
@@ -174,7 +180,7 @@ def _prox_newton_iter(
     for idx, j in enumerate(ws):
         w[j] += step_size * delta_w[idx]
     Xw += step_size * X_delta_w
-
+    return step_size
 
 @njit
 def _newton_cd(
@@ -199,51 +205,61 @@ def _newton_cd(
     return delta_w, X_delta_w
 
 
-# @njit
-# def _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack):
-#     step_size = 1.
-#     for _ in range(max_backtrack):
-#         delta = 0.
-#         for idx, j in enumerate(ws):
-#             if w[j] + step_size * delta_w[idx] < 0:
-#                 delta -= penalty.alpha * delta_w[idx]
-#             elif w[j] + step_size * delta_w[idx] > 0:
-#                 delta += penalty.alpha * delta_w[idx]
-#             else:
-#                 delta -= penalty.alpha * abs(delta_w[idx])
-#         theta = -y * sigmoid(-y * (Xw + step_size * X_delta_w))
-#         delta += X_delta_w @ theta
-#         if delta < 1e-7:
-#             break
-#         step_size = step_size / 2
-#     return step_size
-
 @njit
 def _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack):
     step_size = 1.
-    aux = np.zeros(len(y))
     for _ in range(max_backtrack):
-        # compute aux
-        for i in range(len(y)):
-            if y[i] == 1:
-                aux[i] = -1. / (1. + np.exp(Xw[i]))
+        delta = 0.
+        for idx, j in enumerate(ws):
+            if w[j] + step_size * delta_w[idx] < 0:
+                delta -= penalty.alpha * delta_w[idx]
+            elif w[j] + step_size * delta_w[idx] > 0:
+                delta += penalty.alpha * delta_w[idx]
             else:
-                aux[i] = 1. - 1. / (1. + np.exp(Xw[i]))
-        # compute deriv
-        deriv_l1 = 0.
-        for j in ws:
-            w_j = w[j] + step_size * delta_w[j]
-            if w_j == 0.:
-                deriv_l1 -= abs(delta_w[j])
-            else:
-                deriv_l1 += w_j / abs(w_j) * delta_w[j]
-        deriv_loss = X_delta_w @ aux
-        deriv_loss += penalty.alpha * deriv_l1
-
-        if deriv_loss < 1e-7:
+                delta -= penalty.alpha * abs(delta_w[idx])
+        theta = -y * sigmoid(-y * (Xw + step_size * X_delta_w))
+        delta += X_delta_w @ theta
+        if delta < 1e-7:
             break
-        else:
-            step_size /= 2.
-        
+        step_size = step_size / 2
     return step_size
+
+# @njit
+# def _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack,
+#                            exp_Xw, low_exp_Xw):
+#     step_size = 1.
+#     aux = np.zeros(len(y))
+
+#     low_exp_Xw[:] = exp_Xw
+#     for i in range(len(Xw)):
+#         exp_Xw[i] = np.exp(Xw[i] + X_delta_w[i])
+
+#     for _ in range(max_backtrack):
+#         # compute aux
+#         for i in range(len(y)):
+#             if y[i] == 1:
+#                 aux[i] = -1. / (1. + exp_Xw[i])
+#             else:
+#                 aux[i] = 1. - 1. / (1. + exp_Xw[i])
+#         # compute deriv
+#         deriv_l1 = 0.
+#         for j in ws:
+#             w_j = w[j] + step_size * delta_w[j]
+#             if w_j == 0.:
+#                 deriv_l1 -= abs(delta_w[j])
+#             else:
+#                 deriv_l1 += w_j / abs(w_j) * delta_w[j]
+#         deriv_loss = X_delta_w @ aux
+#         deriv_loss += penalty.alpha * deriv_l1
+
+#         if deriv_loss < 1e-7:
+#             break
+#         else:
+#             step_size /= 2.
+#         for i in range(len(Xw)):
+#             exp_Xw[i] = np.sqrt(exp_Xw[i] + low_exp_Xw[i])
+#     else:
+#         pass
+        
+#     return step_size
         

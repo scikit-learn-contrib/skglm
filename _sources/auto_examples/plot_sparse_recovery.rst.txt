@@ -23,7 +23,7 @@ Sparse recovery with non-convex penalties
 =========================================
 Illustrate the superior performance of penalties for sparse recovery.
 
-.. GENERATED FROM PYTHON SOURCE LINES 7-132
+.. GENERATED FROM PYTHON SOURCE LINES 7-137
 
 
 
@@ -41,6 +41,7 @@ Illustrate the superior performance of penalties for sparse recovery.
 
     Running lasso...
     Running mcp...
+    Running scad...
     Running l05...
     Running l23...
 
@@ -67,7 +68,7 @@ Illustrate the superior performance of penalties for sparse recovery.
     from skglm.utils import make_correlated_data
     from skglm.solvers import cd_solver_path
     from skglm.datafits import Quadratic
-    from skglm.penalties import L1, MCPenalty, L0_5, L2_3
+    from skglm.penalties import L1, MCPenalty, L0_5, L2_3, SCAD
 
     cmap = plt.get_cmap('tab10')
 
@@ -100,14 +101,16 @@ Illustrate the superior performance of penalties for sparse recovery.
     penalties = {}
     penalties['lasso'] = L1(alpha=1)
     penalties['mcp'] = MCPenalty(alpha=1, gamma=3)
+    penalties['scad'] = SCAD(alpha=1, gamma=3)
     penalties['l05'] = L0_5(alpha=1)
     penalties['l23'] = L2_3(alpha=1)
 
     colors = {}
     colors['lasso'] = cmap(0)
     colors['mcp'] = cmap(1)
-    colors['l05'] = cmap(2)
-    colors['l23'] = cmap(3)
+    colors['scad'] = cmap(2)
+    colors['l05'] = cmap(3)
+    colors['l23'] = cmap(4)
 
     f1 = {}
     estimation_error = {}
@@ -132,12 +135,14 @@ Illustrate the superior performance of penalties for sparse recovery.
 
     name_estimators = {'lasso': "Lasso"}
     name_estimators['mcp'] = r"MCP, $\gamma=%s$" % 3
+    name_estimators['scad'] = r"SCAD, $\gamma=%s$" % 3
     name_estimators['l05'] = r"$\ell_{1/2}$"
     name_estimators['l23'] = r"$\ell_{2/3}$"
 
 
     plt.close('all')
-    fig, axarr = plt.subplots(2, 1, sharex=True, sharey=False, figsize=[8.2, 5.7])
+    fig, axarr = plt.subplots(2, 1, sharex=True, sharey=False, figsize=[
+                              6.3, 3.7], constrained_layout=True)
 
     for idx, estimator in enumerate(penalties.keys()):
 
@@ -176,13 +181,14 @@ Illustrate the superior performance of penalties for sparse recovery.
         axarr[1].set_ylabel("pred. RMSE left-out")
         axarr[0].legend(
             bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left",
-            mode="expand", borderaxespad=0, ncol=4)
-        plt.show(block=False)
+            mode="expand", borderaxespad=0, ncol=1)
+
+    plt.show(block=False)
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  5.144 seconds)
+   **Total running time of the script:** ( 0 minutes  7.655 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_sparse_recovery.py:

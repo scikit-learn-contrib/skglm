@@ -106,7 +106,7 @@
 <p>With x &gt;= 0
 pen(x) =
 alpha * x - x^2 / (2 * gamma) if x =&lt; gamma * alpha
-gamma * alpha 2 / 2           if x &gt; gamma * alpha
+gamma * alpha^2 / 2           if x &gt; gamma * alpha
 value = sum_{j=1}^{n_features} pen(abs(w_j))</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skglm.penalties.MCPenalty.__init__">
@@ -135,7 +135,7 @@ value = sum_{j=1}^{n_features} pen(abs(w_j))</p>
 <td><p>Compute distance of negative gradient to the subdifferential at w.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(w)</p></td>
-<td><p>Compute the value of MCP.</p></td>
+<td><p>Value of penalty at vector w.</p></td>
 </tr>
 </tbody>
 </table>

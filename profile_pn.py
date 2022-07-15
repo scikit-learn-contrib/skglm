@@ -1,3 +1,4 @@
+from tabnanny import verbose
 import time
 import numpy as np
 from sklearn.utils import check_random_state
@@ -23,7 +24,7 @@ pen = L1(alpha)
 # sklearn
 clf = LogisticRegression(
     penalty="l1", C=1/(alpha * n_samples), fit_intercept=False,
-    tol=1e-10, solver="celer-pn")
+    tol=1e-10, solver="celer-pn", p0=n_features, verbose=1)
 t1 = time.time()
 clf.fit(X, y)
 t2 = time.time()
@@ -39,7 +40,9 @@ print("celer:", t2 - t1)
 w = np.zeros(n_features)
 Xw = np.zeros(n_samples)
 t1 = time.time()
-prox_newton_solver(X, y, df, pen, w, Xw, tol=1e-10)
+prox_newton_solver(
+    X, y, df, pen, w, Xw, tol=1e-10, p0=n_features, verbose=100,
+    cst_step_size=True)
 t2 = time.time()
 print("skglm:", t2 - t1)
 

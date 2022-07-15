@@ -135,7 +135,7 @@ def prox_newton_solver(
             #     Xw[:] = Xw_acc
             #     p_obj = p_obj_acc
 
-            if epoch % 5 == 0:  # check every 5 epochs, PN epochs are expensive
+            if epoch % 1 == 0:  # check every 5 epochs, PN epochs are expensive
                 grad = construct_grad(X, y, w, Xw, datafit, ws)
                 opt_ws = penalty.subdiff_distance(w, grad, ws)
                 stop_crit_in = np.max(opt_ws)
@@ -178,6 +178,7 @@ def _prox_newton_iter(
     step_size = _backtrack_line_search(
         w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack, exp_Xw, low_exp_Xw, cst_step_size=cst_step_size)
     # step_size = 1
+    print('step size ')
     print(step_size)
 
     for idx, j in enumerate(ws):

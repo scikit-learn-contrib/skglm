@@ -6,7 +6,8 @@ from numba.experimental import jitclass
 from numba.types import bool_
 
 from skglm.penalties.base import BasePenalty
-from skglm.utils import BST, prox_block_2_05
+from skglm.utils import (
+    BST, prox_block_2_05, prox_SCAD, value_SCAD, prox_MCP, value_MCP)
 
 
 spec_L21 = [
@@ -117,21 +118,13 @@ class BlockMCPenalty(BasePenalty):
     def value(self, W):
         """Compute the value of BlockMCP at W."""
         norm_rows = np.sqrt(np.sum(W ** 2, axis=1))
-        s0 = norm_rows < self.gamma * self.alpha
-        value = np.full_like(norm_rows, self.gamma * self.alpha ** 2 / 2.)
-        value[s0] = self.alpha * norm_rows[s0] - norm_rows[s0]**2 / (2 * self.gamma)
-        return np.sum(value)
+        return value_MCP(norm_rows, self.alpha, self.gamma)
 
     def prox_1feat(self, value, stepsize, j):
         """Compute the proximal operator of BlockMCP."""
-        tau = self.alpha * stepsize
-        g = self.gamma / stepsize
-        norm_value = norm(value)
-        if norm_value <= tau:
-            return np.zeros_like(value)
-        if norm_value > g * tau:
-            return value
-        return (1 - tau / norm_value) * value / (1. - 1./g)
+        norm_rows = norm(value)
+        prox = prox_MCP(norm_rows, stepsize, self.alpha, self.gamma)
+        return prox * value / norm_rows
 
     def subdiff_distance(self, W, grad, ws):
         """Compute distance of negative gradient to the subdifferential at W."""
@@ -148,6 +141,68 @@ class BlockMCPenalty(BasePenalty):
                     grad[idx] + self.alpha * W[j]/norm_Wj - W[j] / self.gamma)
             else:
                 # distance of -grad to 0
+                subdiff_dist[idx] = norm(grad[idx])
+        return subdiff_dist
+
+    def is_penalized(self, n_features):
+        """Return a binary mask with the penalized features."""
+        return np.ones(n_features, bool_)
+
+
+spec_BlockSCAD = [
+    ('alpha', float64),
+    ('gamma', float64),
+]
+
+
+@jitclass(spec_BlockSCAD)
+class BlockSCAD(BasePenalty):
+    """Block Smoothly Clipped Absolute Deviation.
+
+    Notes
+    -----
+    With W_j the j-th row of W, the penalty is:
+        pen(||W_j||) = alpha * ||W_j||               if ||W_j|| =< alpha
+                       (2 * gamma * alpha * ||W_j|| - ||W_j|| ** 2 - alpha ** 2) \
+                           / (2 * (gamma - 1))       if alpha < ||W_j|| < alpha * gamma
+                       (alpha **2 * (gamma + 1)) / 2 if ||W_j|| > gamma * alpha
+        value = sum_{j=1}^{n_features} pen(||W_j||)
+    """
+
+    def __init__(self, alpha, gamma):
+        self.alpha = alpha
+        self.gamma = gamma
+
+    def value(self, W):
+        """Compute the value of the SCAD penalty at W."""
+        norm_rows = np.sqrt(np.sum(W ** 2, axis=1))
+        return value_SCAD(norm_rows, self.alpha, self.gamma)
+
+    def prox_1feat(self, value, stepsize, j):
+        """Compute the proximal operator of BlockSCAD."""
+        norm_value = norm(value)
+        prox = prox_SCAD(norm_value, stepsize, self.alpha, self.gamma)
+        return prox * value / norm_value
+
+    def subdiff_distance(self, W, grad, ws):
+        """Compute distance of negative gradient to the subdifferential at W."""
+        subdiff_dist = np.zeros_like(ws, dtype=grad.dtype)
+        for idx, j in enumerate(ws):
+            norm_Wj = norm(W[j])
+            if not np.any(W[j]):
+                # distance of -grad_j to alpha * unit_ball
+                subdiff_dist[idx] = max(0, norm(grad[idx]) - self.alpha)
+            elif norm_Wj <= self.alpha:
+                # distance of -grad_j to alpha * W[j] / ||W[j]||
+                subdiff_dist[idx] = norm(grad[idx] + self.alpha * W[j] / norm_Wj)
+            elif norm_Wj <= self.gamma * self.alpha:
+                # distance of -grad_j to (alpha * gamma - ||W[j]||)
+                # / ((gamma - 1) * ||W[j]||) * W[j]
+                subdiff_dist[idx] = norm(grad[idx] + (
+                    (self.alpha * self.gamma - norm_Wj) / (norm_Wj * (self.gamma - 1))
+                ) * W[j])
+            else:
+                # distance of -grad_j to 0
                 subdiff_dist[idx] = norm(grad[idx])
         return subdiff_dist
 

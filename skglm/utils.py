@@ -81,6 +81,9 @@ def value_SCAD(w, alpha, gamma):
 @njit
 def prox_SCAD(value, stepsize, alpha, gamma):
     """Compute the proximal operator of stepsize * SCAD penalty."""
+    # A general iterative shrinkage and thresholding algorithm for non-convex
+    # regularized optimization problems, (Gong et al., 2013, Appendix)
+    # see: http://proceedings.mlr.press/v28/gong13a.pdf
     tau = gamma * alpha
     x_1 = max(0, np.abs(value) - alpha * stepsize)
     x_2 = ((gamma - 1) * np.abs(value) - stepsize * tau) / (

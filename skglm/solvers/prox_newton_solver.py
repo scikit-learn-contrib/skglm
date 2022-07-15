@@ -80,7 +80,7 @@ def prox_newton_solver(
     all_feats = np.arange(n_features)
     stop_crit = np.inf  # initialize for case n_iter=0
 
-    accelerator = AndersonAcceleration(K=5)
+    # accelerator = AndersonAcceleration(K=5)
 
     is_sparse = sparse.issparse(X)
     for t in range(max_iter):

@@ -145,7 +145,7 @@ def prox_newton_solver(
     return w, np.array(obj_out), stop_crit
 
 
-# @njit
+@njit
 def _prox_newton_iter(
         X, Xw, w, y, penalty, ws, min_cd_epochs, max_cd_epochs, max_backtrack, tol):
     n_samples, ws_size = X.shape[0], len(ws)
@@ -176,7 +176,7 @@ def _prox_newton_iter(
     Xw += step_size * X_delta_w
 
 
-@profile
+@njit
 def _newton_cd(
         X, w, ws, hessian_diag, bias, lc, penalty, min_epochs, max_epochs, tol):
     delta_w, X_delta_w = np.zeros(len(ws)), np.zeros(X.shape[0])

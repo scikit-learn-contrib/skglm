@@ -285,7 +285,7 @@ def bcd_solver(
                         if max(verbose - 1, 0):
                             print("Early exit")
                         break
-        p_obj = datafit.value(Y, W, XW) + penalty.value(W)
+        p_obj = datafit.value(Y, W[ws, :], XW) + penalty.value(W)
         obj_out.append(p_obj)
     return W, np.array(obj_out), stop_crit
 

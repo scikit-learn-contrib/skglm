@@ -177,9 +177,9 @@ def _prox_newton_iter(
         X, w, ws, hessian_diag, bias, lc, penalty, min_cd_epochs, max_cd_epochs, tol)
     step_size = _backtrack_line_search(
         w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack, exp_Xw, low_exp_Xw, cst_step_size=cst_step_size)
+    print('step size is', step_size)
     # step_size = 1
     # print('step size ')
-    # print(step_size)
 
     for idx, j in enumerate(ws):
         w[j] += step_size * delta_w[idx]
@@ -191,6 +191,7 @@ def _newton_cd(
         X, w, ws, hessian_diag, bias, lc, penalty, min_epochs, max_epochs, tol):
     delta_w, X_delta_w = np.zeros(len(ws)), np.zeros(X.shape[0])
     for epoch in range(max_epochs):
+        print("w is", np.asarray(w))
         sum_sq_hess_diff = 0.
         for idx, j in enumerate(ws):
             stepsize = 1/lc[idx] if lc[idx] != 0 else 1000
@@ -235,7 +236,7 @@ def _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtr
 
 # @njit
 # def _backtrack_line_search(
-#     w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack, exp_Xw, low_exp_Xw, 
+#     w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack, exp_Xw, low_exp_Xw,
 #     cst_step_size=False):
 #     step_size = 1.
 #     aux = np.zeros(len(y))

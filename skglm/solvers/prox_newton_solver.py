@@ -209,6 +209,7 @@ def _newton_cd(
                 delta_w[idx] = new_value - w[j]
                 for i in range(X.shape[0]):
                     X_delta_w[i] += diff * X[i, j]
+            print("delta w is ", delta_w[idx])
         if sum_sq_hess_diff <= tol and epoch + 1 >= min_epochs:
             break
     return delta_w, X_delta_w

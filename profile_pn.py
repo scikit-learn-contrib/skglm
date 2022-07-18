@@ -8,7 +8,7 @@ from skglm.solvers.prox_newton_solver import prox_newton_solver
 from skglm.datafits import Logistic
 from skglm.penalties import L1
 
-n_samples, n_features = 10, 12
+n_samples, n_features = 10, 5
 
 rng = check_random_state(0)
 X = rng.normal(0, 1, (n_samples, n_features))

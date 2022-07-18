@@ -193,10 +193,10 @@ def _prox_newton_iter(
 def _newton_cd(
         X, w, ws, hessian_diag, bias, lc, penalty, min_epochs, max_epochs, tol):
     delta_w, X_delta_w = np.zeros(len(ws)), np.zeros(X.shape[0])
+    print('working set', ws)
+    print("w is", np.asarray(w))
     for epoch in range(max_epochs):
-        print("w is", np.asarray(w))
         sum_sq_hess_diff = 0.
-        print('working set', ws)
         for idx, j in enumerate(ws):
             stepsize = 1/lc[idx] if lc[idx] != 0 else 1000
             old_value = w[j] + delta_w[idx]
@@ -229,9 +229,7 @@ def _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtr
                 delta -= penalty.alpha * abs(delta_w[idx])
         theta = -y * sigmoid(-y * (Xw + step_size * X_delta_w))
         delta += X_delta_w @ theta / len(X_delta_w)
-        # print("delta:", delta)
         if delta < 1e-7:
-            print("returned step size:", step_size)
             break
         step_size = step_size / 2
     if cst_step_size:

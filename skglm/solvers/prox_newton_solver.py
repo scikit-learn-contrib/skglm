@@ -187,6 +187,7 @@ def _prox_newton_iter(
 
     for idx, j in enumerate(ws):
         w[j] += step_size * delta_w[idx]
+    print("w is", np.asarray(w))
     Xw += step_size * X_delta_w
     return step_size
 
@@ -195,7 +196,6 @@ def _newton_cd(
         X, w, ws, hessian_diag, bias, lc, penalty, min_pn_cd_epochs, max_pn_cd_epochs, tol):
     delta_w, X_delta_w = np.zeros(len(ws)), np.zeros(X.shape[0])
     print('working set', ws)
-    print("w is", np.asarray(w))
     print("max pn cd iter", max_pn_cd_epochs)
     for pn_cd_epoch in range(max_pn_cd_epochs):
         sum_sq_hess_diff = 0.

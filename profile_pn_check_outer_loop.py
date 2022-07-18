@@ -21,14 +21,14 @@ df.initialize(X, y)
 
 pen = L1(alpha)
 tol = 1e-10
-max_iter = 1
-max_epochs = 10
+max_iter = 2
+max_epochs = 1
 max_pn_cd_epochs = 1
 
 t1 = time.time()
 w_celer = celer_path(
     X, y,pb="logreg", n_alphas=1, alphas=[alpha * n_samples],
-    max_iter=max_iter, max_epochs=50000, p0=n_features, verbose=100, tol=tol, use_PN=True, max_pn_iter=max_epochs, max_cd_itr=max_pn_cd_epochs)[1]
+    max_iter=max_iter, p0=n_features, verbose=100, tol=tol, use_PN=True, max_pn_iter=max_epochs, max_cd_itr=max_pn_cd_epochs)[1]
 t2 = time.time()
 print("celer:", t2 - t1)
 

@@ -110,7 +110,10 @@ def prox_newton_solver(
         opt[penalty.generalized_support(w)] = np.inf
 
         # taking arg_top_K features violating the stopping criterion
-        ws = np.argpartition(opt, -ws_size)[-ws_size:]
+        if ws_size == n_features:
+            ws = np.arange(n_features)
+        else:
+            ws = np.argpartition(opt, -ws_size)[-ws_size:]
 
         if verbose:
             print(f"Iteration {t + 1}, {ws_size} feats in subpb.")
@@ -193,6 +196,7 @@ def _newton_cd(
     for epoch in range(max_epochs):
         print("w is", np.asarray(w))
         sum_sq_hess_diff = 0.
+        print('working set', ws)
         for idx, j in enumerate(ws):
             stepsize = 1/lc[idx] if lc[idx] != 0 else 1000
             old_value = w[j] + delta_w[idx]

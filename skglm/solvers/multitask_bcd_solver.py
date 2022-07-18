@@ -245,17 +245,20 @@ def bcd_solver(
             else:
                 _bcd_epoch(X, Y, W, XW, datafit, penalty, ws)
 
-            W_acc, XW_acc = accelerator.extrapolate(W.ravel(), XW.ravel())
-            W_acc = W_acc.reshape(-1, n_tasks)
-            XW_acc = XW_acc.reshape(-1, n_tasks)
+            W_acc, XW_acc, is_extrapolated = accelerator.extrapolate(W.ravel(),
+                                                                     XW.ravel())
 
-            p_obj = datafit.value(Y, W, XW) + penalty.value(W)
-            p_obj_acc = datafit.value(Y, W_acc, XW_acc) + penalty.value(W_acc)
+            if is_extrapolated:  # avoid computing p_obj for un-extrapolated w, Xw
+                W_acc = W_acc.reshape(-1, n_tasks)
+                XW_acc = XW_acc.reshape(-1, n_tasks)
 
-            if p_obj_acc < p_obj:
-                W[:] = W_acc
-                XW[:] = XW_acc
-                p_obj = p_obj_acc
+                p_obj = datafit.value(Y, W, XW) + penalty.value(W)
+                p_obj_acc = datafit.value(Y, W_acc, XW_acc) + penalty.value(W_acc)
+
+                if p_obj_acc < p_obj:
+                    W[:] = W_acc
+                    XW[:] = XW_acc
+                    p_obj = p_obj_acc
 
             if epoch > 0 and epoch % 10 == 0:
                 if is_sparse:
@@ -271,6 +274,7 @@ def bcd_solver(
 
                 stop_crit_in = np.max(opt_ws)
                 if max(verbose - 1, 0):
+                    p_obj = datafit.value(Y, W, XW) + penalty.value(W)
                     print(f"Epoch {epoch + 1}, objective {p_obj:.10f}, "
                           f"stopping crit {stop_crit_in:.2e}")
                 if ws_size == n_features:
@@ -281,6 +285,7 @@ def bcd_solver(
                         if max(verbose - 1, 0):
                             print("Early exit")
                         break
+        p_obj = datafit.value(Y, W, XW) + penalty.value(W)
         obj_out.append(p_obj)
     return W, np.array(obj_out), stop_crit
 

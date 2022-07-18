@@ -273,13 +273,15 @@ def cd_solver(
 
             # 3) do Anderson acceleration on smaller problem
             # TODO optimize computation using ws
-            w_acc, Xw_acc = accelerator.extrapolate(w, Xw)
-            p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-            p_obj_acc = datafit.value(y, w_acc, Xw_acc) + penalty.value(w_acc)
+            w_acc, Xw_acc, is_extrapolated = accelerator.extrapolate(w, Xw)
 
-            if p_obj_acc < p_obj:
-                w[:], Xw[:] = w_acc, Xw_acc
-                p_obj = p_obj_acc
+            if is_extrapolated:  # avoid computing p_obj for un-extrapolated w, Xw
+                p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+                p_obj_acc = datafit.value(y, w_acc, Xw_acc) + penalty.value(w_acc)
+
+                if p_obj_acc < p_obj:
+                    w[:], Xw[:] = w_acc, Xw_acc
+                    p_obj = p_obj_acc
 
             if epoch % 10 == 0:
                 # TODO : manage penalty.value(w, ws) for weighted Lasso
@@ -296,6 +298,7 @@ def cd_solver(
 
                 stop_crit_in = np.max(opt_ws)
                 if max(verbose - 1, 0):
+                    p_obj = datafit.value(y, w, Xw) + penalty.value(w)
                     print(f"Epoch {epoch + 1}, objective {p_obj:.10f}, "
                           f"stopping crit {stop_crit_in:.2e}")
                 if ws_size == n_features:
@@ -306,6 +309,7 @@ def cd_solver(
                         if max(verbose - 1, 0):
                             print("Early exit")
                         break
+        p_obj = datafit.value(y, w, Xw) + penalty.value(w)
         obj_out.append(p_obj)
     return w, np.array(obj_out), stop_crit
 

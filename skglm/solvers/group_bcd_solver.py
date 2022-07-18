@@ -91,13 +91,15 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
             # inplace update of w and Xw
             _bcd_epoch(X, y, w, Xw, datafit, penalty, ws)
 
-            w_acc, Xw_acc = accelerator.extrapolate(w, Xw)
-            p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-            p_obj_acc = datafit.value(y, w_acc, Xw_acc) + penalty.value(w_acc)
+            w_acc, Xw_acc, is_extrapolated = accelerator.extrapolate(w, Xw)
 
-            if p_obj_acc < p_obj:
-                w, Xw = w_acc, Xw_acc
-                p_obj = p_obj_acc
+            if is_extrapolated:  # avoid computing p_obj for un-extrapolated w, Xw
+                p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+                p_obj_acc = datafit.value(y, w_acc, Xw_acc) + penalty.value(w_acc)
+
+                if p_obj_acc < p_obj:
+                    w[:], Xw[:] = w_acc, Xw_acc
+                    p_obj = p_obj_acc
 
             # check sub-optimality every 10 epochs
             if epoch % 10 == 0:
@@ -106,13 +108,15 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
                 stop_crit_in = np.max(opt_in)
 
                 if max(verbose - 1, 0):
+                    p_obj = datafit.value(y, w, Xw) + penalty.value(w)
                     print(
-                        f"Epoch {epoch+1}: {p_obj:.10f} "
-                        f"obj. variation: {stop_crit_in:.2e}"
+                        f"Epoch {epoch + 1}, objective {p_obj:.10f}, "
+                        f"stopping crit {stop_crit_in:.2e}"
                     )
 
                 if stop_crit_in <= 0.3 * stop_crit:
                     break
+        p_obj = datafit.value(y, w, Xw) + penalty.value(w)
         p_objs_out[t] = p_obj
 
     return w, p_objs_out, stop_crit

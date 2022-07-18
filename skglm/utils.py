@@ -43,6 +43,60 @@ def box_proj(x, low, up):
         return x
 
 
+@njit
+def value_MCP(w, alpha, gamma):
+    """Compute the value of MCP."""
+    s0 = np.abs(w) < gamma * alpha
+    value = np.full_like(w, gamma * alpha ** 2 / 2.)
+    value[s0] = alpha * np.abs(w[s0]) - w[s0]**2 / (2 * gamma)
+    return np.sum(value)
+
+
+@njit
+def prox_MCP(value, stepsize, alpha, gamma):
+    """Compute the proximal operator of stepsize * MCP penalty."""
+    tau = alpha * stepsize
+    g = gamma / stepsize  # what does g stand for ?
+    if np.abs(value) <= tau:
+        return 0.
+    if np.abs(value) > g * tau:
+        return value
+    return np.sign(value) * (np.abs(value) - tau) / (1. - 1./g)
+
+
+@njit
+def value_SCAD(w, alpha, gamma):
+    """Compute the value of the SCAD penalty at w."""
+    value = np.full_like(w, alpha ** 2 * (gamma + 1) / 2)
+    for j in range(len(w)):
+        if np.abs(w[j]) <= alpha:
+            value[j] = alpha * np.abs(w[j])
+        elif np.abs(w[j]) <= alpha * gamma:
+            value[j] = (
+                2 * gamma * alpha * np.abs(w[j])
+                - w[j] ** 2 - alpha ** 2) / (2 * (gamma - 1))
+    return np.sum(value)
+
+
+@njit
+def prox_SCAD(value, stepsize, alpha, gamma):
+    """Compute the proximal operator of stepsize * SCAD penalty."""
+    # A general iterative shrinkage and thresholding algorithm for non-convex
+    # regularized optimization problems, (Gong et al., 2013, Appendix)
+    # see: http://proceedings.mlr.press/v28/gong13a.pdf
+    tau = gamma * alpha
+    x_1 = max(0, np.abs(value) - alpha * stepsize)
+    x_2 = ((gamma - 1) * np.abs(value) - stepsize * tau) / (
+        gamma - 1 - stepsize)
+    x_2 = abs(x_2)
+    x_3 = abs(value)
+    x_s = [x_1, x_2, x_3]
+
+    objs = np.array([(0.5 / stepsize) * (x - np.abs(value)) ** 2 + value_SCAD(
+        np.array([x]), alpha, gamma) for x in x_s])
+    return np.sign(value) * x_s[np.argmin(objs)]
+
+
 def BST_vec(x, u, grp_size):
     """Vectorized block soft-thresholding of vector x at level u."""
     norm_grp = norm(x.reshape(-1, grp_size), axis=1)
@@ -273,7 +327,7 @@ class AndersonAcceleration:
         self.arr_w_, self.arr_Xw_ = None, None
 
     def extrapolate(self, w, Xw):
-        """Return ``w`` and ``Xw`` extrapolated."""
+        """Return w, Xw, and a bool indicating whether they were extrapolated."""
         if self.arr_w_ is None or self.arr_Xw_ is None:
             self.arr_w_ = np.zeros((w.shape[0], self.K+1))
             self.arr_Xw_ = np.zeros((Xw.shape[0], self.K+1))
@@ -282,7 +336,7 @@ class AndersonAcceleration:
             self.arr_w_[:, self.current_iter] = w
             self.arr_Xw_[:, self.current_iter] = Xw
             self.current_iter += 1
-            return w, Xw
+            return w, Xw, False
 
         U = np.diff(self.arr_w_, axis=1)  # compute residuals
 
@@ -290,11 +344,11 @@ class AndersonAcceleration:
         try:
             inv_UTU_ones = np.linalg.solve(U.T @ U, np.ones(self.K))
         except np.linalg.LinAlgError:
-            return w, Xw
+            return w, Xw, False
         finally:
             self.current_iter = 0
 
         # extrapolate
         C = inv_UTU_ones / np.sum(inv_UTU_ones)
         # floating point errors may cause w and Xw to disagree
-        return self.arr_w_[:, 1:] @ C, self.arr_Xw_[:, 1:] @ C
+        return self.arr_w_[:, 1:] @ C, self.arr_Xw_[:, 1:] @ C, True

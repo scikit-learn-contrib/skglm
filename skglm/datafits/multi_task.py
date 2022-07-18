@@ -1,14 +1,16 @@
 import numpy as np
 from numpy.linalg import norm
-from numba import float64
+from numba import float64, types, typed
 from numba.experimental import jitclass
 
 from skglm.datafits.base import BaseMultitaskDatafit
 
+float_vector = types.Array(dtype=float64, ndim=1, layout="C")
 
 spec_quadratic = [
     ('XtY', float64[:, :]),
     ('lipschitz', float64[:]),
+    ('list_X_j_c', types.ListType(float_vector))
 ]
 
 
@@ -41,6 +43,10 @@ class QuadraticMultiTask(BaseMultitaskDatafit):
         for j in range(n_features):
             self.lipschitz[j] = norm(X[:, j]) ** 2 / n_samples
 
+        self.list_X_j_c = typed.List.empty_list(float_vector)
+        for j in range(n_features):
+            self.list_X_j_c.append(np.ascontiguousarray(X[:, j]))
+
     def initialize_sparse(self, X_data, X_indptr, X_indices, Y):
         """Pre-computations before fitting on X and Y, when X is sparse."""
         n_samples, n_tasks = Y.shape
@@ -66,7 +72,8 @@ class QuadraticMultiTask(BaseMultitaskDatafit):
     def gradient_j(self, X, Y, W, XW, j):
         """Gradient with respect to j-th coordinate of W."""
         n_samples = X.shape[0]
-        return (X[:, j:j+1].T @ XW - self.XtY[j, :]) / n_samples
+        # return (X[:, j:j+1].T @ XW - self.XtY[j, :]) / n_samples
+        return (self.list_X_j_c[j].T @ XW - self.XtY[j, :]) / n_samples
 
     def gradient_j_sparse(self, X_data, X_indptr, X_indices, Y, XW, j):
         """Gradient with respect to j-th coordinate of W when X is sparse."""

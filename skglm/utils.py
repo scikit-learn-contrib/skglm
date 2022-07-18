@@ -23,13 +23,13 @@ def ST_vec(x, u):
 
 
 @njit
-def BST(x, u):
+def BST(arg_prox, u):
     """Block soft-thresholding of vector x at level u."""
-    norm_x = norm(x)
+    norm_x = norm(arg_prox)
     if norm_x < u:
-        return np.zeros_like(x)
+        arg_prox.fill(0.)
     else:
-        return (1 - u / norm_x) * x
+        arg_prox *= (1 - u / norm_x)
 
 
 @njit

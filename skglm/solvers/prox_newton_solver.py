@@ -120,7 +120,8 @@ def prox_newton_solver(
 
         # 2) run prox newton on smaller subproblem
         for epoch in range(max_epochs):
-            _max_pn_cd_epochs = 1 if epoch == 0 else max_pn_cd_epochs
+            _max_pn_cd_epochs = max_pn_cd_epochs
+            # _max_pn_cd_epochs = 1 if epoch == 0 else max_pn_cd_epochs
             pn_tol = 0 if epoch == 0 else tol
             # TODO: support sparse matrices
             _prox_newton_iter(
@@ -191,12 +192,15 @@ def _prox_newton_iter(
 
 @njit
 def _newton_cd(
-        X, w, ws, hessian_diag, bias, lc, penalty, min_pn_cd_epochs, max_pn_epochs, tol):
+        X, w, ws, hessian_diag, bias, lc, penalty, min_pn_cd_epochs, max_pn_cd_epochs, tol):
     delta_w, X_delta_w = np.zeros(len(ws)), np.zeros(X.shape[0])
     print('working set', ws)
     print("w is", np.asarray(w))
-    for epoch in range(max_pn_epochs):
+    print("max pn cd iter", max_pn_cd_epochs)
+    for pn_cd_epoch in range(max_pn_cd_epochs):
         sum_sq_hess_diff = 0.
+        print("pn cd epoch ", pn_cd_epoch)
+        print("###############")
         for idx, j in enumerate(ws):
             stepsize = 1/lc[idx] if lc[idx] != 0 else 1000
             old_value = w[j] + delta_w[idx]
@@ -210,7 +214,7 @@ def _newton_cd(
                 for i in range(X.shape[0]):
                     X_delta_w[i] += diff * X[i, j]
             print("delta w is ", delta_w[idx])
-        if sum_sq_hess_diff <= tol and epoch + 1 >= min_pn_cd_epochs:
+        if sum_sq_hess_diff <= tol and pn_cd_epoch + 1 >= min_pn_cd_epochs:
             break
     return delta_w, X_delta_w
 

@@ -156,7 +156,7 @@ def prox_newton_solver(
 
 @njit
 def _prox_newton_iter(
-        X, Xw, w, y, penalty, ws, min_cd_epochs, max_cd_epochs, max_backtrack, tol,
+        X, Xw, w, y, penalty, ws, min_cd_epochs, max_pn_cd_epochs, max_backtrack, tol,
         exp_Xw, low_exp_Xw, cst_step_size=False):
     n_samples, ws_size = X.shape[0], len(ws)
 
@@ -177,7 +177,7 @@ def _prox_newton_iter(
         bias[idx] = X[:, j] @ grad_datafit
 
     delta_w, X_delta_w = _newton_cd(
-        X, w, ws, hessian_diag, bias, lc, penalty, min_cd_epochs, max_cd_epochs, tol)
+        X, w, ws, hessian_diag, bias, lc, penalty, min_cd_epochs, max_pn_cd_epochs, tol)
     step_size = _backtrack_line_search(
         w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack, exp_Xw, low_exp_Xw, cst_step_size=cst_step_size)
     print('step size is', step_size)
@@ -191,11 +191,11 @@ def _prox_newton_iter(
 
 @njit
 def _newton_cd(
-        X, w, ws, hessian_diag, bias, lc, penalty, min_epochs, max_epochs, tol):
+        X, w, ws, hessian_diag, bias, lc, penalty, min_pn_cd_epochs, max_pn_epochs, tol):
     delta_w, X_delta_w = np.zeros(len(ws)), np.zeros(X.shape[0])
     print('working set', ws)
     print("w is", np.asarray(w))
-    for epoch in range(max_epochs):
+    for epoch in range(max_pn_epochs):
         sum_sq_hess_diff = 0.
         for idx, j in enumerate(ws):
             stepsize = 1/lc[idx] if lc[idx] != 0 else 1000
@@ -210,7 +210,7 @@ def _newton_cd(
                 for i in range(X.shape[0]):
                     X_delta_w[i] += diff * X[i, j]
             print("delta w is ", delta_w[idx])
-        if sum_sq_hess_diff <= tol and epoch + 1 >= min_epochs:
+        if sum_sq_hess_diff <= tol and epoch + 1 >= min_pn_cd_epochs:
             break
     return delta_w, X_delta_w
 

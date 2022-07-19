@@ -138,7 +138,7 @@ def prox_newton_solver(
             stop_crit_in = np.max(opt_ws)
             if max(verbose - 1, 0):
                 print(f"Epoch {epoch + 1}, objective {p_obj:.10f}, "
-                        f"stopping crit {stop_crit_in:.2e}")
+                      f"stopping crit {stop_crit_in:.2e}")
             tol_in = 0.1 * stop_crit
             if stop_crit_in <= tol_in:
                 if max(verbose - 1, 0):
@@ -168,7 +168,7 @@ def _prox_newton_iter(
         bias[idx] = actual_grad
         grad_diff = actual_grad - approx_grad
         pn_grad_diff += grad_diff ** 2
-    
+
     return pn_grad_diff
 
 
@@ -183,7 +183,7 @@ def _newton_cd(
         _max_pn_cd_epochs = min_pn_cd_epochs
     else:
         pn_tol = pn_tol_ratio * pn_grad_diff
-    
+
     for pn_cd_epoch in range(_max_pn_cd_epochs):
         sum_sq_hess_diff = 0.
         for idx, j in enumerate(ws):

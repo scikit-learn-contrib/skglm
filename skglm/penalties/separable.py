@@ -53,7 +53,7 @@ class L1(BasePenalty):
         """Return penalization value for which 0 is solution."""
         return np.max(np.abs(gradient0))
 
-    def deriv_value_1d(self, w_j, delta_w_j):
+    def delta_pen(self, w_j, delta_w_j):
         delta_obj = 0.
         if w_j < 0:
             delta_obj -= self.alpha * delta_w_j
@@ -119,7 +119,7 @@ class L1_plus_L2(BasePenalty):
         """Return penalization value for which 0 is solution."""
         return np.max(np.abs(gradient0))
 
-    def deriv_value_1d(self, w_j, delta_w_j):
+    def delta_pen(self, w_j, delta_w_j):
         delta_obj = 0.
         # if w_j != 0:
         #     delta_obj += (self.alpha * self.l1_ratio * np.sign(w_j) + (1 - self.l1_ratio)

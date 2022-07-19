@@ -155,7 +155,7 @@ def _prox_newton_iter(
         pn_tol_ratio, pn_grad_diff, hessian_diag, grad_datafit, lc, bias, epoch,
         verbose=0):
 
-    delta_w, X_delta_w = _newton_cd(
+    delta_w, X_delta_w = _compute_descent_direction(
         X, w, ws, hessian_diag, bias, lc, penalty, min_pn_cd_epochs, max_pn_cd_epochs,
         pn_tol_ratio, pn_grad_diff, epoch, verbose=verbose)
     _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack)
@@ -175,7 +175,7 @@ def _prox_newton_iter(
 
 
 @njit
-def _newton_cd(
+def _compute_descent_direction(
         X, w, ws, hessian_diag, bias, lc, penalty, min_pn_cd_epochs, max_pn_cd_epochs,
         pn_tol_ratio, pn_grad_diff, epoch, verbose=0):
     delta_w, X_delta_w = np.zeros(len(ws)), np.zeros(X.shape[0])
@@ -227,8 +227,13 @@ def _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtr
             #     delta_obj += penalty.alpha * delta_w[idx]
             # else:
             #     delta_obj -= penalty.alpha * abs(delta_w[idx])
-            delta_obj += penalty.delta_pen(w_j_old, w[j])
-            # delta_obj = penalty.delta_pen(w[j], delta_w[idx])
+            # TODO choose which type of line-search we want to use
+            # pen(x + Delta x) - pen(x)
+            # or grad pen(x) Delta x
+            # If we choose pen(x + Delta x) - pen(x)
+            # then TODO optimize simplify code
+            # delta_obj += penalty.delta_pen(w_j_old, w[j])
+            delta_obj = penalty.delta_pen(w[j], delta_w[idx])
         Xw += diff_step_size * X_delta_w
         grad = -y * sigmoid(-y * Xw)
         delta_obj += X_delta_w @ grad / len(X_delta_w)

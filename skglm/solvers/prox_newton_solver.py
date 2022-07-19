@@ -204,9 +204,9 @@ def _newton_cd(
         for idx, j in enumerate(ws):
             stepsize = 1/lc[idx] if lc[idx] != 0 else 1000
             old_value = w[j] + delta_w[idx]
-            tmp = (X[:, j] * X_delta_w * hessian_diag).sum()
+            grad_j = bias[idx] + (X[:, j] * X_delta_w * hessian_diag).sum()
             new_value = penalty.prox_1d(
-                old_value - (bias[idx] + tmp) * stepsize, stepsize, j)
+                old_value - grad_j * stepsize, stepsize, j)
             diff = new_value - old_value
             if diff != 0:
                 sum_sq_hess_diff += (diff * lc[idx]) ** 2

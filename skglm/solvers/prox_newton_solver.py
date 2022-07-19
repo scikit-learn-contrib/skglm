@@ -217,19 +217,20 @@ def _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtr
     prev_step_size = 0.
     for _ in range(max_backtrack):
         diff_step_size = step_size - prev_step_size
-        delta = 0.
+        delta_obj = 0.
         for idx, j in enumerate(ws):
             w[j] += diff_step_size * delta_w[idx]
-            if w[j] < 0:
-                delta -= penalty.alpha * delta_w[idx]
-            elif w[j] > 0:
-                delta += penalty.alpha * delta_w[idx]
-            else:
-                delta -= penalty.alpha * abs(delta_w[idx])
+            # if w[j] < 0:
+            #     delta_obj -= penalty.alpha * delta_w[idx]
+            # elif w[j] > 0:
+            #     delta_obj += penalty.alpha * delta_w[idx]
+            # else:
+            #     delta_obj -= penalty.alpha * abs(delta_w[idx])
+            delta_obj = penalty.deriv_value_1d(w[j], delta_w[idx])
         Xw += diff_step_size * X_delta_w
-        theta = -y * sigmoid(-y * Xw)
-        delta += X_delta_w @ theta / len(X_delta_w)
-        if delta < 1e-7:
+        grad = -y * sigmoid(-y * Xw)
+        delta_obj += X_delta_w @ grad / len(X_delta_w)
+        if delta_obj < 1e-7:
             break
         prev_step_size = step_size
         step_size = step_size / 2

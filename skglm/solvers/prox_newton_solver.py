@@ -232,8 +232,8 @@ def _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtr
             # or grad pen(x) Delta x
             # If we choose pen(x + Delta x) - pen(x)
             # then TODO optimize simplify code
-            # delta_obj += penalty.delta_pen(w_j_old, w[j])
-            delta_obj = penalty.delta_pen(w[j], delta_w[idx])
+            delta_obj += penalty.delta_pen(w_j_old, w[j])
+            # delta_obj += penalty.delta_pen(w[j], delta_w[idx])
         Xw += diff_step_size * X_delta_w
         grad = -y * sigmoid(-y * Xw)
         delta_obj += X_delta_w @ grad / len(X_delta_w)

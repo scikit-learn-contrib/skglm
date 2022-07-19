@@ -8,7 +8,8 @@ from skglm.solvers.common import construct_grad
 
 def prox_newton_solver(
         X, y, datafit, penalty, w, Xw, max_iter=50, max_epochs=1000, max_backtrack=20,
-        min_pn_cd_epochs=2, max_pn_cd_epochs=20, p0=10, tol=1e-4, verbose=0):
+        min_pn_cd_epochs=2, max_pn_cd_epochs=20, p0=10, tol=1e-4, verbose=0,
+        eps_in=0.1):
     r"""Run a prox-Newton solver.
 
     Parameters
@@ -129,7 +130,7 @@ def prox_newton_solver(
             pn_grad_diff = _prox_newton_iter(
                 X, Xw, w, y, penalty, ws, min_pn_cd_epochs, max_pn_cd_epochs,
                 max_backtrack, pn_tol_ratio, pn_grad_diff, hessian_diag, grad_datafit,
-                lc, bias, epoch)
+                lc, bias, epoch, verbose=verbose)
 
             p_obj = datafit.value(y, w, Xw) + penalty.value(w)
 
@@ -139,7 +140,7 @@ def prox_newton_solver(
             if max(verbose - 1, 0):
                 print(f"Epoch {epoch + 1}, objective {p_obj:.10f}, "
                       f"stopping crit {stop_crit_in:.2e}")
-            tol_in = 0.1 * stop_crit
+            tol_in = eps_in * stop_crit
             if stop_crit_in <= tol_in:
                 if max(verbose - 1, 0):
                     print("Early exit")
@@ -151,11 +152,12 @@ def prox_newton_solver(
 @njit
 def _prox_newton_iter(
         X, Xw, w, y, penalty, ws, min_pn_cd_epochs, max_pn_cd_epochs, max_backtrack,
-        pn_tol_ratio, pn_grad_diff, hessian_diag, grad_datafit, lc, bias, epoch):
+        pn_tol_ratio, pn_grad_diff, hessian_diag, grad_datafit, lc, bias, epoch,
+        verbose=0):
 
     delta_w, X_delta_w = _newton_cd(
         X, w, ws, hessian_diag, bias, lc, penalty, min_pn_cd_epochs, max_pn_cd_epochs,
-        pn_tol_ratio, pn_grad_diff, epoch)
+        pn_tol_ratio, pn_grad_diff, epoch, verbose=verbose)
     _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack)
 
     _compute_grad_hessian_datafit(X, y, Xw, ws, hessian_diag, grad_datafit, lc)
@@ -175,7 +177,7 @@ def _prox_newton_iter(
 @njit
 def _newton_cd(
         X, w, ws, hessian_diag, bias, lc, penalty, min_pn_cd_epochs, max_pn_cd_epochs,
-        pn_tol_ratio, pn_grad_diff, epoch):
+        pn_tol_ratio, pn_grad_diff, epoch, verbose=0):
     delta_w, X_delta_w = np.zeros(len(ws)), np.zeros(X.shape[0])
     pn_tol = 0.
     _max_pn_cd_epochs = max_pn_cd_epochs
@@ -186,6 +188,10 @@ def _newton_cd(
 
     for pn_cd_epoch in range(_max_pn_cd_epochs):
         sum_sq_hess_diff = 0.
+        if max(verbose - 1, 0):
+            print("##########################################################")
+            print("pn cd epoch ", pn_cd_epoch)
+            print("##########################################################")
         for idx, j in enumerate(ws):
             stepsize = 1/lc[idx] if lc[idx] != 0 else 1000
             old_value = w[j] + delta_w[idx]
@@ -198,6 +204,8 @@ def _newton_cd(
                 delta_w[idx] = new_value - w[j]
                 for i in range(X.shape[0]):
                     X_delta_w[i] += diff * X[i, j]
+            if max(verbose - 1, 0):
+                print("delta w is ", delta_w[idx])
         if sum_sq_hess_diff <= pn_tol and pn_cd_epoch + 1 >= min_pn_cd_epochs:
             break
     return delta_w, X_delta_w

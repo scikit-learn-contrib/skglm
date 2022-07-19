@@ -21,9 +21,11 @@ df.initialize(X, y)
 
 pen = L1(alpha)
 tol = 1e-10
-max_iter = 2
+max_iter = 10
 max_epochs = 1
 max_pn_cd_epochs = 1
+eps_in = 0.00001
+
 
 t1 = time.time()
 w_celer = celer_path(
@@ -39,7 +41,8 @@ Xw = np.zeros(n_samples)
 t1 = time.time()
 prox_newton_solver(
     X, y, df, pen, w, Xw, tol=tol, p0=n_features, verbose=100,
-    cst_step_size=True, max_iter=max_iter, max_epochs=max_epochs, max_pn_cd_epochs=max_pn_cd_epochs)
+    max_iter=max_iter, max_epochs=max_epochs,
+    max_pn_cd_epochs=max_pn_cd_epochs, eps_in=eps_in)
 t2 = time.time()
 print("skglm:", t2 - t1)
 

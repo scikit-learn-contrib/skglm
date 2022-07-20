@@ -84,7 +84,7 @@ class Quadratic(BaseDatafit):
             grad[j] = (XjTXw - self.Xty[j]) / n_samples
         return grad
 
-    def update_intercept(self, y, Xw):
+    def intercept_update_step(self, y, Xw):
         return np.sum(Xw - y) / len(Xw)
 
 
@@ -160,7 +160,7 @@ class _Logistic(BaseDatafit):
             grad -= X_data[i] * y[idx_i] * sigmoid(- y[idx_i] * Xw[idx_i])
         return grad / len(Xw)
 
-    def update_intercept(self, y, Xw):
+    def intercept_update_step(self, y, Xw):
         return - np.sum((y * sigmoid(- y * Xw))) / (4 * len(Xw))
 
 

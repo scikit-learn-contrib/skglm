@@ -284,12 +284,12 @@ def cd_solver(
                     X.data, X.indptr, X.indices, y, w, Xw, datafit, penalty,
                     ws)
             else:
-                _cd_epoch(X, y, w, Xw, datafit, penalty, ws, fit_intercept, intercept)
+                _cd_epoch(X, y, w, Xw, datafit, penalty, ws)
 
             # update intercept
             if fit_intercept:
                 intercept_old = intercept
-                intercept -= datafit.update_intercept(y, Xw)
+                intercept -= datafit.intercept_update_step(y, Xw)
                 Xw += (intercept - intercept_old)
             # 3) do Anderson acceleration on smaller problem
             # TODO optimize computation using ws

@@ -107,6 +107,8 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None, fit_intercept=True,
     n_alphas = len(alphas)
 
     coefs = np.zeros((n_features, n_alphas), order='F', dtype=X.dtype)
+    if fit_intercept:
+        intercepts = np.zeros((1, n_alphas), order='F', dtype=X.dtype)
     stop_crits = np.zeros(n_alphas)
 
     if return_n_iter:
@@ -145,10 +147,12 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None, fit_intercept=True,
             use_acc=use_acc, verbose=verbose, ws_strategy=ws_strategy)
 
         coefs[:, t] = w
+        if fit_intercept:
+            intercepts[0, t] = sol[1]
         stop_crits[t] = sol[-1]
 
         if return_n_iter:
-            n_iters[t] = len(sol[1])
+            n_iters[t] = len(sol[2])
 
     results = alphas, coefs, stop_crits
     if return_n_iter:
@@ -233,6 +237,8 @@ def cd_solver(
     stop_crit = np.inf  # initialize for case n_iter=0
 
     is_sparse = sparse.issparse(X)
+
+    intercept = 0.0
     for t in range(max_iter):
         if is_sparse:
             grad = datafit.full_grad_sparse(
@@ -277,8 +283,13 @@ def cd_solver(
                     X.data, X.indptr, X.indices, y, w, Xw, datafit, penalty,
                     ws)
             else:
-                _cd_epoch(X, y, w, Xw, datafit, penalty, ws)
+                _cd_epoch(X, y, w, Xw, datafit, penalty, ws, fit_intercept, intercept)
 
+            # update intercept
+            if fit_intercept:
+                intercept_old = intercept
+                intercept -= datafit.update_intercept(y, Xw)
+                Xw += (intercept - intercept_old)
             # 3) do Anderson acceleration on smaller problem
             # TODO optimize computation using ws
             if use_acc:
@@ -308,7 +319,7 @@ def cd_solver(
                         # TODO : managed penalty.value(w[ws])
                         p_obj = datafit.value(y, w, Xw) + penalty.value(w)
                         # p_obj = datafit.value(y, w, Xw) +penalty.value(w[ws])
-                        Xw_acc = X[:, ws] @ w_acc[ws]
+                        Xw_acc = X[:, ws] @ w_acc[ws] + intercept
                         # TODO : managed penalty.value(w[ws])
                         p_obj_acc = datafit.value(
                             y, w_acc, Xw_acc) + penalty.value(w_acc)
@@ -343,7 +354,7 @@ def cd_solver(
                             print("Early exit")
                         break
         obj_out.append(p_obj)
-    return w, np.array(obj_out), stop_crit
+    return w, intercept, np.array(obj_out), stop_crit
 
 
 @njit
@@ -459,7 +470,7 @@ def construct_grad_sparse(data, indptr, indices, y, w, Xw, datafit, ws):
 
 
 @njit
-def _cd_epoch(X, y, w, Xw, datafit, penalty, feats):
+def _cd_epoch(X, y, w, Xw, datafit, penalty, feats, fit_intercept, intercept):
     """Run an epoch of coordinate descent in place.
 
     Parameters

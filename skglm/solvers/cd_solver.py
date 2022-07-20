@@ -359,7 +359,7 @@ def cd_solver(
 
 
 @njit
-def _cd_epoch(X, y, w, Xw, datafit, penalty, ws, fit_intercept, intercept):
+def _cd_epoch(X, y, w, Xw, datafit, penalty, ws):
     """Run an epoch of coordinate descent in place.
 
     Parameters

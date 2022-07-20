@@ -236,6 +236,9 @@ class _QuadraticSVC(BaseDatafit):
             grad[j] = yXjyXTw - 1
         return grad
 
+    def intercept_update_step(self, y, Xw):
+        pass
+
 
 QuadraticSVC, QuadraticSVC_32 = jit_factory(_QuadraticSVC, spec_quadratic_svc)
 
@@ -337,6 +340,9 @@ class _Huber(BaseDatafit):
                     grad_j += - X_data[i] * np.sign(tmp) * self.delta
             grad[j] = grad_j / n_samples
         return grad
+
+    def intercept_update_step(self, y, Xw):
+        pass
 
 
 Huber, Huber_32 = jit_factory(_Huber, spec_huber)

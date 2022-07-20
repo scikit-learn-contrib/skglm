@@ -5,7 +5,7 @@ from sklearn.utils import check_array
 from skglm.solvers.common import construct_grad, construct_grad_sparse, dist_fix_point
 
 
-def cd_solver_path(X, y, datafit, penalty, alphas=None, fit_intercept=True,
+def cd_solver_path(X, y, datafit, penalty, alphas=None, fit_intercept=False,
                    coef_init=None, max_iter=20, max_epochs=50_000,
                    p0=10, tol=1e-4, use_acc=True, return_n_iter=False,
                    ws_strategy="subdiff", verbose=0):
@@ -32,7 +32,7 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None, fit_intercept=True,
         List of alphas where to compute the models.
 
     fit_intercept : bool
-        Fit an intercept.
+        Whether or not to fit an intercept.
 
     coef_init : ndarray, shape (n_features,) | None, optional, (default=None)
         Initial value of coefficients. If None, np.zeros(n_features) is used.
@@ -109,7 +109,7 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None, fit_intercept=True,
 
     coefs = np.zeros((n_features, n_alphas), order='F', dtype=X.dtype)
     if fit_intercept:
-        intercepts = np.zeros((1, n_alphas), order='F', dtype=X.dtype)
+        intercepts = np.zeros((1, n_alphas), dtype=X.dtype)
     stop_crits = np.zeros(n_alphas)
 
     if return_n_iter:
@@ -189,7 +189,7 @@ def cd_solver(
         Model fit.
 
     fit_intercept : bool
-        Fit an intercept.
+        Whether or not to fit an intercept.
 
     max_iter : int, optional
         The maximum number of iterations (definition of working set and

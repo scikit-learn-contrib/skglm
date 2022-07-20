@@ -87,7 +87,7 @@ class GeneralizedLinearEstimator(LinearModel):
     """
 
     def __init__(self, datafit=None, penalty=None, is_classif=False, max_iter=100,
-                 max_epochs=50_000, p0=10, tol=1e-4, fit_intercept=True,
+                 max_epochs=50_000, p0=10, tol=1e-4, fit_intercept=False,
                  warm_start=False, ws_strategy="subdiff", verbose=0):
         super(GeneralizedLinearEstimator, self).__init__()
         self.is_classif = is_classif
@@ -155,10 +155,10 @@ class GeneralizedLinearEstimator(LinearModel):
         path_func = cd_solver_path if y.ndim == 1 else bcd_solver_path
         return path_func(
             X, y, self.datafit, self.penalty, alphas=alphas,
-            fit_intercept=self.fit_intercept, coef_init=coef_init,
-            max_iter=self.max_iter, return_n_iter=return_n_iter,
-            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
-            use_acc=True, ws_strategy=self.ws_strategy, verbose=self.verbose)
+            coef_init=coef_init, max_iter=self.max_iter,
+            return_n_iter=return_n_iter, max_epochs=self.max_epochs, p0=self.p0,
+            tol=self.tol, use_acc=True, ws_strategy=self.ws_strategy,
+            fit_intercept=self.fit_intercept, verbose=self.verbose)
 
     def fit(self, X, y):
         """Fit estimator.
@@ -377,7 +377,7 @@ class Lasso(Lasso_sklearn):
     """
 
     def __init__(self, alpha=1., max_iter=100, max_epochs=50_000, p0=10,
-                 verbose=0, tol=1e-4, fit_intercept=True,
+                 verbose=0, tol=1e-4, fit_intercept=False,
                  warm_start=False, ws_strategy="subdiff"):
         super(Lasso, self).__init__(
             alpha=alpha, tol=tol, max_iter=max_iter,
@@ -498,7 +498,7 @@ class WeightedLasso(Lasso_sklearn):
     """
 
     def __init__(self, alpha=1., weights=None, max_iter=100, max_epochs=50_000, p0=10,
-                 verbose=0, tol=1e-4, fit_intercept=True, warm_start=False):
+                 verbose=0, tol=1e-4, fit_intercept=False, warm_start=False):
         super(WeightedLasso, self).__init__(
             alpha=alpha, tol=tol, max_iter=max_iter,
             fit_intercept=fit_intercept, warm_start=warm_start)
@@ -623,7 +623,7 @@ class ElasticNet(ElasticNet_sklearn):
     """
 
     def __init__(self, alpha=1., l1_ratio=0.5, max_iter=100,
-                 max_epochs=50_000, p0=10, tol=1e-4, fit_intercept=True,
+                 max_epochs=50_000, p0=10, tol=1e-4, fit_intercept=False,
                  warm_start=False, verbose=0):
         super(ElasticNet, self).__init__(
             alpha=alpha, l1_ratio=l1_ratio, tol=tol, max_iter=max_iter,
@@ -746,7 +746,7 @@ class MCPRegression(Lasso_sklearn):
     """
 
     def __init__(self, alpha=1., gamma=3, max_iter=100, max_epochs=50_000, p0=10,
-                 verbose=0, tol=1e-4, fit_intercept=True, warm_start=False):
+                 verbose=0, tol=1e-4, fit_intercept=False, warm_start=False):
         super(MCPRegression, self).__init__(
             alpha=alpha, tol=tol, max_iter=max_iter,
             fit_intercept=fit_intercept,
@@ -1077,8 +1077,8 @@ class LinearSVC(LinearSVC_sklearn):
                 "Penalty term must be positive; got (C=%r)" % self.C)
 
         X, y = self._validate_data(
-            X, y, accept_sparse="csc", dtype=np.float64, order="C",
-            accept_large_sparse=True)
+            X, y, accept_sparse="csc", dtype=np.float64,
+            order="C", accept_large_sparse=True)
         check_classification_targets(y)
         self.classes_ = np.unique(y)
 
@@ -1226,7 +1226,7 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
 
     def __init__(self, alpha=1., max_iter=100,
                  max_epochs=50000, p0=10, verbose=0, tol=1e-4,
-                 fit_intercept=True, warm_start=False):
+                 fit_intercept=False, warm_start=False):
         super().__init__(
             alpha=alpha, tol=tol, max_iter=max_iter,
             fit_intercept=fit_intercept, warm_start=warm_start)

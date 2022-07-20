@@ -221,18 +221,10 @@ def _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtr
         for idx, j in enumerate(ws):
             w_j_old = w[j]
             w[j] += diff_step_size * delta_w[idx]
-            # if w[j] < 0:
-            #     delta_obj -= penalty.alpha * delta_w[idx]
-            # elif w[j] > 0:
-            #     delta_obj += penalty.alpha * delta_w[idx]
-            # else:
-            #     delta_obj -= penalty.alpha * abs(delta_w[idx])
-            # TODO choose which type of line-search we want to use
-            # pen(x + Delta x) - pen(x)
-            # or grad pen(x) Delta x
-            # If we choose pen(x + Delta x) - pen(x)
-            # then TODO optimize simplify code
-            delta_obj += penalty.delta_pen(w_j_old, w[j])
+            # then TODO optimize code by creating a penalty.value_1D function
+            delta_obj += (
+                penalty.value(np.array([w[j]]))
+                - penalty.value(np.array([w_j_old])))
             # delta_obj += penalty.delta_pen(w[j], delta_w[idx])
         Xw += diff_step_size * X_delta_w
         grad = -y * sigmoid(-y * Xw)

@@ -222,7 +222,7 @@ def _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtr
             w_j_old = w[j]
             w[j] += diff_step_size * delta_w[idx]
             # then TODO optimize code by creating a penalty.value_1D function
-            delta_obj += (
+            delta_obj += diff_step_size * (
                 penalty.value(np.array([w[j]]))
                 - penalty.value(np.array([w_j_old])))
             # delta_obj += penalty.delta_pen(w[j], delta_w[idx])

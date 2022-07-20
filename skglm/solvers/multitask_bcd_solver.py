@@ -32,7 +32,7 @@ def bcd_solver_path(
     alphas : ndarray, optional
         List of alphas where to compute the models.
         If ``None`` alphas are set automatically.
-    
+
     fit_intercept : bool
         Fit an intercept.
 

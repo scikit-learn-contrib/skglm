@@ -471,8 +471,7 @@ def construct_grad_sparse(data, indptr, indices, y, w, Xw, datafit, ws):
 
 
 @njit
-def _cd_epoch(X, y, w, Xw, datafit, penalty, feats, fit_intercept, intercept):
-def _cd_epoch(X, y, w, Xw, datafit, penalty, ws):
+def _cd_epoch(X, y, w, Xw, datafit, penalty, ws, fit_intercept, intercept):
     """Run an epoch of coordinate descent in place.
 
     Parameters

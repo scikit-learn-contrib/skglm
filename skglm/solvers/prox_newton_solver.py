@@ -1,6 +1,7 @@
 import numpy as np
 from scipy import sparse
 from numba import njit
+# import random
 from skglm.datafits import Logistic, Logistic_32
 from skglm.datafits.single_task import sigmoid
 from skglm.solvers.common import construct_grad
@@ -85,6 +86,9 @@ def prox_newton_solver(
 
     is_sparse = sparse.issparse(X)
     for t in range(max_iter):
+        if max(verbose - 1, 0):
+            print("################################")
+            print("Number iter outer", t)
         if is_sparse:
             grad = datafit.full_grad_sparse(
                 X.data, X.indptr, X.indices, y, Xw)
@@ -127,6 +131,9 @@ def prox_newton_solver(
         # 2) run prox newton on smaller subproblem
         for epoch in range(max_epochs):
             # TODO: support sparse matrices
+            if max(verbose - 1, 0):
+                print("################################")
+                print("Number iter PN", epoch)
             pn_grad_diff = _prox_newton_iter(
                 X, Xw, w, y, penalty, ws, min_pn_cd_epochs, max_pn_cd_epochs,
                 max_backtrack, pn_tol_ratio, pn_grad_diff, hessian_diag, grad_datafit,
@@ -186,12 +193,13 @@ def _compute_descent_direction(
     else:
         pn_tol = pn_tol_ratio * pn_grad_diff
 
+    if max(verbose - 1, 0):
+        print("############################")
     for pn_cd_epoch in range(_max_pn_cd_epochs):
         sum_sq_hess_diff = 0.
         if max(verbose - 1, 0):
-            print("##########################################################")
-            print("pn cd epoch ", pn_cd_epoch)
-            print("##########################################################")
+            print("Number iter cd ", pn_cd_epoch)
+        # random.shuffle(ws)
         for idx, j in enumerate(ws):
             stepsize = 1/lc[idx] if lc[idx] != 0 else 1000
             old_value = w[j] + delta_w[idx]
@@ -204,8 +212,8 @@ def _compute_descent_direction(
                 delta_w[idx] = new_value - w[j]
                 for i in range(X.shape[0]):
                     X_delta_w[i] += diff * X[i, j]
-            if max(verbose - 1, 0):
-                print("delta w is ", delta_w[idx])
+            # if max(verbose - 1, 0):
+            #     print("delta w is ", delta_w[idx])
         if sum_sq_hess_diff <= pn_tol and pn_cd_epoch + 1 >= min_pn_cd_epochs:
             break
     return delta_w, X_delta_w

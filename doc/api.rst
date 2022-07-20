@@ -14,6 +14,7 @@ Estimators
 .. autosummary::
    :toctree: generated/
 
+   GeneralizedLinearEstimator
    ElasticNet
    Lasso
    LinearSVC
@@ -39,6 +40,7 @@ Penalties
    L2_3
    MCPenalty
    WeightedL1
+   WeightedGroupL2
 
 
 Datafits
@@ -49,8 +51,10 @@ Datafits
 .. autosummary::
    :toctree: generated/
 
+   Huber
    Logistic
    Quadratic
+   QuadraticGroup
    QuadraticSVC
 
 

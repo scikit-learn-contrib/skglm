@@ -1,5 +1,8 @@
 benchopt
+libsvmdata>=0.2
+matplotlib>=2.0.0
 numpydoc
 pillow
 sphinx-bootstrap-theme
 sphinx-gallery
+pytest

@@ -2,6 +2,7 @@ import numpy as np
 from numba import njit
 from scipy import sparse
 from sklearn.utils import check_array
+from skglm.solvers.common import construct_grad, construct_grad_sparse, dist_fix_point
 
 
 def cd_solver_path(X, y, datafit, penalty, alphas=None, fit_intercept=True,
@@ -87,7 +88,7 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None, fit_intercept=True,
     n_features = X.shape[1]
 
     if alphas is None:
-        raise ValueError('alphas should be passed explicitely')
+        raise ValueError('alphas should be passed explicitly')
         # if hasattr(penalty, "alpha_max"):
         #     if sparse.issparse(X):
         #         grad0 = construct_grad_sparse(
@@ -217,14 +218,14 @@ def cd_solver(
 
     Returns
     -------
-    alphas : array, shape (n_alphas,)
-        The alphas along the path where models are computed.
-
     coefs : array, shape (n_features, n_alphas)
         Coefficients along the path.
 
-    stop_crit : array, shape (n_alphas,)
-        Value of stopping criterion at convergence along the path.
+    obj_out : array, shape (n_iter,)
+        The objective values at every outer iteration.
+
+    stop_crit : float
+        Value of stopping criterion at convergence.
     """
     if ws_strategy not in ("subdiff", "fixpoint"):
         raise ValueError(f'Unsupported value for ws_strategy: {ws_strategy}')
@@ -332,14 +333,14 @@ def cd_solver(
                 p_obj = datafit.value(y, w[ws], Xw) + penalty.value(w)
 
                 if is_sparse:
-                    grad = construct_grad_sparse(
+                    grad_ws = construct_grad_sparse(
                         X.data, X.indptr, X.indices, y, w, Xw, datafit, ws)
                 else:
-                    grad = construct_grad(X, y, w, Xw, datafit, ws)
+                    grad_ws = construct_grad(X, y, w, Xw, datafit, ws)
                 if ws_strategy == "subdiff":
-                    opt_ws = penalty.subdiff_distance(w, grad, ws)
+                    opt_ws = penalty.subdiff_distance(w, grad_ws, ws)
                 elif ws_strategy == "fixpoint":
-                    opt_ws = dist_fix_point(w, grad, datafit, penalty, ws)
+                    opt_ws = dist_fix_point(w, grad_ws, datafit, penalty, ws)
 
                 stop_crit_in = np.max(opt_ws)
                 if max(verbose - 1, 0):
@@ -471,6 +472,7 @@ def construct_grad_sparse(data, indptr, indices, y, w, Xw, datafit, ws):
 
 @njit
 def _cd_epoch(X, y, w, Xw, datafit, penalty, feats, fit_intercept, intercept):
+def _cd_epoch(X, y, w, Xw, datafit, penalty, ws):
     """Run an epoch of coordinate descent in place.
 
     Parameters
@@ -493,11 +495,11 @@ def _cd_epoch(X, y, w, Xw, datafit, penalty, feats, fit_intercept, intercept):
     penalty : Penalty
         Penalty.
 
-    feats : array, shape (n_features,)
+    ws : array, shape (ws_size,)
         The range of features.
     """
     lc = datafit.lipschitz
-    for j in feats:
+    for j in ws:
         stepsize = 1/lc[j] if lc[j] != 0 else 1000
         Xj = X[:, j]
         old_w_j = w[j]
@@ -509,7 +511,7 @@ def _cd_epoch(X, y, w, Xw, datafit, penalty, feats, fit_intercept, intercept):
 
 
 @njit
-def _cd_epoch_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, penalty, feats):
+def _cd_epoch_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, penalty, ws):
     """Run an epoch of coordinate descent in place for a sparse CSC array.
 
     Parameters
@@ -538,11 +540,11 @@ def _cd_epoch_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, penalty, fe
     penalty : Penalty
         Penalty.
 
-    feats : array, shape (n_features,)
-        The range of features.
+    ws : array, shape (ws_size,)
+        The working set.
     """
     lc = datafit.lipschitz
-    for j in feats:
+    for j in ws:
         stepsize = 1/lc[j] if lc[j] != 0 else 1000
 
         old_w_j = w[j]

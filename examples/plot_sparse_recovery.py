@@ -10,7 +10,6 @@ Illustrate the superior performance of penalties for sparse recovery.
 #         Quentin Klopfenstein
 
 import numpy as np
-import seaborn as sns
 from numpy.linalg import norm
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
@@ -19,9 +18,9 @@ from sklearn.metrics import f1_score, mean_squared_error
 from skglm.utils import make_correlated_data
 from skglm.solvers import cd_solver_path
 from skglm.datafits import Quadratic
-from skglm.penalties import L1, MCPenalty, L0_5, L2_3
+from skglm.penalties import L1, MCPenalty, L0_5, L2_3, SCAD
 
-current_palette = sns.color_palette("colorblind")
+cmap = plt.get_cmap('tab10')
 
 # Simulate sparse data
 n_features = 1000
@@ -52,14 +51,16 @@ datafit = Quadratic()
 penalties = {}
 penalties['lasso'] = L1(alpha=1)
 penalties['mcp'] = MCPenalty(alpha=1, gamma=3)
+penalties['scad'] = SCAD(alpha=1, gamma=3)
 penalties['l05'] = L0_5(alpha=1)
 penalties['l23'] = L2_3(alpha=1)
 
 colors = {}
-colors['lasso'] = current_palette[0]
-colors['mcp'] = current_palette[1]
-colors['l05'] = current_palette[2]
-colors['l23'] = current_palette[3]
+colors['lasso'] = cmap(0)
+colors['mcp'] = cmap(1)
+colors['scad'] = cmap(2)
+colors['l05'] = cmap(3)
+colors['l23'] = cmap(4)
 
 f1 = {}
 estimation_error = {}
@@ -84,12 +85,14 @@ for idx, estimator in enumerate(penalties.keys()):
 
 name_estimators = {'lasso': "Lasso"}
 name_estimators['mcp'] = r"MCP, $\gamma=%s$" % 3
+name_estimators['scad'] = r"SCAD, $\gamma=%s$" % 3
 name_estimators['l05'] = r"$\ell_{1/2}$"
 name_estimators['l23'] = r"$\ell_{2/3}$"
 
 
 plt.close('all')
-fig, axarr = plt.subplots(2, 1, sharex=True, sharey=False, figsize=[8.2, 5.7])
+fig, axarr = plt.subplots(2, 1, sharex=True, sharey=False, figsize=[
+                          6.3, 3.7], constrained_layout=True)
 
 for idx, estimator in enumerate(penalties.keys()):
 
@@ -128,5 +131,6 @@ for idx, estimator in enumerate(penalties.keys()):
     axarr[1].set_ylabel("pred. RMSE left-out")
     axarr[0].legend(
         bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left",
-        mode="expand", borderaxespad=0, ncol=4)
-    plt.show(block=False)
+        mode="expand", borderaxespad=0, ncol=1)
+
+plt.show(block=False)

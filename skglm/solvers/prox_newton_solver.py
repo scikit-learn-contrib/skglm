@@ -10,7 +10,7 @@ from skglm.solvers.common import construct_grad
 def prox_newton_solver(
         X, y, datafit, penalty, w, Xw, max_iter=50, max_epochs=1000, max_backtrack=20,
         min_pn_cd_epochs=2, max_pn_cd_epochs=20, p0=10, tol=1e-4, verbose=0,
-        eps_in=0.1):
+        eps_in=0.3):
     r"""Run a prox-Newton solver.
 
     Parameters
@@ -125,8 +125,6 @@ def prox_newton_solver(
         pn_tol_ratio = 10.
 
         _compute_grad_hessian_datafit(X, y, Xw, ws, hessian_diag, grad_datafit, lc)
-        for idx, j in enumerate(ws):
-            bias[idx] = X[:, j] @ grad_datafit
 
         # 2) run prox newton on smaller subproblem
         for epoch in range(max_epochs):
@@ -163,8 +161,8 @@ def _prox_newton_iter(
         verbose=0):
 
     delta_w, X_delta_w = _compute_descent_direction(
-        X, w, ws, hessian_diag, bias, lc, penalty, min_pn_cd_epochs, max_pn_cd_epochs,
-        pn_tol_ratio, pn_grad_diff, epoch, verbose=verbose)
+        X, w, ws, hessian_diag, bias, grad_datafit, lc, penalty, min_pn_cd_epochs, 
+        max_pn_cd_epochs, pn_tol_ratio, pn_grad_diff, epoch, verbose=verbose)
     _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack)
 
     _compute_grad_hessian_datafit(X, y, Xw, ws, hessian_diag, grad_datafit, lc)
@@ -183,13 +181,15 @@ def _prox_newton_iter(
 
 @njit
 def _compute_descent_direction(
-        X, w, ws, hessian_diag, bias, lc, penalty, min_pn_cd_epochs, max_pn_cd_epochs,
-        pn_tol_ratio, pn_grad_diff, epoch, verbose=0):
+        X, w, ws, hessian_diag, bias, grad_datafit, lc, penalty, min_pn_cd_epochs, 
+        max_pn_cd_epochs, pn_tol_ratio, pn_grad_diff, epoch, verbose=0):
     delta_w, X_delta_w = np.zeros(len(ws)), np.zeros(X.shape[0])
     pn_tol = 0.
     _max_pn_cd_epochs = max_pn_cd_epochs
     if epoch == 0:
         _max_pn_cd_epochs = min_pn_cd_epochs
+        for idx, j in enumerate(ws):
+            bias[idx] = X[:, j] @ grad_datafit
     else:
         pn_tol = pn_tol_ratio * pn_grad_diff
 
@@ -199,10 +199,12 @@ def _compute_descent_direction(
         sum_sq_hess_diff = 0.
         if max(verbose - 1, 0):
             print("Number iter cd ", pn_cd_epoch)
+            print("ws size: ", len(ws))
         # random.shuffle(ws)
         for idx, j in enumerate(ws):
             stepsize = 1/lc[idx] if lc[idx] != 0 else 1000
             old_value = w[j] + delta_w[idx]
+            # TODO: Is it the correct gradient? What's the intuition behind the formula? 
             grad_j = bias[idx] + (X[:, j] * X_delta_w * hessian_diag).sum()
             new_value = penalty.prox_1d(
                 old_value - grad_j * stepsize, stepsize, j)
@@ -214,7 +216,10 @@ def _compute_descent_direction(
                     X_delta_w[i] += diff * X[i, j]
             # if max(verbose - 1, 0):
             #     print("delta w is ", delta_w[idx])
+        # sum_sq_hess_diff /= X.shape[0] ** 2
+        # TODO: beware scaling sum_sq_hess_diff and pn_tol
         if sum_sq_hess_diff <= pn_tol and pn_cd_epoch + 1 >= min_pn_cd_epochs:
+            print("Exited! sum_sq_hess_diff: ", sum_sq_hess_diff)
             break
     return delta_w, X_delta_w
 
@@ -236,11 +241,13 @@ def _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtr
             delta_obj += penalty.delta_pen(w[j], delta_w[idx])
         Xw += diff_step_size * X_delta_w
         grad = -y * sigmoid(-y * Xw)
-        delta_obj += X_delta_w @ grad / len(X_delta_w)
+        delta_obj += step_size * X_delta_w @ grad / len(X_delta_w)  # TODO: might miss a step size
         if delta_obj < 1e-7:
             break
         prev_step_size = step_size
         step_size = step_size / 2
+    if step_size != 1.0:
+        X_delta_w *= step_size
 
 
 @njit

@@ -161,7 +161,7 @@ class _Logistic(BaseDatafit):
         return grad / len(Xw)
 
     def intercept_update_step(self, y, Xw):
-        return - np.sum((y * sigmoid(- y * Xw))) / (4 * len(Xw))
+        return np.sum((- y * sigmoid(- y * Xw))) / (4 * len(Xw))
 
 
 Logistic, Logistic_32 = jit_factory(_Logistic, spec_logistic)

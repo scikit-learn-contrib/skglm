@@ -342,12 +342,15 @@ class _Huber(BaseDatafit):
         return grad
 
     def intercept_update_step(self, y, Xw):
-        residuals = y - Xw
-        idx_delta = abs(residuals) < self.delta
-        update = - np.sum(residuals[idx_delta])
-        update -= np.sum(np.sign(residuals) * self.delta)
-
-        return update
+        n_samples = len(y)
+        update = 0.
+        for i in range(n_samples):
+            tmp = y[i] - Xw[i]
+            if abs(tmp) < self.delta:
+                update -= tmp
+            else:
+                update -= np.sign(tmp) * self.delta
+        return update / n_samples
 
 
 Huber, Huber_32 = jit_factory(_Huber, spec_huber)

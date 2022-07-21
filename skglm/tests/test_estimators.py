@@ -96,11 +96,15 @@ def test_check_estimator(estimator_name):
 
 @pytest.mark.parametrize("estimator_name", dict_estimators_ours.keys())
 @pytest.mark.parametrize('X', [X, X_sparse])
-def test_estimator(estimator_name, X):
+@pytest.mark.parametrize('fit_intercept', [False, True])
+def test_estimator(estimator_name, X, fit_intercept):
     if estimator_name == "GeneralizedLinearEstimator":
         pytest.skip()
     estimator_sk = dict_estimators_sk[estimator_name]
     estimator_ours = dict_estimators_ours[estimator_name]
+
+    estimator_ours.fit_intercept = fit_intercept
+    estimator_sk.fit_intercept = fit_intercept
 
     estimator_sk.fit(X, y)
     estimator_ours.fit(X, y)

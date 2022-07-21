@@ -84,6 +84,9 @@ class Quadratic(BaseDatafit):
             grad[j] = (XjTXw - self.Xty[j]) / n_samples
         return grad
 
+    def intercept_update_step(self, y, Xw):
+        return np.sum(Xw - y) / len(Xw)
+
 
 Quadratic, Quadratic_32 = jit_factory(Quadratic, spec_quadratic)
 
@@ -157,6 +160,9 @@ class _Logistic(BaseDatafit):
             grad -= X_data[i] * y[idx_i] * sigmoid(- y[idx_i] * Xw[idx_i])
         return grad / len(Xw)
 
+    def intercept_update_step(self, y, Xw):
+        return np.sum((- y * sigmoid(- y * Xw))) / (4 * len(Xw))
+
 
 Logistic, Logistic_32 = jit_factory(_Logistic, spec_logistic)
 
@@ -229,6 +235,9 @@ class _QuadraticSVC(BaseDatafit):
                 yXjyXTw += yXT_data[i] * yXTw[yXT_indices[i]]
             grad[j] = yXjyXTw - 1
         return grad
+
+    def intercept_update_step(self, y, Xw):
+        pass
 
 
 QuadraticSVC, QuadraticSVC_32 = jit_factory(_QuadraticSVC, spec_quadratic_svc)
@@ -331,6 +340,17 @@ class _Huber(BaseDatafit):
                     grad_j += - X_data[i] * np.sign(tmp) * self.delta
             grad[j] = grad_j / n_samples
         return grad
+
+    def intercept_update_step(self, y, Xw):
+        n_samples = len(y)
+        update = 0.
+        for i in range(n_samples):
+            tmp = y[i] - Xw[i]
+            if abs(tmp) < self.delta:
+                update -= tmp
+            else:
+                update -= np.sign(tmp) * self.delta
+        return update / n_samples
 
 
 Huber, Huber_32 = jit_factory(_Huber, spec_huber)

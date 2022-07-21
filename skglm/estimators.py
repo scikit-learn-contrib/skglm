@@ -87,7 +87,7 @@ class GeneralizedLinearEstimator(LinearModel):
     """
 
     def __init__(self, datafit=None, penalty=None, is_classif=False, max_iter=100,
-                 max_epochs=50_000, p0=10, tol=1e-4, fit_intercept=True,
+                 max_epochs=50_000, p0=10, tol=1e-4, fit_intercept=False,
                  warm_start=False, ws_strategy="subdiff", verbose=0):
         super(GeneralizedLinearEstimator, self).__init__()
         self.is_classif = is_classif
@@ -158,7 +158,7 @@ class GeneralizedLinearEstimator(LinearModel):
             coef_init=coef_init, max_iter=self.max_iter,
             return_n_iter=return_n_iter, max_epochs=self.max_epochs, p0=self.p0,
             tol=self.tol, use_acc=True, ws_strategy=self.ws_strategy,
-            verbose=self.verbose)
+            fit_intercept=self.fit_intercept, verbose=self.verbose)
 
     def fit(self, X, y):
         """Fit estimator.
@@ -223,7 +223,7 @@ class GeneralizedLinearEstimator(LinearModel):
             else:
                 yXT = (X * y[:, None]).T
 
-        n_samples = X.shape[0]
+        n_samples, n_features = X.shape
         if n_samples != y.shape[0]:
             raise ValueError("X and y have inconsistent dimensions (%d != %d)"
                              % (n_samples, y.shape[0]))
@@ -239,15 +239,17 @@ class GeneralizedLinearEstimator(LinearModel):
 
         _, coefs, kkt = path_func(
             X_, y, self.datafit, self.penalty, alphas=[self.penalty.alpha],
-            coef_init=self.coef_, max_iter=self.max_iter,
-            max_epochs=self.max_epochs, p0=self.p0, verbose=self.verbose,
-            tol=self.tol, ws_strategy=self.ws_strategy)
+            fit_intercept=self.fit_intercept, coef_init=self.coef_,
+            max_iter=self.max_iter, max_epochs=self.max_epochs, p0=self.p0,
+            verbose=self.verbose, tol=self.tol, ws_strategy=self.ws_strategy)
 
-        self.coef_, self.stop_crit_ = coefs[..., 0], kkt[-1]
+        self.coef_, self.stop_crit_ = coefs[:n_features, 0], kkt[-1]
         self.n_iter_ = len(kkt)
-        # TODO: handle intercept for Quadratic, Logistic, etc.
-        # self._set_intercept(X_offset, y_offset, X_scale)
-        self.intercept_ = 0.
+
+        if self.fit_intercept:
+            self.intercept_ = coefs[-1, 0]
+        else:
+            self.intercept_ = 0.
 
         if isinstance(self.datafit, QuadraticSVC):
             if n_classes_ <= 2:
@@ -319,7 +321,7 @@ class GeneralizedLinearEstimator(LinearModel):
         return params
 
 
-class Lasso(Lasso_sklearn):
+class Lasso(GeneralizedLinearEstimator):
     r"""Lasso estimator based on Celer solver and primal extrapolation.
 
     The optimization objective for Lasso is::
@@ -377,62 +379,20 @@ class Lasso(Lasso_sklearn):
     """
 
     def __init__(self, alpha=1., max_iter=100, max_epochs=50_000, p0=10,
-                 verbose=0, tol=1e-4, fit_intercept=True,
+                 verbose=0, tol=1e-4, fit_intercept=False,
                  warm_start=False, ws_strategy="subdiff"):
-        super(Lasso, self).__init__(
-            alpha=alpha, tol=tol, max_iter=max_iter,
-            fit_intercept=fit_intercept,
-            warm_start=warm_start)
+        self.is_classif = False
+        self.tol = tol
+        self.max_iter = max_iter
+        self.fit_intercept = fit_intercept
+        self.warm_start = warm_start
         self.verbose = verbose
         self.max_epochs = max_epochs
         self.p0 = p0
         self.ws_strategy = ws_strategy
-
-    def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
-        """Compute Lasso path.
-
-        Parameters
-        ----------
-        X : array, shape (n_samples, n_features)
-            Design matrix.
-
-        y : array, shape (n_samples,)
-            Target vector.
-
-        alphas : array, shape (n_alphas,)
-            Grid of alpha.
-
-        coef_init : array, shape (n_features,), optional
-            If warm_start is enabled, the optimization problem restarts from coef_init.
-
-        return_n_iter : bool
-            Returns the number of iterations along the path.
-
-        **params : kwargs
-            All parameters supported by path.
-
-        Returns
-        -------
-        alphas : array, shape (n_alphas,)
-            The alphas along the path where models are computed.
-
-        coefs : array, shape (n_features, n_alphas)
-            Coefficients along the path.
-
-        stop_crit : array, shape (n_alphas,)
-            Value of stopping criterion at convergence along the path.
-
-        n_iters : array, shape (n_alphas,), optional
-            The number of iterations along the path. If return_n_iter is set to `True`.
-        """
-        datafit = Quadratic_32() if X.dtype == np.float32 else Quadratic()
-        penalty = L1(self.alpha)
-        return cd_solver_path(
-            X, y, datafit, penalty, alphas=alphas,
-            coef_init=coef_init, max_iter=self.max_iter,
-            return_n_iter=return_n_iter, max_epochs=self.max_epochs,
-            p0=self.p0, tol=self.tol, verbose=self.verbose,
-            ws_strategy=self.ws_strategy)
+        self.datafit = Quadratic()
+        self.penalty = L1(alpha)
+        self.alpha = alpha
 
 
 class WeightedLasso(Lasso_sklearn):
@@ -498,7 +458,7 @@ class WeightedLasso(Lasso_sklearn):
     """
 
     def __init__(self, alpha=1., weights=None, max_iter=100, max_epochs=50_000, p0=10,
-                 verbose=0, tol=1e-4, fit_intercept=True, warm_start=False):
+                 verbose=0, tol=1e-4, fit_intercept=False, warm_start=False):
         super(WeightedLasso, self).__init__(
             alpha=alpha, tol=tol, max_iter=max_iter,
             fit_intercept=fit_intercept, warm_start=warm_start)
@@ -556,8 +516,8 @@ class WeightedLasso(Lasso_sklearn):
         penalty = WeightedL1(self.alpha, weights)
 
         return cd_solver_path(
-            X, y, datafit, penalty, alphas=alphas, coef_init=coef_init,
-            max_iter=self.max_iter, return_n_iter=return_n_iter,
+            X, y, datafit, penalty, alphas=alphas, fit_intercept=self.fit_intercept,
+            coef_init=coef_init, max_iter=self.max_iter, return_n_iter=return_n_iter,
             max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
             verbose=self.verbose)
 
@@ -623,12 +583,11 @@ class ElasticNet(ElasticNet_sklearn):
     """
 
     def __init__(self, alpha=1., l1_ratio=0.5, max_iter=100,
-                 max_epochs=50_000, p0=10, tol=1e-4, fit_intercept=True,
+                 max_epochs=50_000, p0=10, tol=1e-4, fit_intercept=False,
                  warm_start=False, verbose=0):
         super(ElasticNet, self).__init__(
             alpha=alpha, l1_ratio=l1_ratio, tol=tol, max_iter=max_iter,
-            fit_intercept=fit_intercept,
-            warm_start=warm_start)
+            fit_intercept=fit_intercept, warm_start=warm_start)
         self.verbose = verbose
         self.max_epochs = max_epochs
         self.p0 = p0
@@ -676,10 +635,9 @@ class ElasticNet(ElasticNet_sklearn):
         penalty = L1_plus_L2(self.alpha, self.l1_ratio)
 
         return cd_solver_path(
-            X, y, datafit, penalty, alphas=alphas, coef_init=coef_init,
-            max_iter=self.max_iter, return_n_iter=return_n_iter,
-            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
-            verbose=self.verbose)
+            X, y, datafit, penalty, alphas=alphas, fit_intercept=self.fit_intercept,
+            coef_init=coef_init, max_iter=self.max_iter, return_n_iter=return_n_iter,
+            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol, verbose=self.verbose)
 
 
 class MCPRegression(Lasso_sklearn):
@@ -748,7 +706,7 @@ class MCPRegression(Lasso_sklearn):
     """
 
     def __init__(self, alpha=1., gamma=3, max_iter=100, max_epochs=50_000, p0=10,
-                 verbose=0, tol=1e-4, fit_intercept=True, warm_start=False):
+                 verbose=0, tol=1e-4, fit_intercept=False, warm_start=False):
         super(MCPRegression, self).__init__(
             alpha=alpha, tol=tol, max_iter=max_iter,
             fit_intercept=fit_intercept,
@@ -800,10 +758,9 @@ class MCPRegression(Lasso_sklearn):
         penalty = MCPenalty(self.alpha, self.gamma)
 
         return cd_solver_path(
-            X, y, datafit, penalty, alphas=alphas, coef_init=coef_init,
-            max_iter=self.max_iter, return_n_iter=return_n_iter,
-            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
-            verbose=self.verbose)
+            X, y, datafit, penalty, alphas=alphas, fit_intercept=self.fit_intercept,
+            coef_init=coef_init, max_iter=self.max_iter, return_n_iter=return_n_iter,
+            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol, verbose=self.verbose)
 
 
 class SparseLogisticRegression(LogReg_sklearn):
@@ -866,14 +823,12 @@ class SparseLogisticRegression(LogReg_sklearn):
             max_epochs=50000, p0=10, warm_start=False):
 
         super(SparseLogisticRegression, self).__init__(
-            tol=tol, max_iter=max_iter,
-            fit_intercept=fit_intercept,
+            tol=tol, max_iter=max_iter, fit_intercept=fit_intercept,
             warm_start=warm_start)
         self.verbose = verbose
         self.max_epochs = max_epochs
         self.p0 = p0
         self.max_iter = max_iter
-        self.fit_intercept = fit_intercept
         self.alpha = alpha
 
     def fit(self, X, y):
@@ -970,9 +925,10 @@ class SparseLogisticRegression(LogReg_sklearn):
         penalty = L1(self.alpha)
         return cd_solver_path(
             X, y, datafit, penalty, alphas=alphas,
-            coef_init=coef_init, max_iter=self.max_iter,
-            return_n_iter=return_n_iter, max_epochs=self.max_epochs,
-            p0=self.p0, tol=self.tol, verbose=self.verbose)
+            fit_intercept=self.fit_intercept, coef_init=coef_init,
+            max_iter=self.max_iter, return_n_iter=return_n_iter,
+            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
+            verbose=self.verbose)
 
 
 class LinearSVC(LinearSVC_sklearn):
@@ -1081,13 +1037,8 @@ class LinearSVC(LinearSVC_sklearn):
                 "Penalty term must be positive; got (C=%r)" % self.C)
 
         X, y = self._validate_data(
-            X,
-            y,
-            accept_sparse="csc",
-            dtype=np.float64,
-            order="C",
-            accept_large_sparse=True,
-        )
+            X, y, accept_sparse="csc", dtype=np.float64,
+            order="C", accept_large_sparse=True)
         check_classification_targets(y)
         self.classes_ = np.unique(y)
 
@@ -1176,9 +1127,10 @@ class LinearSVC(LinearSVC_sklearn):
 
         return cd_solver_path(
             yXT, y, datafit, penalty_dual, alphas=Cs,
-            coef_init=coef_init, max_iter=self.max_iter,
-            return_n_iter=return_n_iter, max_epochs=self.max_epochs,
-            p0=self.p0, tol=self.tol, verbose=self.verbose)
+            fit_intercept=self.fit_intercept, coef_init=coef_init,
+            max_iter=self.max_iter, return_n_iter=return_n_iter,
+            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
+            verbose=self.verbose)
 
 
 class MultiTaskLasso(MultiTaskLasso_sklearn):
@@ -1234,7 +1186,7 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
 
     def __init__(self, alpha=1., max_iter=100,
                  max_epochs=50000, p0=10, verbose=0, tol=1e-4,
-                 fit_intercept=True, warm_start=False):
+                 fit_intercept=False, warm_start=False):
         super().__init__(
             alpha=alpha, tol=tol, max_iter=max_iter,
             fit_intercept=fit_intercept, warm_start=warm_start)

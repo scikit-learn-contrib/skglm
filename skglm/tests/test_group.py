@@ -122,19 +122,20 @@ def test_vs_celer_grouplasso(n_groups, n_features, shuffle):
     np.testing.assert_allclose(model.coef_, w, atol=1e-5)
 
 
-def test_anderson_acceleration():
+@pytest.mark.parametrize("n_features, n_tasks", [(2, 1), (2, 5)])
+def test_anderson_acceleration(n_features, n_tasks):
     # VAR: w = rho * w + 1 with |rho| < 1
     # converges to w_star = 1 / (1 - rho)
     max_iter, tol = 1000, 1e-9
-    n_features = 2
-    rho = np.array([0.5, 0.8])
+    np.random.seed(0)
+    rho = np.random.rand(n_features, n_tasks)
     w_star = 1 / (1 - rho)
     X = np.diag([2, 5])
 
     # with acceleration
     acc = AndersonAcceleration(K=5)
     n_iter_acc = 0
-    w = np.ones(n_features)
+    w = np.ones((n_features, n_tasks))
     Xw = X @ w
     for i in range(max_iter):
         w, Xw, _ = acc.extrapolate(w, Xw)
@@ -147,7 +148,7 @@ def test_anderson_acceleration():
 
     # without acceleration
     n_iter = 0
-    w = np.ones(n_features)
+    w = np.ones((n_features, n_tasks))
     for i in range(max_iter):
         w = rho * w + 1
 
@@ -158,8 +159,7 @@ def test_anderson_acceleration():
     np.testing.assert_allclose(w, w_star)
     np.testing.assert_allclose(Xw, X @ w_star)
 
-    np.testing.assert_array_equal(n_iter_acc, 13)
-    np.testing.assert_array_equal(n_iter, 99)
+    np.testing.assert_array_less(n_iter_acc, n_iter)
 
 
 if __name__ == '__main__':

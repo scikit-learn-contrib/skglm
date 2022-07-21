@@ -342,8 +342,9 @@ class AndersonAcceleration:
 
         # compute extrapolation coefs
         try:
-            U_flatten = U if w.ndim == 1 else U.reshape(-1, self.K)
-            inv_UTU_ones = np.linalg.solve(U_flatten.T @ U_flatten, np.ones(self.K))
+            # else close equivalent to U.reshape(-1, K).T @ U.reshape(-1, K)
+            UTU = U.T @ U if w.ndim == 1 else np.tensordot(U, U, axes=[(0, 1), (0, 1)])
+            inv_UTU_ones = np.linalg.solve(UTU, np.ones(self.K))
         except np.linalg.LinAlgError:
             return w, Xw, False
         finally:

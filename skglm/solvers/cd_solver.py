@@ -106,9 +106,7 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None, fit_intercept=False,
 
     n_alphas = len(alphas)
 
-    coefs = np.zeros((n_features, n_alphas), order='F', dtype=X.dtype)
-    if fit_intercept:
-        intercepts = np.zeros((1, n_alphas), dtype=X.dtype)
+    coefs = np.zeros((n_features + fit_intercept, n_alphas), order='F', dtype=X.dtype)
     stop_crits = np.zeros(n_alphas)
 
     if return_n_iter:
@@ -145,10 +143,6 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None, fit_intercept=False,
             X, y, datafit, penalty, w, Xw, fit_intercept=fit_intercept,
             max_iter=max_iter, max_epochs=max_epochs, p0=p0, tol=tol,
             use_acc=use_acc, verbose=verbose, ws_strategy=ws_strategy)
-
-        if fit_intercept:
-            intercepts[0, t] = w[-1]
-            w = w[:n_features]
 
         coefs[:, t] = sol[0]
         stop_crits[t] = sol[-1]

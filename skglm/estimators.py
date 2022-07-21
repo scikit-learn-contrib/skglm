@@ -223,7 +223,7 @@ class GeneralizedLinearEstimator(LinearModel):
             else:
                 yXT = (X * y[:, None]).T
 
-        n_samples = X.shape[0]
+        n_samples, n_features = X.shape
         if n_samples != y.shape[0]:
             raise ValueError("X and y have inconsistent dimensions (%d != %d)"
                              % (n_samples, y.shape[0]))
@@ -243,11 +243,13 @@ class GeneralizedLinearEstimator(LinearModel):
             max_iter=self.max_iter, max_epochs=self.max_epochs, p0=self.p0,
             verbose=self.verbose, tol=self.tol, ws_strategy=self.ws_strategy)
 
-        self.coef_, self.stop_crit_ = coefs[..., 0], kkt[-1]
+        self.coef_, self.stop_crit_ = coefs[:n_features, 0], kkt[-1]
         self.n_iter_ = len(kkt)
-        # TODO: handle intercept for Quadratic, Logistic, etc.
-        # self._set_intercept(X_offset, y_offset, X_scale)
-        self.intercept_ = 0.
+
+        if self.fit_intercept:
+            self.intercept_ = coefs[-1, 0]
+        else:
+            self.intercept_ = 0.
 
         if isinstance(self.datafit, QuadraticSVC):
             if n_classes_ <= 2:
@@ -319,7 +321,7 @@ class GeneralizedLinearEstimator(LinearModel):
         return params
 
 
-class Lasso(Lasso_sklearn):
+class Lasso(GeneralizedLinearEstimator):
     r"""Lasso estimator based on Celer solver and primal extrapolation.
 
     The optimization objective for Lasso is::
@@ -379,60 +381,18 @@ class Lasso(Lasso_sklearn):
     def __init__(self, alpha=1., max_iter=100, max_epochs=50_000, p0=10,
                  verbose=0, tol=1e-4, fit_intercept=False,
                  warm_start=False, ws_strategy="subdiff"):
-        super(Lasso, self).__init__(
-            alpha=alpha, tol=tol, max_iter=max_iter,
-            fit_intercept=fit_intercept,
-            warm_start=warm_start)
+        self.is_classif = False
+        self.tol = tol
+        self.max_iter = max_iter
+        self.fit_intercept = fit_intercept
+        self.warm_start = warm_start
         self.verbose = verbose
         self.max_epochs = max_epochs
         self.p0 = p0
         self.ws_strategy = ws_strategy
-
-    def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
-        """Compute Lasso path.
-
-        Parameters
-        ----------
-        X : array, shape (n_samples, n_features)
-            Design matrix.
-
-        y : array, shape (n_samples,)
-            Target vector.
-
-        alphas : array, shape (n_alphas,)
-            Grid of alpha.
-
-        coef_init : array, shape (n_features,), optional
-            If warm_start is enabled, the optimization problem restarts from coef_init.
-
-        return_n_iter : bool
-            Returns the number of iterations along the path.
-
-        **params : kwargs
-            All parameters supported by path.
-
-        Returns
-        -------
-        alphas : array, shape (n_alphas,)
-            The alphas along the path where models are computed.
-
-        coefs : array, shape (n_features, n_alphas)
-            Coefficients along the path.
-
-        stop_crit : array, shape (n_alphas,)
-            Value of stopping criterion at convergence along the path.
-
-        n_iters : array, shape (n_alphas,), optional
-            The number of iterations along the path. If return_n_iter is set to `True`.
-        """
-        datafit = Quadratic_32() if X.dtype == np.float32 else Quadratic()
-        penalty = L1(self.alpha)
-        return cd_solver_path(
-            X, y, datafit, penalty, alphas=alphas,
-            fit_intercept=self.fit_intercept, coef_init=coef_init,
-            max_iter=self.max_iter, return_n_iter=return_n_iter,
-            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
-            verbose=self.verbose, ws_strategy=self.ws_strategy)
+        self.datafit = Quadratic()
+        self.penalty = L1(alpha)
+        self.alpha = alpha
 
 
 class WeightedLasso(Lasso_sklearn):

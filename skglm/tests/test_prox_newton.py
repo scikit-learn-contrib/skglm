@@ -64,4 +64,10 @@ def test_prox_newton_vs_cd(penalty_name):
 
 
 if __name__ == '__main__':
-    pass
+    # LOGGER in action
+    datafit = Logistic()
+    datafit.initialize(X, y_ind)
+    pen = L1(alpha=alpha)
+    w = np.zeros(n_features)
+    Xw = np.zeros(n_samples)
+    w_newton = prox_newton_solver(X, y_ind, datafit, pen, w, Xw, tol=tol)[0]

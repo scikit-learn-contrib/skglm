@@ -20,6 +20,22 @@ from skglm.datafits.base import BaseDatafit
 from skglm.solvers import cd_solver_path, bcd_solver_path
 
 
+def jit_closure():
+    compiled_classes = dict()
+
+    def our_jit_compiler(klass, spec):
+        try:
+            return compiled_classes[klass]
+        except KeyError:
+            compiled = jitclass(spec)(klass)
+            compiled_classes[klass] = compiled
+            return compiled
+    return our_jit_compiler
+
+
+our_jit_compiler = jit_closure()
+
+
 class QuadraticNoJit(BaseDatafit):
     def __init__(self):
         pass
@@ -184,10 +200,9 @@ class GeneralizedLinearEstimator(LinearModel):
 
         path_func = cd_solver_path if y.ndim == 1 else bcd_solver_path
 
-        # TODO so far this takes time every time fit is called unfortunately
-        penalty = jitclass([('alpha', float64)])(
-            self.penalty.__class__)(self.penalty.alpha)
-        datafit = jitclass(spec_quadratic)(self.datafit.__class__)()
+        penalty = our_jit_compiler(self.penalty.__class__, [
+                                   ('alpha', float64)])(self.penalty.alpha)
+        datafit = our_jit_compiler(self.datafit.__class__, spec_quadratic)()
 
         _, coefs, kkt = path_func(
             X, y, datafit, penalty, alphas=[self.penalty.alpha],
@@ -241,22 +256,23 @@ if __name__ == "__main__":
     t0 = time.time()
     clf.fit(X, y)
     t1 = time.time()
-    print(f"first call: {t1 - t0:.3f} s")
+    print(f"first call to fit with compilation: {t1 - t0:.3f} s")
 
     t0 = time.time()
+    clf = GeneralizedLinearEstimator(datafit, penalty, verbose=0)
     clf.fit(X, y)
     t1 = time.time()
-    print(f"second call: {t1 - t0:.3f} s")  # should not be so high
+    # should not be so high
+    print(f"second call to fit (compilation?): {t1 - t0:.3f} s")
 
-    # this takes time everytime it is executed, even in the same interpretor
-    t0 = time.time()
-    df = jitclass(spec_quadratic)(datafit.__class__)()
-    t1 = time.time()
-    df.initialize(X, y)
-    t2 = time.time()
-    print(t1 - t0, t2 - t1)
+    # t0 = time.time()
+    # df = our_jit_compiler(datafit.__class__, spec_quadratic)()
+    # t1 = time.time()
+    # df.initialize(X, y)
+    # t2 = time.time()
+    # print(t1 - t0, t2 - t1)
 
-    t0 = time.time()
-    df.initialize(X, y)
-    t1 = time.time()
-    print(t1 - t0)
+    # t0 = time.time()
+    # df.initialize(X, y)
+    # t1 = time.time()
+    # print(t1 - t0)

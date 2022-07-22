@@ -246,4 +246,17 @@ if __name__ == "__main__":
     t0 = time.time()
     clf.fit(X, y)
     t1 = time.time()
-    print(f"second call: {t1 - t0:.3f} s")
+    print(f"second call: {t1 - t0:.3f} s")  # should not be so high
+
+    # this takes time everytime it is executed, even in the same interpretor
+    t0 = time.time()
+    df = jitclass(spec_quadratic)(datafit.__class__)()
+    t1 = time.time()
+    df.initialize(X, y)
+    t2 = time.time()
+    print(t1 - t0, t2 - t1)
+
+    t0 = time.time()
+    df.initialize(X, y)
+    t1 = time.time()
+    print(t1 - t0)

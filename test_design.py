@@ -1,3 +1,4 @@
+from functools import lru_cache
 import numpy as np
 from numpy.linalg import norm
 from scipy.sparse import issparse
@@ -20,20 +21,24 @@ from skglm.datafits.base import BaseDatafit
 from skglm.solvers import cd_solver_path, bcd_solver_path
 
 
-def jit_closure():
-    compiled_classes = dict()
+@lru_cache
+def our_jit_compiler(klass, spec):
+    return jitclass(spec)(klass)
 
-    def our_jit_compiler(klass, spec):
-        try:
-            return compiled_classes[klass]
-        except KeyError:
-            compiled = jitclass(spec)(klass)
-            compiled_classes[klass] = compiled
-            return compiled
-    return our_jit_compiler
+# def jit_closure():
+#     compiled_classes = dict()
+
+#     def our_jit_compiler(klass, spec):
+#         try:
+#             return compiled_classes[klass]
+#         except KeyError:
+#             compiled = jitclass(spec)(klass)
+#             compiled_classes[klass] = compiled
+#             return compiled
+#     return our_jit_compiler
 
 
-our_jit_compiler = jit_closure()
+# our_jit_compiler = jit_closure()
 
 
 class QuadraticNoJit(BaseDatafit):
@@ -200,9 +205,9 @@ class GeneralizedLinearEstimator(LinearModel):
 
         path_func = cd_solver_path if y.ndim == 1 else bcd_solver_path
 
-        penalty = our_jit_compiler(self.penalty.__class__, [
-                                   ('alpha', float64)])(self.penalty.alpha)
-        datafit = our_jit_compiler(self.datafit.__class__, spec_quadratic)()
+        specs = tuple([('alpha', float64)])
+        penalty = our_jit_compiler(self.penalty.__class__, specs)(self.penalty.alpha)
+        datafit = our_jit_compiler(self.datafit.__class__, tuple(spec_quadratic))()
 
         _, coefs, kkt = path_func(
             X, y, datafit, penalty, alphas=[self.penalty.alpha],

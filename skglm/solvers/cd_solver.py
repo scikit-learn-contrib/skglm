@@ -251,7 +251,7 @@ def cd_solver(
             print(f"Stopping criterion max violation: {stop_crit:.2e}")
         if stop_crit <= tol:
             break
-        # 1) select features : all unpenalized, + 2 * (nnz and penalized)
+        # 1) select features: all unpenalized + 2 * (nnz and penalized)
         ws_size = max(min(p0 + n_unpen, n_features),
                       min(2 * penalty.generalized_support(w).sum() -
                           n_unpen, n_features))
@@ -272,7 +272,6 @@ def cd_solver(
             print(f'Iteration {t + 1}, {ws_size} feats in subpb.')
 
         # 2) do iterations on smaller problem
-        is_sparse = sparse.issparse(X)
         for epoch in range(max_epochs):
             if is_sparse:
                 _cd_epoch_sparse(

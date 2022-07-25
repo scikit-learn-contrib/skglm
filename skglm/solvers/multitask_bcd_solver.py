@@ -5,13 +5,11 @@ from numba import njit
 from numpy.linalg import norm
 from sklearn.utils import check_array
 
-from skglm.utils import AndersonAcceleration
-
 
 def bcd_solver_path(
         X, Y, datafit, penalty, alphas=None,
         coef_init=None, max_iter=100, max_epochs=50_000, p0=10, tol=1e-6,
-        return_n_iter=False, ws_strategy="subdiff", verbose=0):
+        use_acc=True, return_n_iter=False, ws_strategy="subdiff", verbose=0):
     r"""Compute optimization path for multi-task optimization problem.
 
     The loss is customized by passing various choices of datafit and penalty:
@@ -50,6 +48,9 @@ def bcd_solver_path(
 
     tol : float, optional
         The tolerance for the optimization.
+
+    use_acc : bool, optional
+        Usage of Anderson acceleration for faster convergence.
 
     return_n_iter : bool, optional
         If True, number of iterations along the path are returned.
@@ -126,7 +127,7 @@ def bcd_solver_path(
         sol = bcd_solver(
             X, Y, datafit, penalty, W, XW, p0=p_t,
             tol=tol, max_iter=max_iter, max_epochs=max_epochs,
-            verbose=verbose, ws_strategy=ws_strategy)
+            verbose=verbose, use_acc=use_acc, ws_strategy=ws_strategy)
         coefs[:, :, t], stop_crits[t] = sol[0], sol[2]
 
         if return_n_iter:
@@ -143,7 +144,7 @@ def bcd_solver_path(
 
 def bcd_solver(
         X, Y, datafit, penalty, W, XW, max_iter=50, max_epochs=50_000, p0=10,
-        tol=1e-4, ws_strategy="subdiff", verbose=0):
+        tol=1e-4, use_acc=True, K=5, ws_strategy="subdiff", verbose=0):
     r"""Run a block coordinate descent solver.
 
     Parameters
@@ -179,6 +180,12 @@ def bcd_solver(
     tol : float, optional
         The tolerance for the optimization.
 
+    use_acc : bool, optional
+        Usage of Anderson acceleration for faster convergence.
+
+    K : int, optional
+        The number of past primal iterates used to build an extrapolated point.
+
     ws_strategy : str, ('subdiff'|'fixpoint'), optional
         The score used to build the working set.
 
@@ -204,7 +211,6 @@ def bcd_solver(
     obj_out = []
     all_feats = np.arange(n_features)
     stop_crit = np.inf  # initialize for case n_iter=0
-    accelerator = AndersonAcceleration(K=5)
 
     is_sparse = sparse.issparse(X)
     for t in range(max_iter):
@@ -232,6 +238,10 @@ def bcd_solver(
         ws = np.argpartition(opt, -ws_size)[-ws_size:]
         # is equivalent to ws = np.argsort(kkt)[-ws_size:]
 
+        if use_acc:
+            last_K_w = np.zeros([K + 1, ws_size * n_tasks])
+            U = np.zeros([K, ws_size * n_tasks])
+
         if verbose:
             print(f'Iteration {t + 1}, {ws_size} feats in subpb.')
 
@@ -244,23 +254,36 @@ def bcd_solver(
                     ws)
             else:
                 _bcd_epoch(X, Y, W, XW, datafit, penalty, ws)
+            if use_acc:
+                last_K_w[epoch % (K + 1)] = W[ws, :].ravel()
 
-            W_acc, XW_acc, is_extrapolated = accelerator.extrapolate(W.ravel(),
-                                                                     XW.ravel())
+                # 3) do Anderson acceleration on smaller problem
+                if epoch % (K + 1) == K:
+                    for k in range(K):
+                        U[k] = last_K_w[k + 1] - last_K_w[k]
+                    C = np.dot(U, U.T)
 
-            if is_extrapolated:  # avoid computing p_obj for un-extrapolated w, Xw
-                W_acc = W_acc.reshape(-1, n_tasks)
-                XW_acc = XW_acc.reshape(-1, n_tasks)
-
-                p_obj = datafit.value(Y, W, XW) + penalty.value(W)
-                p_obj_acc = datafit.value(Y, W_acc, XW_acc) + penalty.value(W_acc)
-
-                if p_obj_acc < p_obj:
-                    W[:] = W_acc
-                    XW[:] = XW_acc
-                    p_obj = p_obj_acc
+                    try:
+                        z = np.linalg.solve(C, np.ones(K))
+                        c = z / z.sum()
+                        W_acc = np.zeros((n_features, n_tasks))
+                        W_acc[ws, :] = np.sum(
+                            last_K_w[:-1] * c[:, None], axis=0).reshape(
+                                (ws_size, n_tasks))
+                        p_obj = datafit.value(Y, W, XW) + penalty.value(W)
+                        Xw_acc = X[:, ws] @ W_acc[ws]
+                        p_obj_acc = datafit.value(
+                            Y, W_acc, Xw_acc) + penalty.value(W_acc)
+                        if p_obj_acc < p_obj:
+                            W[:] = W_acc
+                            XW[:] = Xw_acc
+                    except np.linalg.LinAlgError:
+                        if max(verbose - 1, 0):
+                            print("----------Linalg error")
 
             if epoch > 0 and epoch % 10 == 0:
+                p_obj = datafit.value(Y, W[ws, :], XW) + penalty.value(W)
+
                 if is_sparse:
                     grad_ws = construct_grad_sparse(
                         X.data, X.indptr, X.indices, Y, XW, datafit, ws)
@@ -274,7 +297,6 @@ def bcd_solver(
 
                 stop_crit_in = np.max(opt_ws)
                 if max(verbose - 1, 0):
-                    p_obj = datafit.value(Y, W, XW) + penalty.value(W)
                     print(f"Epoch {epoch + 1}, objective {p_obj:.10f}, "
                           f"stopping crit {stop_crit_in:.2e}")
                 if ws_size == n_features:
@@ -285,7 +307,6 @@ def bcd_solver(
                         if max(verbose - 1, 0):
                             print("Early exit")
                         break
-        p_obj = datafit.value(Y, W[ws, :], XW) + penalty.value(W)
         obj_out.append(p_obj)
     return W, np.array(obj_out), stop_crit
 

@@ -1,3 +1,4 @@
+import time
 import numpy as np
 from scipy import sparse
 from numba import njit
@@ -5,9 +6,6 @@ from numba import njit
 from skglm.datafits import Logistic, Logistic_32
 from skglm.datafits.single_task import sigmoid
 from skglm.solvers.common import construct_grad
-
-LOGGER = []  # global var
-
 
 def prox_newton_solver(
         X, y, datafit, penalty, w, Xw, max_iter=50, max_epochs=1000, max_backtrack=20,
@@ -89,12 +87,8 @@ def prox_newton_solver(
     LOGGER.clear()
 
     is_sparse = sparse.issparse(X)
+    t0 = time.time()
     for t in range(max_iter):
-        LOGGER.append("")  # str to store current iter logs
-
-        if max(verbose - 1, 0):
-            print("################################")
-            print("Number iter outer", t)
         if is_sparse:
             grad = datafit.full_grad_sparse(
                 X.data, X.indptr, X.indices, y, Xw)
@@ -133,43 +127,63 @@ def prox_newton_solver(
         _compute_grad_hessian_datafit(X, y, Xw, ws, hessian_diag, grad_datafit, lc)
 
         # 2) run prox newton on smaller subproblem
+        all_n_cd_epoch = []
         for epoch in range(max_epochs):
             # TODO: support sparse matrices
-            if max(verbose - 1, 0):
-                print("################################")
-                print("Number iter PN", epoch)
-            pn_grad_diff = _prox_newton_iter(
-                X, Xw, w, y, penalty, ws, min_pn_cd_epochs, max_pn_cd_epochs,
-                max_backtrack, pn_tol_ratio, pn_grad_diff, hessian_diag, grad_datafit,
-                lc, old_grad, epoch, verbose=verbose)
+            # pn_grad_diff, n_performed_cd_epochs = _prox_newton_iter(
+            #     X, Xw, w, y, penalty, ws, min_pn_cd_epochs, max_pn_cd_epochs,
+            #     max_backtrack, pn_tol_ratio, pn_grad_diff, hessian_diag, grad_datafit,
+            #     lc, old_grad, epoch, verbose=verbose)
+            delta_w, X_delta_w, n_performed_cd_epochs = _compute_descent_direction(
+                X, w, ws, hessian_diag, old_grad, grad_datafit, lc, penalty, min_pn_cd_epochs,
+            max_pn_cd_epochs, pn_tol_ratio, pn_grad_diff, epoch, verbose=verbose)
+            _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack)
 
+            _compute_grad_hessian_datafit(X, y, Xw, ws, hessian_diag, grad_datafit, lc)
+
+            pn_grad_diff = 0.
+            for idx, j in enumerate(ws):
+                actual_grad = X[:, j] @ grad_datafit
+                approx_grad = old_grad[idx] + (X[:, j] * X_delta_w * hessian_diag).sum()
+
+                old_grad[idx] = actual_grad
+                grad_diff = actual_grad - approx_grad
+                pn_grad_diff += grad_diff ** 2
+
+
+            all_n_cd_epoch.append(n_performed_cd_epochs)
             p_obj = datafit.value(y, w, Xw) + penalty.value(w)
 
             grad = construct_grad(X, y, w, Xw, datafit, ws)
             opt_ws = penalty.subdiff_distance(w, grad, ws)
             stop_crit_in = np.max(opt_ws)
-            if max(verbose - 1, 0):
-                print(f"Epoch {epoch + 1}, objective {p_obj:.10f}, "
-                      f"stopping crit {stop_crit_in:.2e}")
             tol_in = eps_in * stop_crit
             if stop_crit_in <= tol_in:
                 if max(verbose - 1, 0):
                     print("Early exit")
                 break
         obj_out.append(p_obj)
-
-    for i in range(len(LOGGER)):
-        print(f'Iter {i+1}: {LOGGER[i]}')
+        t_ellapsed = time.time() - t0
+        # str_number =
+        # print("%i" % integer for integer in all_n_cd_epoch)
+        print(
+            all_n_cd_epoch,
+            "Iter: ", t,
+            "Time: ", t_ellapsed,
+            "Objective", p_obj,
+            "Stopping crit in:", stop_crit_in)
+    # for i in range(len(LOGGER)):
+    #     print(f'Iter {i+1}: {LOGGER[i]}')
     return w, np.array(obj_out), stop_crit
 
 
-# @njit
+@njit
 def _prox_newton_iter(
         X, Xw, w, y, penalty, ws, min_pn_cd_epochs, max_pn_cd_epochs, max_backtrack,
         pn_tol_ratio, pn_grad_diff, hessian_diag, grad_datafit, lc, old_grad, epoch,
         verbose=0):
 
-    delta_w, X_delta_w = _compute_descent_direction(
+    delta_w, X_delta_w, n_performed_cd_epochs = _compute_descent_direction(
         X, w, ws, hessian_diag, old_grad, grad_datafit, lc, penalty, min_pn_cd_epochs,
         max_pn_cd_epochs, pn_tol_ratio, pn_grad_diff, epoch, verbose=verbose)
     _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack)
@@ -185,10 +199,10 @@ def _prox_newton_iter(
         grad_diff = actual_grad - approx_grad
         pn_grad_diff += grad_diff ** 2
 
-    return pn_grad_diff
+    return pn_grad_diff, n_performed_cd_epochs
 
 
-# @njit
+@njit
 def _compute_descent_direction(
         X, w, ws, hessian_diag, old_grad, grad_datafit, lc, penalty, min_pn_cd_epochs,
         max_pn_cd_epochs, pn_tol_ratio, pn_grad_diff, epoch, verbose=0):
@@ -202,17 +216,10 @@ def _compute_descent_direction(
     else:
         pn_tol = pn_tol_ratio * pn_grad_diff
 
-    if max(verbose - 1, 0):
-        print("############################")
-
     n_performed_cd_epochs = 0
     for pn_cd_epoch in range(_max_pn_cd_epochs):
         weighted_fix_point_crit = 0.
         n_performed_cd_epochs += 1
-        if max(verbose - 1, 0):
-            print("Number iter cd ", pn_cd_epoch)
-            print("ws size: ", len(ws))
-        # random.shuffle(ws)
         for idx, j in enumerate(ws):
             stepsize = 1/lc[idx] if lc[idx] != 0 else 1000
             old_value = w[j] + delta_w[idx]
@@ -231,12 +238,13 @@ def _compute_descent_direction(
         # weighted_fix_point_crit /= X.shape[0] ** 2
         # TODO: beware scaling weighted_fix_point_crit and pn_tol
         # try a more proncipled criterion? subdiff dist?
-        if weighted_fix_point_crit <= pn_tol and pn_cd_epoch + 1 >= min_pn_cd_epochs:
-            print("Exited! weighted_fix_point_crit: ", weighted_fix_point_crit)
+        if weighted_fix_point_crit / X.shape[0] <= pn_tol and pn_cd_epoch + 1 >= min_pn_cd_epochs:
+            if max(verbose - 1, 0):
+                print("Exited! weighted_fix_point_crit: ", weighted_fix_point_crit)
             break
-
-    LOGGER[-1] += f"{n_performed_cd_epochs} - "
-    return delta_w, X_delta_w
+    # print(n_performed_cd_epochs, end='')
+    # LOGGER[-1] += n_performed_cd_epochs
+    return delta_w, X_delta_w, n_performed_cd_epochs
 
 
 @njit

@@ -19,26 +19,28 @@ alpha = alpha_max / 100
 
 tol = 1e-10
 
-blitzl1.set_use_intercept(False)
-blitzl1.set_tolerance(0)
-blitzl1.set_verbose(True)
+# blitzl1.set_use_intercept(False)
+# blitzl1.set_tolerance(0)
+# blitzl1.set_verbose(True)
 
-prob = blitzl1.LogRegProblem(X, y)
-sol = prob.solve(alpha, p0=n_features)
+# prob = blitzl1.LogRegProblem(X, y)
+# sol = prob.solve(alpha)
 
-# df = Logistic()
-# df.initialize(X, y)
+df = Logistic()
+df.initialize(X, y)
 
-# pen = L1(alpha / n_samples)
-# # max_iter = 1
-# # max_epochs = 1
-# # max_pn_cd_epochs = 2
-# eps_in = 0.3
+pen = L1(alpha / n_samples)
+# max_iter = 1
+# max_epochs = 1
+# max_pn_cd_epochs = 2
+eps_in = 0.01
 
 
-# w = np.zeros(n_features)
-# Xw = np.zeros(n_samples)
-# prox_newton_solver(
-#     X, y, df, pen, w, Xw, tol=tol, p0=n_features, verbose=100, eps_in=eps_in)
+w = np.zeros(n_features)
+Xw = np.zeros(n_samples)
+prox_newton_solver(
+    X, y, df, pen, w, Xw, tol=tol, eps_in=eps_in, max_iter=1)
+profile(prox_newton_solver)(
+    X, y, df, pen, w, Xw, tol=tol, eps_in=eps_in)
 
 # np.testing.assert_allclose(sol.x, w, rtol=1e-5)

@@ -25,7 +25,7 @@ from skglm.datafits import (
     Quadratic, Logistic, Logistic_32, QuadraticSVC,
     QuadraticSVC_32, QuadraticMultiTask
 )
-from skglm.datafits.base import jit_cached_compile
+from skglm.datafits.base import compiled_clone
 from skglm.solvers import cd_solver_path, bcd_solver_path
 
 
@@ -156,16 +156,8 @@ class GeneralizedLinearEstimator(LinearModel):
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
         path_func = cd_solver_path if y.ndim == 1 else bcd_solver_path
-        penalty = jit_cached_compile(
-            self.penalty.__class__,
-            self.penalty.get_spec(),
-        )(**self.penalty.params_to_dict())
-
-        datafit = jit_cached_compile(
-            self.datafit.__class__,
-            self.datafit.get_spec(),
-            to_float32=X.dtype is np.float32,
-        )(**self.datafit.params_to_dict())
+        penalty = compiled_clone(self.penalty)
+        datafit = compiled_clone(self.datafit)
 
         return path_func(
             X, y, datafit, penalty, alphas=alphas,
@@ -243,16 +235,8 @@ class GeneralizedLinearEstimator(LinearModel):
         X_ = yXT if isinstance(self.datafit, QuadraticSVC) else X
 
         path_func = cd_solver_path if y.ndim == 1 else bcd_solver_path
-        penalty = jit_cached_compile(
-            self.penalty.__class__,
-            self.penalty.get_spec(),
-        )(**self.penalty.params_to_dict())
-
-        datafit = jit_cached_compile(
-            self.datafit.__class__,
-            self.datafit.get_spec(),
-            to_float32=X.dtype is np.float32,
-        )(**self.datafit.params_to_dict())
+        penalty = compiled_clone(self.penalty)
+        datafit = compiled_clone(self.datafit)
 
         # TODO merge with self.path, handle penalty not an argument in self.path
         _, coefs, kkt = path_func(

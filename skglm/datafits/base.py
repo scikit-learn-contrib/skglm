@@ -40,6 +40,13 @@ def jit_cached_compile(klass, spec, to_float32=False):
     return jitclass(spec)(klass)
 
 
+def compiled_clone(instance):
+    return jit_cached_compile(
+        instance.__class__,
+        instance.get_spec(),
+    )(**instance.params_to_dict())
+
+
 # TODO remove
 def jit_factory(Datafit, spec):
     """JIT-compile a datafit class in float32 and float64 contexts.

@@ -84,8 +84,6 @@ def prox_newton_solver(
     hessian_diag = np.zeros(n_samples)  # hessian = X^T D X, with D = diag(f_i'')
     grad_datafit = np.zeros(n_samples)  # gradient of F(Xw)
 
-    LOGGER.clear()
-
     is_sparse = sparse.issparse(X)
     t0 = time.time()
     for t in range(max_iter):
@@ -168,12 +166,10 @@ def prox_newton_solver(
         # print("%i" % integer for integer in all_n_cd_epoch)
         print(
             all_n_cd_epoch,
-            "Iter: ", t,
+            "Iter: ", t + 1,
             "Time: ", t_ellapsed,
-            "Objective", p_obj,
+            "Objective", p_obj * n_samples,
             "Stopping crit in:", stop_crit_in)
-    # for i in range(len(LOGGER)):
-    #     print(f'Iter {i+1}: {LOGGER[i]}')
     return w, np.array(obj_out), stop_crit
 
 
@@ -238,12 +234,10 @@ def _compute_descent_direction(
         # weighted_fix_point_crit /= X.shape[0] ** 2
         # TODO: beware scaling weighted_fix_point_crit and pn_tol
         # try a more proncipled criterion? subdiff dist?
-        if weighted_fix_point_crit / X.shape[0] <= pn_tol and pn_cd_epoch + 1 >= min_pn_cd_epochs:
+        if weighted_fix_point_crit / X.shape[0] ** 2 <= pn_tol and pn_cd_epoch + 1 >= min_pn_cd_epochs:
             if max(verbose - 1, 0):
                 print("Exited! weighted_fix_point_crit: ", weighted_fix_point_crit)
             break
-    # print(n_performed_cd_epochs, end='')
-    # LOGGER[-1] += n_performed_cd_epochs
     return delta_w, X_delta_w, n_performed_cd_epochs
 
 

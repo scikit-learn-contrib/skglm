@@ -219,14 +219,14 @@ def cd_solver(
     """
     if ws_strategy not in ("subdiff", "fixpoint"):
         raise ValueError(f'Unsupported value for ws_strategy: {ws_strategy}')
-    n_features = X.shape[1]
+    n_samples, n_features = X.shape
     pen = penalty.is_penalized(n_features)
     unpen = ~pen
     n_unpen = unpen.sum()
     obj_out = []
     all_feats = np.arange(n_features)
     stop_crit = np.inf  # initialize for case n_iter=0
-    accelerator = AndersonAcceleration(K=5)
+    w_acc, Xw_acc = np.zeros(n_features), np.zeros(n_samples)
 
     is_sparse = sparse.issparse(X)
     for t in range(max_iter):
@@ -256,6 +256,10 @@ def cd_solver(
         # here use topk instead of np.argsort(opt)[-ws_size:]
         ws = np.argpartition(opt, -ws_size)[-ws_size:]
 
+        # re init AA at every iter to consider ws
+        accelerator = AndersonAcceleration(K=5)
+        w_acc[:] = 0.
+
         if verbose:
             print(f'Iteration {t + 1}, {ws_size} feats in subpb.')
 
@@ -271,7 +275,7 @@ def cd_solver(
 
             # 3) do Anderson acceleration on smaller problem
             # TODO optimize computation using ws
-            w_acc, Xw_acc, is_extrapolated = accelerator.extrapolate(w, Xw)
+            w_acc[ws], Xw_acc[:], is_extrapolated = accelerator.extrapolate(w[ws], Xw)
 
             if is_extrapolated:  # avoid computing p_obj for un-extrapolated w, Xw
                 # TODO : manage penalty.value(w, ws) for weighted Lasso

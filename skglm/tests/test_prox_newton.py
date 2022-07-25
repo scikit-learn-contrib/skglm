@@ -61,3 +61,13 @@ def test_prox_newton_vs_cd(penalty_name):
     w_cd = cd_solver(X, y_ind, datafit, pen, w, Xw, tol=tol)[0]
 
     np.testing.assert_allclose(w_newton, w_cd, atol=1e-5)
+
+
+if __name__ == '__main__':
+    # LOGGER in action
+    datafit = Logistic()
+    datafit.initialize(X, y_ind)
+    pen = L1(alpha=alpha)
+    w = np.zeros(n_features)
+    Xw = np.zeros(n_samples)
+    w_newton = prox_newton_solver(X, y_ind, datafit, pen, w, Xw, tol=tol)[0]

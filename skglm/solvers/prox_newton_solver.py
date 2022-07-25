@@ -6,6 +6,8 @@ from skglm.datafits import Logistic, Logistic_32
 from skglm.datafits.single_task import sigmoid
 from skglm.solvers.common import construct_grad
 
+LOGGER = []  # global var
+
 
 def prox_newton_solver(
         X, y, datafit, penalty, w, Xw, max_iter=50, max_epochs=1000, max_backtrack=20,
@@ -84,8 +86,12 @@ def prox_newton_solver(
     hessian_diag = np.zeros(n_samples)  # hessian = X^T D X, with D = diag(f_i'')
     grad_datafit = np.zeros(n_samples)  # gradient of F(Xw)
 
+    LOGGER.clear()
+
     is_sparse = sparse.issparse(X)
     for t in range(max_iter):
+        LOGGER.append("")  # str to store current iter logs
+
         if max(verbose - 1, 0):
             print("################################")
             print("Number iter outer", t)
@@ -151,10 +157,13 @@ def prox_newton_solver(
                     print("Early exit")
                 break
         obj_out.append(p_obj)
+
+    for i in range(len(LOGGER)):
+        print(f'Iter {i+1}: {LOGGER[i]}')
     return w, np.array(obj_out), stop_crit
 
 
-@njit
+# @njit
 def _prox_newton_iter(
         X, Xw, w, y, penalty, ws, min_pn_cd_epochs, max_pn_cd_epochs, max_backtrack,
         pn_tol_ratio, pn_grad_diff, hessian_diag, grad_datafit, lc, old_grad, epoch,
@@ -179,7 +188,7 @@ def _prox_newton_iter(
     return pn_grad_diff
 
 
-@njit
+# @njit
 def _compute_descent_direction(
         X, w, ws, hessian_diag, old_grad, grad_datafit, lc, penalty, min_pn_cd_epochs,
         max_pn_cd_epochs, pn_tol_ratio, pn_grad_diff, epoch, verbose=0):
@@ -195,8 +204,11 @@ def _compute_descent_direction(
 
     if max(verbose - 1, 0):
         print("############################")
+
+    n_performed_cd_epochs = 0
     for pn_cd_epoch in range(_max_pn_cd_epochs):
         weighted_fix_point_crit = 0.
+        n_performed_cd_epochs += 1
         if max(verbose - 1, 0):
             print("Number iter cd ", pn_cd_epoch)
             print("ws size: ", len(ws))
@@ -222,6 +234,8 @@ def _compute_descent_direction(
         if weighted_fix_point_crit <= pn_tol and pn_cd_epoch + 1 >= min_pn_cd_epochs:
             print("Exited! weighted_fix_point_crit: ", weighted_fix_point_crit)
             break
+
+    LOGGER[-1] += f"{n_performed_cd_epochs} - "
     return delta_w, X_delta_w
 
 
@@ -233,7 +247,7 @@ def _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtr
         diff_step_size = step_size - prev_step_size
         delta_obj = 0.
         for idx, j in enumerate(ws):
-            w_j_old = w[j]
+            # w_j_old = w[j]
             w[j] += diff_step_size * delta_w[idx]
             # then TODO optimize code by creating a penalty.value_1D function
             # delta_obj += diff_step_size * (
@@ -242,7 +256,8 @@ def _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtr
             delta_obj += penalty.delta_pen(w[j], delta_w[idx])
         Xw += diff_step_size * X_delta_w
         grad = -y * sigmoid(-y * Xw)
-        delta_obj += step_size * X_delta_w @ grad / len(X_delta_w)  # TODO: might miss a step size
+        delta_obj += step_size * X_delta_w @ grad / \
+            len(X_delta_w)  # TODO: might miss a step size
         if delta_obj < 1e-7:
             break
         prev_step_size = step_size

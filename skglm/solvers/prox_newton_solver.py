@@ -167,6 +167,7 @@ def prox_newton_solver(
         print(
             all_n_cd_epoch,
             "Iter: ", t + 1,
+            "WS size", ws_size,
             "Time: ", t_ellapsed,
             "Objective", p_obj * n_samples,
             "Stopping crit in:", stop_crit_in)

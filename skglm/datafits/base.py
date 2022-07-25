@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from functools import lru_cache
 
 import numba
 from numba import float32, float64
@@ -31,6 +32,15 @@ def spec_to_float32(spec):
     return spec32
 
 
+@lru_cache
+def jit_cached_compile(klass, spec, to_float32=False):
+    if to_float32:
+        spec = spec_to_float32(spec)
+
+    return jitclass(spec)(klass)
+
+
+# TODO remove
 def jit_factory(Datafit, spec):
     """JIT-compile a datafit class in float32 and float64 contexts.
 

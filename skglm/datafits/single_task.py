@@ -6,10 +6,10 @@ from numba import float64
 from skglm.datafits.base import BaseDatafit, jit_factory
 
 
-spec_quadratic = [
-    ('Xty', float64[:]),
-    ('lipschitz', float64[:]),
-]
+# spec_quadratic = [
+#     ('Xty', float64[:]),
+#     ('lipschitz', float64[:]),
+# ]
 
 
 class Quadratic(BaseDatafit):
@@ -37,6 +37,16 @@ class Quadratic(BaseDatafit):
 
     def __init__(self):
         pass
+
+    def get_spec(self):
+        spec_quadratic = (
+            ('Xty', float64[:]),
+            ('lipschitz', float64[:]),
+        )
+        return spec_quadratic
+
+    def params_to_dict(self):
+        return dict()
 
     def initialize(self, X, y):
         self.Xty = X.T @ y
@@ -85,7 +95,7 @@ class Quadratic(BaseDatafit):
         return grad
 
 
-Quadratic, Quadratic_32 = jit_factory(Quadratic, spec_quadratic)
+# Quadratic, Quadratic_32 = jit_factory(Quadratic, spec_quadratic)
 
 
 @njit

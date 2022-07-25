@@ -8,17 +8,20 @@ from skglm.utils import (
     ST, box_proj, prox_05, prox_2_3, prox_SCAD, value_SCAD, prox_MCP, value_MCP)
 
 
-spec_L1 = [
-    ('alpha', float64),
-]
-
-
-@jitclass(spec_L1)
 class L1(BasePenalty):
     """L1 penalty."""
 
     def __init__(self, alpha):
         self.alpha = alpha
+
+    def get_spec(self):
+        spec_L1 = (
+            ('alpha', float64),
+        )
+        return spec_L1
+
+    def params_to_dict(self):
+        return {'alpha': self.alpha}
 
     def value(self, w):
         """Compute L1 penalty value."""
@@ -345,7 +348,7 @@ spec_L0_5 = [
 ]
 
 
-@jitclass(spec_L1)
+@jitclass(spec_L0_5)
 class L0_5(BasePenalty):
     """L_{0.5} non-convex quasi-norm penalty."""
 
@@ -391,7 +394,7 @@ spec_L2_3 = [
 ]
 
 
-@jitclass(spec_L1)
+@jitclass(spec_L2_3)
 class L2_3(BasePenalty):
     """L_{2/3} quasi-norm non-convex penalty."""
 

@@ -22,9 +22,10 @@ from skglm.penalties import (
     L1, WeightedL1, L1_plus_L2, MCPenalty, IndicatorBox, L2_1
 )
 from skglm.datafits import (
-    Quadratic_32, Quadratic, Logistic, Logistic_32, QuadraticSVC,
+    Quadratic, Logistic, Logistic_32, QuadraticSVC,
     QuadraticSVC_32, QuadraticMultiTask
 )
+from skglm.datafits.base import jit_cached_compile
 from skglm.solvers import cd_solver_path, bcd_solver_path
 
 
@@ -38,9 +39,11 @@ class GeneralizedLinearEstimator(LinearModel):
     ----------
     datafit : instance of BaseDatafit, optional
         Datafit. If None, `datafit` is initialized as a `Quadratic` datafit.
+        `datafit` is replaced by a JIT-compiled instance when calling fit.
 
     penalty : instance of BasePenalty, optional
         Penalty. If None, `penalty` is initialized as a `L1` penalty.
+        `penalty` is replaced by a JIT-compiled instance when calling fit.
 
     is_classif : bool, optional
         Whether the task is classification or regression. Used for input target
@@ -153,8 +156,19 @@ class GeneralizedLinearEstimator(LinearModel):
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
         path_func = cd_solver_path if y.ndim == 1 else bcd_solver_path
+        penalty = jit_cached_compile(
+            self.penalty.__class__,
+            self.penalty.get_spec(),
+        )(**self.penalty.params_to_dict())
+
+        datafit = jit_cached_compile(
+            self.datafit.__class__,
+            self.datafit.get_spec(),
+            to_float32=X.dtype is np.float32,
+        )(**self.datafit.params_to_dict())
+
         return path_func(
-            X, y, self.datafit, self.penalty, alphas=alphas,
+            X, y, datafit, penalty, alphas=alphas,
             coef_init=coef_init, max_iter=self.max_iter,
             return_n_iter=return_n_iter, max_epochs=self.max_epochs, p0=self.p0,
             tol=self.tol, use_acc=True, ws_strategy=self.ws_strategy,
@@ -187,14 +201,6 @@ class GeneralizedLinearEstimator(LinearModel):
         """
         self.penalty = self.penalty if self.penalty else L1(1.)
         self.datafit = self.datafit if self.datafit else Quadratic()
-
-        if X.dtype == np.float32:
-            if isinstance(self.datafit, Quadratic):
-                self.datafit = Quadratic_32()
-            elif isinstance(self.datafit, QuadraticSVC):
-                self.datafit = QuadraticSVC_32()
-            elif isinstance(self.datafit, Logistic):
-                self.datafit = Logistic_32()
 
         if not hasattr(self, "n_features_in_"):
             self.n_features_in_ = X.shape[1]
@@ -234,11 +240,23 @@ class GeneralizedLinearEstimator(LinearModel):
         if not self.warm_start or not hasattr(self, "coef_"):
             self.coef_ = None
 
-        path_func = cd_solver_path if y.ndim == 1 else bcd_solver_path
         X_ = yXT if isinstance(self.datafit, QuadraticSVC) else X
 
+        path_func = cd_solver_path if y.ndim == 1 else bcd_solver_path
+        penalty = jit_cached_compile(
+            self.penalty.__class__,
+            self.penalty.get_spec(),
+        )(**self.penalty.params_to_dict())
+
+        datafit = jit_cached_compile(
+            self.datafit.__class__,
+            self.datafit.get_spec(),
+            to_float32=X.dtype is np.float32,
+        )(**self.datafit.params_to_dict())
+
+        # TODO merge with self.path, handle penalty not an argument in self.path
         _, coefs, kkt = path_func(
-            X_, y, self.datafit, self.penalty, alphas=[self.penalty.alpha],
+            X_, y, datafit, penalty, alphas=[self.penalty.alpha],
             coef_init=self.coef_, max_iter=self.max_iter,
             max_epochs=self.max_epochs, p0=self.p0, verbose=self.verbose,
             tol=self.tol, ws_strategy=self.ws_strategy)

@@ -120,7 +120,7 @@ def prox_newton_solver(
             print(f"Iteration {t + 1}, {ws_size} feats in subpb.")
 
         lc = np.zeros(ws_size)  # weighted Lipschitz constants
-        bias = np.zeros(ws_size)
+        old_grad = np.zeros(ws_size)
         pn_grad_diff = 0.
         pn_tol_ratio = 10.
 
@@ -135,7 +135,7 @@ def prox_newton_solver(
             pn_grad_diff = _prox_newton_iter(
                 X, Xw, w, y, penalty, ws, min_pn_cd_epochs, max_pn_cd_epochs,
                 max_backtrack, pn_tol_ratio, pn_grad_diff, hessian_diag, grad_datafit,
-                lc, bias, epoch, verbose=verbose)
+                lc, old_grad, epoch, verbose=verbose)
 
             p_obj = datafit.value(y, w, Xw) + penalty.value(w)
 
@@ -157,11 +157,11 @@ def prox_newton_solver(
 @njit
 def _prox_newton_iter(
         X, Xw, w, y, penalty, ws, min_pn_cd_epochs, max_pn_cd_epochs, max_backtrack,
-        pn_tol_ratio, pn_grad_diff, hessian_diag, grad_datafit, lc, bias, epoch,
+        pn_tol_ratio, pn_grad_diff, hessian_diag, grad_datafit, lc, old_grad, epoch,
         verbose=0):
 
     delta_w, X_delta_w = _compute_descent_direction(
-        X, w, ws, hessian_diag, bias, grad_datafit, lc, penalty, min_pn_cd_epochs, 
+        X, w, ws, hessian_diag, old_grad, grad_datafit, lc, penalty, min_pn_cd_epochs,
         max_pn_cd_epochs, pn_tol_ratio, pn_grad_diff, epoch, verbose=verbose)
     _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack)
 
@@ -170,9 +170,9 @@ def _prox_newton_iter(
     pn_grad_diff = 0.
     for idx, j in enumerate(ws):
         actual_grad = X[:, j] @ grad_datafit
-        approx_grad = bias[idx] + (X[:, j] * X_delta_w * hessian_diag).sum()
+        approx_grad = old_grad[idx] + (X[:, j] * X_delta_w * hessian_diag).sum()
 
-        bias[idx] = actual_grad
+        old_grad[idx] = actual_grad
         grad_diff = actual_grad - approx_grad
         pn_grad_diff += grad_diff ** 2
 
@@ -181,7 +181,7 @@ def _prox_newton_iter(
 
 @njit
 def _compute_descent_direction(
-        X, w, ws, hessian_diag, bias, grad_datafit, lc, penalty, min_pn_cd_epochs, 
+        X, w, ws, hessian_diag, old_grad, grad_datafit, lc, penalty, min_pn_cd_epochs,
         max_pn_cd_epochs, pn_tol_ratio, pn_grad_diff, epoch, verbose=0):
     delta_w, X_delta_w = np.zeros(len(ws)), np.zeros(X.shape[0])
     pn_tol = 0.
@@ -189,14 +189,14 @@ def _compute_descent_direction(
     if epoch == 0:
         _max_pn_cd_epochs = min_pn_cd_epochs
         for idx, j in enumerate(ws):
-            bias[idx] = X[:, j] @ grad_datafit
+            old_grad[idx] = X[:, j] @ grad_datafit
     else:
         pn_tol = pn_tol_ratio * pn_grad_diff
 
     if max(verbose - 1, 0):
         print("############################")
     for pn_cd_epoch in range(_max_pn_cd_epochs):
-        sum_sq_hess_diff = 0.
+        weighted_fix_point_crit = 0.
         if max(verbose - 1, 0):
             print("Number iter cd ", pn_cd_epoch)
             print("ws size: ", len(ws))
@@ -204,22 +204,23 @@ def _compute_descent_direction(
         for idx, j in enumerate(ws):
             stepsize = 1/lc[idx] if lc[idx] != 0 else 1000
             old_value = w[j] + delta_w[idx]
-            # TODO: Is it the correct gradient? What's the intuition behind the formula? 
-            grad_j = bias[idx] + (X[:, j] * X_delta_w * hessian_diag).sum()
+            # TODO: Is it the correct gradient? What's the intuition behind the formula?
+            grad_j = old_grad[idx] + (X[:, j] * X_delta_w * hessian_diag).sum()
             new_value = penalty.prox_1d(
                 old_value - grad_j * stepsize, stepsize, j)
             diff = new_value - old_value
             if diff != 0:
-                sum_sq_hess_diff += (diff * lc[idx]) ** 2
+                weighted_fix_point_crit += (diff * lc[idx]) ** 2
                 delta_w[idx] = new_value - w[j]
                 for i in range(X.shape[0]):
                     X_delta_w[i] += diff * X[i, j]
             # if max(verbose - 1, 0):
             #     print("delta w is ", delta_w[idx])
-        # sum_sq_hess_diff /= X.shape[0] ** 2
-        # TODO: beware scaling sum_sq_hess_diff and pn_tol
-        if sum_sq_hess_diff <= pn_tol and pn_cd_epoch + 1 >= min_pn_cd_epochs:
-            print("Exited! sum_sq_hess_diff: ", sum_sq_hess_diff)
+        # weighted_fix_point_crit /= X.shape[0] ** 2
+        # TODO: beware scaling weighted_fix_point_crit and pn_tol
+        # try a more proncipled criterion? subdiff dist?
+        if weighted_fix_point_crit <= pn_tol and pn_cd_epoch + 1 >= min_pn_cd_epochs:
+            print("Exited! weighted_fix_point_crit: ", weighted_fix_point_crit)
             break
     return delta_w, X_delta_w
 

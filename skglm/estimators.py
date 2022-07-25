@@ -157,7 +157,7 @@ class GeneralizedLinearEstimator(LinearModel):
         """
         path_func = cd_solver_path if y.ndim == 1 else bcd_solver_path
         penalty = compiled_clone(self.penalty)
-        datafit = compiled_clone(self.datafit)
+        datafit = compiled_clone(self.datafit, to_float32=X.dtype is np.float32)
 
         return path_func(
             X, y, datafit, penalty, alphas=alphas,
@@ -236,7 +236,7 @@ class GeneralizedLinearEstimator(LinearModel):
 
         path_func = cd_solver_path if y.ndim == 1 else bcd_solver_path
         penalty = compiled_clone(self.penalty)
-        datafit = compiled_clone(self.datafit)
+        datafit = compiled_clone(self.datafit, to_float32=X.dtype is np.float32)
 
         # TODO merge with self.path, handle penalty not an argument in self.path
         _, coefs, kkt = path_func(

@@ -40,10 +40,11 @@ def jit_cached_compile(klass, spec, to_float32=False):
     return jitclass(spec)(klass)
 
 
-def compiled_clone(instance):
+def compiled_clone(instance, to_float32=False):
     return jit_cached_compile(
         instance.__class__,
         instance.get_spec(),
+        to_float32,
     )(**instance.params_to_dict())
 
 

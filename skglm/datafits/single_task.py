@@ -95,7 +95,6 @@ class Quadratic(BaseDatafit):
         return grad
 
 
-# Quadratic, Quadratic_32 = jit_factory(Quadratic, spec_quadratic)
 
 
 @njit

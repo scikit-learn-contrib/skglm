@@ -32,7 +32,7 @@ def spec_to_float32(spec):
     return spec32
 
 
-@lru_cache
+@lru_cache()
 def jit_cached_compile(klass, spec, to_float32=False):
     if to_float32:
         spec = spec_to_float32(spec)

@@ -253,10 +253,8 @@ def cd_solver(
         opt[unpen] = np.inf  # always include unpenalized features
         opt[penalty.generalized_support(w)] = np.inf
 
-        # here use topk instead of sorting the full array
-        # ie the following line
+        # here use topk instead of np.argsort(opt)[-ws_size:]
         ws = np.argpartition(opt, -ws_size)[-ws_size:]
-        # is equivalent to ws = np.argsort(opt)[-ws_size:]
 
         if verbose:
             print(f'Iteration {t + 1}, {ws_size} feats in subpb.')
@@ -276,6 +274,7 @@ def cd_solver(
             w_acc, Xw_acc, is_extrapolated = accelerator.extrapolate(w, Xw)
 
             if is_extrapolated:  # avoid computing p_obj for un-extrapolated w, Xw
+                # TODO : manage penalty.value(w, ws) for weighted Lasso
                 p_obj = datafit.value(y, w, Xw) + penalty.value(w)
                 p_obj_acc = datafit.value(y, w_acc, Xw_acc) + penalty.value(w_acc)
 
@@ -284,8 +283,6 @@ def cd_solver(
                     p_obj = p_obj_acc
 
             if epoch % 10 == 0:
-                # TODO : manage penalty.value(w, ws) for weighted Lasso
-
                 if is_sparse:
                     grad_ws = construct_grad_sparse(
                         X.data, X.indptr, X.indices, y, w, Xw, datafit, ws)

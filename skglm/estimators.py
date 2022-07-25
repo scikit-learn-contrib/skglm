@@ -157,7 +157,7 @@ class GeneralizedLinearEstimator(LinearModel):
             X, y, self.datafit, self.penalty, alphas=alphas,
             coef_init=coef_init, max_iter=self.max_iter,
             return_n_iter=return_n_iter, max_epochs=self.max_epochs, p0=self.p0,
-            tol=self.tol, use_acc=True, ws_strategy=self.ws_strategy,
+            tol=self.tol, ws_strategy=self.ws_strategy,
             verbose=self.verbose)
 
     def fit(self, X, y):
@@ -1145,7 +1145,7 @@ class LinearSVC(LinearSVC_sklearn):
             Target vector relative to X.
 
         Cs : ndarray shape (n_Cs,)
-            Values of regularization strenghts for which solutions are
+            Values of regularization strengths for which solutions are
             computed.
 
         coef_init : array, shape (n_features,), optional

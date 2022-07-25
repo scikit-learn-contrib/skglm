@@ -4,6 +4,7 @@ from functools import lru_cache
 import numba
 from numba import float32, float64
 from numba.experimental import jitclass
+import numpy as np
 
 
 def spec_to_float32(spec):
@@ -25,7 +26,10 @@ def spec_to_float32(spec):
         if dtype == float64:
             dtype32 = float32
         elif isinstance(dtype, numba.core.types.npytypes.Array):
-            dtype32 = dtype.copy(dtype=float32)
+            if dtype.dtype == float64:
+                dtype32 = dtype.copy(dtype=float32)
+            else:
+                dtype32 = dtype
         else:
             raise ValueError(f"Unknown spec type {dtype}")
         spec32.append((name, dtype32))

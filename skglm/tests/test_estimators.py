@@ -231,7 +231,6 @@ def test_grid_search(estimator_name):
 
 
 if __name__ == '__main__':
-    # Datafit, Penalty, Estimator = Logistic, L1, SparseLogisticRegression
-    # pen_args = [alpha]
-    # test_generic_estimator(Datafit, Penalty, True, Estimator, pen_args)
-    test_generic_get_params()
+    Datafit, Penalty, Estimator = Logistic, L1, SparseLogisticRegression
+    pen_args = [alpha]
+    test_generic_estimator(Datafit, Penalty, True, Estimator, pen_args)

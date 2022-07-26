@@ -3,13 +3,7 @@ from numpy.linalg import norm
 from numba import njit
 from numba import float64
 
-from skglm.datafits.base import BaseDatafit, jit_factory
-
-
-# spec_quadratic = [
-#     ('Xty', float64[:]),
-#     ('lipschitz', float64[:]),
-# ]
+from skglm.datafits.base import BaseDatafit
 
 
 class Quadratic(BaseDatafit):
@@ -102,11 +96,6 @@ def sigmoid(x):
     return out
 
 
-spec_logistic = [
-    ('lipschitz', float64[:]),
-]
-
-
 class Logistic(BaseDatafit):
     r"""Logistic datafit with labels in {-1, 1}.
 
@@ -122,7 +111,7 @@ class Logistic(BaseDatafit):
 
     Note
     ----
-    The class _Logistic is subsequently decorated with a @jitclass decorator with
+    The class Logistic is subsequently decorated with a @jitclass decorator with
     the `jit_factory` function to be compiled. This allows for faster computations
     using Numba JIT compiler.
     """
@@ -174,11 +163,6 @@ class Logistic(BaseDatafit):
         return grad / len(Xw)
 
 
-spec_quadratic_svc = [
-    ('lipschitz', float64[:]),
-]
-
-
 class QuadraticSVC(BaseDatafit):
     """A Quadratic SVC datafit used for classification tasks.
 
@@ -193,7 +177,7 @@ class QuadraticSVC(BaseDatafit):
 
     Note
     ----
-    The class _Logistic is subsequently decorated with a @jitclass decorator with
+    The class QuadraticSVC is subsequently decorated with a @jitclass decorator with
     the `jit_factory` function to be compiled. This allows for faster computations
     using Numba JIT compiler.
     """
@@ -251,12 +235,6 @@ class QuadraticSVC(BaseDatafit):
                 yXjyXTw += yXT_data[i] * yXTw[yXT_indices[i]]
             grad[j] = yXjyXTw - 1
         return grad
-
-
-spec_huber = [
-    ('delta', float64),
-    ('lipschitz', float64[:])
-]
 
 
 class Huber(BaseDatafit):

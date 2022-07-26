@@ -52,30 +52,6 @@ def compiled_clone(instance, to_float32=False):
     )(**instance.params_to_dict())
 
 
-# TODO remove
-def jit_factory(Datafit, spec):
-    """JIT-compile a datafit class in float32 and float64 contexts.
-
-    Parameters
-    ----------
-    Datafit : datafit class, inheriting from BaseDatafit
-        A datafit class, to be compiled.
-
-    spec : list
-        A list of type specifications for every attribute of Datafit.
-
-    Returns
-    -------
-    Datafit_64 : Jitclass
-        A compiled datafit class with attribute types float64.
-
-    Datafit_32 : Jitclass
-        A compiled datafit class with attribute types float32.
-    """
-    spec32 = spec_to_float32(spec)
-    return jitclass(spec)(Datafit), jitclass(spec32)(Datafit)
-
-
 class BaseDatafit():
     """Base class for datafits."""
 

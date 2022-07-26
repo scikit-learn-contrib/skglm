@@ -1292,8 +1292,8 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
         if not self.warm_start or not hasattr(self, "coef_"):
             self.coef_ = None
 
-        _, coefs, kkt = bcd_solver_path(
-            X, Y, self.datafit, self.penalty, alphas=[self.alpha],
+        _, coefs, kkt = self.path(
+            X, Y, alphas=[self.alpha],
             coef_init=self.coef_, max_iter=self.max_iter,
             max_epochs=self.max_epochs, p0=self.p0, verbose=self.verbose,
             tol=self.tol)
@@ -1338,5 +1338,8 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
+        self.datafit = compiled_clone(self.datafit, to_float32=X.dtype == np.float32)
+        self.penalty = compiled_clone(self.penalty)
+
         return bcd_solver_path(X, Y, self.datafit, self.penalty, alphas=alphas,
                                coef_init=coef_init, **params)

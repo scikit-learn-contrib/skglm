@@ -45,7 +45,7 @@ class L1(BasePenalty):
 
     def is_penalized(self, n_features):
         """Return a binary mask with the penalized features."""
-        return np.ones(n_features, bool_)
+        return np.ones(n_features, dtype=np.bool_)
 
     def generalized_support(self, w):
         """Return a mask with non-zero coefficients."""

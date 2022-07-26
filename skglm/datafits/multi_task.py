@@ -12,7 +12,6 @@ spec_quadratic = [
 ]
 
 
-@jitclass(spec_quadratic)
 class QuadraticMultiTask(BaseMultitaskDatafit):
     """Quadratic datafit used for multi-task regression.
 

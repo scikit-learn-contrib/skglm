@@ -54,7 +54,7 @@ class L2_1(BasePenalty):
 
     def is_penalized(self, n_features):
         """Return a binary mask with the penalized features."""
-        return np.ones(n_features, bool_)
+        return np.ones(n_features, dtype=np.bool_)
 
 
 spec_L2_05 = [
@@ -102,7 +102,7 @@ class L2_05(BasePenalty):
 
     def is_penalized(self, n_features):
         """Return a binary mask with the penalized features."""
-        return np.ones(n_features, bool_)
+        return np.ones(n_features, dtype=np.bool_)
 
 
 spec_BlockMCPenalty = [
@@ -171,7 +171,7 @@ class BlockMCPenalty(BasePenalty):
 
     def is_penalized(self, n_features):
         """Return a binary mask with the penalized features."""
-        return np.ones(n_features, bool_)
+        return np.ones(n_features, dtype=np.bool_)
 
 
 spec_BlockSCAD = [
@@ -243,7 +243,7 @@ class BlockSCAD(BasePenalty):
 
     def is_penalized(self, n_features):
         """Return a binary mask with the penalized features."""
-        return np.ones(n_features, bool_)
+        return np.ones(n_features, dtype=np.bool_)
 
 
 spec_WeightedGroupL2 = [

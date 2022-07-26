@@ -117,7 +117,7 @@ class GeneralizedLinearEstimator(LinearModel):
             % (self.datafit.__class__.__name__, self.penalty.__class__.__name__,
                self.penalty.alpha, self.is_classif))
 
-    def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
+    def path(self, X, y, alphas, coef_init=None, return_n_iter=False, **params):
         """Compute regularization path.
 
         Parameters
@@ -154,10 +154,10 @@ class GeneralizedLinearEstimator(LinearModel):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
-        path_func = cd_solver_path if y.ndim == 1 else bcd_solver_path
         penalty = compiled_clone(self.penalty)
         datafit = compiled_clone(self.datafit, to_float32=X.dtype == np.float32)
 
+        path_func = cd_solver_path if y.ndim == 1 else bcd_solver_path
         return path_func(
             X, y, datafit, penalty, alphas=alphas,
             coef_init=coef_init, max_iter=self.max_iter,
@@ -233,15 +233,9 @@ class GeneralizedLinearEstimator(LinearModel):
 
         X_ = yXT if isinstance(self.datafit, QuadraticSVC) else X
 
-        # TODO we should call self.path directly here,
-        # and jit inside path not here (so pass self.penalty and self.datafit)
-        path_func = cd_solver_path if y.ndim == 1 else bcd_solver_path
-        penalty = compiled_clone(self.penalty)
-        datafit = compiled_clone(self.datafit, to_float32=X.dtype == np.float32)
-
         # TODO merge with self.path, handle penalty not an argument in self.path
-        _, coefs, kkt = path_func(
-            X_, y, datafit, penalty, alphas=[self.penalty.alpha],
+        _, coefs, kkt = self.path(
+            X_, y, alphas=[self.penalty.alpha],
             coef_init=self.coef_, max_iter=self.max_iter,
             max_epochs=self.max_epochs, p0=self.p0, verbose=self.verbose,
             tol=self.tol, ws_strategy=self.ws_strategy)

@@ -9,7 +9,7 @@ from skglm.datafits.group import QuadraticGroup
 from skglm.solvers.group_bcd_solver import bcd_solver
 
 from skglm.utils import grp_converter, make_correlated_data, AndersonAcceleration
-from skglm.datafits.base import compiled_clone
+from skglm.utils import compiled_clone
 from celer import GroupLasso, Lasso
 
 

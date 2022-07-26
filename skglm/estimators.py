@@ -17,6 +17,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.multiclass import OneVsRestClassifier
 
 from sklearn.linear_model._base import _preprocess_data
+from skglm import penalties
 
 from skglm.penalties import (
     L1, WeightedL1, L1_plus_L2, MCPenalty, IndicatorBox, L2_1
@@ -426,8 +427,9 @@ class Lasso(Lasso_sklearn):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
-        datafit = Quadratic()
-        penalty = L1(self.alpha)
+        penalty = compiled_clone(L1(self.alpha))
+        datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
+
         return cd_solver_path(
             X, y, datafit, penalty, alphas=alphas,
             coef_init=coef_init, max_iter=self.max_iter,
@@ -546,15 +548,14 @@ class WeightedLasso(Lasso_sklearn):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
-        datafit = Quadratic()
         weights = np.ones(X.shape[1]) if self.weights is None else self.weights
-
         if X.shape[1] != len(weights):
             raise ValueError("The number of weights must match the number of \
                               features. Got %s, expected %s." % (
                 len(weights), X.shape[1]))
 
-        penalty = WeightedL1(self.alpha, weights)
+        penalty = compiled_clone(WeightedL1(self.alpha, weights))
+        datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
 
         return cd_solver_path(
             X, y, datafit, penalty, alphas=alphas, coef_init=coef_init,
@@ -673,8 +674,8 @@ class ElasticNet(ElasticNet_sklearn):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
-        datafit = Quadratic()
-        penalty = L1_plus_L2(self.alpha, self.l1_ratio)
+        penalty = compiled_clone(L1_plus_L2(self.alpha, self.l1_ratio))
+        datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
 
         return cd_solver_path(
             X, y, datafit, penalty, alphas=alphas, coef_init=coef_init,
@@ -797,8 +798,8 @@ class MCPRegression(Lasso_sklearn):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
-        datafit = Quadratic()
-        penalty = MCPenalty(self.alpha, self.gamma)
+        penalty = compiled_clone(MCPenalty(self.alpha, self.gamma))
+        datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
 
         return cd_solver_path(
             X, y, datafit, penalty, alphas=alphas, coef_init=coef_init,
@@ -967,8 +968,9 @@ class SparseLogisticRegression(LogReg_sklearn):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
-        datafit = Logistic()
-        penalty = L1(self.alpha)
+        penalty = compiled_clone(L1(self.alpha))
+        datafit = compiled_clone(Logistic(), to_float32=X.dtype == np.float32)
+
         return cd_solver_path(
             X, y, datafit, penalty, alphas=alphas,
             coef_init=coef_init, max_iter=self.max_iter,
@@ -1172,8 +1174,9 @@ class LinearSVC(LinearSVC_sklearn):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
-        datafit = QuadraticSVC()
-        penalty_dual = IndicatorBox(self.C)
+
+        penalty_dual = compiled_clone(IndicatorBox(self.C))
+        datafit = compiled_clone(QuadraticSVC(), to_float32=yXT.dtype == np.float32)
 
         return cd_solver_path(
             yXT, y, datafit, penalty_dual, alphas=Cs,

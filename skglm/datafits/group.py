@@ -1,6 +1,5 @@
 import numpy as np
 from numpy.linalg import norm
-from numba.experimental import jitclass
 from numba import int32, float64
 
 from skglm.datafits.base import BaseDatafit
@@ -13,7 +12,6 @@ spec_QuadraticGroup = [
 ]
 
 
-@jitclass(spec_QuadraticGroup)
 class QuadraticGroup(BaseDatafit):
     r"""Quadratic datafit used with group penalties.
 

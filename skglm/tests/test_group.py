@@ -9,6 +9,7 @@ from skglm.datafits.group import QuadraticGroup
 from skglm.solvers.group_bcd_solver import bcd_solver
 
 from skglm.utils import grp_converter, make_correlated_data, AndersonAcceleration
+from skglm.datafits.base import compiled_clone
 from celer import GroupLasso, Lasso
 
 
@@ -60,6 +61,9 @@ def test_alpha_max(n_groups, n_features, shuffle):
         alpha=alpha_max, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
+    # compile classes
+    quad_group = compiled_clone(quad_group, to_float32=X.dtype == np.float32)
+    group_penalty = compiled_clone(group_penalty)
     w = bcd_solver(X, y, quad_group, group_penalty, tol=1e-12)[0]
 
     np.testing.assert_allclose(norm(w), 0, atol=1e-14)
@@ -81,6 +85,9 @@ def test_equivalence_lasso():
         alpha=alpha, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
+    # compile classes
+    quad_group = compiled_clone(quad_group, to_float32=X.dtype == np.float32)
+    group_penalty = compiled_clone(group_penalty)
     w = bcd_solver(X, y, quad_group, group_penalty, tol=1e-12)[0]
 
     celer_lasso = Lasso(
@@ -113,6 +120,9 @@ def test_vs_celer_grouplasso(n_groups, n_features, shuffle):
         alpha=alpha, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
+    # compile classes
+    quad_group = compiled_clone(quad_group, to_float32=X.dtype == np.float32)
+    group_penalty = compiled_clone(group_penalty)
     w = bcd_solver(X, y, quad_group, group_penalty, tol=1e-12)[0]
 
     model = GroupLasso(groups=groups, alpha=alpha, weights=weights,
@@ -163,4 +173,5 @@ def test_anderson_acceleration():
 
 
 if __name__ == '__main__':
+    test_equivalence_lasso()
     pass

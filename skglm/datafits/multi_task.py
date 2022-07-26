@@ -33,6 +33,16 @@ class QuadraticMultiTask(BaseMultitaskDatafit):
     def __init__(self):
         pass
 
+    def get_spec(self):
+        spec = (
+            ('XtY', float64[:, :]),
+            ('lipschitz', float64[:]),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict()
+
     def initialize(self, X, Y):
         """Compute optimization quantities before fitting on X and Y."""
         self.XtY = X.T @ Y

@@ -39,11 +39,11 @@ class Quadratic(BaseDatafit):
         pass
 
     def get_spec(self):
-        spec_quadratic = (
+        spec = (
             ('Xty', float64[:]),
             ('lipschitz', float64[:]),
         )
-        return spec_quadratic
+        return spec
 
     def params_to_dict(self):
         return dict()
@@ -95,8 +95,6 @@ class Quadratic(BaseDatafit):
         return grad
 
 
-
-
 @njit
 def sigmoid(x):
     """Vectorwise sigmoid."""
@@ -131,6 +129,15 @@ class _Logistic(BaseDatafit):
 
     def __init__(self):
         pass
+
+    def get_spec(self):
+        spec = (
+            ('lipschitz', float64[:]),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict()
 
     def initialize(self, X, y):
         self.lipschitz = (X ** 2).sum(axis=0) / (len(y) * 4)
@@ -196,6 +203,15 @@ class _QuadraticSVC(BaseDatafit):
 
     def __init__(self):
         pass
+
+    def get_spec(self):
+        spec = (
+            ('lipschitz', float64[:]),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict()
 
     def initialize(self, yXT, y):
         n_features = yXT.shape[1]
@@ -276,6 +292,16 @@ class _Huber(BaseDatafit):
 
     def __init__(self, delta):
         self.delta = delta
+
+    def get_spec(self):
+        spec = (
+            ('delta', float64),
+            ('lipschitz', float64[:])
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(delta=self.delta)
 
     def initialize(self, X, y):
         n_features = X.shape[1]

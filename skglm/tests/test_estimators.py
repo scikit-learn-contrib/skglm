@@ -21,6 +21,7 @@ from skglm.estimators import (
     MCPRegression, SparseLogisticRegression, LinearSVC)
 from skglm.datafits import Logistic, Quadratic, QuadraticSVC, QuadraticMultiTask
 from skglm.penalties import L1, IndicatorBox, L1_plus_L2, MCPenalty, WeightedL1
+from skglm.datafits.base import compiled_clone
 
 
 n_samples = 50
@@ -191,8 +192,8 @@ def test_generic_get_params():
                 np.testing.assert_allclose(v, v_est)
             else:
                 assert v == v_est
-    df_reg, df_clf = Quadratic(), Logistic()
-    pen_reg, pen_clf = L1(4.), MCPenalty(2., 3.)
+    df_reg, df_clf = compiled_clone(Quadratic()), compiled_clone(Logistic())
+    pen_reg, pen_clf = compiled_clone(L1(4.)), compiled_clone(MCPenalty(2., 3.))
     reg = GeneralizedLinearEstimator(df_reg, pen_reg, is_classif=False)
     clf = GeneralizedLinearEstimator(df_clf, pen_clf, is_classif=True)
     expected_clf_attr = {
@@ -230,6 +231,7 @@ def test_grid_search(estimator_name):
 
 
 if __name__ == '__main__':
-    Datafit, Penalty, Estimator = Logistic, L1, SparseLogisticRegression
-    pen_args = [alpha]
-    test_generic_estimator(Datafit, Penalty, True, Estimator, pen_args)
+    # Datafit, Penalty, Estimator = Logistic, L1, SparseLogisticRegression
+    # pen_args = [alpha]
+    # test_generic_estimator(Datafit, Penalty, True, Estimator, pen_args)
+    test_generic_get_params()

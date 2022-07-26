@@ -1338,8 +1338,8 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
-        self.datafit = compiled_clone(self.datafit, to_float32=X.dtype == np.float32)
-        self.penalty = compiled_clone(self.penalty)
+        datafit = compiled_clone(self.datafit, to_float32=X.dtype == np.float32)
+        penalty = compiled_clone(self.penalty)
 
-        return bcd_solver_path(X, Y, self.datafit, self.penalty, alphas=alphas,
+        return bcd_solver_path(X, Y, datafit, penalty, alphas=alphas,
                                coef_init=coef_init, **params)

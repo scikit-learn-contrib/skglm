@@ -22,7 +22,7 @@ class L2_1(BasePenalty):
 
     def get_spec(self):
         spec = (
-            ('alpha', float64)
+            ('alpha', float64),
         )
         return spec
 
@@ -70,7 +70,7 @@ class L2_05(BasePenalty):
 
     def get_spec(self):
         spec = (
-            ('alpha', float64)
+            ('alpha', float64),
         )
         return spec
 

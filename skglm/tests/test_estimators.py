@@ -192,17 +192,14 @@ def test_generic_get_params():
                 np.testing.assert_allclose(v, v_est)
             else:
                 assert v == v_est
-    # clf and reg are not fitted, so penalty and datafit are not compiled by fit.
-    # To make sure all of their attributes are defined we compile them manually:
-    df_reg, df_clf = compiled_clone(Quadratic()), compiled_clone(Logistic())
-    pen_reg, pen_clf = compiled_clone(L1(4.)), compiled_clone(MCPenalty(2., 3.))
-    reg = GeneralizedLinearEstimator(df_reg, pen_reg, is_classif=False)
-    clf = GeneralizedLinearEstimator(df_clf, pen_clf, is_classif=True)
-    expected_clf_attr = {
-        'penalty__alpha': 2., 'penalty__gamma': 3., 'datafit__lipschitz': np.array([])}
-    expected_reg_attr = {
-        'penalty__alpha': 4., 'datafit__lipschitz': np.array([]),
-        'datafit__Xty': np.array([])}
+
+    reg = GeneralizedLinearEstimator(Quadratic(), L1(4.), is_classif=False)
+    clf = GeneralizedLinearEstimator(Logistic(), MCPenalty(2., 3.), is_classif=True)
+
+    # Xty and lipschitz attributes are defined for jit compiled classes
+    # hence they are not included in the test
+    expected_clf_attr = {'penalty__alpha': 2., 'penalty__gamma': 3.}
+    expected_reg_attr = {'penalty__alpha': 4.}
     assert_deep_dict_equal(expected_reg_attr, reg)
     assert_deep_dict_equal(expected_clf_attr, clf)
 
@@ -233,4 +230,5 @@ def test_grid_search(estimator_name):
 
 
 if __name__ == '__main__':
+    test_generic_get_params()
     pass

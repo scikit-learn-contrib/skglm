@@ -21,7 +21,6 @@ from skglm.estimators import (
     MCPRegression, SparseLogisticRegression, LinearSVC)
 from skglm.datafits import Logistic, Quadratic, QuadraticSVC, QuadraticMultiTask
 from skglm.penalties import L1, IndicatorBox, L1_plus_L2, MCPenalty, WeightedL1
-from skglm.utils import compiled_clone
 
 
 n_samples = 50

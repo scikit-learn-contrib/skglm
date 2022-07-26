@@ -1,6 +1,5 @@
 import numpy as np
 from numba import float64
-from numba.experimental import jitclass
 from numba.types import bool_
 
 from skglm.penalties.base import BasePenalty
@@ -63,7 +62,6 @@ spec_L1_plus_L2 = [
 ]
 
 
-@jitclass(spec_L1_plus_L2)
 class L1_plus_L2(BasePenalty):
     """L1 + L2 penalty (aka ElasticNet penalty)."""
 
@@ -130,7 +128,6 @@ spec_WeightedL1 = [
 ]
 
 
-@jitclass(spec_WeightedL1)
 class WeightedL1(BasePenalty):
     """Weighted L1 penalty."""
 
@@ -191,7 +188,6 @@ spec_MCP = [
 ]
 
 
-@jitclass(spec_MCP)
 class MCPenalty(BasePenalty):
     """Minimax Concave Penalty (MCP), a non-convex sparse penalty.
 
@@ -261,7 +257,6 @@ spec_SCAD = [
 ]
 
 
-@jitclass(spec_SCAD)
 class SCAD(BasePenalty):
     """Smoothly Clipped Absolute Deviation.
 
@@ -335,7 +330,6 @@ spec_IndicatorBox = [
 ]
 
 
-@jitclass(spec_IndicatorBox)
 class IndicatorBox(BasePenalty):
     """Box constraint penalty.
 
@@ -401,7 +395,6 @@ spec_L0_5 = [
 ]
 
 
-@jitclass(spec_L0_5)
 class L0_5(BasePenalty):
     """L_{0.5} non-convex quasi-norm penalty."""
 
@@ -456,7 +449,6 @@ spec_L2_3 = [
 ]
 
 
-@jitclass(spec_L2_3)
 class L2_3(BasePenalty):
     """L_{2/3} quasi-norm non-convex penalty."""
 

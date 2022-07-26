@@ -2,7 +2,6 @@ import numpy as np
 from numpy.linalg import norm
 
 from numba import float64, int32
-from numba.experimental import jitclass
 from numba.types import bool_
 
 from skglm.penalties.base import BasePenalty
@@ -15,7 +14,6 @@ spec_L21 = [
 ]
 
 
-@jitclass(spec_L21)
 class L2_1(BasePenalty):
     """L2/1 row-wise penalty: sum of L2 norms of rows."""
 
@@ -64,7 +62,6 @@ spec_L2_05 = [
 ]
 
 
-@jitclass(spec_L2_05)
 class L2_05(BasePenalty):
     """L2/0.5 row-wise penalty: sum of square roots of L2 norms of rows."""
 
@@ -114,7 +111,6 @@ spec_BlockMCPenalty = [
 ]
 
 
-@jitclass(spec_BlockMCPenalty)
 class BlockMCPenalty(BasePenalty):
     """Block Minimax Concave Penalty.
 
@@ -184,7 +180,6 @@ spec_BlockSCAD = [
 ]
 
 
-@jitclass(spec_BlockSCAD)
 class BlockSCAD(BasePenalty):
     """Block Smoothly Clipped Absolute Deviation.
 
@@ -259,7 +254,6 @@ spec_WeightedGroupL2 = [
 ]
 
 
-@jitclass(spec_WeightedGroupL2)
 class WeightedGroupL2(BasePenalty):
     r"""Weighted Group L2 penalty.
 

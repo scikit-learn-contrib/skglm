@@ -24,7 +24,7 @@ from skglm.penalties import (
 from skglm.datafits import (
     Quadratic, Logistic, QuadraticSVC, QuadraticMultiTask
 )
-from skglm.datafits.base import compiled_clone
+from skglm.utils import compiled_clone
 from skglm.solvers import cd_solver_path, bcd_solver_path
 
 

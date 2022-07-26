@@ -1175,7 +1175,6 @@ class LinearSVC(LinearSVC_sklearn):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
-
         penalty_dual = compiled_clone(IndicatorBox(self.C))
         datafit = compiled_clone(QuadraticSVC(), to_float32=yXT.dtype == np.float32)
 

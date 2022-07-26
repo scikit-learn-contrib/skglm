@@ -22,8 +22,7 @@ from skglm.penalties import (
     L1, WeightedL1, L1_plus_L2, MCPenalty, IndicatorBox, L2_1
 )
 from skglm.datafits import (
-    Quadratic, Logistic, Logistic_32, QuadraticSVC,
-    QuadraticSVC_32, QuadraticMultiTask
+    Quadratic, Logistic, QuadraticSVC, QuadraticMultiTask
 )
 from skglm.datafits.base import compiled_clone
 from skglm.solvers import cd_solver_path, bcd_solver_path
@@ -427,7 +426,7 @@ class Lasso(Lasso_sklearn):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
-        datafit = Quadratic_32() if X.dtype == np.float32 else Quadratic()
+        datafit = Quadratic()
         penalty = L1(self.alpha)
         return cd_solver_path(
             X, y, datafit, penalty, alphas=alphas,
@@ -547,7 +546,7 @@ class WeightedLasso(Lasso_sklearn):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
-        datafit = Quadratic_32() if X.dtype == np.float32 else Quadratic()
+        datafit = Quadratic()
         weights = np.ones(X.shape[1]) if self.weights is None else self.weights
 
         if X.shape[1] != len(weights):
@@ -674,7 +673,7 @@ class ElasticNet(ElasticNet_sklearn):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
-        datafit = Quadratic_32() if X.dtype == np.float32 else Quadratic()
+        datafit = Quadratic()
         penalty = L1_plus_L2(self.alpha, self.l1_ratio)
 
         return cd_solver_path(
@@ -798,7 +797,7 @@ class MCPRegression(Lasso_sklearn):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
-        datafit = Quadratic_32() if X.dtype == np.float32 else Quadratic()
+        datafit = Quadratic()
         penalty = MCPenalty(self.alpha, self.gamma)
 
         return cd_solver_path(
@@ -968,7 +967,7 @@ class SparseLogisticRegression(LogReg_sklearn):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
-        datafit = Logistic_32() if X.dtype == np.float32 else Logistic()
+        datafit = Logistic()
         penalty = L1(self.alpha)
         return cd_solver_path(
             X, y, datafit, penalty, alphas=alphas,
@@ -1173,7 +1172,7 @@ class LinearSVC(LinearSVC_sklearn):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
-        datafit = QuadraticSVC_32() if yXT.dtype == np.float32 else QuadraticSVC()
+        datafit = QuadraticSVC()
         penalty_dual = IndicatorBox(self.C)
 
         return cd_solver_path(

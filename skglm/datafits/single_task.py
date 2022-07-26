@@ -107,7 +107,7 @@ spec_logistic = [
 ]
 
 
-class _Logistic(BaseDatafit):
+class Logistic(BaseDatafit):
     r"""Logistic datafit with labels in {-1, 1}.
 
     The datafit reads::
@@ -174,15 +174,12 @@ class _Logistic(BaseDatafit):
         return grad / len(Xw)
 
 
-Logistic, Logistic_32 = jit_factory(_Logistic, spec_logistic)
-
-
 spec_quadratic_svc = [
     ('lipschitz', float64[:]),
 ]
 
 
-class _QuadraticSVC(BaseDatafit):
+class QuadraticSVC(BaseDatafit):
     """A Quadratic SVC datafit used for classification tasks.
 
     The datafit reads::
@@ -256,16 +253,13 @@ class _QuadraticSVC(BaseDatafit):
         return grad
 
 
-QuadraticSVC, QuadraticSVC_32 = jit_factory(_QuadraticSVC, spec_quadratic_svc)
-
-
 spec_huber = [
     ('delta', float64),
     ('lipschitz', float64[:])
 ]
 
 
-class _Huber(BaseDatafit):
+class Huber(BaseDatafit):
     """Huber datafit.
 
     The datafit reads::
@@ -366,6 +360,3 @@ class _Huber(BaseDatafit):
                     grad_j += - X_data[i] * np.sign(tmp) * self.delta
             grad[j] = grad_j / n_samples
         return grad
-
-
-Huber, Huber_32 = jit_factory(_Huber, spec_huber)

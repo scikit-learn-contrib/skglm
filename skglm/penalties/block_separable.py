@@ -2,7 +2,6 @@ import numpy as np
 from numpy.linalg import norm
 
 from numba import float64, int32
-from numba.types import bool_
 
 from skglm.penalties.base import BasePenalty
 from skglm.utils import (

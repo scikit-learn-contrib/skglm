@@ -4,7 +4,6 @@ from functools import lru_cache
 import numba
 from numba import float32, float64
 from numba.experimental import jitclass
-import numpy as np
 
 
 def spec_to_float32(spec):
@@ -38,6 +37,24 @@ def spec_to_float32(spec):
 
 @lru_cache()
 def jit_cached_compile(klass, spec, to_float32=False):
+    """Jit compile class and cache compilation.
+
+    Parameters
+    ----------
+    klass : class
+        Un instantiated Datafit or Penalty.
+
+    spec : list of tuples
+        A list of (name, dtype) for every attribute of a jitclass.
+
+    to_float32 : bool, optional
+        If ``True``converts float64 types to float32, by default False.
+
+    Returns
+    -------
+    Instance of Datafit or penalty
+        Return a jitclass.
+    """
     if to_float32:
         spec = spec_to_float32(spec)
 
@@ -45,6 +62,21 @@ def jit_cached_compile(klass, spec, to_float32=False):
 
 
 def compiled_clone(instance, to_float32=False):
+    """Compile instance to a jitclass.
+
+    Parameters
+    ----------
+    instance : Instance of Datafit or Penalty
+        Datafit or Penalty object.
+
+    to_float32 : bool, optional
+        If ``True``converts float64 types to float32, by default False.
+
+    Returns
+    -------
+    Instance of Datafit or penalty
+        Return a jitclass.
+    """
     return jit_cached_compile(
         instance.__class__,
         instance.get_spec(),

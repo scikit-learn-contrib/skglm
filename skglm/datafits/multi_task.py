@@ -1,7 +1,6 @@
 import numpy as np
 from numpy.linalg import norm
 from numba import float64
-from numba.experimental import jitclass
 
 from skglm.datafits.base import BaseMultitaskDatafit
 

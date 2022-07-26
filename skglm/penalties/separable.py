@@ -15,13 +15,13 @@ class L1(BasePenalty):
         self.alpha = alpha
 
     def get_spec(self):
-        spec_L1 = (
+        spec = (
             ('alpha', float64),
         )
-        return spec_L1
+        return spec
 
     def params_to_dict(self):
-        return {'alpha': self.alpha}
+        return dict(alpha=self.alpha)
 
     def value(self, w):
         """Compute L1 penalty value."""
@@ -70,6 +70,17 @@ class L1_plus_L2(BasePenalty):
     def __init__(self, alpha, l1_ratio):
         self.alpha = alpha
         self.l1_ratio = l1_ratio
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+            ('l1_ratio', float64),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha,
+                    l1_ratio=self.l1_ratio)
 
     def value(self, w):
         """Compute the L1 + L2 penalty value."""
@@ -126,6 +137,17 @@ class WeightedL1(BasePenalty):
     def __init__(self, alpha, weights):
         self.alpha = alpha
         self.weights = weights.astype(np.float64)
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+            ('weights', float64[:]),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha,
+                    weights=self.weights)
 
     def value(self, w):
         """Compute the weighted L1 penalty."""
@@ -185,6 +207,17 @@ class MCPenalty(BasePenalty):
     def __init__(self, alpha, gamma):
         self.alpha = alpha
         self.gamma = gamma
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+            ('gamma', float64),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha,
+                    gamma=self.gamma)
 
     def value(self, w):
         return value_MCP(w, self.alpha, self.gamma)
@@ -247,6 +280,17 @@ class SCAD(BasePenalty):
         self.alpha = alpha
         self.gamma = gamma
 
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+            ('gamma', float64)
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha,
+                    gamma=self.gamma)
+
     def value(self, w):
         """Compute the value of the SCAD penalty at w."""
         return value_SCAD(w, self.alpha, self.gamma)
@@ -305,6 +349,15 @@ class IndicatorBox(BasePenalty):
     def __init__(self, alpha):
         self.alpha = alpha
 
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha)
+
     def value(self, w):
         """Compute the value of the IndicatorBox at w."""
         if np.max(w) > self.alpha:
@@ -355,6 +408,15 @@ class L0_5(BasePenalty):
     def __init__(self, alpha):
         self.alpha = alpha
 
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha)
+
     def value(self, w):
         """Compute the value of L0_5 at w."""
         return self.alpha * np.sum(np.abs(w) ** 0.5)
@@ -400,6 +462,15 @@ class L2_3(BasePenalty):
 
     def __init__(self, alpha):
         self.alpha = alpha
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha)
 
     def value(self, w):
         """Compute the value of the L2_3 norm at w."""

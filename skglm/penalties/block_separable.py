@@ -22,6 +22,15 @@ class L2_1(BasePenalty):
     def __init__(self, alpha):
         self.alpha = alpha
 
+    def get_spec(self):
+        spec = (
+            ('alpha', float64)
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha)
+
     def value(self, W):
         """Compute the L2/1 penalty value."""
         return self.alpha * np.sqrt(np.sum(W ** 2, axis=1)).sum()
@@ -61,6 +70,15 @@ class L2_05(BasePenalty):
 
     def __init__(self, alpha):
         self.alpha = alpha
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64)
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha)
 
     def value(self, W):
         """Compute the value of L2/0.5 at w."""
@@ -114,6 +132,17 @@ class BlockMCPenalty(BasePenalty):
     def __init__(self, alpha, gamma):
         self.alpha = alpha
         self.gamma = gamma
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+            ('gamma', float64),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha,
+                    gamma=self.gamma)
 
     def value(self, W):
         """Compute the value of BlockMCP at W."""
@@ -172,6 +201,17 @@ class BlockSCAD(BasePenalty):
     def __init__(self, alpha, gamma):
         self.alpha = alpha
         self.gamma = gamma
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+            ('gamma', float64),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha,
+                    gamma=self.gamma)
 
     def value(self, W):
         """Compute the value of the SCAD penalty at W."""
@@ -247,6 +287,19 @@ class WeightedGroupL2(BasePenalty):
     def __init__(self, alpha, weights, grp_ptr, grp_indices):
         self.alpha, self.weights = alpha, weights
         self.grp_ptr, self.grp_indices = grp_ptr, grp_indices
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+            ('weights', float64[:]),
+            ('grp_ptr', int32[:]),
+            ('grp_indices', int32[:]),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha, weights=self.weights,
+                    grp_ptr=self.grp_ptr, grp_indices=self.grp_indices)
 
     def value(self, w):
         """Value of penalty at vector ``w``."""

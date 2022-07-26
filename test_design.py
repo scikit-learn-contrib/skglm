@@ -1,13 +1,11 @@
 import numpy as np
 from numpy.linalg import norm
-# from numba.types import bool_
 
 import time
 
 from skglm import GeneralizedLinearEstimator
 from skglm.penalties import L1
 from skglm.datafits import Quadratic
-from skglm.datafits.base import jit_cached_compile
 
 
 if __name__ == "__main__":
@@ -17,17 +15,6 @@ if __name__ == "__main__":
 
     penalty = L1(alpha)
     datafit = Quadratic()
-
-    # penalty_jit = jit_cached_compile(
-    #     penalty.__class__,
-    #     penalty.get_spec(),
-    # )(**penalty.params_to_dict())
-
-    # datafit_jit = jit_cached_compile(
-    #     datafit.__class__,
-    #     datafit.get_spec(),
-    #     to_float32=X.dtype is np.float32,
-    # )(**datafit.params_to_dict())
 
     clf = GeneralizedLinearEstimator(datafit, penalty, verbose=0)
 

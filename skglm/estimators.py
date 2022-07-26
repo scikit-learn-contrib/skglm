@@ -17,7 +17,6 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.multiclass import OneVsRestClassifier
 
 from sklearn.linear_model._base import _preprocess_data
-from skglm import penalties
 
 from skglm.penalties import (
     L1, WeightedL1, L1_plus_L2, MCPenalty, IndicatorBox, L2_1
@@ -234,6 +233,8 @@ class GeneralizedLinearEstimator(LinearModel):
 
         X_ = yXT if isinstance(self.datafit, QuadraticSVC) else X
 
+        # TODO we should call self.path directly here,
+        # and jit inside path not here (so pass self.penalty and self.datafit)
         path_func = cd_solver_path if y.ndim == 1 else bcd_solver_path
         penalty = compiled_clone(self.penalty)
         datafit = compiled_clone(self.datafit, to_float32=X.dtype == np.float32)

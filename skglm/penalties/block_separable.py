@@ -9,11 +9,6 @@ from skglm.utils import (
     BST, prox_block_2_05, prox_SCAD, value_SCAD, prox_MCP, value_MCP)
 
 
-spec_L21 = [
-    ('alpha', float64)
-]
-
-
 class L2_1(BasePenalty):
     """L2/1 row-wise penalty: sum of L2 norms of rows."""
 
@@ -57,11 +52,6 @@ class L2_1(BasePenalty):
         return np.ones(n_features, dtype=np.bool_)
 
 
-spec_L2_05 = [
-    ('alpha', float64)
-]
-
-
 class L2_05(BasePenalty):
     """L2/0.5 row-wise penalty: sum of square roots of L2 norms of rows."""
 
@@ -103,12 +93,6 @@ class L2_05(BasePenalty):
     def is_penalized(self, n_features):
         """Return a binary mask with the penalized features."""
         return np.ones(n_features, dtype=np.bool_)
-
-
-spec_BlockMCPenalty = [
-    ('alpha', float64),
-    ('gamma', float64),
-]
 
 
 class BlockMCPenalty(BasePenalty):
@@ -172,12 +156,6 @@ class BlockMCPenalty(BasePenalty):
     def is_penalized(self, n_features):
         """Return a binary mask with the penalized features."""
         return np.ones(n_features, dtype=np.bool_)
-
-
-spec_BlockSCAD = [
-    ('alpha', float64),
-    ('gamma', float64),
-]
 
 
 class BlockSCAD(BasePenalty):
@@ -244,14 +222,6 @@ class BlockSCAD(BasePenalty):
     def is_penalized(self, n_features):
         """Return a binary mask with the penalized features."""
         return np.ones(n_features, dtype=np.bool_)
-
-
-spec_WeightedGroupL2 = [
-    ('alpha', float64),
-    ('weights', float64[:]),
-    ('grp_ptr', int32[:]),
-    ('grp_indices', int32[:]),
-]
 
 
 class WeightedGroupL2(BasePenalty):

@@ -6,12 +6,6 @@ from numba.experimental import jitclass
 from skglm.datafits.base import BaseMultitaskDatafit
 
 
-spec_quadratic = [
-    ('XtY', float64[:, :]),
-    ('lipschitz', float64[:]),
-]
-
-
 class QuadraticMultiTask(BaseMultitaskDatafit):
     """Quadratic datafit used for multi-task regression.
 

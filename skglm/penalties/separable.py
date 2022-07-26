@@ -56,12 +56,6 @@ class L1(BasePenalty):
         return np.max(np.abs(gradient0))
 
 
-spec_L1_plus_L2 = [
-    ('alpha', float64),
-    ('l1_ratio', float64),
-]
-
-
 class L1_plus_L2(BasePenalty):
     """L1 + L2 penalty (aka ElasticNet penalty)."""
 
@@ -122,12 +116,6 @@ class L1_plus_L2(BasePenalty):
         return np.max(np.abs(gradient0))
 
 
-spec_WeightedL1 = [
-    ('alpha', float64),
-    ('weights', float64[:]),
-]
-
-
 class WeightedL1(BasePenalty):
     """Weighted L1 penalty."""
 
@@ -180,12 +168,6 @@ class WeightedL1(BasePenalty):
         """Return penalization value for which 0 is solution."""
         nnz_weights = self.weights != 0
         return np.max(np.abs(gradient0[nnz_weights] / self.weights[nnz_weights]))
-
-
-spec_MCP = [
-    ('alpha', float64),
-    ('gamma', float64),
-]
 
 
 class MCPenalty(BasePenalty):
@@ -249,12 +231,6 @@ class MCPenalty(BasePenalty):
     def alpha_max(self, gradient0):
         """Return penalization value for which 0 is solution."""
         return np.max(np.abs(gradient0))
-
-
-spec_SCAD = [
-    ('alpha', float64),
-    ('gamma', float64)
-]
 
 
 class SCAD(BasePenalty):
@@ -325,11 +301,6 @@ class SCAD(BasePenalty):
         return w != 0
 
 
-spec_IndicatorBox = [
-    ('alpha', float64)
-]
-
-
 class IndicatorBox(BasePenalty):
     """Box constraint penalty.
 
@@ -390,11 +361,6 @@ class IndicatorBox(BasePenalty):
         return np.logical_and(w != 0, w != self.alpha)
 
 
-spec_L0_5 = [
-    ('alpha', float64),
-]
-
-
 class L0_5(BasePenalty):
     """L_{0.5} non-convex quasi-norm penalty."""
 
@@ -442,11 +408,6 @@ class L0_5(BasePenalty):
     def generalized_support(self, w):
         """Return a mask with non-zero coefficients."""
         return w != 0
-
-
-spec_L2_3 = [
-    ('alpha', float64),
-]
 
 
 class L2_3(BasePenalty):

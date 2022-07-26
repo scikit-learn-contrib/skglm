@@ -5,13 +5,6 @@ from numba import int32, float64
 from skglm.datafits.base import BaseDatafit
 
 
-spec_QuadraticGroup = [
-    ('grp_ptr', int32[:]),
-    ('grp_indices', int32[:]),
-    ('lipschitz', float64[:])
-]
-
-
 class QuadraticGroup(BaseDatafit):
     r"""Quadratic datafit used with group penalties.
 

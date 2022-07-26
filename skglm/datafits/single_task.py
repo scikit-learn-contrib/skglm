@@ -24,9 +24,8 @@ class Quadratic(BaseDatafit):
 
     Note
     ----
-    The class Quadratic is subsequently decorated with a @jitclass decorator with
-    the `jit_factory` function to be compiled. This allows for faster computations
-    using Numba JIT compiler.
+    The class is jit compiled at fit time using Numba compiler.
+    This allows for faster computations.
     """
 
     def __init__(self):
@@ -111,9 +110,8 @@ class Logistic(BaseDatafit):
 
     Note
     ----
-    The class Logistic is subsequently decorated with a @jitclass decorator with
-    the `jit_factory` function to be compiled. This allows for faster computations
-    using Numba JIT compiler.
+    The class is jit compiled at fit time using Numba compiler.
+    This allows for faster computations.
     """
 
     def __init__(self):
@@ -177,9 +175,8 @@ class QuadraticSVC(BaseDatafit):
 
     Note
     ----
-    The class QuadraticSVC is subsequently decorated with a @jitclass decorator with
-    the `jit_factory` function to be compiled. This allows for faster computations
-    using Numba JIT compiler.
+    The class is jit compiled at fit time using Numba compiler.
+    This allows for faster computations.
     """
 
     def __init__(self):
@@ -257,9 +254,8 @@ class Huber(BaseDatafit):
 
     Note
     ----
-    The class _Huber is subsequently decorated with a @jitclass decorator with
-    the `jit_factory` function to be compiled. This allows for faster computations
-    using Numba JIT compiler.
+    The class is jit compiled at fit time using Numba compiler.
+    This allows for faster computations.
     """
 
     def __init__(self, delta):

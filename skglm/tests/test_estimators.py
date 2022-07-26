@@ -192,6 +192,8 @@ def test_generic_get_params():
                 np.testing.assert_allclose(v, v_est)
             else:
                 assert v == v_est
+    # clf and reg are not fitted, so penalty and datafit are not compiled by fit.
+    # To make sure all of their attributes are defined we compile them manually:
     df_reg, df_clf = compiled_clone(Quadratic()), compiled_clone(Logistic())
     pen_reg, pen_clf = compiled_clone(L1(4.)), compiled_clone(MCPenalty(2., 3.))
     reg = GeneralizedLinearEstimator(df_reg, pen_reg, is_classif=False)

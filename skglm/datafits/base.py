@@ -16,7 +16,7 @@ class BaseDatafit():
 
     @abstractmethod
     def params_to_dict(self):
-        """Get the parameters to initials an instance of the class.
+        """Get the parameters to initialize an instance of the class.
 
         Returns
         -------
@@ -151,7 +151,7 @@ class BaseMultitaskDatafit():
 
     @abstractmethod
     def params_to_dict(self):
-        """Get the parameters to initials an instance of the class.
+        """Get the parameters to initialize an instance of the class.
 
         Returns
         -------

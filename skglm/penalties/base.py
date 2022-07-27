@@ -6,7 +6,7 @@ class BasePenalty():
 
     @abstractmethod
     def get_spec(self):
-        """Specifies the numba types of the class attributes.
+        """Specify the numba types of the class attributes.
 
         Returns
         -------
@@ -16,10 +16,10 @@ class BasePenalty():
 
     @abstractmethod
     def params_to_dict(self):
-        """Gets the parameters to initials an instance of the class.
+        """Get the parameters to initials an instance of the class.
 
-        Return
-        ------
+        Returns
+        -------
         dict_of_params : dict
             The parameters to instantiate an object of the class.
         """

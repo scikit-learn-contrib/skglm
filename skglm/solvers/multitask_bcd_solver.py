@@ -5,6 +5,8 @@ from numba import njit
 from numpy.linalg import norm
 from sklearn.utils import check_array
 
+from skglm.utils import AndersonAcceleration
+
 
 def bcd_solver_path(
         X, Y, datafit, penalty, alphas=None,
@@ -204,13 +206,15 @@ def bcd_solver(
         Value of stopping criterion at convergence.
     """
     n_tasks = Y.shape[1]
-    n_features = X.shape[1]
+    n_samples, n_features = X.shape
     pen = penalty.is_penalized(n_features)
     unpen = ~pen
     n_unpen = unpen.sum()
     obj_out = []
     all_feats = np.arange(n_features)
     stop_crit = np.inf  # initialize for case n_iter=0
+    W_acc = np.zeros((n_features, n_tasks), dtype=X.dtype)
+    XW_acc = np.zeros((n_samples, n_tasks), dtype=X.dtype)
 
     is_sparse = sparse.issparse(X)
     for t in range(max_iter):
@@ -238,9 +242,9 @@ def bcd_solver(
         ws = np.argpartition(opt, -ws_size)[-ws_size:]
         # is equivalent to ws = np.argsort(kkt)[-ws_size:]
 
-        if use_acc:
-            last_K_w = np.zeros([K + 1, ws_size * n_tasks])
-            U = np.zeros([K, ws_size * n_tasks])
+        # re init AA at every iter to consider ws
+        accelerator = AndersonAcceleration(K=5)
+        W_acc[:, :] = 0.
 
         if verbose:
             print(f'Iteration {t + 1}, {ws_size} feats in subpb.')
@@ -254,36 +258,22 @@ def bcd_solver(
                     ws)
             else:
                 _bcd_epoch(X, Y, W, XW, datafit, penalty, ws)
-            if use_acc:
-                last_K_w[epoch % (K + 1)] = W[ws, :].ravel()
 
-                # 3) do Anderson acceleration on smaller problem
-                if epoch % (K + 1) == K:
-                    for k in range(K):
-                        U[k] = last_K_w[k + 1] - last_K_w[k]
-                    C = np.dot(U, U.T)
+            (
+                W_acc[ws, :],
+                XW_acc[:],
+                is_extrapolated
+            ) = accelerator.extrapolate(W[ws, :], XW)
 
-                    try:
-                        z = np.linalg.solve(C, np.ones(K))
-                        c = z / z.sum()
-                        W_acc = np.zeros((n_features, n_tasks))
-                        W_acc[ws, :] = np.sum(
-                            last_K_w[:-1] * c[:, None], axis=0).reshape(
-                                (ws_size, n_tasks))
-                        p_obj = datafit.value(Y, W, XW) + penalty.value(W)
-                        Xw_acc = X[:, ws] @ W_acc[ws]
-                        p_obj_acc = datafit.value(
-                            Y, W_acc, Xw_acc) + penalty.value(W_acc)
-                        if p_obj_acc < p_obj:
-                            W[:] = W_acc
-                            XW[:] = Xw_acc
-                    except np.linalg.LinAlgError:
-                        if max(verbose - 1, 0):
-                            print("----------Linalg error")
+            if is_extrapolated:
+                p_obj = datafit.value(Y, W, XW) + penalty.value(W)
+                p_obj_acc = datafit.value(Y, W_acc, XW_acc) + penalty.value(W_acc)
+
+                if p_obj_acc < p_obj:
+                    W[:], XW[:] = W_acc, XW_acc
+                    p_obj = p_obj_acc
 
             if epoch > 0 and epoch % 10 == 0:
-                p_obj = datafit.value(Y, W[ws, :], XW) + penalty.value(W)
-
                 if is_sparse:
                     grad_ws = construct_grad_sparse(
                         X.data, X.indptr, X.indices, Y, XW, datafit, ws)
@@ -297,6 +287,7 @@ def bcd_solver(
 
                 stop_crit_in = np.max(opt_ws)
                 if max(verbose - 1, 0):
+                    p_obj = datafit.value(Y, W[ws, :], XW) + penalty.value(W)
                     print(f"Epoch {epoch + 1}, objective {p_obj:.10f}, "
                           f"stopping crit {stop_crit_in:.2e}")
                 if ws_size == n_features:
@@ -307,6 +298,8 @@ def bcd_solver(
                         if max(verbose - 1, 0):
                             print("Early exit")
                         break
+
+        p_obj = datafit.value(Y, W[ws, :], XW) + penalty.value(W)
         obj_out.append(p_obj)
     return W, np.array(obj_out), stop_crit
 

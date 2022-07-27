@@ -5,6 +5,26 @@ class BasePenalty():
     """Base class for penalty subclasses."""
 
     @abstractmethod
+    def get_spec(self):
+        """Specifies the numba types of the class attributes.
+
+        Returns
+        -------
+        spec: Tuple of (attribute_name, dtype)
+            spec to be passed to Numba jitclass to compile the class.
+        """
+
+    @abstractmethod
+    def params_to_dict(self):
+        """Gets the parameters to initials an instance of the class.
+
+        Return
+        ------
+        dict_of_params : dict
+            The parameters to instantiate an object of the class.
+        """
+
+    @abstractmethod
     def value(self, w):
         """Value of penalty at vector w."""
 

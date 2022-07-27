@@ -233,7 +233,6 @@ class GeneralizedLinearEstimator(LinearModel):
 
         X_ = yXT if isinstance(self.datafit, QuadraticSVC) else X
 
-        # TODO merge with self.path, handle penalty not an argument in self.path
         _, coefs, kkt = self.path(
             X_, y, alphas=[self.penalty.alpha],
             coef_init=self.coef_, max_iter=self.max_iter,

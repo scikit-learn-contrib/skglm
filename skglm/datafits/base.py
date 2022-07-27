@@ -16,7 +16,7 @@ class BaseDatafit():
 
     @abstractmethod
     def params_to_dict(self):
-        """Gets the parameters to initials an instance of the class.
+        """Get the parameters to initials an instance of the class.
 
         Returns
         -------

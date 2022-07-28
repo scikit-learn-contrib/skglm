@@ -16,7 +16,9 @@
       ~MCPenalty.__init__
       ~MCPenalty.alpha_max
       ~MCPenalty.generalized_support
+      ~MCPenalty.get_spec
       ~MCPenalty.is_penalized
+      ~MCPenalty.params_to_dict
       ~MCPenalty.prox_1d
       ~MCPenalty.subdiff_distance
       ~MCPenalty.value
@@ -24,11 +26,5 @@
    
 
    
-   
-   .. rubric:: Attributes
-
-   .. autosummary::
-   
-      ~MCPenalty.class_type
    
    

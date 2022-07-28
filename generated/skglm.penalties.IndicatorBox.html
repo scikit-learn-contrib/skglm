@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>skglm.penalties.IndicatorBox &#8212; skglm 0.2dev documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
@@ -100,7 +100,7 @@
 <h1>skglm.penalties.IndicatorBox<a class="headerlink" href="#skglm-penalties-indicatorbox" title="Permalink to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="skglm.penalties.IndicatorBox">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.penalties.</span></span><span class="sig-name descname"><span class="pre">IndicatorBox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skglm.penalties.IndicatorBox" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.penalties.</span></span><span class="sig-name descname"><span class="pre">IndicatorBox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skglm.penalties.IndicatorBox" title="Permalink to this definition">¶</a></dt>
 <dd><p>Box constraint penalty.</p>
 <p class="rubric">Notes</p>
 <p>ind_[0, alpha]^n_samples
@@ -120,8 +120,14 @@ where ind is the indicator function of the convex set
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">generalized_support</span></code>(w)</p></td>
 <td><p>Return a mask with coefficients that are neither 0 nor alpha.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_penalized</span></code>(n_features)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_spec</span></code>()</p></td>
+<td><p>Specify the numba types of the class attributes.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_penalized</span></code>(n_features)</p></td>
 <td><p>Return a binary mask with the penalized features.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
+<td><p>Get the parameters to initialize an instance of the class.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">prox_1d</span></code>(value, stepsize, j)</p></td>
 <td><p>Compute the proximal operator of the Indicator Box (box projection).</p></td>
@@ -131,14 +137,6 @@ where ind is the indicator function of the convex set
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(w)</p></td>
 <td><p>Compute the value of the IndicatorBox at w.</p></td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">Attributes</p>
-<table class="autosummary longtable docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">class_type</span></code></p></td>
-<td><p></p></td>
 </tr>
 </tbody>
 </table>
@@ -159,7 +157,7 @@ where ind is the indicator function of the convex set
     </p>
     <p>
         &copy; Copyright 2022, skglm developers.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.1.1.<br/>
     </p>
   </div>
 </footer>

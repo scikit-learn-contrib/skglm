@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>skglm.GeneralizedLinearEstimator &#8212; skglm 0.2dev documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
@@ -107,9 +107,11 @@ to solve the optimization problem. It handles classification and regression task
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>datafit</strong><span class="classifier">instance of BaseDatafit, optional</span></dt><dd><p>Datafit. If None, <cite>datafit</cite> is initialized as a <cite>Quadratic</cite> datafit.</p>
+<dt><strong>datafit</strong><span class="classifier">instance of BaseDatafit, optional</span></dt><dd><p>Datafit. If None, <cite>datafit</cite> is initialized as a <cite>Quadratic</cite> datafit.
+<cite>datafit</cite> is replaced by a JIT-compiled instance when calling fit.</p>
 </dd>
-<dt><strong>penalty</strong><span class="classifier">instance of BasePenalty, optional</span></dt><dd><p>Penalty. If None, <cite>penalty</cite> is initialized as a <cite>L1</cite> penalty.</p>
+<dt><strong>penalty</strong><span class="classifier">instance of BasePenalty, optional</span></dt><dd><p>Penalty. If None, <cite>penalty</cite> is initialized as a <cite>L1</cite> penalty.
+<cite>penalty</cite> is replaced by a JIT-compiled instance when calling fit.</p>
 </dd>
 <dt><strong>is_classif</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether the task is classification or regression. Used for input target
 validation.</p>
@@ -191,7 +193,7 @@ initialization, otherwise, just erase the previous solution.</p>
     </p>
     <p>
         &copy; Copyright 2022, skglm developers.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.1.1.<br/>
     </p>
   </div>
 </footer>

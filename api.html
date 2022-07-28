@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>API Documentation &#8212; skglm 0.2dev documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
@@ -133,28 +133,28 @@
 <h2>Penalties<a class="headerlink" href="#penalties" title="Permalink to this heading">¶</a></h2>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.penalties.IndicatorBox.html#skglm.penalties.IndicatorBox" title="skglm.penalties.IndicatorBox"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IndicatorBox</span></code></a>(*args, **kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.penalties.IndicatorBox.html#skglm.penalties.IndicatorBox" title="skglm.penalties.IndicatorBox"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IndicatorBox</span></code></a>(alpha)</p></td>
 <td><p>Box constraint penalty.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.penalties.L0_5.html#skglm.penalties.L0_5" title="skglm.penalties.L0_5"><code class="xref py py-obj docutils literal notranslate"><span class="pre">L0_5</span></code></a>(*args, **kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.penalties.L0_5.html#skglm.penalties.L0_5" title="skglm.penalties.L0_5"><code class="xref py py-obj docutils literal notranslate"><span class="pre">L0_5</span></code></a>(alpha)</p></td>
 <td><p>L_{0.5} non-convex quasi-norm penalty.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.penalties.L1.html#skglm.penalties.L1" title="skglm.penalties.L1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">L1</span></code></a>(*args, **kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.penalties.L1.html#skglm.penalties.L1" title="skglm.penalties.L1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">L1</span></code></a>(alpha)</p></td>
 <td><p>L1 penalty.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.penalties.L1_plus_L2.html#skglm.penalties.L1_plus_L2" title="skglm.penalties.L1_plus_L2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">L1_plus_L2</span></code></a>(*args, **kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.penalties.L1_plus_L2.html#skglm.penalties.L1_plus_L2" title="skglm.penalties.L1_plus_L2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">L1_plus_L2</span></code></a>(alpha, l1_ratio)</p></td>
 <td><p>L1 + L2 penalty (aka ElasticNet penalty).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.penalties.L2_3.html#skglm.penalties.L2_3" title="skglm.penalties.L2_3"><code class="xref py py-obj docutils literal notranslate"><span class="pre">L2_3</span></code></a>(*args, **kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.penalties.L2_3.html#skglm.penalties.L2_3" title="skglm.penalties.L2_3"><code class="xref py py-obj docutils literal notranslate"><span class="pre">L2_3</span></code></a>(alpha)</p></td>
 <td><p>L_{2/3} quasi-norm non-convex penalty.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.penalties.MCPenalty.html#skglm.penalties.MCPenalty" title="skglm.penalties.MCPenalty"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MCPenalty</span></code></a>(*args, **kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.penalties.MCPenalty.html#skglm.penalties.MCPenalty" title="skglm.penalties.MCPenalty"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MCPenalty</span></code></a>(alpha, gamma)</p></td>
 <td><p>Minimax Concave Penalty (MCP), a non-convex sparse penalty.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.penalties.WeightedL1.html#skglm.penalties.WeightedL1" title="skglm.penalties.WeightedL1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WeightedL1</span></code></a>(*args, **kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.penalties.WeightedL1.html#skglm.penalties.WeightedL1" title="skglm.penalties.WeightedL1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WeightedL1</span></code></a>(alpha, weights)</p></td>
 <td><p>Weighted L1 penalty.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.penalties.WeightedGroupL2.html#skglm.penalties.WeightedGroupL2" title="skglm.penalties.WeightedGroupL2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WeightedGroupL2</span></code></a>(*args, **kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.penalties.WeightedGroupL2.html#skglm.penalties.WeightedGroupL2" title="skglm.penalties.WeightedGroupL2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WeightedGroupL2</span></code></a>(alpha, weights, grp_ptr, ...)</p></td>
 <td><p>Weighted Group L2 penalty.</p></td>
 </tr>
 </tbody>
@@ -164,20 +164,20 @@
 <h2>Datafits<a class="headerlink" href="#datafits" title="Permalink to this heading">¶</a></h2>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.datafits.Huber.html#skglm.datafits.Huber" title="skglm.datafits.Huber"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Huber</span></code></a></p></td>
-<td><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">_Huber</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.datafits.Huber.html#skglm.datafits.Huber" title="skglm.datafits.Huber"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Huber</span></code></a>(delta)</p></td>
+<td><p>Huber datafit.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.datafits.Logistic.html#skglm.datafits.Logistic" title="skglm.datafits.Logistic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Logistic</span></code></a></p></td>
-<td><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">_Logistic</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.datafits.Logistic.html#skglm.datafits.Logistic" title="skglm.datafits.Logistic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Logistic</span></code></a>()</p></td>
+<td><p>Logistic datafit with labels in {-1, 1}.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.datafits.Quadratic.html#skglm.datafits.Quadratic" title="skglm.datafits.Quadratic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Quadratic</span></code></a>(*args, **kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.datafits.Quadratic.html#skglm.datafits.Quadratic" title="skglm.datafits.Quadratic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Quadratic</span></code></a>()</p></td>
 <td><p>Quadratic datafit.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.datafits.QuadraticGroup.html#skglm.datafits.QuadraticGroup" title="skglm.datafits.QuadraticGroup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">QuadraticGroup</span></code></a>(*args, **kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.datafits.QuadraticGroup.html#skglm.datafits.QuadraticGroup" title="skglm.datafits.QuadraticGroup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">QuadraticGroup</span></code></a>(grp_ptr, grp_indices)</p></td>
 <td><p>Quadratic datafit used with group penalties.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.datafits.QuadraticSVC.html#skglm.datafits.QuadraticSVC" title="skglm.datafits.QuadraticSVC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">QuadraticSVC</span></code></a></p></td>
-<td><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">_QuadraticSVC</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.datafits.QuadraticSVC.html#skglm.datafits.QuadraticSVC" title="skglm.datafits.QuadraticSVC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">QuadraticSVC</span></code></a>()</p></td>
+<td><p>A Quadratic SVC datafit used for classification tasks.</p></td>
 </tr>
 </tbody>
 </table>
@@ -197,7 +197,7 @@
     </p>
     <p>
         &copy; Copyright 2022, skglm developers.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.1.1.<br/>
     </p>
   </div>
 </footer>

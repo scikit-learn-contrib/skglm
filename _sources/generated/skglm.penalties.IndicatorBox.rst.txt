@@ -15,7 +15,9 @@
    
       ~IndicatorBox.__init__
       ~IndicatorBox.generalized_support
+      ~IndicatorBox.get_spec
       ~IndicatorBox.is_penalized
+      ~IndicatorBox.params_to_dict
       ~IndicatorBox.prox_1d
       ~IndicatorBox.subdiff_distance
       ~IndicatorBox.value
@@ -23,11 +25,5 @@
    
 
    
-   
-   .. rubric:: Attributes
-
-   .. autosummary::
-   
-      ~IndicatorBox.class_type
    
    

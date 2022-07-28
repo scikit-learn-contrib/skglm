@@ -16,7 +16,9 @@
       ~WeightedL1.__init__
       ~WeightedL1.alpha_max
       ~WeightedL1.generalized_support
+      ~WeightedL1.get_spec
       ~WeightedL1.is_penalized
+      ~WeightedL1.params_to_dict
       ~WeightedL1.prox_1d
       ~WeightedL1.subdiff_distance
       ~WeightedL1.value
@@ -24,11 +26,5 @@
    
 
    
-   
-   .. rubric:: Attributes
-
-   .. autosummary::
-   
-      ~WeightedL1.class_type
    
    

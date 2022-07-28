@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>skglm.datafits.QuadraticSVC &#8212; skglm 0.2dev documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
@@ -97,10 +97,57 @@
       
   <section id="skglm-datafits-quadraticsvc">
 <h1>skglm.datafits.QuadraticSVC<a class="headerlink" href="#skglm-datafits-quadraticsvc" title="Permalink to this heading">¶</a></h1>
-<dl class="py attribute">
+<dl class="py class">
 <dt class="sig sig-object py" id="skglm.datafits.QuadraticSVC">
-<span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">QuadraticSVC</span></span><a class="headerlink" href="#skglm.datafits.QuadraticSVC" title="Permalink to this definition">¶</a></dt>
-<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">_QuadraticSVC</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">QuadraticSVC</span></span><a class="headerlink" href="#skglm.datafits.QuadraticSVC" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Quadratic SVC datafit used for classification tasks.</p>
+<p>The datafit reads:</p>
+<p>1 / 2 * ||(y X).T w||^2_2</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>lipschitz</strong><span class="classifier">array, shape (n_features,)</span></dt><dd><p>The coordinatewise gradient Lipschitz constants.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="skglm.datafits.QuadraticSVC.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skglm.datafits.QuadraticSVC.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#skglm.datafits.QuadraticSVC.__init__" title="skglm.datafits.QuadraticSVC.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">full_grad_sparse</span></code>(yXT_data, yXT_indptr, ...)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_spec</span></code>()</p></td>
+<td><p>Specify the numba types of the class attributes.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient_scalar</span></code>(yXT, y, w, yXTw, j)</p></td>
+<td><p>Gradient with respect to j-th coordinate of w.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient_scalar_sparse</span></code>(yXT_data, yXT_indptr, ...)</p></td>
+<td><p>Gradient with respect to j-th coordinate of w when X is sparse.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize</span></code>(yXT, y)</p></td>
+<td><p>Pre-computations before fitting on X and y.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_sparse</span></code>(yXT_data, yXT_indptr, ...)</p></td>
+<td><p>Pre-computations before fitting on X and y when X is a sparse matrix.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
+<td><p>Get the parameters to initialize an instance of the class.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(y, w, yXTw)</p></td>
+<td><p>Value of datafit at vector w.</p></td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </section>
@@ -118,7 +165,7 @@
     </p>
     <p>
         &copy; Copyright 2022, skglm developers.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.1.1.<br/>
     </p>
   </div>
 </footer>

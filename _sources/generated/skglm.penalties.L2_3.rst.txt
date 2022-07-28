@@ -15,7 +15,9 @@
    
       ~L2_3.__init__
       ~L2_3.generalized_support
+      ~L2_3.get_spec
       ~L2_3.is_penalized
+      ~L2_3.params_to_dict
       ~L2_3.prox_1d
       ~L2_3.subdiff_distance
       ~L2_3.value
@@ -23,11 +25,5 @@
    
 
    
-   
-   .. rubric:: Attributes
-
-   .. autosummary::
-   
-      ~L2_3.class_type
    
    

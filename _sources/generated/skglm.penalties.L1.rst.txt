@@ -16,7 +16,9 @@
       ~L1.__init__
       ~L1.alpha_max
       ~L1.generalized_support
+      ~L1.get_spec
       ~L1.is_penalized
+      ~L1.params_to_dict
       ~L1.prox_1d
       ~L1.subdiff_distance
       ~L1.value
@@ -24,11 +26,5 @@
    
 
    
-   
-   .. rubric:: Attributes
-
-   .. autosummary::
-   
-      ~L1.class_type
    
    

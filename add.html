@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>How to add a custom penalty &#8212; skglm 0.2dev documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
@@ -108,6 +108,26 @@
     <span class="sd">&quot;&quot;&quot;Base class for penalty subclasses.&quot;&quot;&quot;</span>
 
     <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">get_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Specify the numba types of the class attributes.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        spec: Tuple of (attribute_name, dtype)</span>
+<span class="sd">            spec to be passed to Numba jitclass to compile the class.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">params_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the parameters to initialize an instance of the class.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict_of_params : dict</span>
+<span class="sd">            The parameters to instantiate an object of the class.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Value of penalty at vector w.&quot;&quot;&quot;</span>
 
@@ -147,12 +167,20 @@
 </div>
 <p>To implement your own penalty, you only need to define a new jitclass, inheriting from <code class="docutils literal notranslate"><span class="pre">BasePenalty</span></code> and define how its value, proximal operator, distance to subdifferential (for KKT violation) and penalized features are computed.</p>
 <p>For example, the implementation of the <code class="docutils literal notranslate"><span class="pre">L1</span></code> penalty is:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@jitclass</span><span class="p">(</span><span class="n">spec_L1</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">L1</span><span class="p">(</span><span class="n">BasePenalty</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">L1</span><span class="p">(</span><span class="n">BasePenalty</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;L1 penalty.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span>
+
+    <span class="k">def</span> <span class="nf">get_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="n">float64</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">spec</span>
+
+    <span class="k">def</span> <span class="nf">params_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Compute L1 penalty value.&quot;&quot;&quot;</span>
@@ -177,7 +205,7 @@
 
     <span class="k">def</span> <span class="nf">is_penalized</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_features</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a binary mask with the penalized features.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_features</span><span class="p">,</span> <span class="n">bool_</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_features</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">generalized_support</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a mask with non-zero coefficients.&quot;&quot;&quot;</span>
@@ -194,6 +222,26 @@
 <p>A <code class="docutils literal notranslate"><span class="pre">Datafit</span></code> is a jitclass which must inherit from the <code class="docutils literal notranslate"><span class="pre">BaseDatafit</span></code> class:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">BaseDatafit</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;Base class for datafits.&quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">get_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Specify the numba types of the class attributes.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        spec: Tuple of (attribute_name, dtype)</span>
+<span class="sd">            spec to be passed to Numba jitclass to compile the class.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">params_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the parameters to initialize an instance of the class.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict_of_params : dict</span>
+<span class="sd">            The parameters to instantiate an object of the class.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
@@ -327,13 +375,22 @@ See for example the implementation of the <code class="docutils literal notransl
 
 <span class="sd">    Note</span>
 <span class="sd">    ----</span>
-<span class="sd">    The class Quadratic is subsequently decorated with a @jitclass decorator with</span>
-<span class="sd">    the `jit_factory` function to be compiled. This allows for faster computations</span>
-<span class="sd">    using Numba JIT compiler.</span>
+<span class="sd">    The class is jit compiled at fit time using Numba compiler.</span>
+<span class="sd">    This allows for faster computations.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">get_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="s1">&#39;Xty&#39;</span><span class="p">,</span> <span class="n">float64</span><span class="p">[:]),</span>
+            <span class="p">(</span><span class="s1">&#39;lipschitz&#39;</span><span class="p">,</span> <span class="n">float64</span><span class="p">[:]),</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">spec</span>
+
+    <span class="k">def</span> <span class="nf">params_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Xty</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">y</span>
@@ -397,7 +454,7 @@ See for example the implementation of the <code class="docutils literal notransl
     </p>
     <p>
         &copy; Copyright 2022, skglm developers.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.1.1.<br/>
     </p>
   </div>
 </footer>

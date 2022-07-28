@@ -14,21 +14,17 @@
    .. autosummary::
    
       ~QuadraticGroup.__init__
+      ~QuadraticGroup.get_spec
       ~QuadraticGroup.gradient_g
       ~QuadraticGroup.gradient_scalar
       ~QuadraticGroup.gradient_scalar_sparse
       ~QuadraticGroup.initialize
       ~QuadraticGroup.initialize_sparse
+      ~QuadraticGroup.params_to_dict
       ~QuadraticGroup.value
    
    
 
    
-   
-   .. rubric:: Attributes
-
-   .. autosummary::
-   
-      ~QuadraticGroup.class_type
    
    

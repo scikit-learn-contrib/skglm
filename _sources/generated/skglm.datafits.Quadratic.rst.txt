@@ -15,20 +15,16 @@
    
       ~Quadratic.__init__
       ~Quadratic.full_grad_sparse
+      ~Quadratic.get_spec
       ~Quadratic.gradient_scalar
       ~Quadratic.gradient_scalar_sparse
       ~Quadratic.initialize
       ~Quadratic.initialize_sparse
+      ~Quadratic.params_to_dict
       ~Quadratic.value
    
    
 
    
-   
-   .. rubric:: Attributes
-
-   .. autosummary::
-   
-      ~Quadratic.class_type
    
    

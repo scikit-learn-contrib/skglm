@@ -19,6 +19,7 @@ import warnings
 import sphinx_gallery  # noqa
 import sphinx_bootstrap_theme
 from numpydoc import numpydoc, docscrape  # noqa
+from doc.github_link import make_linkcode_resolve
 
 
 # Mathurin: disable agg warnings in doc
@@ -50,6 +51,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx_gallery.gen_gallery',
     'numpydoc',
+    "sphinx.ext.linkcode",
 ]
 
 # generate autosummary even if no references
@@ -329,6 +331,14 @@ intersphinx_mapping = {
     'benchopt': ('https://benchopt.github.io', None),
     'sklearn': ('http://scikit-learn.org/stable', None),
 }
+
+# The following is used by sphinx.ext.linkcode to provide links to github
+linkcode_resolve = make_linkcode_resolve(
+    "skglm",
+    "https://github.com/scikit-learn-contrib/"
+    "skglm/blob/{revision}/"
+    "{package}/{path}#L{lineno}",
+)
 
 sphinx_gallery_conf = {
     # 'backreferences_dir': 'gen_modules/backreferences',

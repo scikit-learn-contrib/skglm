@@ -2,25 +2,26 @@ import numpy as np
 from numpy.linalg import norm
 
 from numba import float64, int32
-from numba.experimental import jitclass
-from numba.types import bool_
 
 from skglm.penalties.base import BasePenalty
 from skglm.utils import (
     BST, prox_block_2_05, prox_SCAD, value_SCAD, prox_MCP, value_MCP)
 
 
-spec_L21 = [
-    ('alpha', float64)
-]
-
-
-@jitclass(spec_L21)
 class L2_1(BasePenalty):
     """L2/1 row-wise penalty: sum of L2 norms of rows."""
 
     def __init__(self, alpha):
         self.alpha = alpha
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha)
 
     def value(self, W):
         """Compute the L2/1 penalty value."""
@@ -47,20 +48,23 @@ class L2_1(BasePenalty):
 
     def is_penalized(self, n_features):
         """Return a binary mask with the penalized features."""
-        return np.ones(n_features, bool_)
+        return np.ones(n_features, dtype=np.bool_)
 
 
-spec_L2_05 = [
-    ('alpha', float64)
-]
-
-
-@jitclass(spec_L2_05)
 class L2_05(BasePenalty):
     """L2/0.5 row-wise penalty: sum of square roots of L2 norms of rows."""
 
     def __init__(self, alpha):
         self.alpha = alpha
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha)
 
     def value(self, W):
         """Compute the value of L2/0.5 at w."""
@@ -87,16 +91,9 @@ class L2_05(BasePenalty):
 
     def is_penalized(self, n_features):
         """Return a binary mask with the penalized features."""
-        return np.ones(n_features, bool_)
+        return np.ones(n_features, dtype=np.bool_)
 
 
-spec_BlockMCPenalty = [
-    ('alpha', float64),
-    ('gamma', float64),
-]
-
-
-@jitclass(spec_BlockMCPenalty)
 class BlockMCPenalty(BasePenalty):
     """Block Minimax Concave Penalty.
 
@@ -114,6 +111,17 @@ class BlockMCPenalty(BasePenalty):
     def __init__(self, alpha, gamma):
         self.alpha = alpha
         self.gamma = gamma
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+            ('gamma', float64),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha,
+                    gamma=self.gamma)
 
     def value(self, W):
         """Compute the value of BlockMCP at W."""
@@ -146,16 +154,9 @@ class BlockMCPenalty(BasePenalty):
 
     def is_penalized(self, n_features):
         """Return a binary mask with the penalized features."""
-        return np.ones(n_features, bool_)
+        return np.ones(n_features, dtype=np.bool_)
 
 
-spec_BlockSCAD = [
-    ('alpha', float64),
-    ('gamma', float64),
-]
-
-
-@jitclass(spec_BlockSCAD)
 class BlockSCAD(BasePenalty):
     """Block Smoothly Clipped Absolute Deviation.
 
@@ -172,6 +173,17 @@ class BlockSCAD(BasePenalty):
     def __init__(self, alpha, gamma):
         self.alpha = alpha
         self.gamma = gamma
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+            ('gamma', float64),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha,
+                    gamma=self.gamma)
 
     def value(self, W):
         """Compute the value of the SCAD penalty at W."""
@@ -208,18 +220,9 @@ class BlockSCAD(BasePenalty):
 
     def is_penalized(self, n_features):
         """Return a binary mask with the penalized features."""
-        return np.ones(n_features, bool_)
+        return np.ones(n_features, dtype=np.bool_)
 
 
-spec_WeightedGroupL2 = [
-    ('alpha', float64),
-    ('weights', float64[:]),
-    ('grp_ptr', int32[:]),
-    ('grp_indices', int32[:]),
-]
-
-
-@jitclass(spec_WeightedGroupL2)
 class WeightedGroupL2(BasePenalty):
     r"""Weighted Group L2 penalty.
 
@@ -247,6 +250,19 @@ class WeightedGroupL2(BasePenalty):
     def __init__(self, alpha, weights, grp_ptr, grp_indices):
         self.alpha, self.weights = alpha, weights
         self.grp_ptr, self.grp_indices = grp_ptr, grp_indices
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+            ('weights', float64[:]),
+            ('grp_ptr', int32[:]),
+            ('grp_indices', int32[:]),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha, weights=self.weights,
+                    grp_ptr=self.grp_ptr, grp_indices=self.grp_indices)
 
     def value(self, w):
         """Value of penalty at vector ``w``."""

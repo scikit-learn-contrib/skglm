@@ -1,6 +1,5 @@
 import numpy as np
 from numba import float64
-from numba.experimental import jitclass
 from numba.types import bool_
 
 from skglm.penalties.base import BasePenalty
@@ -8,17 +7,20 @@ from skglm.utils import (
     ST, box_proj, prox_05, prox_2_3, prox_SCAD, value_SCAD, prox_MCP, value_MCP)
 
 
-spec_L1 = [
-    ('alpha', float64),
-]
-
-
-@jitclass(spec_L1)
 class L1(BasePenalty):
     """L1 penalty."""
 
     def __init__(self, alpha):
         self.alpha = alpha
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha)
 
     def value(self, w):
         """Compute L1 penalty value."""
@@ -43,7 +45,7 @@ class L1(BasePenalty):
 
     def is_penalized(self, n_features):
         """Return a binary mask with the penalized features."""
-        return np.ones(n_features, bool_)
+        return np.ones(n_features, dtype=np.bool_)
 
     def generalized_support(self, w):
         """Return a mask with non-zero coefficients."""
@@ -54,19 +56,23 @@ class L1(BasePenalty):
         return np.max(np.abs(gradient0))
 
 
-spec_L1_plus_L2 = [
-    ('alpha', float64),
-    ('l1_ratio', float64),
-]
-
-
-@jitclass(spec_L1_plus_L2)
 class L1_plus_L2(BasePenalty):
     """L1 + L2 penalty (aka ElasticNet penalty)."""
 
     def __init__(self, alpha, l1_ratio):
         self.alpha = alpha
         self.l1_ratio = l1_ratio
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+            ('l1_ratio', float64),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha,
+                    l1_ratio=self.l1_ratio)
 
     def value(self, w):
         """Compute the L1 + L2 penalty value."""
@@ -110,19 +116,23 @@ class L1_plus_L2(BasePenalty):
         return np.max(np.abs(gradient0))
 
 
-spec_WeightedL1 = [
-    ('alpha', float64),
-    ('weights', float64[:]),
-]
-
-
-@jitclass(spec_WeightedL1)
 class WeightedL1(BasePenalty):
     """Weighted L1 penalty."""
 
     def __init__(self, alpha, weights):
         self.alpha = alpha
         self.weights = weights.astype(np.float64)
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+            ('weights', float64[:]),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha,
+                    weights=self.weights)
 
     def value(self, w):
         """Compute the weighted L1 penalty."""
@@ -160,13 +170,6 @@ class WeightedL1(BasePenalty):
         return np.max(np.abs(gradient0[nnz_weights] / self.weights[nnz_weights]))
 
 
-spec_MCP = [
-    ('alpha', float64),
-    ('gamma', float64),
-]
-
-
-@jitclass(spec_MCP)
 class MCPenalty(BasePenalty):
     """Minimax Concave Penalty (MCP), a non-convex sparse penalty.
 
@@ -182,6 +185,17 @@ class MCPenalty(BasePenalty):
     def __init__(self, alpha, gamma):
         self.alpha = alpha
         self.gamma = gamma
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+            ('gamma', float64),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha,
+                    gamma=self.gamma)
 
     def value(self, w):
         return value_MCP(w, self.alpha, self.gamma)
@@ -219,13 +233,6 @@ class MCPenalty(BasePenalty):
         return np.max(np.abs(gradient0))
 
 
-spec_SCAD = [
-    ('alpha', float64),
-    ('gamma', float64)
-]
-
-
-@jitclass(spec_SCAD)
 class SCAD(BasePenalty):
     """Smoothly Clipped Absolute Deviation.
 
@@ -243,6 +250,17 @@ class SCAD(BasePenalty):
     def __init__(self, alpha, gamma):
         self.alpha = alpha
         self.gamma = gamma
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+            ('gamma', float64)
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha,
+                    gamma=self.gamma)
 
     def value(self, w):
         """Compute the value of the SCAD penalty at w."""
@@ -283,12 +301,6 @@ class SCAD(BasePenalty):
         return w != 0
 
 
-spec_IndicatorBox = [
-    ('alpha', float64)
-]
-
-
-@jitclass(spec_IndicatorBox)
 class IndicatorBox(BasePenalty):
     """Box constraint penalty.
 
@@ -301,6 +313,15 @@ class IndicatorBox(BasePenalty):
 
     def __init__(self, alpha):
         self.alpha = alpha
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha)
 
     def value(self, w):
         """Compute the value of the IndicatorBox at w."""
@@ -340,17 +361,20 @@ class IndicatorBox(BasePenalty):
         return np.logical_and(w != 0, w != self.alpha)
 
 
-spec_L0_5 = [
-    ('alpha', float64),
-]
-
-
-@jitclass(spec_L1)
 class L0_5(BasePenalty):
     """L_{0.5} non-convex quasi-norm penalty."""
 
     def __init__(self, alpha):
         self.alpha = alpha
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha)
 
     def value(self, w):
         """Compute the value of L0_5 at w."""
@@ -386,17 +410,20 @@ class L0_5(BasePenalty):
         return w != 0
 
 
-spec_L2_3 = [
-    ('alpha', float64),
-]
-
-
-@jitclass(spec_L1)
 class L2_3(BasePenalty):
     """L_{2/3} quasi-norm non-convex penalty."""
 
     def __init__(self, alpha):
         self.alpha = alpha
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha)
 
     def value(self, w):
         """Compute the value of the L2_3 norm at w."""

@@ -1,19 +1,10 @@
 import numpy as np
 from numpy.linalg import norm
-from numba.experimental import jitclass
 from numba import int32, float64
 
 from skglm.datafits.base import BaseDatafit
 
 
-spec_QuadraticGroup = [
-    ('grp_ptr', int32[:]),
-    ('grp_indices', int32[:]),
-    ('lipschitz', float64[:])
-]
-
-
-@jitclass(spec_QuadraticGroup)
 class QuadraticGroup(BaseDatafit):
     r"""Quadratic datafit used with group penalties.
 
@@ -37,6 +28,18 @@ class QuadraticGroup(BaseDatafit):
 
     def __init__(self, grp_ptr, grp_indices):
         self.grp_ptr, self.grp_indices = grp_ptr, grp_indices
+
+    def get_spec(self):
+        spec = (
+            ('grp_ptr', int32[:]),
+            ('grp_indices', int32[:]),
+            ('lipschitz', float64[:])
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(grp_ptr=self.grp_ptr,
+                    grp_indices=self.grp_indices)
 
     def initialize(self, X, y):
         grp_ptr, grp_indices = self.grp_ptr, self.grp_indices

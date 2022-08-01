@@ -1,12 +1,5 @@
-from numba import njit
 import numpy as np
-
-
-@njit
-def sigmoid(x):
-    """Vectorwise sigmoid."""
-    out = 1 / (1 + np.exp(- x))
-    return out
+from skglm.utils import sigmoid
 
 
 class Pr_LogisticRegression:

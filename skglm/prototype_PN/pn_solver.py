@@ -1,10 +1,11 @@
 import numpy as np
-from skglm.penalties import BasePenalty
-from skglm.datafits import BaseDatafit
+from numba import njit
+
 from skglm.solvers.common import construct_grad
 
 
-def pn_solver(X, y, datafit, penalty, max_epochs, max_iter, p0, tol, verbose):
+def pn_solver(X, y, datafit, penalty, max_epochs=1000,
+              max_iter=50, p0=10, tol=1e-9, verbose=False):
     n_samples, n_features = X.shape
     w, Xw = np.zeros(n_features), np.zeros(n_samples)
     all_features = np.arange(n_features)
@@ -59,16 +60,18 @@ def pn_solver(X, y, datafit, penalty, max_epochs, max_iter, p0, tol, verbose):
     return w, obj_out, stop_crit
 
 
+@njit
 def _compute_descent_direction(X, y, w_epoch, Xw_epoch,
                                datafit, penalty, ws, max_cd_iter, tol):
     # Given:
     #   - b = grad F(X w_epoch)     <------>  raw_grad
     #   - D = Hessian F(X w_epoch)  <------>  raw_hess
-    # Solve for w:
+    # Minimize w.r.t w:
     #  b.T @ X @ (w - w_epoch) + \
     #  1/2 * (w - w_epoch).T @ X.T @ D @ X @ (w - w_epoch) + penalty(w)
-    raw_grad = datafit.raw_grad(y, Xw_epoch)
+    raw_grad = datafit.raw_gradient(y, Xw_epoch)
     raw_hess = datafit.raw_hessian(y, Xw_epoch)
+
     lipschitz = np.zeros(len(ws))
     for idx, j in enumerate(ws):
         lipschitz[idx] = np.sum(raw_hess * X[:, j] ** 2)
@@ -79,7 +82,7 @@ def _compute_descent_direction(X, y, w_epoch, Xw_epoch,
 
     for cd_iter in range(max_cd_iter):
         for idx, j in enumerate(ws):
-            cached_grads[idx] = X[:, j] @ (raw_grad - raw_hess * X_delta_w)
+            cached_grads[idx] = X[:, j] @ (raw_grad + raw_hess * X_delta_w)
             old_w_idx = w_ws[idx]
             stepsize = 1 / lipschitz[idx]
 
@@ -91,7 +94,7 @@ def _compute_descent_direction(X, y, w_epoch, Xw_epoch,
             if w_ws[idx] != old_w_idx:
                 X_delta_w += (w_ws[idx] - old_w_idx) * X[:, j]
 
-        if cd_iter % 4:
+        if cd_iter % 4 == 0:
             opt = penalty.subdiff_distance(w_ws, cached_grads, np.arange(len(ws)))
             if np.max(opt) <= tol:
                 break
@@ -100,12 +103,13 @@ def _compute_descent_direction(X, y, w_epoch, Xw_epoch,
     return w_ws - w_epoch[ws]
 
 
+# @njit
 def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
                            ws, max_backtrack_iter):
     step, prev_step = 1., 0.
     prev_penalty_val = penalty.value(w[ws])
 
-    for _ in max_backtrack_iter:
+    for i in range(max_backtrack_iter):
         stop_crit = -prev_penalty_val
         for idx, j in enumerate(ws):
             old_w_j = w[j]
@@ -121,3 +125,5 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
         else:
             prev_step = step
             step /= 2
+
+    return grad_ws

@@ -217,6 +217,13 @@ def prox_2_3(x, u):
     return res
 
 
+@njit
+def sigmoid(x):
+    """Vectorwise sigmoid."""
+    out = 1 / (1 + np.exp(- x))
+    return out
+
+
 def make_correlated_data(
         n_samples=100, n_features=50, n_tasks=1, rho=0.6, snr=3,
         w_true=None, density=0.2, X_density=1, random_state=None):

@@ -24,7 +24,8 @@ class Pr_LogisticRegression:
         """"""
         return -y * sigmoid(-y * Xw) / len(y)
 
-    def raw_hessian(self, y, Xw):
+    def raw_hessian(self, y, Xw, grad):
         """"""
-        exp_yXw = np.exp(-y * Xw)
-        return exp_yXw / (1 + exp_yXw) ** 2 / len(y)
+        # exp_yXw = np.exp(-y * Xw)
+        # return exp_yXw / (1 + exp_yXw) ** 2 / len(y)
+        return -grad * (y + len(y) * grad)

@@ -1,17 +1,17 @@
 import numpy as np
 from numba import njit
 
-from skglm.prototype_PN.acceleration import JitAndersonAcceleration
 from skglm.solvers.common import construct_grad
 
 
 def pn_solver(X, y, datafit, penalty, max_epochs=1000,
-              max_iter=50, p0=10, tol=1e-9, use_acc=False, verbose=False):
+              max_iter=50, p0=10, tol=1e-9, verbose=False):
     n_samples, n_features = X.shape
     w, Xw = np.zeros(n_features), np.zeros(n_samples)
     all_features = np.arange(n_features)
     stop_crit = 0.
     obj_out = []
+    tol *= n_samples * np.log(2)  # scale tol
 
     for t in range(max_iter):
         # compute scores
@@ -42,20 +42,18 @@ def pn_solver(X, y, datafit, penalty, max_epochs=1000,
 
             # find descent direction
             delta_w_ws = _compute_descent_direction(X, y, w, Xw, datafit, penalty,
-                                                    ws, max_cd_iter=30, tol=0.3*tol_in,
-                                                    use_acc=use_acc)
+                                                    ws, max_cd_iter=20, tol=tol_in)
 
             # backtracking line search with inplace update of w, Xw
             grad_ws = _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
-                                             ws, max_backtrack_iter=10)
+                                             ws, max_backtrack_iter=20)
 
             # check convergence
-            if epoch % 10:
-                opt_in = penalty.subdiff_distance(w, grad_ws, ws)
-                stop_crit_in = np.max(opt_in)
+            opt_in = penalty.subdiff_distance(w, grad_ws, ws)
+            stop_crit_in = np.max(opt_in)
 
-                if stop_crit_in <= tol_in:
-                    break
+            if stop_crit_in <= tol_in:
+                break
 
         p_obj = datafit.value(y, w, Xw) + penalty.value(w)
         obj_out.append(p_obj)
@@ -64,7 +62,7 @@ def pn_solver(X, y, datafit, penalty, max_epochs=1000,
 
 @njit
 def _compute_descent_direction(X, y, w_epoch, Xw_epoch, datafit, penalty,
-                               ws, max_cd_iter, tol, use_acc):
+                               ws, max_cd_iter, tol):
     # Given:
     #   - b = grad F(X w_epoch)     <------>  raw_grad
     #   - D = Hessian F(X w_epoch)  <------>  raw_hess
@@ -82,9 +80,6 @@ def _compute_descent_direction(X, y, w_epoch, Xw_epoch, datafit, penalty,
     X_delta_w = np.zeros(X.shape[0])
     w_ws = w_epoch[ws]
 
-    if use_acc:
-        accelerator = JitAndersonAcceleration(5, X.shape[0], len(ws))
-
     for cd_iter in range(max_cd_iter):
         for idx, j in enumerate(ws):
             cached_grads[idx] = X[:, j] @ (raw_grad + raw_hess * X_delta_w)
@@ -99,10 +94,7 @@ def _compute_descent_direction(X, y, w_epoch, Xw_epoch, datafit, penalty,
             if w_ws[idx] != old_w_idx:
                 X_delta_w += (w_ws[idx] - old_w_idx) * X[:, j]
 
-        if use_acc:
-            w_ws[:], X_delta_w[:], _ = accelerator.extrapolate(w_ws,
-                                                               X_delta_w)
-        if cd_iter % 6 == 0:
+        if cd_iter % 4 == 0:
             opt = penalty.subdiff_distance(w_ws, cached_grads, np.arange(len(ws)))
             if np.max(opt) <= tol:
                 break
@@ -111,13 +103,13 @@ def _compute_descent_direction(X, y, w_epoch, Xw_epoch, datafit, penalty,
     return w_ws - w_epoch[ws]
 
 
-# @njit
+@njit
 def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
                            ws, max_backtrack_iter):
     step, prev_step = 1., 0.
     prev_penalty_val = penalty.value(w[ws])
 
-    for _ in range(max_backtrack_iter):
+    for i in range(max_backtrack_iter):
         stop_crit = -prev_penalty_val
         for idx, j in enumerate(ws):
             old_w_j = w[j]

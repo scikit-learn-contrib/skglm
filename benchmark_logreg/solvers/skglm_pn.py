@@ -13,12 +13,8 @@ class Solver(BaseSolver):
 
     name = "skglm-PN"
 
-    parameters = {
-        'use_acc': [False, True]
-    }
-
-    def __init__(self, use_acc):
-        self.use_acc = use_acc
+    def __init__(self):
+        pass
 
     def set_objective(self, X, y, lmbd):
         self.X, self.y, self.lmbd = X, y, lmbd

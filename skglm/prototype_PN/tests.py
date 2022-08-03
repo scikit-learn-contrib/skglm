@@ -17,14 +17,15 @@ def test_log_datafit():
     Xw = X @ w
 
     log_datafit = Pr_LogisticRegression()
-
     grad = log_datafit.raw_gradient(y, Xw)
-    hess = log_datafit.raw_hessian(y, Xw)
+    hess = log_datafit.raw_hessian(y, Xw, grad)
 
     np.testing.assert_equal(grad.shape, (n_samples,))
     np.testing.assert_equal(hess.shape, (n_samples,))
 
-    np.testing.assert_almost_equal(-grad * (y + len(y) * grad), hess)
+    exp_yXw = np.exp(-y * Xw)
+    np.testing.assert_almost_equal(-y * exp_yXw / (1 + exp_yXw) / len(y), grad)
+    np.testing.assert_almost_equal(exp_yXw / (1 + exp_yXw) ** 2 / len(y), hess)
 
 
 def test_alpha_max():
@@ -59,7 +60,7 @@ def test_pn_vs_sklearn(rho):
     l1_penalty = compiled_clone(L1(alpha))
     w = pn_solver(X, y, log_datafit, l1_penalty, tol=1e-9)[0]
 
-    np.testing.assert_allclose(sk_log_reg.coef_ - w, 0, rtol=1e-6, atol=1e-6)
+    np.testing.assert_allclose(sk_log_reg.coef_ - w, 0, rtol=1e-5, atol=1e-5)
 
 
 if __name__ == '__main__':

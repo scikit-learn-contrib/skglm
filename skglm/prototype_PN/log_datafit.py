@@ -26,6 +26,4 @@ class Pr_LogisticRegression:
 
     def raw_hessian(self, y, Xw, grad):
         """"""
-        # exp_yXw = np.exp(-y * Xw)
-        # return exp_yXw / (1 + exp_yXw) ** 2 / len(y)
         return -grad * (y + len(y) * grad)

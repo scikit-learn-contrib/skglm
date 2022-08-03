@@ -55,7 +55,7 @@ def pn_solver(X, y, datafit, penalty, max_epochs=1000,
             if stop_crit_in <= tol_in:
                 break
 
-        p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+        p_obj = n_samples * (datafit.value(y, w, Xw) + penalty.value(w))
         obj_out.append(p_obj)
     return w, obj_out, stop_crit
 
@@ -78,7 +78,7 @@ def _compute_descent_direction(X, y, w_epoch, Xw_epoch, datafit, penalty,
 
     cached_grads = np.zeros(len(ws))
     X_delta_w = np.zeros(X.shape[0])
-    w_ws = w_epoch[ws]
+    w_ws = w_epoch[ws].copy()
 
     for cd_iter in range(max_cd_iter):
         for idx, j in enumerate(ws):

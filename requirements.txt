@@ -1,5 +1,5 @@
-https://github.com/benchopt/benchopt.git@main
+git+https://github.com/benchopt/benchopt.git@main
 pytest
 celer
-git+https://github.com/tbjohns/blitzl1.git@master
+git+https://github.com/QB3/BlitzL1.git@understand-blitz
 libsvmdata

@@ -55,6 +55,16 @@ class L1(BasePenalty):
         """Return penalization value for which 0 is solution."""
         return np.max(np.abs(gradient0))
 
+    def delta_pen(self, w_j, delta_w_j):
+        delta_obj = 0.
+        if w_j < 0:
+            delta_obj -= self.alpha * delta_w_j
+        elif w_j > 0:
+            delta_obj += self.alpha * delta_w_j
+        else:
+            delta_obj -= self.alpha * abs(delta_w_j)
+        return delta_obj
+
 
 class L1_plus_L2(BasePenalty):
     """L1 + L2 penalty (aka ElasticNet penalty)."""

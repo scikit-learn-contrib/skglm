@@ -42,7 +42,7 @@ def pn_solver(X, y, datafit, penalty, max_epochs=1000,
 
             # find descent direction
             delta_w_ws = _compute_descent_direction(X, y, w, Xw, datafit, penalty,
-                                                    ws, max_cd_iter=t+1, tol=tol_in)
+                                                    ws, max_cd_iter=20, tol=tol_in)
 
             # backtracking line search with inplace update of w, Xw
             grad_ws = _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
@@ -103,7 +103,7 @@ def _compute_descent_direction(X, y, w_epoch, Xw_epoch, datafit, penalty,
     return w_ws - w_epoch[ws]
 
 
-# @njit
+@njit
 def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
                            ws, max_backtrack_iter):
     step, prev_step = 1., 0.

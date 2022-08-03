@@ -4,8 +4,12 @@ from sklearn.linear_model import LogisticRegression
 from skglm.penalties import L1
 from skglm.utils import make_correlated_data, compiled_clone
 
+from skglm.datafits import Logistic
+from skglm.prototype_PN.pn_PAB import prox_newton_solver
+
 from skglm.prototype_PN.log_datafit import Pr_LogisticRegression
 from skglm.prototype_PN.pn_solver import pn_solver
+
 
 
 def test_log_datafit():
@@ -63,5 +67,36 @@ def test_pn_vs_sklearn(rho):
     np.testing.assert_allclose(sk_log_reg.coef_ - w, 0, rtol=1e-5, atol=1e-5)
 
 
+def test_PN_PAB_vs_sklearn():
+    n_samples, n_features = 10, 20
+
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
+    y = np.sign(y)
+    tol = 1e-9
+
+    alpha_max = np.linalg.norm(X.T @ y, ord=np.inf) / (2 * n_samples)
+    alpha = 0.02 * alpha_max
+
+    datafit = Logistic()
+    datafit.initialize(X, y)
+    pen = L1(alpha=alpha)
+
+    pen = compiled_clone(pen)
+    datafit = compiled_clone(datafit)
+
+
+    w = np.zeros(n_features)
+    Xw = np.zeros(n_samples)
+    w_newton = prox_newton_solver(X, y, datafit, pen, w, Xw, tol=tol)[0]
+
+    estimator_sk = LogisticRegression(
+        C=1/(alpha * n_samples), fit_intercept=False, tol=tol, penalty='l1',
+        solver='liblinear')
+    estimator_sk.fit(X, y)
+
+    np.testing.assert_allclose(w_newton, np.ravel(estimator_sk.coef_), atol=1e-5)
+
+
 if __name__ == '__main__':
+    test_PN_PAB_vs_sklearn()
     pass

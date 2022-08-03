@@ -6,7 +6,7 @@ from skglm.prototype_PN.log_datafit import Pr_LogisticRegression
 from skglm.prototype_PN.pn_solver import pn_solver
 
 
-n_samples, n_features = 500, 2000
+n_samples, n_features = 500, 5000
 
 X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
 y = np.sign(y)

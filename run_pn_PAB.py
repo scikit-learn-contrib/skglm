@@ -30,5 +30,5 @@ w_newton, obj_out, _ = prox_newton_solver(X, y, datafit, pen, w, Xw, tol=1e-12)
 
 print(n_samples * obj_out)
 
-obj = datafit.value(y, w, X @ w) + pen.value(w)
+obj = datafit.value(y, w_newton, X @ w_newton) + pen.value(w_newton)
 print(n_samples * obj)

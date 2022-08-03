@@ -11,7 +11,7 @@ def prox_newton_solver(
         X, y, datafit, penalty, w, Xw, max_iter=50, max_epochs=1000, max_backtrack=20,
         min_pn_cd_epochs=2, max_pn_cd_epochs=20, p0=10, tol=1e-4, verbose=0,
         eps_in=0.3):
-
+    
     # if not isinstance(datafit, Logistic):
     #     raise ValueError("Prox-Newton solver only supports Logistic datafits.")
     n_samples, n_features = X.shape
@@ -21,6 +21,7 @@ def prox_newton_solver(
     obj_out = []
     all_feats = np.arange(n_features)
     stop_crit = np.inf  # initialize for case n_iter=0
+    tol *= n_samples
 
     hessian_diag = np.zeros(n_samples)  # hessian = X^T D X, with D = diag(f_i'')
     grad_datafit = np.zeros(n_samples)  # gradient of F(Xw)

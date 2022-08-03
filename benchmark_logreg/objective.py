@@ -32,10 +32,7 @@ class Objective(BaseObjective):
         beta = beta.flatten().astype(np.float64)
         y_X_beta = self.y * (self.X @ beta)
         l1 = abs(beta).sum()
-        obj =  np.log(1 + np.exp(-y_X_beta)).sum() + self.lmbd * l1
-
-        print(obj)
-        return obj
+        return np.log(1 + np.exp(-y_X_beta)).sum() + self.lmbd * l1
 
     def _get_lambda_max(self):
         return abs(self.X.T @ self.y).max() / 2

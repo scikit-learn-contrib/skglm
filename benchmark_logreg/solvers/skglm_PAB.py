@@ -25,9 +25,6 @@ class Solver(BaseSolver):
         self.X, self.y, self.lmbd = X, y, lmbd
         n_samples, n_features = self.X.shape
 
-        self.w = np.zeros(n_features)
-        self.Xw = np.zeros(n_samples)
-
         self.log_datafit = compiled_clone(Logistic())
         self.l1_penalty = compiled_clone(L1(self.lmbd / n_samples))
 
@@ -37,8 +34,11 @@ class Solver(BaseSolver):
         self.run(5)
 
     def run(self, n_iter):
+        n_samples, n_features = self.X.shape
+        w = np.zeros(n_features)
+        Xw = np.zeros(n_samples)
         self.coef = prox_newton_solver(self.X, self.y, self.log_datafit,
-                                       self.l1_penalty, self.w, self.Xw, 
+                                       self.l1_penalty, w, Xw, 
                                        tol=1e-12, max_iter=n_iter)[0]
 
     def get_result(self):

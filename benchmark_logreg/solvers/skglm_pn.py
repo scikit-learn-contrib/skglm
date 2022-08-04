@@ -13,8 +13,12 @@ class Solver(BaseSolver):
 
     name = "skglm-PN"
 
-    def __init__(self):
-        pass
+    parameters = {
+        'use_acc': [True, False]
+    }
+
+    def __init__(self, use_acc):
+        self.use_acc = use_acc
 
     def set_objective(self, X, y, lmbd):
         self.X, self.y, self.lmbd = X, y, lmbd
@@ -30,7 +34,8 @@ class Solver(BaseSolver):
 
     def run(self, n_iter):
         self.coef = pn_solver(self.X, self.y, self.log_datafit,
-                              self.l1_penalty, tol=self.tol, max_iter=n_iter)[0]
+                              self.l1_penalty, tol=self.tol, 
+                              use_acc=self.use_acc, max_iter=n_iter)[0]
 
     def get_result(self):
         return self.coef

@@ -23,12 +23,14 @@ class Solver(BaseSolver):
         self.log_datafit = compiled_clone(Pr_LogisticRegression())
         self.l1_penalty = compiled_clone(L1(self.lmbd / n_samples))
 
+        self.tol = 1e-12 * n_samples  # scale tol
+
         # Cache Numba compilation
         self.run(5)
 
     def run(self, n_iter):
         self.coef = pn_solver(self.X, self.y, self.log_datafit,
-                              self.l1_penalty, tol=1e-12, max_iter=n_iter)[0]
+                              self.l1_penalty, tol=self.tol, max_iter=n_iter)[0]
 
     def get_result(self):
         return self.coef

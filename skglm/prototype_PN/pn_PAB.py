@@ -6,14 +6,11 @@ from skglm.datafits.single_task import sigmoid
 from skglm.solvers.common import construct_grad
 
 
-
 def prox_newton_solver(
-        X, y, datafit, penalty, w, Xw, max_iter=50, max_epochs=1000, max_backtrack=20,
+        X, y, datafit, penalty, w=None, Xw=None, max_iter=50, max_epochs=1000, max_backtrack=20,
         min_pn_cd_epochs=2, max_pn_cd_epochs=20, p0=10, tol=1e-4, verbose=0,
         eps_in=0.3):
-    
-    # if not isinstance(datafit, Logistic):
-    #     raise ValueError("Prox-Newton solver only supports Logistic datafits.")
+
     n_samples, n_features = X.shape
     pen = penalty.is_penalized(n_features)
     unpen = ~pen
@@ -21,7 +18,8 @@ def prox_newton_solver(
     obj_out = []
     all_feats = np.arange(n_features)
     stop_crit = np.inf  # initialize for case n_iter=0
-    tol *= n_samples
+    w = np.zeros(n_features) if w is None else w
+    Xw = np.zeros(n_samples) if Xw is None else Xw
 
     hessian_diag = np.zeros(n_samples)  # hessian = X^T D X, with D = diag(f_i'')
     grad_datafit = np.zeros(n_samples)  # gradient of F(Xw)
@@ -75,8 +73,9 @@ def prox_newton_solver(
             #     lc, old_grad, epoch, verbose=verbose)
             delta_w, X_delta_w, n_performed_cd_epochs = _compute_descent_direction(
                 X, w, ws, hessian_diag, old_grad, grad_datafit, lc, penalty, min_pn_cd_epochs,
-            max_pn_cd_epochs, pn_tol_ratio, pn_grad_diff, epoch, verbose=verbose)
-            _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack)
+                max_pn_cd_epochs, pn_tol_ratio, pn_grad_diff, epoch, verbose=verbose)
+            _backtrack_line_search(w, Xw, delta_w, X_delta_w,
+                                   ws, y, penalty, max_backtrack)
 
             _compute_grad_hessian_datafit(X, y, Xw, ws, hessian_diag, grad_datafit, lc)
 
@@ -88,7 +87,6 @@ def prox_newton_solver(
                 old_grad[idx] = actual_grad
                 grad_diff = actual_grad - approx_grad
                 pn_grad_diff += grad_diff ** 2
-
 
             all_n_cd_epoch.append(n_performed_cd_epochs)
             p_obj = datafit.value(y, w, Xw) + penalty.value(w)

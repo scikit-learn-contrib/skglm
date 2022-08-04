@@ -11,7 +11,6 @@ def pn_solver(X, y, datafit, penalty, max_epochs=1000,
     all_features = np.arange(n_features)
     stop_crit = 0.
     obj_out = []
-    tol *= n_samples * np.log(2)  # scale tol
 
     for t in range(max_iter):
         # compute scores
@@ -55,7 +54,7 @@ def pn_solver(X, y, datafit, penalty, max_epochs=1000,
             if stop_crit_in <= tol_in:
                 break
 
-        p_obj = n_samples * (datafit.value(y, w, Xw) + penalty.value(w))
+        p_obj = datafit.value(y, w, Xw) + penalty.value(w)
         obj_out.append(p_obj)
     return w, obj_out, stop_crit
 
@@ -64,8 +63,8 @@ def pn_solver(X, y, datafit, penalty, max_epochs=1000,
 def _compute_descent_direction(X, y, w_epoch, Xw_epoch, datafit, penalty,
                                ws, max_cd_iter, tol):
     # Given:
-    #   - b = grad F(X w_epoch)     <------>  raw_grad
-    #   - D = Hessian F(X w_epoch)  <------>  raw_hess
+    #   - b = \nabla   F(X w_epoch)   <------>  raw_grad
+    #   - D = \nabla^2 F(X w_epoch)   <------>  raw_hess
     # Minimize w.r.t w:
     #  b.T @ X @ (w - w_epoch) + \
     #  1/2 * (w - w_epoch).T @ X.T @ D @ X @ (w - w_epoch) + penalty(w)

@@ -11,7 +11,6 @@ from skglm.prototype_PN.log_datafit import Pr_LogisticRegression
 from skglm.prototype_PN.pn_solver import pn_solver
 
 
-
 def test_log_datafit():
     n_samples, n_features = 10, 20
 
@@ -32,9 +31,10 @@ def test_log_datafit():
     np.testing.assert_almost_equal(exp_yXw / (1 + exp_yXw) ** 2 / len(y), hess)
 
 
-def test_alpha_max():
+@pytest.mark.parametrize('X_density', [1, 0.5])
+def test_alpha_max(X_density):
     n_samples, n_features = 10, 20
-    X, y, _ = make_correlated_data(n_samples, n_features)
+    X, y, _ = make_correlated_data(n_samples, n_features, X_density=X_density)
     y = np.sign(y)
 
     alpha_max = np.linalg.norm(X.T @ y, ord=np.inf) / (2 * n_samples)
@@ -46,11 +46,12 @@ def test_alpha_max():
     np.testing.assert_equal(w, 0)
 
 
-@pytest.mark.parametrize(('rho'), [1e-1, 1e-2])
-def test_pn_vs_sklearn(rho):
+@pytest.mark.parametrize("rho, X_density", [[1e-1, 1], [1e-2, 0.5]])
+def test_pn_vs_sklearn(rho, X_density):
     n_samples, n_features = 10, 20
 
-    X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=0,
+                                   X_density=X_density)
     y = np.sign(y)
 
     alpha_max = np.linalg.norm(X.T @ y, ord=np.inf) / (2 * n_samples)
@@ -84,7 +85,6 @@ def test_PN_PAB_vs_sklearn():
     pen = compiled_clone(pen)
     datafit = compiled_clone(datafit)
 
-
     w = np.zeros(n_features)
     Xw = np.zeros(n_samples)
     w_newton = prox_newton_solver(X, y, datafit, pen, w, Xw, tol=tol)[0]
@@ -98,5 +98,4 @@ def test_PN_PAB_vs_sklearn():
 
 
 if __name__ == '__main__':
-    test_PN_PAB_vs_sklearn()
     pass

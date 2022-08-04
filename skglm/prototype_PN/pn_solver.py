@@ -5,7 +5,7 @@ from skglm.solvers.common import construct_grad
 
 
 def pn_solver(X, y, datafit, penalty, max_epochs=1000,
-              max_iter=50, p0=10, tol=1e-9, verbose=False):
+              max_iter=50, p0=10, tol=1e-9, use_acc=True, verbose=False):
     n_samples, n_features = X.shape
     w, Xw = np.zeros(n_features), np.zeros(n_samples)
     all_features = np.arange(n_features)
@@ -41,7 +41,8 @@ def pn_solver(X, y, datafit, penalty, max_epochs=1000,
 
             # find descent direction
             delta_w_ws = _compute_descent_direction(X, y, w, Xw, datafit, penalty,
-                                                    ws, max_cd_iter=20, tol=tol_in)
+                                                    ws, max_cd_iter=20, tol=tol_in,
+                                                    use_acc=use_acc)
 
             # backtracking line search with inplace update of w, Xw
             grad_ws = _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
@@ -61,7 +62,7 @@ def pn_solver(X, y, datafit, penalty, max_epochs=1000,
 
 @njit
 def _compute_descent_direction(X, y, w_epoch, Xw_epoch, datafit, penalty,
-                               ws, max_cd_iter, tol):
+                               ws, max_cd_iter, tol, use_acc=True):
     # Given:
     #   - b = \nabla   F(X w_epoch)   <------>  raw_grad
     #   - D = \nabla^2 F(X w_epoch)   <------>  raw_hess
@@ -77,9 +78,11 @@ def _compute_descent_direction(X, y, w_epoch, Xw_epoch, datafit, penalty,
 
     cached_grads = np.zeros(len(ws))
     X_delta_w = np.zeros(X.shape[0])
-    w_ws = w_epoch[ws].copy()
+    w_ws = w_epoch[ws]
+    old_t = 1.
 
     for cd_iter in range(max_cd_iter):
+        new_t = (1 + np.sqrt(1 + 4*old_t**2)) / 2
         for idx, j in enumerate(ws):
             cached_grads[idx] = X[:, j] @ (raw_grad + raw_hess * X_delta_w)
             old_w_idx = w_ws[idx]
@@ -90,13 +93,18 @@ def _compute_descent_direction(X, y, w_epoch, Xw_epoch, datafit, penalty,
                 stepsize, j
             )
 
+            # FISTA
+            if use_acc:
+                w_ws[idx] += (old_t - 1) / new_t * (w_ws[idx] - old_w_idx)
+
             if w_ws[idx] != old_w_idx:
                 X_delta_w += (w_ws[idx] - old_w_idx) * X[:, j]
 
-        if cd_iter % 4 == 0:
+        if cd_iter % 5 == 0:
             opt = penalty.subdiff_distance(w_ws, cached_grads, np.arange(len(ws)))
             if np.max(opt) <= tol:
                 break
+        old_t = new_t
 
     # descent direction
     return w_ws - w_epoch[ws]

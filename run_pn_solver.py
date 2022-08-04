@@ -18,10 +18,11 @@ alpha = 0.001 * alpha_max
 log_datafit = compiled_clone(Pr_LogisticRegression())
 l1_penalty = compiled_clone(L1(alpha))
 
-w, obj_out, _ = pn_solver(X, y, log_datafit, l1_penalty, tol=1e-12)
+w, obj_out, _ = pn_solver(X, y, log_datafit, l1_penalty,
+                          tol=1e-12, use_acc=False, verbose=True)
 
-print(obj_out)
 
+# print(obj_out)
 
-obj = log_datafit.value(y, w, X @ w) + l1_penalty.value(w)
-print(n_samples * obj)
+# obj = log_datafit.value(y, w, X @ w) + l1_penalty.value(w)
+# print(n_samples * obj)

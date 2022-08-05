@@ -68,18 +68,18 @@ def test_pn_vs_sklearn(rho, X_density):
     np.testing.assert_allclose(sk_log_reg.coef_ - w, 0, rtol=1e-5, atol=1e-5)
 
 
-def test_PN_PAB_vs_sklearn():
+@pytest.mark.parametrize("rho, X_density", [[1e-1, 1], [1e-2, 0.5]])
+def test_PN_PAB_vs_sklearn(rho, X_density):
     n_samples, n_features = 10, 20
 
-    X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=0, X_density=X_density)
     y = np.sign(y)
     tol = 1e-9
 
     alpha_max = np.linalg.norm(X.T @ y, ord=np.inf) / (2 * n_samples)
-    alpha = 0.02 * alpha_max
+    alpha = rho * alpha_max
 
     datafit = Logistic()
-    datafit.initialize(X, y)
     pen = L1(alpha=alpha)
 
     pen = compiled_clone(pen)

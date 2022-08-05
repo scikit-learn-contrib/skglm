@@ -25,10 +25,12 @@ def prox_newton_solver(
     grad_datafit = np.zeros(n_samples)  # gradient of F(Xw)
 
     is_sparse = sparse.issparse(X)
+    if is_sparse:
+        X_bundles = (X.data, X.indptr, X.indices)
+
     for t in range(max_iter):
         if is_sparse:
-            grad = datafit.full_grad_sparse(
-                X.data, X.indptr, X.indices, y, Xw)
+            grad = datafit.full_grad_sparse(*X_bundles, y, Xw)
         else:
             grad = construct_grad(X, y, w, Xw, datafit, all_feats)
 
@@ -61,7 +63,11 @@ def prox_newton_solver(
         pn_grad_diff = 0.
         pn_tol_ratio = 10.
 
-        _compute_grad_hessian_datafit(X, y, Xw, ws, hessian_diag, grad_datafit, lc)
+        if is_sparse:
+            _compute_grad_hessian_datafit_s(*X_bundles, y, Xw, ws, 
+                                            hessian_diag, grad_datafit, lc)
+        else:
+            _compute_grad_hessian_datafit(X, y, Xw, ws, hessian_diag, grad_datafit, lc)
 
         # 2) run prox newton on smaller subproblem
         all_n_cd_epoch = []
@@ -71,18 +77,40 @@ def prox_newton_solver(
             #     X, Xw, w, y, penalty, ws, min_pn_cd_epochs, max_pn_cd_epochs,
             #     max_backtrack, pn_tol_ratio, pn_grad_diff, hessian_diag, grad_datafit,
             #     lc, old_grad, epoch, verbose=verbose)
-            delta_w, X_delta_w, n_performed_cd_epochs = _compute_descent_direction(
-                X, w, ws, hessian_diag, old_grad, grad_datafit, lc, penalty, min_pn_cd_epochs,
-                max_pn_cd_epochs, pn_tol_ratio, pn_grad_diff, epoch, verbose=verbose)
+            if is_sparse:
+                delta_w, X_delta_w, n_performed_cd_epochs = _compute_descent_direction_s(
+                    *X_bundles, w, ws, hessian_diag, old_grad, grad_datafit, lc, penalty, min_pn_cd_epochs,
+                    max_pn_cd_epochs, pn_tol_ratio, pn_grad_diff, epoch, verbose=verbose)
+            else:
+                delta_w, X_delta_w, n_performed_cd_epochs = _compute_descent_direction(
+                    X, w, ws, hessian_diag, old_grad, grad_datafit, lc, penalty, min_pn_cd_epochs,
+                    max_pn_cd_epochs, pn_tol_ratio, pn_grad_diff, epoch, verbose=verbose)
+
+
             _backtrack_line_search(w, Xw, delta_w, X_delta_w,
                                    ws, y, penalty, max_backtrack)
 
-            _compute_grad_hessian_datafit(X, y, Xw, ws, hessian_diag, grad_datafit, lc)
+            if is_sparse:
+                _compute_grad_hessian_datafit_s(*X_bundles, y, Xw, ws, 
+                                            hessian_diag, grad_datafit, lc)
+            else:
+                _compute_grad_hessian_datafit(X, y, Xw, ws, hessian_diag, grad_datafit, lc)
 
             pn_grad_diff = 0.
             for idx, j in enumerate(ws):
-                actual_grad = X[:, j] @ grad_datafit
-                approx_grad = old_grad[idx] + (X[:, j] * X_delta_w * hessian_diag).sum()
+                if is_sparse:
+                    tmp = 0.
+                    for i in range(X.indptr[j], X.indptr[j+1]):
+                        tmp += X.data[i] * grad_datafit[X.indices[i]]
+                    actual_grad = tmp
+
+                    tmp = 0.
+                    for i in range(X.indptr[j], X.indptr[j+1]):
+                        tmp += X.data[i] * X_delta_w[X.indices[i]] * hessian_diag[X.indices[i]]
+                    approx_grad = old_grad[idx] + tmp
+                else:
+                    actual_grad = X[:, j] @ grad_datafit
+                    approx_grad = old_grad[idx] + (X[:, j] * X_delta_w * hessian_diag).sum()
 
                 old_grad[idx] = actual_grad
                 grad_diff = actual_grad - approx_grad
@@ -91,7 +119,11 @@ def prox_newton_solver(
             all_n_cd_epoch.append(n_performed_cd_epochs)
             p_obj = datafit.value(y, w, Xw) + penalty.value(w)
 
-            grad = construct_grad(X, y, w, Xw, datafit, ws)
+            if is_sparse:
+                grad = datafit.full_grad_sparse(*X_bundles, y, Xw)
+            else:
+                grad = construct_grad(X, y, w, Xw, datafit, ws)
+
             opt_ws = penalty.subdiff_distance(w, grad, ws)
             stop_crit_in = np.max(opt_ws)
             tol_in = eps_in * stop_crit
@@ -146,6 +178,59 @@ def _compute_descent_direction(
     return delta_w, X_delta_w, n_performed_cd_epochs
 
 
+
+@njit
+def _compute_descent_direction_s(
+        X_data, X_indptr, X_indices, w, ws, hessian_diag, old_grad, 
+        grad_datafit, lc, penalty, min_pn_cd_epochs,
+        max_pn_cd_epochs, pn_tol_ratio, pn_grad_diff, epoch, verbose=0):
+    delta_w, X_delta_w = np.zeros(len(ws)), np.zeros(len(hessian_diag))
+    pn_tol = 0.
+    _max_pn_cd_epochs = max_pn_cd_epochs
+    if epoch == 0:
+        _max_pn_cd_epochs = min_pn_cd_epochs
+        for idx, j in enumerate(ws):
+            tmp = 0.
+            for i in range(X_indptr[j], X_indptr[j+1]):
+                tmp += X_data[i] * grad_datafit[X_indices[i]]
+            old_grad[idx] = tmp
+    else:
+        pn_tol = pn_tol_ratio * pn_grad_diff
+
+    n_performed_cd_epochs = 0
+    for pn_cd_epoch in range(_max_pn_cd_epochs):
+        weighted_fix_point_crit = 0.
+        n_performed_cd_epochs += 1
+        for idx, j in enumerate(ws):
+            stepsize = 1/lc[idx] if lc[idx] != 0 else 1000
+            old_value = w[j] + delta_w[idx]
+            # TODO: Is it the correct gradient? What's the intuition behind the formula?
+            tmp = 0.
+            for i in range(X_indptr[j], X_indptr[j+1]):
+                tmp += X_data[i] * X_delta_w[X_indices[i]] * hessian_diag[X_indices[i]]
+            grad_j = old_grad[idx] + tmp
+
+            new_value = penalty.prox_1d(
+                old_value - grad_j * stepsize, stepsize, j)
+            diff = new_value - old_value
+            if diff != 0:
+                weighted_fix_point_crit += (diff * lc[idx]) ** 2
+                delta_w[idx] = new_value - w[j]
+                for i in range(X_indptr[j], X_indptr[j+1]):
+                    X_delta_w[X_indices[i]] += diff * X_data[i]
+            # if max(verbose - 1, 0):
+            #     print("delta w is ", delta_w[idx])
+        # weighted_fix_point_crit /= X.shape[0] ** 2
+        # TODO: beware scaling weighted_fix_point_crit and pn_tol
+        # try a more proncipled criterion? subdiff dist?
+        if weighted_fix_point_crit / len(hessian_diag) ** 2 <= pn_tol and pn_cd_epoch + 1 >= min_pn_cd_epochs:
+            if max(verbose - 1, 0):
+                print("Exited! weighted_fix_point_crit: ", weighted_fix_point_crit)
+            break
+    return delta_w, X_delta_w, n_performed_cd_epochs
+
+
+
 @njit
 def _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack):
     step_size = 1.
@@ -183,3 +268,20 @@ def _compute_grad_hessian_datafit(X, y, Xw, ws, hessian_diag, grad_datafit, lc):
         grad_datafit[i] = -y[i] * prob / n_samples
     for idx, j in enumerate(ws):
         lc[idx] = ((X[:, j] ** 2) * hessian_diag).sum()
+
+
+@njit
+def _compute_grad_hessian_datafit_s(X_data, X_indptr, X_indices, 
+                                    y, Xw, ws, hessian_diag, grad_datafit, lc):
+    n_samples = len(y)
+    for i in range(n_samples):
+        prob = 1. / (1. + np.exp(y[i] * Xw[i]))
+        # this supposes that the datafit is scaled by n_samples
+        hessian_diag[i] = prob * (1. - prob) / n_samples
+        grad_datafit[i] = -y[i] * prob / n_samples
+    
+    for idx, j in enumerate(ws):
+        tmp = 0.
+        for i in range(X_indptr[j], X_indptr[j+1]):
+            tmp += hessian_diag[X_indices[i]] * X_data[i] ** 2
+        lc[idx] = tmp

@@ -157,6 +157,10 @@ def _compute_descent_direction_s(X_data, X_indptr, X_indices, y,
     for cd_iter in range(max_cd_iter):
         new_t = (1 + np.sqrt(1 + 4*old_t**2)) / 2
         for idx, j in enumerate(ws):
+            
+            # skip when the X[:, j] = 0
+            if lipschitz[idx] == 0:
+                continue
 
             cached_grads[idx] = 0.
             for i in range(X_indptr[j], X_indptr[j+1]):

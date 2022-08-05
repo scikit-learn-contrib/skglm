@@ -3,13 +3,7 @@ from numpy.linalg import norm
 from numba import njit
 from numba import float64
 
-from skglm.datafits.base import BaseDatafit, jit_factory
-
-
-spec_quadratic = [
-    ('Xty', float64[:]),
-    ('lipschitz', float64[:]),
-]
+from skglm.datafits.base import BaseDatafit
 
 
 class Quadratic(BaseDatafit):
@@ -30,13 +24,22 @@ class Quadratic(BaseDatafit):
 
     Note
     ----
-    The class Quadratic is subsequently decorated with a @jitclass decorator with
-    the `jit_factory` function to be compiled. This allows for faster computations
-    using Numba JIT compiler.
+    The class is jit compiled at fit time using Numba compiler.
+    This allows for faster computations.
     """
 
     def __init__(self):
         pass
+
+    def get_spec(self):
+        spec = (
+            ('Xty', float64[:]),
+            ('lipschitz', float64[:]),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict()
 
     def initialize(self, X, y):
         self.Xty = X.T @ y
@@ -88,9 +91,6 @@ class Quadratic(BaseDatafit):
         return np.sum(Xw - y) / len(Xw)
 
 
-Quadratic, Quadratic_32 = jit_factory(Quadratic, spec_quadratic)
-
-
 @njit
 def sigmoid(x):
     """Vectorwise sigmoid."""
@@ -98,12 +98,7 @@ def sigmoid(x):
     return out
 
 
-spec_logistic = [
-    ('lipschitz', float64[:]),
-]
-
-
-class _Logistic(BaseDatafit):
+class Logistic(BaseDatafit):
     r"""Logistic datafit with labels in {-1, 1}.
 
     The datafit reads::
@@ -118,13 +113,21 @@ class _Logistic(BaseDatafit):
 
     Note
     ----
-    The class _Logistic is subsequently decorated with a @jitclass decorator with
-    the `jit_factory` function to be compiled. This allows for faster computations
-    using Numba JIT compiler.
+    The class is jit compiled at fit time using Numba compiler.
+    This allows for faster computations.
     """
 
     def __init__(self):
         pass
+
+    def get_spec(self):
+        spec = (
+            ('lipschitz', float64[:]),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict()
 
     def initialize(self, X, y):
         self.lipschitz = (X ** 2).sum(axis=0) / (len(y) * 4)
@@ -164,15 +167,7 @@ class _Logistic(BaseDatafit):
         return np.sum((- y * sigmoid(- y * Xw))) / (4 * len(Xw))
 
 
-Logistic, Logistic_32 = jit_factory(_Logistic, spec_logistic)
-
-
-spec_quadratic_svc = [
-    ('lipschitz', float64[:]),
-]
-
-
-class _QuadraticSVC(BaseDatafit):
+class QuadraticSVC(BaseDatafit):
     """A Quadratic SVC datafit used for classification tasks.
 
     The datafit reads::
@@ -186,13 +181,21 @@ class _QuadraticSVC(BaseDatafit):
 
     Note
     ----
-    The class _Logistic is subsequently decorated with a @jitclass decorator with
-    the `jit_factory` function to be compiled. This allows for faster computations
-    using Numba JIT compiler.
+    The class is jit compiled at fit time using Numba compiler.
+    This allows for faster computations.
     """
 
     def __init__(self):
         pass
+
+    def get_spec(self):
+        spec = (
+            ('lipschitz', float64[:]),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict()
 
     def initialize(self, yXT, y):
         n_features = yXT.shape[1]
@@ -240,16 +243,7 @@ class _QuadraticSVC(BaseDatafit):
         pass
 
 
-QuadraticSVC, QuadraticSVC_32 = jit_factory(_QuadraticSVC, spec_quadratic_svc)
-
-
-spec_huber = [
-    ('delta', float64),
-    ('lipschitz', float64[:])
-]
-
-
-class _Huber(BaseDatafit):
+class Huber(BaseDatafit):
     """Huber datafit.
 
     The datafit reads::
@@ -269,13 +263,22 @@ class _Huber(BaseDatafit):
 
     Note
     ----
-    The class _Huber is subsequently decorated with a @jitclass decorator with
-    the `jit_factory` function to be compiled. This allows for faster computations
-    using Numba JIT compiler.
+    The class is jit compiled at fit time using Numba compiler.
+    This allows for faster computations.
     """
 
     def __init__(self, delta):
         self.delta = delta
+
+    def get_spec(self):
+        spec = (
+            ('delta', float64),
+            ('lipschitz', float64[:])
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(delta=self.delta)
 
     def initialize(self, X, y):
         n_features = X.shape[1]
@@ -351,6 +354,3 @@ class _Huber(BaseDatafit):
             else:
                 update -= np.sign(tmp) * self.delta
         return update / n_samples
-
-
-Huber, Huber_32 = jit_factory(_Huber, spec_huber)

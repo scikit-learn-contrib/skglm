@@ -22,9 +22,9 @@ from skglm.penalties import (
     L1, WeightedL1, L1_plus_L2, MCPenalty, IndicatorBox, L2_1
 )
 from skglm.datafits import (
-    Quadratic_32, Quadratic, Logistic, Logistic_32, QuadraticSVC,
-    QuadraticSVC_32, QuadraticMultiTask
+    Quadratic, Logistic, QuadraticSVC, QuadraticMultiTask
 )
+from skglm.utils import compiled_clone
 from skglm.solvers import cd_solver_path, bcd_solver_path
 
 
@@ -38,9 +38,11 @@ class GeneralizedLinearEstimator(LinearModel):
     ----------
     datafit : instance of BaseDatafit, optional
         Datafit. If None, `datafit` is initialized as a `Quadratic` datafit.
+        `datafit` is replaced by a JIT-compiled instance when calling fit.
 
     penalty : instance of BasePenalty, optional
         Penalty. If None, `penalty` is initialized as a `L1` penalty.
+        `penalty` is replaced by a JIT-compiled instance when calling fit.
 
     is_classif : bool, optional
         Whether the task is classification or regression. Used for input target
@@ -115,7 +117,7 @@ class GeneralizedLinearEstimator(LinearModel):
             % (self.datafit.__class__.__name__, self.penalty.__class__.__name__,
                self.penalty.alpha, self.is_classif))
 
-    def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
+    def path(self, X, y, alphas, coef_init=None, return_n_iter=False, **params):
         """Compute regularization path.
 
         Parameters
@@ -152,9 +154,12 @@ class GeneralizedLinearEstimator(LinearModel):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
+        penalty = compiled_clone(self.penalty)
+        datafit = compiled_clone(self.datafit, to_float32=X.dtype == np.float32)
+
         path_func = cd_solver_path if y.ndim == 1 else bcd_solver_path
         return path_func(
-            X, y, self.datafit, self.penalty, alphas=alphas,
+            X, y, datafit, penalty, alphas=alphas,
             coef_init=coef_init, max_iter=self.max_iter,
             return_n_iter=return_n_iter, max_epochs=self.max_epochs, p0=self.p0,
             tol=self.tol, use_acc=True, ws_strategy=self.ws_strategy,
@@ -187,14 +192,6 @@ class GeneralizedLinearEstimator(LinearModel):
         """
         self.penalty = self.penalty if self.penalty else L1(1.)
         self.datafit = self.datafit if self.datafit else Quadratic()
-
-        if X.dtype == np.float32:
-            if isinstance(self.datafit, Quadratic):
-                self.datafit = Quadratic_32()
-            elif isinstance(self.datafit, QuadraticSVC):
-                self.datafit = QuadraticSVC_32()
-            elif isinstance(self.datafit, Logistic):
-                self.datafit = Logistic_32()
 
         if not hasattr(self, "n_features_in_"):
             self.n_features_in_ = X.shape[1]
@@ -234,14 +231,13 @@ class GeneralizedLinearEstimator(LinearModel):
         if not self.warm_start or not hasattr(self, "coef_"):
             self.coef_ = None
 
-        path_func = cd_solver_path if y.ndim == 1 else bcd_solver_path
         X_ = yXT if isinstance(self.datafit, QuadraticSVC) else X
 
-        _, coefs, kkt = path_func(
-            X_, y, self.datafit, self.penalty, alphas=[self.penalty.alpha],
-            fit_intercept=self.fit_intercept, coef_init=self.coef_,
-            max_iter=self.max_iter, max_epochs=self.max_epochs, p0=self.p0,
-            verbose=self.verbose, tol=self.tol, ws_strategy=self.ws_strategy)
+        _, coefs, kkt = self.path(
+            X_, y, alphas=[self.penalty.alpha],
+            coef_init=self.coef_, max_iter=self.max_iter,
+            max_epochs=self.max_epochs, p0=self.p0, verbose=self.verbose,
+            tol=self.tol, ws_strategy=self.ws_strategy)
 
         self.coef_, self.stop_crit_ = coefs[:n_features, 0], kkt[-1]
         self.n_iter_ = len(kkt)
@@ -390,9 +386,53 @@ class Lasso(GeneralizedLinearEstimator):
         self.max_epochs = max_epochs
         self.p0 = p0
         self.ws_strategy = ws_strategy
-        self.datafit = Quadratic()
-        self.penalty = L1(alpha)
-        self.alpha = alpha
+
+    def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
+        """Compute Lasso path.
+
+        Parameters
+        ----------
+        X : array, shape (n_samples, n_features)
+            Design matrix.
+
+        y : array, shape (n_samples,)
+            Target vector.
+
+        alphas : array, shape (n_alphas,)
+            Grid of alpha.
+
+        coef_init : array, shape (n_features,), optional
+            If warm_start is enabled, the optimization problem restarts from coef_init.
+
+        return_n_iter : bool
+            Returns the number of iterations along the path.
+
+        **params : kwargs
+            All parameters supported by path.
+
+        Returns
+        -------
+        alphas : array, shape (n_alphas,)
+            The alphas along the path where models are computed.
+
+        coefs : array, shape (n_features, n_alphas)
+            Coefficients along the path.
+
+        stop_crit : array, shape (n_alphas,)
+            Value of stopping criterion at convergence along the path.
+
+        n_iters : array, shape (n_alphas,), optional
+            The number of iterations along the path. If return_n_iter is set to `True`.
+        """
+        penalty = compiled_clone(L1(self.alpha))
+        datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
+
+        return cd_solver_path(
+            X, y, datafit, penalty, alphas=alphas,
+            coef_init=coef_init, max_iter=self.max_iter,
+            return_n_iter=return_n_iter, max_epochs=self.max_epochs,
+            p0=self.p0, tol=self.tol, verbose=self.verbose,
+            ws_strategy=self.ws_strategy)
 
 
 class WeightedLasso(Lasso_sklearn):
@@ -505,15 +545,14 @@ class WeightedLasso(Lasso_sklearn):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
-        datafit = Quadratic_32() if X.dtype == np.float32 else Quadratic()
         weights = np.ones(X.shape[1]) if self.weights is None else self.weights
-
         if X.shape[1] != len(weights):
             raise ValueError("The number of weights must match the number of \
                               features. Got %s, expected %s." % (
                 len(weights), X.shape[1]))
 
-        penalty = WeightedL1(self.alpha, weights)
+        penalty = compiled_clone(WeightedL1(self.alpha, weights))
+        datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
 
         return cd_solver_path(
             X, y, datafit, penalty, alphas=alphas, fit_intercept=self.fit_intercept,
@@ -631,8 +670,8 @@ class ElasticNet(ElasticNet_sklearn):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
-        datafit = Quadratic_32() if X.dtype == np.float32 else Quadratic()
-        penalty = L1_plus_L2(self.alpha, self.l1_ratio)
+        penalty = compiled_clone(L1_plus_L2(self.alpha, self.l1_ratio))
+        datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
 
         return cd_solver_path(
             X, y, datafit, penalty, alphas=alphas, fit_intercept=self.fit_intercept,
@@ -754,8 +793,8 @@ class MCPRegression(Lasso_sklearn):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
-        datafit = Quadratic_32() if X.dtype == np.float32 else Quadratic()
-        penalty = MCPenalty(self.alpha, self.gamma)
+        penalty = compiled_clone(MCPenalty(self.alpha, self.gamma))
+        datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
 
         return cd_solver_path(
             X, y, datafit, penalty, alphas=alphas, fit_intercept=self.fit_intercept,
@@ -921,8 +960,9 @@ class SparseLogisticRegression(LogReg_sklearn):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
-        datafit = Logistic_32() if X.dtype == np.float32 else Logistic()
-        penalty = L1(self.alpha)
+        penalty = compiled_clone(L1(self.alpha))
+        datafit = compiled_clone(Logistic(), to_float32=X.dtype == np.float32)
+
         return cd_solver_path(
             X, y, datafit, penalty, alphas=alphas,
             fit_intercept=self.fit_intercept, coef_init=coef_init,
@@ -1122,8 +1162,8 @@ class LinearSVC(LinearSVC_sklearn):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
-        datafit = QuadraticSVC_32() if yXT.dtype == np.float32 else QuadraticSVC()
-        penalty_dual = IndicatorBox(self.C)
+        penalty_dual = compiled_clone(IndicatorBox(self.C))
+        datafit = compiled_clone(QuadraticSVC(), to_float32=yXT.dtype == np.float32)
 
         return cd_solver_path(
             yXT, y, datafit, penalty_dual, alphas=Cs,
@@ -1239,8 +1279,8 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
         if not self.warm_start or not hasattr(self, "coef_"):
             self.coef_ = None
 
-        _, coefs, kkt = bcd_solver_path(
-            X, Y, self.datafit, self.penalty, alphas=[self.alpha],
+        _, coefs, kkt = self.path(
+            X, Y, alphas=[self.alpha],
             coef_init=self.coef_, max_iter=self.max_iter,
             max_epochs=self.max_epochs, p0=self.p0, verbose=self.verbose,
             tol=self.tol)
@@ -1285,5 +1325,8 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
-        return bcd_solver_path(X, Y, self.datafit, self.penalty, alphas=alphas,
+        datafit = compiled_clone(self.datafit, to_float32=X.dtype == np.float32)
+        penalty = compiled_clone(self.penalty)
+
+        return bcd_solver_path(X, Y, datafit, penalty, alphas=alphas,
                                coef_init=coef_init, **params)

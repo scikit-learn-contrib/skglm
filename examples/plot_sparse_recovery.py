@@ -18,6 +18,7 @@ from sklearn.metrics import f1_score, mean_squared_error
 from skglm.utils import make_correlated_data
 from skglm.solvers import cd_solver_path
 from skglm.datafits import Quadratic
+from skglm.utils import compiled_clone
 from skglm.penalties import L1, MCPenalty, L0_5, L2_3, SCAD
 
 cmap = plt.get_cmap('tab10')
@@ -71,7 +72,8 @@ mse_ref = mean_squared_error(np.zeros_like(y_test), y_test)
 for idx, estimator in enumerate(penalties.keys()):
     print(f'Running {estimator}...')
     estimator_path = cd_solver_path(
-        X, y, datafit, penalties[estimator], alphas=alphas, ws_strategy="fixpoint")
+        X, y, compiled_clone(datafit), compiled_clone(penalties[estimator]),
+        alphas=alphas, ws_strategy="fixpoint")
 
     f1_temp = np.zeros(n_alphas)
     prediction_error_temp = np.zeros(n_alphas)

@@ -27,7 +27,7 @@ class Solver(BaseSolver):
         self.log_datafit = compiled_clone(Pr_LogisticRegression())
         self.l1_penalty = compiled_clone(L1(self.lmbd / n_samples))
 
-        self.tol = 1e-12 * n_samples  # scale tol
+        self.tol = 1e-9  # scale tol
 
         # Cache Numba compilation
         self.run(5)

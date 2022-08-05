@@ -23,7 +23,7 @@ class Solver(BaseSolver):
         self.clf = LogisticRegression(
             solver=self.solver, C=1 / self.lmbd,
             penalty='l1', fit_intercept=False,
-            tol=1e-12)
+            tol=1e-9)
 
     def run(self, n_iter):
         self.clf.max_iter = n_iter

@@ -15,15 +15,11 @@ class Solver(BaseSolver):
         self.X, self.y, self.lmbd = X, y, lmbd
 
         blitzl1.set_use_intercept(False)
-        blitzl1.set_tolerance(0)
+        blitzl1.set_tolerance(1e-9)
         self.problem = blitzl1.LogRegProblem(self.X, self.y)
 
     def run(self, n_iter):
         self.coef_ = self.problem.solve(self.lmbd, max_iter=n_iter).x
-
-    @staticmethod
-    def get_next(stop_val):
-        return stop_val + 1
 
     def get_result(self):
         return self.coef_.flatten()

@@ -11,7 +11,10 @@ class Dataset(BaseDataset):
     name = "libsvm"
 
     parameters = {
-        "dataset": ["news20.binary", "rcv1.binary", "SUSY"],
+        "dataset": [
+            "news20.binary",
+            "rcv1.binary"
+        ],
     }
 
     def __init__(self, dataset):
@@ -22,9 +25,6 @@ class Dataset(BaseDataset):
 
         if self.X is None:
             self.X, self.y = fetch_libsvm(self.dataset)
-
-        if self.dataset == "SUSY":
-            self.y = 2 * (self.y > 0) - 1
 
         data = dict(X=self.X, y=self.y)
 

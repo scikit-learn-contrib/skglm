@@ -17,7 +17,7 @@ class Solver(BaseSolver):
         warnings.filterwarnings('ignore', category=ConvergenceWarning)
         self.clf = LogisticRegression(
             penalty='l1', C=1/self.lmbd, max_iter=1,
-            max_epochs=100000, p0=10, verbose=False, tol=1e-12,
+            max_epochs=100000, p0=10, verbose=False, tol=1e-9,
             fit_intercept=False
         )
 

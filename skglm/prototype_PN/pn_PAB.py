@@ -70,7 +70,6 @@ def prox_newton_solver(
             _compute_grad_hessian_datafit(X, y, Xw, ws, hessian_diag, grad_datafit, lc)
 
         # 2) run prox newton on smaller subproblem
-        all_n_cd_epoch = []
         for epoch in range(max_epochs):
             # TODO: support sparse matrices
             # pn_grad_diff, n_performed_cd_epochs = _prox_newton_iter(
@@ -116,7 +115,6 @@ def prox_newton_solver(
                 grad_diff = actual_grad - approx_grad
                 pn_grad_diff += grad_diff ** 2
 
-            all_n_cd_epoch.append(n_performed_cd_epochs)
             p_obj = datafit.value(y, w, Xw) + penalty.value(w)
 
             if is_sparse:

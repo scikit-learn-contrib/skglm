@@ -5,5 +5,5 @@ benchmark_logreg = Benchmark('./benchmark_logreg')
 
 run_benchmark(benchmark_logreg, max_runs=25,
               n_jobs=1, n_repetitions=1,
-              solver_names=["blitz", "sklearn", 'celer', 'skglm-PN',],
+              solver_names=["blitz", "sklearn", 'celer', 'skglm-PN'],
               dataset_names=['libsvm', 'simulated'])

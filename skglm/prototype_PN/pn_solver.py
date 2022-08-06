@@ -6,10 +6,10 @@ from skglm.solvers.common import construct_grad, construct_grad_sparse
 
 
 def pn_solver(X, y, datafit, penalty, max_epochs=1000, w_init=None,
-              max_iter=50, p0=10, tol=1e-9, use_acc=True, verbose=False):
+              max_iter=50, p0=10, tol=1e-9, use_acc=True, verbose=0):
     n_samples, n_features = X.shape
-    w = np.zeros(n_features) if w is None else w_init
-    Xw = np.zeros(n_samples) if Xw is None else X @ w_init
+    w = np.zeros(n_features) if w_init is None else w_init
+    Xw = np.zeros(n_samples) if w_init is None else X @ w_init
     all_features = np.arange(n_features)
     stop_crit = 0.
     obj_out = []
@@ -37,6 +37,8 @@ def pn_solver(X, y, datafit, penalty, max_epochs=1000, w_init=None,
             )
 
         if stop_crit <= tol:
+            if verbose:
+                print('Outer loop early exit')
             break
 
         # build working set
@@ -73,7 +75,16 @@ def pn_solver(X, y, datafit, penalty, max_epochs=1000, w_init=None,
             opt_in = penalty.subdiff_distance(w, grad_ws, ws)
             stop_crit_in = np.max(opt_in)
 
+            if max(verbose-1, 0):
+                p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+                print(
+                    f"|—— Epoch {epoch+1}: {p_obj:.10f}, "
+                    f"stopping crit in: {stop_crit_in:.2e}"
+                )
+
             if stop_crit_in <= tol_in:
+                if max(verbose-1, 0):
+                    print("|—— Inner loop early exit")
                 break
 
         p_obj = datafit.value(y, w, Xw) + penalty.value(w)
@@ -131,6 +142,7 @@ def _compute_descent_direction(X, y, w_epoch, Xw_epoch, datafit, penalty,
     return w_ws - w_epoch[ws]
 
 
+# sparse version of func above
 @njit
 def _compute_descent_direction_s(X_data, X_indptr, X_indices, y,
                                  w_epoch, Xw_epoch, datafit, penalty,
@@ -164,9 +176,9 @@ def _compute_descent_direction_s(X_data, X_indptr, X_indices, y,
 
             cached_grads[idx] = 0.
             for i in range(X_indptr[j], X_indptr[j+1]):
-                cached_grads[idx] += X_data[i] * (raw_grad[X_indices[i]] +
-                                                  raw_hess[X_indices[i]] *
-                                                  X_delta_w[X_indices[i]])
+                row_i = X_indices[i]
+                cached_grads[idx] += X_data[i] * (raw_grad[row_i] +
+                                                  raw_hess[row_i] * X_delta_w[row_i])
 
             old_w_idx = w_ws[idx]
             stepsize = 1 / lipschitz[idx]
@@ -223,6 +235,7 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
     return grad_ws
 
 
+# sparse version of func above
 @njit
 def _backtrack_line_search_s(X_data, X_indptr, X_indices,
                              y, w, Xw, datafit, penalty, delta_w_ws,

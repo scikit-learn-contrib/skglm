@@ -2,7 +2,6 @@ from benchopt import BaseSolver
 from benchopt import safe_import_context
 
 with safe_import_context() as import_ctx:
-    import numpy as np
     from skglm.prototype_PN.log_datafit import Pr_LogisticRegression
     from skglm.prototype_PN.pn_solver import pn_solver
     from skglm.penalties import L1
@@ -34,7 +33,7 @@ class Solver(BaseSolver):
 
     def run(self, n_iter):
         self.coef = pn_solver(self.X, self.y, self.log_datafit,
-                              self.l1_penalty, tol=self.tol, 
+                              self.l1_penalty, tol=self.tol,
                               use_acc=self.use_acc, max_iter=n_iter)[0]
 
     def get_result(self):

@@ -6,7 +6,6 @@ from skglm.penalties import L1
 from skglm.datafits import Logistic
 
 from skglm.prototype_PN.pn_PAB import prox_newton_solver
-from skglm.prototype_PN.utils import compute_alpha_max
 from libsvmdata import fetch_libsvm
 
 
@@ -17,8 +16,8 @@ from libsvmdata import fetch_libsvm
 
 X, y = fetch_libsvm('news20.binary')
 
-alpha_max = compute_alpha_max(X, y, is_sparse=issparse(X))
-alpha = 0.1 * alpha_max
+alpha_max = np.linalg.norm(X.T @ y, ord=np.inf) / (2 * len(y))
+alpha = 0.001 * alpha_max
 
 print(alpha_max)
 

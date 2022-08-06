@@ -5,22 +5,22 @@ from numba import njit
 from skglm.solvers.common import construct_grad, construct_grad_sparse
 
 
-def pn_solver(X, y, datafit, penalty, max_epochs=1000,
+def pn_solver(X, y, datafit, penalty, max_epochs=1000, w_init=None,
               max_iter=50, p0=10, tol=1e-9, use_acc=True, verbose=False):
     n_samples, n_features = X.shape
-    w, Xw = np.zeros(n_features), np.zeros(n_samples)
+    w = np.zeros(n_features) if w is None else w_init
+    Xw = np.zeros(n_samples) if Xw is None else X @ w_init
     all_features = np.arange(n_features)
     stop_crit = 0.
     obj_out = []
 
-    is_X_sparse = issparse(X)
-
-    if is_X_sparse:
+    is_sparse = issparse(X)
+    if is_sparse:
         X_bundles = (X.data, X.indptr, X.indices)
 
     for t in range(max_iter):
         # compute scores
-        if is_X_sparse:
+        if is_sparse:
             grad = construct_grad_sparse(*X_bundles, y, w, Xw, datafit, all_features)
         else:
             grad = construct_grad(X, y, w, Xw, datafit, all_features)
@@ -50,7 +50,7 @@ def pn_solver(X, y, datafit, penalty, max_epochs=1000,
             tol_in = 0.3 * stop_crit
 
             # find descent direction
-            if is_X_sparse:
+            if is_sparse:
                 delta_w_ws = _compute_descent_direction_s(*X_bundles, y, w, Xw,
                                                           datafit, penalty, ws,
                                                           max_cd_iter=20, tol=0.3*tol_in,
@@ -61,7 +61,7 @@ def pn_solver(X, y, datafit, penalty, max_epochs=1000,
                                                         use_acc=use_acc)
 
             # backtracking line search with inplace update of w, Xw
-            if is_X_sparse:
+            if is_sparse:
                 grad_ws = _backtrack_line_search_s(*X_bundles, y, w, Xw, datafit,
                                                    penalty, delta_w_ws, ws,
                                                    max_backtrack_iter=20)
@@ -87,7 +87,7 @@ def _compute_descent_direction(X, y, w_epoch, Xw_epoch, datafit, penalty,
     # Given:
     #   - b = \nabla   F(X w_epoch)   <------>  raw_grad
     #   - D = \nabla^2 F(X w_epoch)   <------>  raw_hess
-    # Minimize w.r.t w:
+    # Minimize for w:
     #  b.T @ X @ (w - w_epoch) + \
     #  1/2 * (w - w_epoch).T @ X.T @ D @ X @ (w - w_epoch) + penalty(w)
     raw_grad = datafit.raw_gradient(y, Xw_epoch)
@@ -138,7 +138,7 @@ def _compute_descent_direction_s(X_data, X_indptr, X_indices, y,
     # Given:
     #   - b = \nabla   F(X w_epoch)   <------>  raw_grad
     #   - D = \nabla^2 F(X w_epoch)   <------>  raw_hess
-    # Minimize w.r.t w:
+    # Minimize for w:
     #  b.T @ X @ (w - w_epoch) + \
     #  1/2 * (w - w_epoch).T @ X.T @ D @ X @ (w - w_epoch) + penalty(w)
     raw_grad = datafit.raw_gradient(y, Xw_epoch)
@@ -157,7 +157,7 @@ def _compute_descent_direction_s(X_data, X_indptr, X_indices, y,
     for cd_iter in range(max_cd_iter):
         new_t = (1 + np.sqrt(1 + 4*old_t**2)) / 2
         for idx, j in enumerate(ws):
-            
+
             # skip when the X[:, j] = 0
             if lipschitz[idx] == 0:
                 continue
@@ -197,6 +197,9 @@ def _compute_descent_direction_s(X_data, X_indptr, X_indices, y,
 @njit
 def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
                            ws, max_backtrack_iter):
+    # inplace update of w and Xw
+    # use linear approx for diff datafit
+    # return grad_ws for last w and Xw
     step, prev_step = 1., 0.
     prev_penalty_val = penalty.value(w[ws])
 
@@ -224,6 +227,9 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
 def _backtrack_line_search_s(X_data, X_indptr, X_indices,
                              y, w, Xw, datafit, penalty, delta_w_ws,
                              ws, max_backtrack_iter):
+    # inplace update of w and Xw
+    # use linear approx for diff datafit
+    # return grad_ws for last w and Xw
     step, prev_step = 1., 0.
     prev_penalty_val = penalty.value(w[ws])
 

@@ -5,7 +5,6 @@ from skglm.penalties import L1
 
 from skglm.prototype_PN.log_datafit import Pr_LogisticRegression
 from skglm.prototype_PN.pn_solver import pn_solver
-from skglm.prototype_PN.utils import compute_alpha_max
 from libsvmdata import fetch_libsvm
 
 
@@ -16,11 +15,8 @@ from libsvmdata import fetch_libsvm
 
 X, y = fetch_libsvm('rcv1.binary')
 
-print(len(y))
-
-alpha_max = alpha_max = compute_alpha_max(X, y, is_sparse=issparse(X))
-alpha = 0.01 * alpha_max
-
+alpha_max = np.linalg.norm(X.T @ y, ord=np.inf) / (2 * len(y))
+alpha = 0.001 * alpha_max
 
 log_datafit = compiled_clone(Pr_LogisticRegression())
 l1_penalty = compiled_clone(L1(alpha))

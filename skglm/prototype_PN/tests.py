@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from sklearn.linear_model import LogisticRegression
-from skglm.penalties import L1
+from skglm.prototype_PN.L1_penalty import L1
 from skglm.utils import make_correlated_data, compiled_clone
 
 from skglm.datafits import Logistic
@@ -72,7 +72,8 @@ def test_pn_vs_sklearn(rho, X_density):
 def test_PN_PAB_vs_sklearn(rho, X_density):
     n_samples, n_features = 10, 20
 
-    X, y, _ = make_correlated_data(n_samples, n_features, random_state=0, X_density=X_density)
+    X, y, _ = make_correlated_data(
+        n_samples, n_features, random_state=0, X_density=X_density)
     y = np.sign(y)
     tol = 1e-9
 

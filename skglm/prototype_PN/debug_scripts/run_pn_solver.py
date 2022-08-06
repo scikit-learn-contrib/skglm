@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.sparse import issparse
 from skglm.utils import make_correlated_data, compiled_clone
-from skglm.penalties import L1
+from skglm.prototype_PN.L1_penalty import L1
 
 from skglm.prototype_PN.log_datafit import Pr_LogisticRegression
 from skglm.prototype_PN.pn_solver import pn_solver

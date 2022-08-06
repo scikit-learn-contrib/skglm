@@ -4,7 +4,7 @@ from benchopt import safe_import_context
 with safe_import_context() as import_ctx:
     from skglm.datafits import Logistic
     from skglm.utils import compiled_clone
-    from skglm.penalties import L1
+    from skglm.prototype_PN.L1_penalty import L1
     from skglm.prototype_PN.pn_PAB import prox_newton_solver
 
 

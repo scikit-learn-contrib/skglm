@@ -197,7 +197,7 @@ def _compute_descent_direction_s(X_data, X_indptr, X_indices, y,
                     X_delta_w[X_indices[i]] += (w_ws[idx] - old_w_idx) * X_data[i]
 
         if cd_iter % 5 == 0:
-            opt = penalty.subdiff_distance(w_ws, cached_grads, np.arange(len(ws)))
+            opt = penalty.subdiff_distance(w_ws, cached_grads, ws)
             if np.max(opt) <= tol:
                 break
         old_t = new_t

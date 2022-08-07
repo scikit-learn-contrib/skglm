@@ -1,0 +1,5 @@
+git+https://github.com/benchopt/benchopt.git@main
+pytest
+celer
+git+https://github.com/QB3/BlitzL1.git@understand-blitz
+libsvmdata

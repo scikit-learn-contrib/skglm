@@ -10,7 +10,7 @@ from sklearn.linear_model._base import LinearModel
 from sklearn.svm import LinearSVC as LinearSVC_sklearn
 from sklearn.preprocessing import LabelEncoder
 from sklearn.multiclass import OneVsRestClassifier
-
+from sklearn.metrics import accuracy_score, r2_score
 from sklearn.linear_model._base import _preprocess_data
 
 from skglm.penalties import (
@@ -324,6 +324,13 @@ class GeneralizedLinearEstimator(LinearModel):
         for p_prefix, p_key, p_val in penalty_params + datafit_params:
             params[p_prefix + p_key] = p_val
         return params
+
+    def score(self, X, y):
+        y_pred = self.predict(X)
+        if self.is_classif:
+            return accuracy_score(y_pred, y)
+        else:
+            return r2_score(y_pred, y)
 
 
 class Lasso(GeneralizedLinearEstimator):

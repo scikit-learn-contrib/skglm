@@ -28,7 +28,7 @@ def update_theta_exp_yXw(y, Xw, theta, exp_yXw):
 
 @njit
 def update_XTtheta(X, theta, XTtheta, ws):
-    """Inplace update of XTtheta."""
+    """Inplace update of ``XTtheta``."""
     for j in ws:
         XTtheta[j] = X[:, j] @ theta
 
@@ -52,3 +52,30 @@ def update_phi_XTphi(scaled_theta, XTtheta, phi, XTphi, alpha, ws):
         XTphi[j] = best_t * XTtheta[j] + (1 - best_t) * XTphi[j]
 
     phi[:] = best_t * scaled_theta + (1 - best_t) * phi
+
+
+@njit
+def compute_remaining_features(remaining_features, XTphi, w, norm2_X_cols, alpha, threshold):
+    features_scores = np.zeros(len(remaining_features))
+
+    # score features
+    for idx, j in enumerate(remaining_features):
+        if w[j] == 0:
+            score = 0.
+        elif norm2_X_cols[j] == 0:
+            score = np.inf
+        else:
+            score = (alpha - XTphi[j]) / norm2_X_cols[j]
+
+        features_scores[idx] = score
+
+    # discard features
+    new_remaining_features = np.delete(
+        remaining_features,
+        np.where(features_scores > threshold)
+    )
+
+    # sort
+    new_remaining_features.sort()
+
+    return new_remaining_features

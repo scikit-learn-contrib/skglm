@@ -3,7 +3,7 @@ import numpy as np
 from py_numba_blitz.utils import(compute_primal_obj, compute_dual_obj,
                                  compute_remaining_features,
                                  update_XTtheta, update_phi_XTphi,
-                                 update_theta_exp_yXw)
+                                 update_theta_exp_yXw, LOGREG_LIPSCHITZ_CONST)
 
 
 def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100):
@@ -38,11 +38,14 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100):
         d_obj = compute_dual_obj(y, phi)
         gap = p_obj - d_obj
 
-        threshold = np.sqrt(2 * gap / alpha)
+        threshold = np.sqrt(2 * gap / LOGREG_LIPSCHITZ_CONST)
         remaining_features = compute_remaining_features(remaining_features, XTphi,
                                                         w, norm2_X_cols, alpha, threshold)
 
-        ws_size = min(np.sum(w != 0), len(remaining_features))
+        ws_size = min(
+            max(2*np.sum(w != 0), p0),
+            len(remaining_features)
+        )
 
         print(
             f'primal obj: {p_obj}\n'

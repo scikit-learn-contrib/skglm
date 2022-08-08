@@ -2,6 +2,9 @@ import numpy as np
 from numba import njit
 
 
+LOGREG_LIPSCHITZ_CONST = 0.25
+
+
 @njit
 def compute_primal_obj(exp_yXw, w, alpha):
     datafit = np.sum(np.log(1 + exp_yXw))
@@ -54,18 +57,18 @@ def update_phi_XTphi(scaled_theta, XTtheta, phi, XTphi, alpha, ws):
     phi[:] = best_t * scaled_theta + (1 - best_t) * phi
 
 
-@njit
+# @njit
 def compute_remaining_features(remaining_features, XTphi, w, norm2_X_cols, alpha, threshold):
     features_scores = np.zeros(len(remaining_features))
 
     # score features
     for idx, j in enumerate(remaining_features):
-        if w[j] == 0:
+        if w[j] != 0:
             score = 0.
         elif norm2_X_cols[j] == 0:
             score = np.inf
         else:
-            score = (alpha - XTphi[j]) / norm2_X_cols[j]
+            score = (alpha - np.abs(XTphi[j])) / norm2_X_cols[j]
 
         features_scores[idx] = score
 
@@ -76,6 +79,5 @@ def compute_remaining_features(remaining_features, XTphi, w, norm2_X_cols, alpha
     )
 
     # sort
-    new_remaining_features.sort()
 
     return new_remaining_features

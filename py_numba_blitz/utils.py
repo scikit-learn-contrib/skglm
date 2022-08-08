@@ -1,8 +1,8 @@
 import numpy as np
 from numba import njit
 
-
-LOGREG_LIPSCHITZ_CONST = 0.25
+# used in Blitz (weird)
+LOGREG_LIPSCHITZ_CONST = 1.
 
 
 @njit
@@ -72,12 +72,10 @@ def compute_remaining_features(remaining_features, XTphi, w, norm2_X_cols, alpha
 
         features_scores[idx] = score
 
+    # sort (could be improved)
+    sorted_idx = np.argsort(features_scores)
+    features_scores[:] = features_scores[sorted_idx]
+    remaining_features[:] = remaining_features[sorted_idx]
+
     # discard features
-    new_remaining_features = np.delete(
-        remaining_features,
-        np.where(features_scores > threshold)
-    )
-
-    # sort
-
-    return new_remaining_features
+    return remaining_features[features_scores <= threshold]

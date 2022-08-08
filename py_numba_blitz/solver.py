@@ -50,6 +50,7 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100):
         print(
             f'primal obj: {p_obj}\n'
             f'dual obj: {d_obj}\n'
+            f'threshold: {threshold}\n'
             f'gap: {gap}\n'
             f'ws size: {ws_size}\n'
             f'ws: {remaining_features[:ws_size]}'

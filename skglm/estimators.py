@@ -1,15 +1,10 @@
 # License: BSD 3 clause
 
 import numpy as np
-import numbers
 from scipy.sparse import issparse
-
-from sklearn.utils.validation import check_X_y
+from sklearn.utils import check_array, check_consistent_length
 from sklearn.utils.multiclass import check_classification_targets
-
 from sklearn.linear_model import Lasso as Lasso_sklearn
-from sklearn.linear_model import ElasticNet as ElasticNet_sklearn
-from sklearn.linear_model import LogisticRegression as LogReg_sklearn
 from sklearn.linear_model import MultiTaskLasso as MultiTaskLasso_sklearn
 from sklearn.linear_model._base import LinearModel
 from sklearn.svm import LinearSVC as LinearSVC_sklearn
@@ -193,8 +188,22 @@ class GeneralizedLinearEstimator(LinearModel):
         self.penalty = self.penalty if self.penalty else L1(1.)
         self.datafit = self.datafit if self.datafit else Quadratic()
 
-        if not hasattr(self, "n_features_in_"):
-            self.n_features_in_ = X.shape[1]
+        if isinstance(self.datafit, Logistic):
+            X = check_array(
+                X,
+                accept_sparse="csr",
+                dtype=np.float64)
+
+            y = check_array(y, ensure_2d=False, dtype=None)
+            check_consistent_length(X, y)
+        else:
+            check_X_params = dict(
+                dtype=[np.float64, np.float32], order='F',
+                accept_sparse='csc', copy=self.fit_intercept)
+            check_y_params = dict(ensure_2d=False, order='F')
+
+            X, y = self._validate_data(
+                X, y, validate_separately=(check_X_params, check_y_params))
 
         self.classes_ = None
         n_classes_ = 0
@@ -206,12 +215,9 @@ class GeneralizedLinearEstimator(LinearModel):
             self.classes_ = enc.classes_
             n_classes_ = len(self.classes_)
 
-        check_X_params = dict(dtype=[np.float64, np.float32], order='F',
-                              accept_sparse='csc', copy=self.fit_intercept)
-        check_y_params = dict(ensure_2d=False, order='F')
+        if not hasattr(self, "n_features_in_"):
+            self.n_features_in_ = X.shape[1]
 
-        X, y = self._validate_data(X, y, validate_separately=(check_X_params,
-                                                              check_y_params))
         is_sparse = issparse(X)
         if isinstance(self.datafit, (QuadraticSVC, Logistic)) and n_classes_ <= 2:
             y = 2 * y - 1
@@ -377,62 +383,28 @@ class Lasso(GeneralizedLinearEstimator):
     def __init__(self, alpha=1., max_iter=100, max_epochs=50_000, p0=10,
                  verbose=0, tol=1e-4, fit_intercept=False,
                  warm_start=False, ws_strategy="subdiff"):
-        self.is_classif = False
-        self.tol = tol
-        self.max_iter = max_iter
-        self.fit_intercept = fit_intercept
-        self.warm_start = warm_start
-        self.verbose = verbose
-        self.max_epochs = max_epochs
-        self.p0 = p0
-        self.ws_strategy = ws_strategy
+        super().__init__(
+            datafit=Quadratic(), penalty=L1(alpha=alpha), is_classif=False,
+            max_iter=max_iter, max_epochs=max_epochs, p0=p0, tol=tol,
+            fit_intercept=fit_intercept,
+            warm_start=warm_start, ws_strategy=ws_strategy, verbose=verbose)
+        self.alpha = alpha
 
-    def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
-        """Compute Lasso path.
+    def get_params(self, deep=False):
+        """Get parameters of the estimators including the datafit's and penalty's.
 
         Parameters
         ----------
-        X : array, shape (n_samples, n_features)
-            Design matrix.
-
-        y : array, shape (n_samples,)
-            Target vector.
-
-        alphas : array, shape (n_alphas,)
-            Grid of alpha.
-
-        coef_init : array, shape (n_features,), optional
-            If warm_start is enabled, the optimization problem restarts from coef_init.
-
-        return_n_iter : bool
-            Returns the number of iterations along the path.
-
-        **params : kwargs
-            All parameters supported by path.
+        deep : bool
+            Whether or not return the parameters for contained subobjects estimators.
 
         Returns
         -------
-        alphas : array, shape (n_alphas,)
-            The alphas along the path where models are computed.
-
-        coefs : array, shape (n_features, n_alphas)
-            Coefficients along the path.
-
-        stop_crit : array, shape (n_alphas,)
-            Value of stopping criterion at convergence along the path.
-
-        n_iters : array, shape (n_alphas,), optional
-            The number of iterations along the path. If return_n_iter is set to `True`.
+        params : dict
+            The parameters of the estimator.
         """
-        penalty = compiled_clone(L1(self.alpha))
-        datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
-
-        return cd_solver_path(
-            X, y, datafit, penalty, alphas=alphas,
-            coef_init=coef_init, max_iter=self.max_iter,
-            return_n_iter=return_n_iter, max_epochs=self.max_epochs,
-            p0=self.p0, tol=self.tol, verbose=self.verbose,
-            ws_strategy=self.ws_strategy)
+        params = super(GeneralizedLinearEstimator, self).get_params(deep)
+        return params
 
 
 class WeightedLasso(Lasso_sklearn):
@@ -561,7 +533,7 @@ class WeightedLasso(Lasso_sklearn):
             verbose=self.verbose)
 
 
-class ElasticNet(ElasticNet_sklearn):
+class ElasticNet(GeneralizedLinearEstimator):
     r"""Elastic net estimator.
 
     The optimization objective for Elastic net is::
@@ -624,62 +596,32 @@ class ElasticNet(ElasticNet_sklearn):
     def __init__(self, alpha=1., l1_ratio=0.5, max_iter=100,
                  max_epochs=50_000, p0=10, tol=1e-4, fit_intercept=False,
                  warm_start=False, verbose=0):
-        super(ElasticNet, self).__init__(
-            alpha=alpha, l1_ratio=l1_ratio, tol=tol, max_iter=max_iter,
-            fit_intercept=fit_intercept, warm_start=warm_start)
-        self.verbose = verbose
-        self.max_epochs = max_epochs
-        self.p0 = p0
+        super().__init__(
+            datafit=Quadratic(), penalty=L1_plus_L2(alpha=alpha, l1_ratio=l1_ratio),
+            is_classif=False, max_iter=max_iter, max_epochs=max_epochs, p0=p0, tol=tol,
+            fit_intercept=fit_intercept,
+            warm_start=warm_start, ws_strategy='subdiff', verbose=verbose)
         self.alpha = alpha
         self.l1_ratio = l1_ratio
 
-    def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
-        """Compute Elastic Net path.
+    def get_params(self, deep=False):
+        """Get parameters of the estimators including the datafit's and penalty's.
 
         Parameters
         ----------
-        X : array, shape (n_samples, n_features)
-            Design matrix.
-
-        y : array, shape (n_samples,)
-            Target vector.
-
-        alphas : array, shape (n_alphas,)
-            Grid of alpha.
-
-        coef_init : array, shape (n_features,), optional
-            If warm_start is enabled, the optimization problem restarts from coef_init.
-
-        return_n_iter : bool
-            Returns the number of iterations along the path.
-
-        **params : kwargs
-            All parameters supported by path.
+        deep : bool
+            Whether or not return the parameters for contained subobjects estimators.
 
         Returns
         -------
-        alphas : array, shape (n_alphas,)
-            The alphas along the path where models are computed.
-
-        coefs : array, shape (n_features, n_alphas)
-            Coefficients along the path.
-
-        stop_crit : array, shape (n_alphas,)
-            Value of stopping criterion at convergence along the path.
-
-        n_iters : array, shape (n_alphas,), optional
-            The number of iterations along the path. If return_n_iter is set to `True`.
+        params : dict
+            The parameters of the estimator.
         """
-        penalty = compiled_clone(L1_plus_L2(self.alpha, self.l1_ratio))
-        datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
-
-        return cd_solver_path(
-            X, y, datafit, penalty, alphas=alphas, fit_intercept=self.fit_intercept,
-            coef_init=coef_init, max_iter=self.max_iter, return_n_iter=return_n_iter,
-            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol, verbose=self.verbose)
+        params = super(GeneralizedLinearEstimator, self).get_params(deep)
+        return params
 
 
-class MCPRegression(Lasso_sklearn):
+class MCPRegression(GeneralizedLinearEstimator):
     r"""Linear regression with MCP penalty estimator.
 
     The optimization objective for MCPRegression is, with x >= 0::
@@ -746,63 +688,32 @@ class MCPRegression(Lasso_sklearn):
 
     def __init__(self, alpha=1., gamma=3, max_iter=100, max_epochs=50_000, p0=10,
                  verbose=0, tol=1e-4, fit_intercept=False, warm_start=False):
-        super(MCPRegression, self).__init__(
-            alpha=alpha, tol=tol, max_iter=max_iter,
+        super().__init__(
+            datafit=Quadratic(), penalty=MCPenalty(alpha=alpha, gamma=gamma),
+            is_classif=False, max_iter=max_iter, max_epochs=max_epochs, p0=p0, tol=tol,
             fit_intercept=fit_intercept,
-            warm_start=warm_start)
-        self.verbose = verbose
-        self.max_epochs = max_epochs
-        self.p0 = p0
+            warm_start=warm_start, ws_strategy='subdiff', verbose=verbose)
         self.gamma = gamma
         self.alpha = alpha
 
-    def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
-        """Compute MCPRegression path.
+    def get_params(self, deep=False):
+        """Get parameters of the estimators including the datafit's and penalty's.
 
         Parameters
         ----------
-        X : array, shape (n_samples, n_features)
-            Design matrix.
-
-        y : array, shape (n_samples,)
-            Target vector.
-
-        alphas : array, shape (n_alphas,)
-            Grid of alpha.
-
-        coef_init : array, shape (n_features,), optional
-            If warm_start is enabled, the optimization problem restarts from coef_init.
-
-        return_n_iter : bool
-            Returns the number of iterations along the path.
-
-        **params : kwargs
-            All parameters supported by path.
+        deep : bool
+            Whether or not return the parameters for contained subobjects estimators.
 
         Returns
         -------
-        alphas : array, shape (n_alphas,)
-            The alphas along the path where models are computed.
-
-        coefs : array, shape (n_features, n_alphas)
-            Coefficients along the path.
-
-        stop_crit : array, shape (n_alphas,)
-            Value of stopping criterion at convergence along the path.
-
-        n_iters : array, shape (n_alphas,), optional
-            The number of iterations along the path. If return_n_iter is set to `True`.
+        params : dict
+            The parameters of the estimator.
         """
-        penalty = compiled_clone(MCPenalty(self.alpha, self.gamma))
-        datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
-
-        return cd_solver_path(
-            X, y, datafit, penalty, alphas=alphas, fit_intercept=self.fit_intercept,
-            coef_init=coef_init, max_iter=self.max_iter, return_n_iter=return_n_iter,
-            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol, verbose=self.verbose)
+        params = super(GeneralizedLinearEstimator, self).get_params(deep)
+        return params
 
 
-class SparseLogisticRegression(LogReg_sklearn):
+class SparseLogisticRegression(GeneralizedLinearEstimator):
     r"""Sparse Logistic regression estimator.
 
     The optimization objective for sparse Logistic regression is::
@@ -861,114 +772,28 @@ class SparseLogisticRegression(LogReg_sklearn):
             fit_intercept=False, max_iter=50, verbose=0,
             max_epochs=50000, p0=10, warm_start=False):
 
-        super(SparseLogisticRegression, self).__init__(
-            tol=tol, max_iter=max_iter, fit_intercept=fit_intercept,
-            warm_start=warm_start)
-        self.verbose = verbose
-        self.max_epochs = max_epochs
-        self.p0 = p0
-        self.max_iter = max_iter
+        super().__init__(
+            datafit=Logistic(), penalty=L1(alpha=alpha),
+            is_classif=True, max_iter=max_iter, max_epochs=max_epochs, p0=p0, tol=tol,
+            fit_intercept=fit_intercept,
+            warm_start=warm_start, ws_strategy='subdiff', verbose=verbose)
         self.alpha = alpha
 
-    def fit(self, X, y):
-        """Fit the model according to the given training data.
+    def get_params(self, deep=False):
+        """Get parameters of the estimators including the datafit's and penalty's.
 
         Parameters
         ----------
-        X : array-like, shape (n_samples, n_features)
-            Training vector, where n_samples is the number of samples and
-            n_features is the number of features.
-
-        y : array-like, shape (n_samples,)
-            Target vector relative to X.
+        deep : bool
+            Whether or not return the parameters for contained subobjects estimators.
 
         Returns
         -------
-        self :
-            Fitted estimator.
+        params : dict
+            The parameters of the estimator.
         """
-        # TODO handle normalization, centering
-        # TODO intercept
-        if self.fit_intercept:
-            raise NotImplementedError(
-                "Fitting an intercept is not implement yet")
-        # TODO support warm start
-        if not isinstance(self.alpha, numbers.Number) or self.alpha <= 0:
-            raise ValueError("Penalty term must be positive; got (alpha=%r)"
-                             % self.alpha)
-        # below are copy pasted excerpts from sklearn.linear_model._logistic
-        X, y = check_X_y(X, y, accept_sparse='csr', order="C")
-        check_classification_targets(y)
-        enc = LabelEncoder()
-        y_ind = enc.fit_transform(y)
-        self.classes_ = enc.classes_
-        n_classes = len(enc.classes_)
-
-        if not hasattr(self, "n_features_in_"):
-            self.n_features_in_ = X.shape[1]
-
-        if n_classes <= 2:
-            _, coefs, _, self.n_iter_ = self.path(
-                X, 2 * y_ind - 1, np.array([self.alpha]), solver=self.solver)
-            self.coef_ = coefs.T  # must be [1, n_features]
-            self.intercept_ = 0
-        else:
-            self.coef_ = np.empty([n_classes, X.shape[1]])
-            self.intercept_ = 0.
-            multiclass = OneVsRestClassifier(self).fit(X, y)
-            self.coef_ = np.array([clf.coef_[0]
-                                   for clf in multiclass.estimators_])
-            self.n_iter_ = max(clf.n_iter_ for clf in multiclass.estimators_)
-        return self
-
-    def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
-        """Compute sparse Logistic Regression path.
-
-        Parameters
-        ----------
-        X : array-like, shape (n_samples, n_features)
-            Training vector, where n_samples is the number of samples and
-            n_features is the number of features.
-
-        y : array-like, shape (n_samples,)
-            Target vector relative to X.
-
-        alphas : array
-            Values of regularization strengths for which solutions are
-            computed.
-
-        coef_init : array, shape (n_features,), optional
-            Initial value of the coefficients.
-
-        return_n_iter : bool, optional
-            Return number of iterations along the path.
-
-        **params : kwargs
-            All parameters supported by path.
-
-        Returns
-        -------
-        alphas : array, shape (n_alphas,)
-            The alphas along the path where models are computed.
-
-        coefs : array, shape (n_features, n_alphas)
-            Coefficients along the path.
-
-        stop_crit : array, shape (n_alphas,)
-            Value of stopping criterion at convergence along the path.
-
-        n_iters : array, shape (n_alphas,), optional
-            The number of iterations along the path. If return_n_iter is set to `True`.
-        """
-        penalty = compiled_clone(L1(self.alpha))
-        datafit = compiled_clone(Logistic(), to_float32=X.dtype == np.float32)
-
-        return cd_solver_path(
-            X, y, datafit, penalty, alphas=alphas,
-            fit_intercept=self.fit_intercept, coef_init=coef_init,
-            max_iter=self.max_iter, return_n_iter=return_n_iter,
-            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
-            verbose=self.verbose)
+        params = super(GeneralizedLinearEstimator, self).get_params(deep)
+        return params
 
 
 class LinearSVC(LinearSVC_sklearn):

@@ -7,12 +7,13 @@ from py_numba_blitz.utils import(compute_primal_obj, compute_dual_obj,
 
 
 MAX_BACKTRACK_ITER = 20
+MAX_PROX_NEWTON_CD_ITR = 20
 MIN_PROX_NEWTON_CD_ITR = 2
 PROX_NEWTON_EPSILON_RATIO = 10.0
 EPSILON_GAP = 0.3
 
 
-def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100, tol=1e-9):
+def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100, tol=1e-9, verbose=False):
     r"""Solve Logistic Regression.
 
     Objective:
@@ -68,7 +69,7 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100, tol=1e-9):
             theta_scale, prox_tol = _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta,
                                                            prox_grads, alpha,
                                                            ws=remaining_features[:ws_size],
-                                                           max_cd_iter=20,
+                                                           max_cd_iter=MAX_PROX_NEWTON_CD_ITR,
                                                            prox_tol=prox_tol)
 
             p_obj = compute_primal_obj(exp_yXw, w, alpha)
@@ -84,6 +85,15 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100, tol=1e-9):
 
         p_obj = compute_primal_obj(exp_yXw, w, alpha)
         gap = p_obj - d_obj
+
+        if verbose:
+            print(
+                f"Iter {t+1}: "
+                f"Objective: {p_obj} "
+                f"Gap: {gap} "
+                f"Feature left {ws_size} "
+                f"ws: {remaining_features[:ws_size]} "
+            )
 
         if gap / np.abs(d_obj) < tol:
             break
@@ -126,7 +136,6 @@ def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads, alpha, ws, m
             sum_sq_hess_diff += (diff * hessian[idx]) ** 2
 
         if (sum_sq_hess_diff < prox_tol and cd_iter+1 > MIN_PROX_NEWTON_CD_ITR):
-            print(cd_iter)
             break
 
     # backtracking line search

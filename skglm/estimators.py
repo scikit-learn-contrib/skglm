@@ -186,7 +186,7 @@ class GeneralizedLinearEstimator(LinearModel):
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
         if y is None:
-            raise ValueError("y is None")
+            raise ValueError("requires y to be passed, but the target y is None")
 
         self.penalty = self.penalty if self.penalty else L1(1.)
         self.datafit = self.datafit if self.datafit else Quadratic()

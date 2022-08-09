@@ -10,9 +10,10 @@ from py_numba_blitz.utils import(compute_primal_obj, compute_dual_obj,
 MAX_BACKTRACK_ITER = 20
 MIN_PROX_NEWTON_CD_ITR = 2
 PROX_NEWTON_EPSILON_RATIO = 10.0
+EPSILON_GAP = 0.3
 
 
-def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100):
+def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100, tol=1e-9):
     r"""Solve Logistic Regression.
 
     Objective:
@@ -25,6 +26,7 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100):
 
     # dual vars
     theta = np.zeros(n_samples)
+    theta_scale = 1.
     phi = np.zeros(n_samples)
     XTtheta = np.zeros(n_features)
     XTphi = np.zeros(n_features)
@@ -38,8 +40,11 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100):
         norm2_X_cols[j] = np.linalg.norm(X[:, j], ord=2)
 
     for t in range(max_iter):
+        prev_p_obj = p_obj
+
         update_XTtheta(X, theta, XTtheta, remaining_features)
-        update_phi_XTphi(theta, XTtheta, phi, XTphi, alpha, remaining_features)
+        update_phi_XTphi(theta / theta_scale, XTtheta, phi,
+                         XTphi, alpha, remaining_features)
 
         p_obj = compute_primal_obj(exp_yXw, w, alpha)
         d_obj = compute_dual_obj(y, phi)
@@ -54,15 +59,6 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100):
             len(remaining_features)
         )
 
-        print(
-            f'primal obj: {p_obj}\n'
-            f'dual obj: {d_obj}\n'
-            f'threshold: {threshold}\n'
-            f'gap: {gap}\n'
-            f'ws size: {ws_size}\n'
-            f'ws: {remaining_features[:ws_size]}'
-        )
-
         # prox newton vars
         prox_tol = 0.
         prox_grads = np.zeros(ws_size)
@@ -70,9 +66,32 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100):
             prox_grads[idx] = X[:, j] @ theta
 
         for epoch in range(max_epochs):
-            _prox_newton_iteration(X, t, w, Xw, exp_yXw, theta, prox_grads, alpha,
-                                   ws=remaining_features[:ws_size],
-                                   max_cd_iter=20, prox_tol=prox_tol)
+            prev_p_obj_in = p_obj
+            theta_scale, prox_tol = _prox_newton_iteration(X, t, w, Xw, exp_yXw, theta,
+                                                           prox_grads, alpha,
+                                                           ws=remaining_features[:ws_size],
+                                                           max_cd_iter=20,
+                                                           prox_tol=prox_tol)
+
+            p_obj = compute_primal_obj(exp_yXw, w, alpha)
+            d_obj_in = compute_dual_obj(y, theta / theta_scale)
+            gap_in = p_obj - d_obj_in
+
+            if gap_in < EPSILON_GAP * gap:
+                break
+            elif gap_in / np.abs(d_obj_in) < tol:
+                break
+            elif p_obj >= prev_p_obj_in:
+                break
+
+        p_obj = compute_primal_obj(exp_yXw, w, alpha)
+        gap = p_obj - d_obj
+
+        if gap / np.abs(d_obj) < tol:
+            break
+        elif p_obj >= prev_p_obj:
+            break
+
     return
 
 
@@ -150,7 +169,6 @@ def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads, alpha, ws, m
 
     # compute theta scale
     theta_scale = 1.
-
     max_XTtheta_ws = np.linalg.norm(prox_grads, ord=np.inf)
     if max_XTtheta_ws > alpha:
         theta_scale = alpha / max_XTtheta_ws

@@ -11,4 +11,4 @@ X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
 alpha_max = np.linalg.norm(X.T @ y, ord=np.inf) / 2
 alpha = rho * alpha_max
 
-py_blitz(alpha, X, y, max_iter=1, max_epochs=1)
+py_blitz(alpha, X, y, max_iter=10, max_epochs=10)

@@ -1,4 +1,3 @@
-import enum
 import numpy as np
 
 from py_numba_blitz.utils import(compute_primal_obj, compute_dual_obj,
@@ -40,15 +39,14 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100, tol=1e-9):
         norm2_X_cols[j] = np.linalg.norm(X[:, j], ord=2)
 
     for t in range(max_iter):
-        prev_p_obj = p_obj
-
         update_XTtheta(X, theta, XTtheta, remaining_features)
-        update_phi_XTphi(theta / theta_scale, XTtheta, phi,
+        update_phi_XTphi(theta_scale * theta, theta_scale * XTtheta, phi,
                          XTphi, alpha, remaining_features)
 
         p_obj = compute_primal_obj(exp_yXw, w, alpha)
         d_obj = compute_dual_obj(y, phi)
         gap = p_obj - d_obj
+        prev_p_obj = p_obj
 
         threshold = np.sqrt(2 * gap / LOGREG_LIPSCHITZ_CONST)
         remaining_features = compute_remaining_features(remaining_features, XTphi,
@@ -67,14 +65,14 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100, tol=1e-9):
 
         for epoch in range(max_epochs):
             prev_p_obj_in = p_obj
-            theta_scale, prox_tol = _prox_newton_iteration(X, t, w, Xw, exp_yXw, theta,
+            theta_scale, prox_tol = _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta,
                                                            prox_grads, alpha,
                                                            ws=remaining_features[:ws_size],
                                                            max_cd_iter=20,
                                                            prox_tol=prox_tol)
 
             p_obj = compute_primal_obj(exp_yXw, w, alpha)
-            d_obj_in = compute_dual_obj(y, theta / theta_scale)
+            d_obj_in = compute_dual_obj(y, theta_scale * theta)
             gap_in = p_obj - d_obj_in
 
             if gap_in < EPSILON_GAP * gap:
@@ -110,7 +108,7 @@ def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads, alpha, ws, m
         sum_sq_hess_diff = 0.
         for idx, j in enumerate(ws):
             # skip zero cols
-            if lipschitz[idx]:
+            if lipschitz[idx] == 0:
                 continue
 
             old_w_j = w[j] + delta_w[idx]
@@ -128,7 +126,8 @@ def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads, alpha, ws, m
             sum_sq_hess_diff += (diff * hessian[idx]) ** 2
 
         if (sum_sq_hess_diff < prox_tol and cd_iter+1 > MIN_PROX_NEWTON_CD_ITR):
-            pass
+            print(cd_iter)
+            break
 
     # backtracking line search
     actual_t, prev_t = 1., 0.
@@ -145,7 +144,7 @@ def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads, alpha, ws, m
             else:
                 diff_objectives += np.sign(w[j]) * alpha * delta_w[idx]
 
-        Xw += diff_t * delta_w
+        Xw[:] += diff_t * X_delta_w
         update_theta_exp_yXw(y, Xw, theta, exp_yXw)
 
         # diff datafit term
@@ -157,7 +156,7 @@ def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads, alpha, ws, m
             actual_t /= 2
 
     if actual_t != 1.:
-        X_delta_w = actual_t * X_delta_w
+        X_delta_w[:] = actual_t * X_delta_w
 
     # cache grads next epoch
     for idx, j in enumerate(ws):

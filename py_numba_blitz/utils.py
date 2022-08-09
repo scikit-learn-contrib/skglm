@@ -44,8 +44,8 @@ def update_phi_XTphi(scaled_theta, XTtheta, phi, XTphi, alpha, ws):
     #   <==> |constraint_j(new_phi)| = |X_j.T new_phi| <= alpha for j in ws
     t = best_t = 1.
     for j in ws:
-        if XTtheta[j] <= alpha:
-            pass
+        if np.abs(XTtheta[j]) <= alpha:
+            continue
 
         t = (np.sign(XTtheta[j]) * alpha - XTphi[j]) / (XTtheta[j] - XTphi[j])
         best_t = min(t, best_t)

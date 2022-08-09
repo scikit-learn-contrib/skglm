@@ -328,11 +328,42 @@ class GeneralizedLinearEstimator(LinearModel):
         return params
 
     def set_params(self, **params):
+        """Set parameters of the estimators.
+
+        Parameters
+        ----------
+        **params : dict
+            Estimator parameters.
+
+        Returns
+        -------
+        self : estimator instance
+            Estimator instance.
+        """
         super().set_params(**params)
         self.penalty.set_params(**params)
         return self
 
     def score(self, X, y):
+        """
+        Return the score of the estimator.
+
+        This corresponds to themean accuracy on the given test data and labels
+        if the estimator performs classification and return the coefficient
+        of determination if the estimation performs regression.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Test samples.
+        y : array-like of shape (n_samples,) or (n_samples, n_outputs)
+            True labels for `X`.
+
+        Returns
+        -------
+        score : float
+            Mean accuracy or :math:`R^2` ``self.predict(X)`` wrt. `y`.
+        """
         y_pred = self.predict(X)
         if self.is_classif:
             return accuracy_score(y_pred, y)
@@ -408,6 +439,17 @@ class Lasso(GeneralizedLinearEstimator):
         self.alpha = alpha
 
     def get_params(self, deep=False):
+        """Get parameters of the estimators.
+
+        Parameters
+        ----------
+        deep : bool
+            Whether or not return the parameters for contained subobjects estimators.
+
+        Returns
+        -------
+        params : dict
+            The parameters of the estimator."""
         return super().get_params(deep)
 
 
@@ -609,7 +651,7 @@ class ElasticNet(GeneralizedLinearEstimator):
         self.l1_ratio = l1_ratio
 
     def get_params(self, deep=False):
-        """Get parameters of the estimators including the datafit's and penalty's.
+        """Get parameters of the estimators.
 
         Parameters
         ----------

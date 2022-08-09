@@ -449,7 +449,8 @@ class Lasso(GeneralizedLinearEstimator):
         Returns
         -------
         params : dict
-            The parameters of the estimator."""
+            The parameters of the estimator.
+        """
         return super().get_params(deep)
 
 

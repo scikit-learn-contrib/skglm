@@ -239,9 +239,6 @@ class QuadraticSVC(BaseDatafit):
             grad[j] = yXjyXTw - 1
         return grad
 
-    def intercept_update_step(self, y, Xw):
-        pass
-
 
 class Huber(BaseDatafit):
     """Huber datafit.

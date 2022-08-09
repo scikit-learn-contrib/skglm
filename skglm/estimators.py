@@ -933,7 +933,6 @@ class LinearSVC(LinearSVC_sklearn):
         self
             Fitted estimator.
         """
-        # TODO support fit_intercept
         self.intercept_ = 0.
 
         if self.fit_intercept:

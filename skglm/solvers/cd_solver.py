@@ -34,7 +34,7 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None, fit_intercept=False,
     fit_intercept : bool
         Whether or not to fit an intercept.
 
-    coef_init : ndarray, shape (n_features,) | None, optional, (default=None)
+    coef_init : ndarray, shape (n_features + 1,) | None, optional, (default=None)
         Initial value of coefficients. If None, np.zeros(n_features) is used.
 
     max_iter : int, optional
@@ -67,7 +67,7 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None, fit_intercept=False,
     alphas : array, shape (n_alphas,)
         The alphas along the path where models are computed.
 
-    coefs : array, shape (n_features, n_alphas)
+    coefs : array, shape (n_features + 1, n_alphas)
         Coefficients along the path.
 
     stop_crit : array, shape (n_alphas,)
@@ -208,7 +208,7 @@ def cd_solver(
 
     Returns
     -------
-    coefs : array, shape (n_features, n_alphas)
+    coefs : array, shape (n_features + 1, n_alphas)
         Coefficients along the path.
 
     obj_out : array, shape (n_iter,)
@@ -229,15 +229,10 @@ def cd_solver(
 
     is_sparse = sparse.issparse(X)
 
-    if fit_intercept and len(w) != n_features + 1:
+    if len(w) != n_features + fit_intercept:
         raise ValueError(
-            "Shape of w should be %i." % (n_features + 1)
-            + " Got %i" % len(w))
+            "Shape of w should be n_features + 1 when fit_intercept=True.")
 
-    if not fit_intercept and len(w) != n_features:
-        raise ValueError(
-            "Shape of w should be %i." % (n_features)
-            + " Got %i" % len(w))
     for t in range(max_iter):
         if is_sparse:
             grad = datafit.full_grad_sparse(

@@ -345,8 +345,7 @@ class GeneralizedLinearEstimator(LinearModel):
         return self
 
     def score(self, X, y):
-        """
-        Return the score of the estimator.
+        """Return the score of the estimator.
 
         This corresponds to themean accuracy on the given test data and labels
         if the estimator performs classification and return the coefficient

@@ -105,7 +105,6 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None, fit_intercept=False,
         # alphas = np.sort(alphas)[::-1]
 
     n_alphas = len(alphas)
-
     coefs = np.zeros((n_features + fit_intercept, n_alphas), order='F', dtype=X.dtype)
     stop_crits = np.zeros(n_alphas)
 
@@ -113,9 +112,6 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None, fit_intercept=False,
         n_iters = np.zeros(n_alphas, dtype=int)
 
     for t in range(n_alphas):
-
-        alpha = alphas[t]
-        penalty.alpha = alpha  # TODO this feels it will break sklearn compat
         if verbose:
             to_print = "##### Computing alpha %d/%d" % (t + 1, n_alphas)
             print("#" * len(to_print))
@@ -242,13 +238,12 @@ def cd_solver(
         raise ValueError(
             "Shape of w should be %i." % (n_features)
             + " Got %i" % len(w))
-
     for t in range(max_iter):
         if is_sparse:
             grad = datafit.full_grad_sparse(
                 X.data, X.indptr, X.indices, y, Xw)
         else:
-            grad = construct_grad(X, y, w, Xw, datafit, all_feats)
+            grad = construct_grad(X, y, w[:n_features], Xw, datafit, all_feats)
 
         if ws_strategy == "subdiff":
             opt = penalty.subdiff_distance(w[:n_features], grad, all_feats)

@@ -5,6 +5,7 @@ from skglm.utils import make_correlated_data
 from sklearn.linear_model import HuberRegressor, Lasso, LogisticRegression
 import numpy as np
 import pytest
+from skglm.utils import compiled_clone
 
 X, y, _ = make_correlated_data(n_samples=20, n_features=10, random_state=0)
 n_samples, n_features = X.shape
@@ -38,14 +39,17 @@ dict_estimator["Huber"] = (Huber(delta), WeightedL1(1, np.zeros(X.shape[1])))
 def test_intercept(name_estimator):
     # initialize datafits
     datafit, penalty = dict_estimator[name_estimator]
+    penalty = compiled_clone(penalty)
+    datafit = compiled_clone(datafit, to_float32=X.dtype == np.float32)
+
     datafit.initialize(X, y)
 
     # initialize coefficients for cd solver
     w = np.zeros(X.shape[1] + 1)
     Xw = np.zeros(X.shape[0])
-
     coefs_ours, _, _ = cd_solver(
-            X, y, datafit, penalty, w, Xw, fit_intercept=True, max_iter=50,
+            X, y, datafit, penalty,
+            w, Xw, fit_intercept=True, max_iter=50,
             max_epochs=50_000, tol=tol, verbose=0, use_acc=True)
 
     intercept_ours = np.array([coefs_ours[-1]])

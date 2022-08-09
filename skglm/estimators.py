@@ -300,7 +300,7 @@ class GeneralizedLinearEstimator(LinearModel):
         else:
             return self._decision_function(X)
 
-    def get_params(self, deep=False):
+    def get_params(self, deep=True):
         """Get parameters of the estimators including the datafit's and penalty's.
 
         Parameters
@@ -314,23 +314,30 @@ class GeneralizedLinearEstimator(LinearModel):
             The parameters of the estimator.
         """
         params = super().get_params(deep)
-        filtered_types = (float, int, str, np.ndarray)
-        penalty_params = [('penalty__', p, getattr(self.penalty, p)) for p in
-                          dir(self.penalty) if p[0] != "_" and
-                          type(getattr(self.penalty, p)) in filtered_types]
-        datafit_params = [('datafit__', p, getattr(self.datafit, p)) for p in
-                          dir(self.datafit) if p[0] != "_" and
-                          type(getattr(self.datafit, p)) in filtered_types]
-        for p_prefix, p_key, p_val in penalty_params + datafit_params:
-            params[p_prefix + p_key] = p_val
+        filtered_types = (np.float_, np.int_, np.string_, np.ndarray)
+        if deep:
+            penalty_params = self.penalty.get_params()
+            for k, v in penalty_params.items():
+                params['penalty__' + k] = v
+
+            datafit_params = [('datafit__', p, getattr(self.datafit, p)) for p in
+                              dir(self.datafit) if p[0] != "_" and
+                              type(getattr(self.datafit, p)) in filtered_types]
+            for p_prefix, p_key, p_val in datafit_params:
+                params[p_prefix + p_key] = p_val
         return params
+
+    def set_params(self, **params):
+        super().set_params(**params)
+        self.penalty.set_params(**params)
+        return self
 
     def score(self, X, y):
         y_pred = self.predict(X)
         if self.is_classif:
             return accuracy_score(y_pred, y)
         else:
-            return r2_score(y_pred, y)
+            return r2_score(y, y_pred)
 
 
 class Lasso(GeneralizedLinearEstimator):
@@ -401,20 +408,7 @@ class Lasso(GeneralizedLinearEstimator):
         self.alpha = alpha
 
     def get_params(self, deep=False):
-        """Get parameters of the estimators including the datafit's and penalty's.
-
-        Parameters
-        ----------
-        deep : bool
-            Whether or not return the parameters for contained subobjects estimators.
-
-        Returns
-        -------
-        params : dict
-            The parameters of the estimator.
-        """
-        params = super(GeneralizedLinearEstimator, self).get_params(deep)
-        return params
+        return super().get_params(deep)
 
 
 class WeightedLasso(Lasso_sklearn):
@@ -627,8 +621,7 @@ class ElasticNet(GeneralizedLinearEstimator):
         params : dict
             The parameters of the estimator.
         """
-        params = super(GeneralizedLinearEstimator, self).get_params(deep)
-        return params
+        return super().get_params(deep)
 
 
 class MCPRegression(GeneralizedLinearEstimator):
@@ -719,8 +712,7 @@ class MCPRegression(GeneralizedLinearEstimator):
         params : dict
             The parameters of the estimator.
         """
-        params = super(GeneralizedLinearEstimator, self).get_params(deep)
-        return params
+        return super().get_params(deep)
 
 
 class SparseLogisticRegression(GeneralizedLinearEstimator):
@@ -802,8 +794,7 @@ class SparseLogisticRegression(GeneralizedLinearEstimator):
         params : dict
             The parameters of the estimator.
         """
-        params = super(GeneralizedLinearEstimator, self).get_params(deep)
-        return params
+        return super().get_params(deep)
 
 
 class LinearSVC(LinearSVC_sklearn):

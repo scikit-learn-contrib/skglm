@@ -57,7 +57,7 @@ def update_phi_XTphi(scaled_theta, XTtheta, phi, XTphi, alpha, ws):
     phi[:] = best_t * scaled_theta + (1 - best_t) * phi
 
 
-# @njit
+@njit
 def compute_remaining_features(remaining_features, XTphi, w, norm2_X_cols, alpha, threshold):
     features_scores = np.zeros(len(remaining_features))
 
@@ -79,3 +79,10 @@ def compute_remaining_features(remaining_features, XTphi, w, norm2_X_cols, alpha
 
     # discard features
     return remaining_features[features_scores <= threshold]
+
+
+@njit
+def ST(x, level):
+    if np.abs(x) <= level:
+        return 0
+    return x - np.sign(x) * level

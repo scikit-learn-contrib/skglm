@@ -1,9 +1,15 @@
+import enum
 import numpy as np
 
 from py_numba_blitz.utils import(compute_primal_obj, compute_dual_obj,
                                  compute_remaining_features,
                                  update_XTtheta, update_phi_XTphi,
-                                 update_theta_exp_yXw, LOGREG_LIPSCHITZ_CONST)
+                                 update_theta_exp_yXw, LOGREG_LIPSCHITZ_CONST, ST)
+
+
+MAX_BACKTRACK_ITER = 20
+MIN_PROX_NEWTON_CD_ITR = 2
+PROX_NEWTON_EPSILON_RATIO = 10.0
 
 
 def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100):
@@ -16,6 +22,7 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100):
     w = np.zeros(n_features)
     Xw = np.zeros(n_samples)
     exp_yXw = np.zeros(n_samples)  # np.exp(-y * Xw)
+
     # dual vars
     theta = np.zeros(n_samples)
     phi = np.zeros(n_samples)
@@ -56,6 +63,96 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100):
             f'ws: {remaining_features[:ws_size]}'
         )
 
+        # prox newton vars
+        prox_tol = 0.
+        prox_grads = np.zeros(ws_size)
+        for idx, j in enumerate(remaining_features[:ws_size]):
+            prox_grads[idx] = X[:, j] @ theta
+
         for epoch in range(max_epochs):
-            pass
+            _prox_newton_iteration(X, t, w, Xw, exp_yXw, theta, prox_grads, alpha,
+                                   ws=remaining_features[:ws_size],
+                                   max_cd_iter=20, prox_tol=prox_tol)
     return
+
+
+def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads, alpha, ws, max_cd_iter, prox_tol):
+    hessian = - theta * (y + theta)  # \nabla^2 datafit(u)
+    lipschitz = np.zeros(len(ws))  # diag of X.T hessian X
+
+    delta_w = np.zeros(len(ws))  # descent direction
+    X_delta_w = np.zeros(len(y))
+
+    for idx, j in enumerate(ws):
+        lipschitz[idx] = hessian @ X[:, j] ** 2
+
+    # find descent direction
+    for cd_iter in range(max_cd_iter):
+        sum_sq_hess_diff = 0.
+        for idx, j in enumerate(ws):
+            # skip zero cols
+            if lipschitz[idx]:
+                continue
+
+            old_w_j = w[j] + delta_w[idx]
+            grad = prox_grads[idx] + X[:, j] @ (hessian * X_delta_w)
+            step = 1 / lipschitz[idx]
+            new_w_j = ST(old_w_j - step * grad, alpha * step)
+
+            # updates
+            diff = new_w_j - old_w_j
+            if diff == 0:
+                continue
+
+            delta_w[idx] = new_w_j - w[j]
+            X_delta_w += diff * X[:, j]
+            sum_sq_hess_diff += (diff * hessian[idx]) ** 2
+
+        if (sum_sq_hess_diff < prox_tol and cd_iter+1 > MIN_PROX_NEWTON_CD_ITR):
+            pass
+
+    # backtracking line search
+    actual_t, prev_t = 1., 0.
+    diff_objectives = 0.
+    for backtrack_iter in range(MAX_BACKTRACK_ITER):
+        diff_t = actual_t - prev_t
+
+        for idx, j in enumerate(ws):
+            w[j] += diff_t * delta_w[idx]
+
+            # diff penalty term
+            if w[j] == 0:
+                diff_objectives += alpha * np.abs(delta_w[idx])
+            else:
+                diff_objectives += np.sign(w[j]) * alpha * delta_w[idx]
+
+        Xw += diff_t * delta_w
+        update_theta_exp_yXw(y, Xw, theta, exp_yXw)
+
+        # diff datafit term
+        diff_objectives += X_delta_w @ theta
+
+        if diff_objectives < 0:
+            break
+        else:
+            actual_t /= 2
+
+    if actual_t != 1.:
+        X_delta_w = actual_t * X_delta_w
+
+    # cache grads next epoch
+    for idx, j in enumerate(ws):
+        new_prox_grad = X[:, j] @ theta
+        approximate_grad = prox_grads[idx] + X[:, j] @ (hessian * X_delta_w)
+        prox_grads[idx] = new_prox_grad
+
+        prox_tol += (new_prox_grad - approximate_grad) ** 2
+
+    # compute theta scale
+    theta_scale = 1.
+
+    max_XTtheta_ws = np.linalg.norm(prox_grads, ord=np.inf)
+    if max_XTtheta_ws > alpha:
+        theta_scale = alpha / max_XTtheta_ws
+
+    return theta_scale, PROX_NEWTON_EPSILON_RATIO * prox_tol

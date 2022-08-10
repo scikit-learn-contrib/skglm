@@ -36,7 +36,7 @@ def update_XTtheta(X, theta, XTtheta, ws):
         XTtheta[j] = X[:, j] @ theta
 
 
-@njit
+# @njit
 def update_phi_XTphi(scaled_theta, scaled_XTtheta, phi, XTphi, alpha, ws):
     """Inplace update of ``phi`` and ``XTphi``."""
     # update as follows: max t for which
@@ -64,6 +64,7 @@ def update_phi_XTphi(scaled_theta, scaled_XTtheta, phi, XTphi, alpha, ws):
 
 @njit
 def compute_remaining_features(remaining_features, XTphi, w, norm2_X_cols, alpha, threshold):
+    """Discard features whose scores are above ``threshold``."""
     features_scores = np.zeros(len(remaining_features))
 
     # score features

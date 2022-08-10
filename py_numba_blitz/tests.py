@@ -19,7 +19,7 @@ def test_alpha_max(n_samples, n_features):
 
 @pytest.mark.parametrize("rho", [1e-1, 1e-2, 1e-3])
 def test_vs_sklearn(rho):
-    n_samples, n_features = 10, 200
+    n_samples, n_features = 10, 20
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
     y = np.sign(y)
 

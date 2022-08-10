@@ -60,7 +60,7 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100, tol=1e-9, verbose
         )
 
         # prox newton vars
-        prox_tol = 0.
+        prox_grad_diff = 0.
         prox_grads = np.zeros(ws_size)
         for idx, j in enumerate(remaining_features[:ws_size]):
             prox_grads[idx] = X[:, j] @ theta
@@ -69,11 +69,11 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100, tol=1e-9, verbose
             max_cd_iter = MAX_PROX_NEWTON_CD_ITR if epoch else MIN_PROX_NEWTON_CD_ITR
             prev_p_obj_in = p_obj
 
-            theta_scale, prox_tol = _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta,
-                                                           prox_grads, alpha,
-                                                           ws=remaining_features[:ws_size],
-                                                           max_cd_iter=max_cd_iter,
-                                                           prox_tol=prox_tol)
+            theta_scale, prox_grad_diff = _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta,
+                                                                 prox_grads, alpha,
+                                                                 ws=remaining_features[:ws_size],
+                                                                 max_cd_iter=max_cd_iter,
+                                                                 prox_grad_diff=prox_grad_diff)
 
             p_obj = compute_primal_obj(exp_yXw, w, alpha)
             d_obj_in = compute_dual_obj(y, theta_scale * theta)
@@ -109,7 +109,7 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100, tol=1e-9, verbose
 
 
 # @njit
-def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads, alpha, ws, max_cd_iter, prox_tol):
+def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads, alpha, ws, max_cd_iter, prox_grad_diff):
     # inplace update of w, Xw, exp_yXw, theta, prox_grads
 
     hessian = - theta * (y + theta)  # \nabla^2 datafit(u)
@@ -143,13 +143,14 @@ def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads, alpha, ws, m
             X_delta_w += diff * X[:, j]
             sum_sq_hess_diff += (diff * lipschitz[idx]) ** 2
 
-        if (sum_sq_hess_diff < prox_tol and cd_iter+1 > MIN_PROX_NEWTON_CD_ITR):
+        if (sum_sq_hess_diff < PROX_NEWTON_EPSILON_RATIO*prox_grad_diff
+                and cd_iter+1 > MIN_PROX_NEWTON_CD_ITR):
             break
 
     # backtracking line search
     actual_t, prev_t = 1., 0.
-    diff_objectives = 0.
     for backtrack_iter in range(MAX_BACKTRACK_ITER):
+        diff_objectives = 0.
         diff_t = actual_t - prev_t
 
         for idx, j in enumerate(ws):
@@ -161,7 +162,8 @@ def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads, alpha, ws, m
             else:
                 diff_objectives += np.sign(w[j]) * alpha * delta_w[idx]
 
-        Xw[:] += diff_t * X_delta_w
+        for i in range(len(y)):
+            Xw[i] += diff_t * X_delta_w[i]
         update_theta_exp_yXw(y, Xw, theta, exp_yXw)
 
         # diff datafit term
@@ -174,7 +176,8 @@ def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads, alpha, ws, m
             actual_t /= 2
 
     if actual_t != 1.:
-        X_delta_w[:] = actual_t * X_delta_w
+        for i in range(len(y)):
+            X_delta_w[i] = actual_t * X_delta_w[i]
 
     # cache grads next epoch
     for idx, j in enumerate(ws):
@@ -182,7 +185,7 @@ def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads, alpha, ws, m
         approximate_grad = prox_grads[idx] + X[:, j] @ (hessian * X_delta_w)
         prox_grads[idx] = new_prox_grad
 
-        prox_tol += (new_prox_grad - approximate_grad) ** 2
+        prox_grad_diff += (new_prox_grad - approximate_grad) ** 2
 
     # compute theta scale
     theta_scale = 1.
@@ -190,4 +193,4 @@ def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads, alpha, ws, m
     if max_XTtheta_ws > alpha:
         theta_scale = alpha / max_XTtheta_ws
 
-    return theta_scale, PROX_NEWTON_EPSILON_RATIO * prox_tol
+    return theta_scale, prox_grad_diff

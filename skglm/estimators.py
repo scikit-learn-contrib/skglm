@@ -516,6 +516,7 @@ class WeightedLasso(GeneralizedLinearEstimator):
     -----
     Supports weights equal to 0, i.e. unpenalized features.
     """
+
     def __init__(self, alpha=1., weights=None, max_iter=100, max_epochs=50_000, p0=10,
                  verbose=0, tol=1e-4, fit_intercept=False,
                  warm_start=False, ws_strategy="subdiff"):

@@ -365,7 +365,7 @@ class GeneralizedLinearEstimator(LinearModel):
         """
         y_pred = self.predict(X)
         if self.is_classif:
-            return accuracy_score(y_pred, y)
+            return accuracy_score(y, y_pred)
         else:
             return r2_score(y, y_pred)
 

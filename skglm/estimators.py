@@ -4,7 +4,6 @@ import numpy as np
 from scipy.sparse import issparse
 from sklearn.utils import check_array, check_consistent_length
 from sklearn.utils.multiclass import check_classification_targets
-from sklearn.linear_model import Lasso as Lasso_sklearn
 from sklearn.linear_model import MultiTaskLasso as MultiTaskLasso_sklearn
 from sklearn.linear_model._base import LinearModel
 from sklearn.svm import LinearSVC as LinearSVC_sklearn

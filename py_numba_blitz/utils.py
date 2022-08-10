@@ -37,24 +37,29 @@ def update_XTtheta(X, theta, XTtheta, ws):
 
 
 @njit
-def update_phi_XTphi(scaled_theta, XTtheta, phi, XTphi, alpha, ws):
+def update_phi_XTphi(scaled_theta, scaled_XTtheta, phi, XTphi, alpha, ws):
     """Inplace update of ``phi`` and ``XTphi``."""
     # update as follows: max t for which
     #   new_phi = t scaled_theta + (1 - t) * phi is feasible
     #   <==> |constraint_j(new_phi)| = |X_j.T new_phi| <= alpha for j in ws
     t = best_t = 1.
     for j in ws:
-        if np.abs(XTtheta[j]) <= alpha:
+        if np.abs(scaled_XTtheta[j]) <= alpha:
             continue
 
-        t = (np.sign(XTtheta[j]) * alpha - XTphi[j]) / (XTtheta[j] - XTphi[j])
+        if scaled_XTtheta[j] >= 0:
+            t = (alpha - XTphi[j]) / (scaled_XTtheta[j] - XTphi[j])
+        else:
+            t = (-alpha - XTphi[j]) / (scaled_XTtheta[j] - XTphi[j])
+
         best_t = min(t, best_t)
 
     # update XTphi and phi
     for j in ws:
-        XTphi[j] = best_t * XTtheta[j] + (1 - best_t) * XTphi[j]
+        XTphi[j] = best_t * scaled_XTtheta[j] + (1 - best_t) * XTphi[j]
 
-    phi[:] = best_t * scaled_theta + (1 - best_t) * phi
+    for i in range(len(phi)):
+        phi[i] = best_t * scaled_theta[i] + (1 - best_t) * phi[i]
 
 
 @njit
@@ -79,10 +84,3 @@ def compute_remaining_features(remaining_features, XTphi, w, norm2_X_cols, alpha
 
     # discard features
     return remaining_features[features_scores <= threshold]
-
-
-@njit
-def ST(x, level):
-    if np.abs(x) <= level:
-        return 0
-    return x - np.sign(x) * level

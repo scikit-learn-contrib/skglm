@@ -3,7 +3,9 @@ import numpy as np
 from py_numba_blitz.utils import(compute_primal_obj, compute_dual_obj,
                                  compute_remaining_features,
                                  update_XTtheta, update_phi_XTphi,
-                                 update_theta_exp_yXw, LOGREG_LIPSCHITZ_CONST, ST)
+                                 update_theta_exp_yXw, LOGREG_LIPSCHITZ_CONST)
+
+from skglm.utils import ST
 
 
 MAX_BACKTRACK_ITER = 20
@@ -58,29 +60,46 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100, tol=1e-9, verbose
             len(remaining_features)
         )
 
+        if verbose:
+            print(
+                f"B | Iter {t}: "
+                f"Primal: {p_obj} "
+                f"Dual: {d_obj} "
+                f"Gap: {gap} "
+                f"Feature left {ws_size} "
+                f"ws: {remaining_features[:ws_size]} "
+            )
+
         # prox newton vars
         prox_tol = 0.
         prox_grads = np.zeros(ws_size)
         for idx, j in enumerate(remaining_features[:ws_size]):
             prox_grads[idx] = X[:, j] @ theta
 
+        print(f"Iter {t}:========")
+
         for epoch in range(max_epochs):
+            max_cd_iter = MAX_PROX_NEWTON_CD_ITR if epoch else MIN_PROX_NEWTON_CD_ITR
             prev_p_obj_in = p_obj
+
             theta_scale, prox_tol = _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta,
                                                            prox_grads, alpha,
                                                            ws=remaining_features[:ws_size],
-                                                           max_cd_iter=MAX_PROX_NEWTON_CD_ITR,
+                                                           max_cd_iter=max_cd_iter,
                                                            prox_tol=prox_tol)
 
             p_obj = compute_primal_obj(exp_yXw, w, alpha)
             d_obj_in = compute_dual_obj(y, theta_scale * theta)
             gap_in = p_obj - d_obj_in
 
-            if gap_in < EPSILON_GAP * gap:
+            if gap_in < EPSILON_GAP * (p_obj - d_obj):
+                print("Exit 1")
                 break
             elif gap_in / np.abs(d_obj_in) < tol:
+                print("Exit 2")
                 break
             elif p_obj >= prev_p_obj_in:
+                print("Exit 3")
                 break
 
         p_obj = compute_primal_obj(exp_yXw, w, alpha)
@@ -88,8 +107,9 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100, tol=1e-9, verbose
 
         if verbose:
             print(
-                f"Iter {t+1}: "
-                f"Objective: {p_obj} "
+                f"Iter {t}: "
+                f"Primal: {p_obj} "
+                f"Dual: {d_obj} "
                 f"Gap: {gap} "
                 f"Feature left {ws_size} "
                 f"ws: {remaining_features[:ws_size]} "
@@ -100,7 +120,7 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100, tol=1e-9, verbose
         elif p_obj >= prev_p_obj:
             break
 
-    return
+    return w, Xw
 
 
 def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads, alpha, ws, max_cd_iter, prox_tol):
@@ -126,6 +146,8 @@ def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads, alpha, ws, m
             step = 1 / lipschitz[idx]
             new_w_j = ST(old_w_j - step * grad, alpha * step)
 
+            # print(f"cd {cd_iter}: w[{j}]={new_w_j}")
+
             # updates
             diff = new_w_j - old_w_j
             if diff == 0:
@@ -133,7 +155,7 @@ def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads, alpha, ws, m
 
             delta_w[idx] = new_w_j - w[j]
             X_delta_w += diff * X[:, j]
-            sum_sq_hess_diff += (diff * hessian[idx]) ** 2
+            sum_sq_hess_diff += (diff * lipschitz[idx]) ** 2
 
         if (sum_sq_hess_diff < prox_tol and cd_iter+1 > MIN_PROX_NEWTON_CD_ITR):
             break
@@ -146,6 +168,8 @@ def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads, alpha, ws, m
 
         for idx, j in enumerate(ws):
             w[j] += diff_t * delta_w[idx]
+
+            # print(f"w[{j}]={w[j]}")
 
             # diff penalty term
             if w[j] == 0:
@@ -164,6 +188,7 @@ def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads, alpha, ws, m
         else:
             actual_t /= 2
 
+    # print("backtrack", actual_t)
     if actual_t != 1.:
         X_delta_w[:] = actual_t * X_delta_w
 

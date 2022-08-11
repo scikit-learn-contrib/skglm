@@ -190,6 +190,11 @@ class GeneralizedLinearEstimator(LinearModel):
         self.penalty = self.penalty if self.penalty else L1(1.)
         self.datafit = self.datafit if self.datafit else Quadratic()
 
+        if isinstance(self.penalty, WeightedL1):
+            if len(self.penalty.weights) != X.shape[1]:
+                raise ValueError(
+                    "The size of the WeightedL1 penalty should be n_features")
+
         if isinstance(self.datafit, Logistic):
             X = check_array(
                 X,

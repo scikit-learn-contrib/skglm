@@ -92,6 +92,13 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100,
             d_obj_in = compute_dual_obj(y, theta_scale * theta)
             gap_in = p_obj - d_obj_in
 
+            if verbose:
+                print(
+                    f"|—— Epoch: {epoch+1} "
+                    f"Objective: {p_obj} "
+                    f"Duality gap: {p_obj - d_obj} "
+                )
+
             if gap_in < EPSILON_GAP * (p_obj - d_obj):
                 break
             elif gap_in / np.abs(d_obj_in) < tol:
@@ -104,12 +111,11 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100,
 
         if verbose:
             print(
-                f"Iter {t}: "
-                f"Primal: {p_obj} "
-                f"Dual: {d_obj} "
-                f"Gap: {gap} "
-                f"Feature left {ws_size} "
-                f"ws: {remaining_features[:ws_size]} "
+                f"Iter {t+1}: "
+                f"Objective: {p_obj} "
+                f"Duality gap: {gap} "
+                f"Feature left {len(remaining_features)} "
+                # f"ws: {remaining_features[:ws_size]} "
             )
 
         if gap / np.abs(d_obj) < tol:

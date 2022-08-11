@@ -12,6 +12,7 @@ from sklearn.linear_model import MultiTaskLasso as MultiTaskLasso_sklearn
 from sklearn.model_selection import GridSearchCV
 from sklearn.svm import LinearSVC as LinearSVC_sklearn
 from sklearn.utils.estimator_checks import check_estimator
+from sklearn.model_selection import KFold
 
 from scipy.sparse import csc_matrix, issparse
 
@@ -218,24 +219,45 @@ def test_grid_search(estimator_name):
     estimator_ours.tol = 1e-10
     estimator_sk.max_iter = 5000
     estimator_ours.max_iter = 100
+    n_splits = 5
+
+    param_values = np.array([np.geomspace(alpha_max, alpha_max * 0.01, 10)[-1]])
+    n_samples = X.shape[0] * (n_splits - 1) / n_splits
     if estimator_name == "SVC":
-        param_name = 'C'
+        param_name_sk, param_name_ours = 'C', 'C'
+        param_grid_sk = {param_name_sk: param_values}
+
+    elif estimator_name == "LogisticRegression":
+        param_name_sk = 'C'
+        param_name_ours = 'alpha'
+        param_grid_sk = {param_name_sk: 1 / (n_samples * param_values)}
     else:
-        param_name = 'alpha'
-    param_grid = {param_name: np.geomspace(alpha_max, alpha_max * 0.01, 10)}
-    sk_clf = GridSearchCV(estimator_sk, param_grid).fit(X, y)
-    ours_clf = GridSearchCV(estimator_ours, param_grid).fit(X, y)
+        param_name_sk, param_name_ours = 'alpha', 'alpha'
+        param_grid_sk = {param_name_sk: param_values}
+
+    param_grid_ours = {param_name_ours: param_values}
+
+    splitter = KFold(n_splits)
+
+    sk_clf = GridSearchCV(estimator_sk, param_grid_sk, cv=splitter).fit(X, y)
+    ours_clf = GridSearchCV(estimator_ours, param_grid_ours, cv=splitter).fit(X, y)
     res_attr = ["split%i_test_score" % i for i in range(5)] + \
                ["mean_test_score", "std_test_score", "rank_test_score"]
     for attr in res_attr:
         np.testing.assert_allclose(sk_clf.cv_results_[attr], ours_clf.cv_results_[attr],
                                    rtol=1e-3)
     np.testing.assert_allclose(sk_clf.best_score_, ours_clf.best_score_, rtol=1e-3)
-    np.testing.assert_allclose(sk_clf.best_params_[param_name],
-                               ours_clf.best_params_[param_name], rtol=1e-3)
+    if estimator_name == "LogisticRegression":
+        np.testing.assert_allclose(
+            sk_clf.best_params_[param_name_sk],
+            1 / (n_samples * ours_clf.best_params_[param_name_ours]), rtol=1e-3)
+    else:
+        np.testing.assert_allclose(
+            sk_clf.best_params_[param_name_sk],
+            ours_clf.best_params_[param_name_ours], rtol=1e-3)
 
 
 if __name__ == '__main__':
     # test_generic_get_params()
-    # pass
-    test_check_estimator("LogisticRegression")
+    pass
+    # test_check_estimator("LogisticRegression")

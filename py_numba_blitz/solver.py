@@ -114,7 +114,7 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100,
                 f"Iter {t+1}: "
                 f"Objective: {p_obj} "
                 f"Duality gap: {gap} "
-                f"Feature left {len(remaining_features)} "
+                f"Feature left {len(remaining_features[:ws_size])} "
                 # f"ws: {remaining_features[:ws_size]} "
             )
 
@@ -131,7 +131,7 @@ def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads,
                            alpha, ws, max_cd_iter, prox_grad_diff):
     # inplace update of w, Xw, exp_yXw, theta, prox_grads
 
-    hessian = - theta * (y + theta)  # \nabla^2 datafit(u)
+    hessian = -theta * (y + theta)  # \nabla^2 datafit(u)
     lipschitz = np.zeros(len(ws))  # diag of X.T hessian X
 
     delta_w = np.zeros(len(ws))  # descent direction
@@ -197,8 +197,7 @@ def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads,
             actual_t /= 2
 
     if actual_t != 1.:
-        for i in range(len(y)):
-            X_delta_w[i] = actual_t * X_delta_w[i]
+        X_delta_w[:] = actual_t * X_delta_w
 
     # cache grads next epoch
     for idx, j in enumerate(ws):

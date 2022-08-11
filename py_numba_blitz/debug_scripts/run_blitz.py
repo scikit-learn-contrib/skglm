@@ -1,9 +1,11 @@
+# to install Blitz
+# pip install git+https://github.com/QB3/BlitzL1.git@understand-blitz
 import blitzl1
 import numpy as np
 from skglm.utils import make_correlated_data
 
 
-n_samples, n_features = 100, 20
+n_samples, n_features = 100, 200
 rho = 0.1
 X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
 y = np.sign(y)

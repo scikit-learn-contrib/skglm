@@ -58,8 +58,7 @@ def update_phi_XTphi(scaled_theta, scaled_XTtheta, phi, XTphi, alpha, ws):
     for j in ws:
         XTphi[j] = best_t * scaled_XTtheta[j] + (1 - best_t) * XTphi[j]
 
-    for i in range(len(phi)):
-        phi[i] = best_t * scaled_theta[i] + (1 - best_t) * phi[i]
+    phi[:] = best_t * scaled_theta + (1 - best_t) * phi
 
 
 @njit

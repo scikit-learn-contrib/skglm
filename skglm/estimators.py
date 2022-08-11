@@ -2,6 +2,7 @@
 
 import numpy as np
 from scipy.sparse import issparse
+from scipy.special import expit
 from sklearn.utils import check_array, check_consistent_length
 from sklearn.utils.multiclass import check_classification_targets
 from sklearn.linear_model import MultiTaskLasso as MultiTaskLasso_sklearn
@@ -11,6 +12,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.metrics import accuracy_score, r2_score
 from sklearn.linear_model._base import _preprocess_data
+from sklearn.utils.extmath import softmax
 
 from skglm.penalties import (
     L1, WeightedL1, L1_plus_L2, MCPenalty, IndicatorBox, L2_1
@@ -813,6 +815,42 @@ class SparseLogisticRegression(GeneralizedLinearEstimator):
         """
         return super().get_params(deep)
 
+    def predict_proba(self, X):
+
+        if  not self.is_classif:
+            raise ValueError("predcit_proba should be used for classification")
+        else:
+            if len(self.classes_) > 2:
+                # Code taken from https://github.com/scikit-learn/scikit-learn/
+                # blob/c900ad385cecf0063ddd2d78883b0ea0c99cd835/sklearn/
+                # linear_model/_base.py#L458
+                def _predict_proba_lr(X):
+                    """Probability estimation for OvR logistic regression.
+                    Positive class probabilities are computed as
+                    1. / (1. + np.exp(-self.decision_function(X)));
+                    multiclass is handled by normalizing that over all classes.
+                    """
+                    prob = self._decision_function(X)
+                    expit(prob, out=prob)
+                    if prob.ndim == 1:
+                        return np.vstack([1 - prob, prob]).T
+                    else:
+                        # OvR normalization, like LibLinear's predict_probability
+                        prob /= prob.sum(axis=1).reshape((prob.shape[0], -1))
+                        return prob
+                # OvR normalization, like LibLinear's
+                if issparse(X):
+                    import ipdb; ipdb.set_trace()
+                return _predict_proba_lr(X).ravel()
+            else:
+                decision = self._decision_function(X)
+                if decision.ndim == 1:
+                    # Workaround for multi_class="multinomial" and binary outcomes
+                    # which requires softmax prediction with only a 1D decision.
+                    decision_2d = np.c_[-decision, decision]
+                else:
+                    decision_2d = decision
+                return softmax(decision_2d, copy=False)
 
 class LinearSVC(LinearSVC_sklearn):
     r"""LinearSVC estimator, with hinge loss.

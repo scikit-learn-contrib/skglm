@@ -3,6 +3,7 @@ from collections.abc import Iterable
 import pytest
 import numpy as np
 from numpy.linalg import norm
+from skglm import datafits
 
 from sklearn.base import copy
 from sklearn.linear_model import Lasso as Lasso_sklearn
@@ -186,6 +187,11 @@ def test_estimator_predict(Datafit, Penalty, Estimator_sk):
         np.testing.assert_allclose(y_pred, y_pred_sk, rtol=1e-5)
 
 
+    if isinstance(Datafit, Logistic):
+        np.testing.assert_allclose(
+            clf.predict_proba(X_test), clf_sk.predict_proba(X_test))
+
+
 def test_generic_get_params():
     def assert_deep_dict_equal(expected_attr, estimator):
         """Helper function for deep equality in dictionary. Straight == fails."""
@@ -221,7 +227,7 @@ def test_grid_search(estimator_name):
     estimator_ours.max_iter = 100
     n_splits = 5
 
-    param_values = np.array([np.geomspace(alpha_max, alpha_max * 0.01, 10)[-1]])
+    param_values = np.geomspace(alpha_max, alpha_max * 0.01, 10)
     n_samples = X.shape[0] * (n_splits - 1) / n_splits
     if estimator_name == "SVC":
         param_name_sk, param_name_ours = 'C', 'C'
@@ -258,6 +264,4 @@ def test_grid_search(estimator_name):
 
 
 if __name__ == '__main__':
-    # test_generic_get_params()
-    pass
-    # test_check_estimator("LogisticRegression")
+    test_check_estimator("LogisticRegression")

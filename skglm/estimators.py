@@ -4,7 +4,6 @@ import numpy as np
 from scipy.sparse import issparse
 from sklearn.utils import check_array, check_consistent_length
 from sklearn.utils.multiclass import check_classification_targets
-from sklearn.linear_model import Lasso as Lasso_sklearn
 from sklearn.linear_model import MultiTaskLasso as MultiTaskLasso_sklearn
 from sklearn.linear_model._base import LinearModel
 from sklearn.svm import LinearSVC as LinearSVC_sklearn
@@ -453,7 +452,7 @@ class Lasso(GeneralizedLinearEstimator):
         return super().get_params(deep)
 
 
-class WeightedLasso(Lasso_sklearn):
+class WeightedLasso(GeneralizedLinearEstimator):
     r"""WeightedLasso estimator based on Celer solver and primal extrapolation.
 
     The optimization objective for WeightedLasso is::
@@ -491,6 +490,9 @@ class WeightedLasso(Lasso_sklearn):
         When set to True, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
 
+    ws_strategy : str
+        The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
+
     Attributes
     ----------
     coef_ : array, shape (n_features,)
@@ -516,67 +518,35 @@ class WeightedLasso(Lasso_sklearn):
     """
 
     def __init__(self, alpha=1., weights=None, max_iter=100, max_epochs=50_000, p0=10,
-                 verbose=0, tol=1e-4, fit_intercept=False, warm_start=False):
-        super(WeightedLasso, self).__init__(
-            alpha=alpha, tol=tol, max_iter=max_iter,
-            fit_intercept=fit_intercept, warm_start=warm_start)
-        self.verbose = verbose
-        self.max_epochs = max_epochs
-        self.p0 = p0
+                 verbose=0, tol=1e-4, fit_intercept=False,
+                 warm_start=False, ws_strategy="subdiff"):
+        if weights is None:
+            # Warning weights should not be None, you are solving a Lasso
+            penalty = L1(alpha)
+        else:
+            penalty = WeightedL1(alpha=alpha, weights=weights)
+        super().__init__(
+            datafit=Quadratic(), penalty=penalty, is_classif=False,
+            max_iter=max_iter, max_epochs=max_epochs, p0=p0, tol=tol,
+            fit_intercept=fit_intercept,
+            warm_start=warm_start, ws_strategy=ws_strategy, verbose=verbose)
         self.alpha = alpha
         self.weights = weights
 
-    def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
-        """Compute Weighted Lasso path.
+    def get_params(self, deep=False):
+        """Get parameters of the estimators.
 
         Parameters
         ----------
-        X : array, shape (n_samples, n_features)
-            Design matrix.
-
-        y : array, shape (n_samples,)
-            Target vector.
-
-        alphas : array, shape (n_alphas,)
-            Grid of alpha.
-
-        coef_init : array, shape (n_features,), optional
-            If warm_start is enabled, the optimization problem restarts from coef_init.
-
-        return_n_iter : bool
-            Returns the number of iterations along the path.
-
-        **params : kwargs
-            All parameters supported by path.
+        deep : bool
+            Whether or not return the parameters for contained subobjects estimators.
 
         Returns
         -------
-        alphas : array, shape (n_alphas,)
-            The alphas along the path where models are computed.
-
-        coefs : array, shape (n_features, n_alphas)
-            Coefficients along the path.
-
-        stop_crit : array, shape (n_alphas,)
-            Value of stopping criterion at convergence along the path.
-
-        n_iters : array, shape (n_alphas,), optional
-            The number of iterations along the path. If return_n_iter is set to `True`.
+        params : dict
+            The parameters of the estimator.
         """
-        weights = np.ones(X.shape[1]) if self.weights is None else self.weights
-        if X.shape[1] != len(weights):
-            raise ValueError("The number of weights must match the number of \
-                              features. Got %s, expected %s." % (
-                len(weights), X.shape[1]))
-
-        penalty = compiled_clone(WeightedL1(self.alpha, weights))
-        datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
-
-        return cd_solver_path(
-            X, y, datafit, penalty, alphas=alphas, fit_intercept=self.fit_intercept,
-            coef_init=coef_init, max_iter=self.max_iter, return_n_iter=return_n_iter,
-            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
-            verbose=self.verbose)
+        return super().get_params(deep)
 
 
 class ElasticNet(GeneralizedLinearEstimator):

@@ -14,10 +14,12 @@ PROX_NEWTON_EPSILON_RATIO = 10.0
 EPSILON_GAP = 0.3
 
 
-def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100, tol=1e-9, verbose=False):
+def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100,
+             tol=1e-9, verbose=False, sort_ws=False):
     r"""Solve Logistic Regression.
 
     Objective:
+
         \sum_{i=1}^n log(1 + e^{-y_i (Xw)_i}) + \alpha \sum_{j=1}^p |w_j|
     """
     n_samples, n_features = X.shape
@@ -54,6 +56,14 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100, tol=1e-9, verbose
         remaining_features = compute_remaining_features(remaining_features, XTphi,
                                                         w, norm2_X_cols, alpha, threshold)
 
+        # The output of sorting algo might differ for an array
+        # which some of its elements are equals (e.g [0, 1, 5, 0, 0, 8, 0])
+        # we and Blitz uses sorting algos to build ws and hence may get different
+        # ws which result to different results
+        # This ensure that we have the same ws (for a comparison purpose with Blitz)
+        if sort_ws:
+            remaining_features.sort()
+
         ws_size = min(
             max(2*np.sum(w != 0), p0),
             len(remaining_features)
@@ -69,11 +79,14 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100, tol=1e-9, verbose
             max_cd_iter = MAX_PROX_NEWTON_CD_ITR if epoch else MIN_PROX_NEWTON_CD_ITR
             prev_p_obj_in = p_obj
 
-            theta_scale, prox_grad_diff = _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta,
-                                                                 prox_grads, alpha,
-                                                                 ws=remaining_features[:ws_size],
-                                                                 max_cd_iter=max_cd_iter,
-                                                                 prox_grad_diff=prox_grad_diff)
+            (
+                theta_scale,
+                prox_grad_diff
+            ) = _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta,
+                                       prox_grads, alpha,
+                                       ws=remaining_features[:ws_size],
+                                       max_cd_iter=max_cd_iter,
+                                       prox_grad_diff=prox_grad_diff)
 
             p_obj = compute_primal_obj(exp_yXw, w, alpha)
             d_obj_in = compute_dual_obj(y, theta_scale * theta)
@@ -102,14 +115,14 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100, tol=1e-9, verbose
         if gap / np.abs(d_obj) < tol:
             break
         elif p_obj >= prev_p_obj:
-            print("Exit p obj")
             break
 
     return w
 
 
-# @njit
-def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads, alpha, ws, max_cd_iter, prox_grad_diff):
+@njit
+def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads,
+                           alpha, ws, max_cd_iter, prox_grad_diff):
     # inplace update of w, Xw, exp_yXw, theta, prox_grads
 
     hessian = - theta * (y + theta)  # \nabla^2 datafit(u)
@@ -144,7 +157,7 @@ def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads, alpha, ws, m
             sum_sq_hess_diff += (diff * lipschitz[idx]) ** 2
 
         if (sum_sq_hess_diff < PROX_NEWTON_EPSILON_RATIO*prox_grad_diff
-                and cd_iter+1 > MIN_PROX_NEWTON_CD_ITR):
+                and cd_iter+1 >= MIN_PROX_NEWTON_CD_ITR):
             break
 
     # backtracking line search
@@ -157,10 +170,12 @@ def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads, alpha, ws, m
             w[j] += diff_t * delta_w[idx]
 
             # diff penalty term
-            if w[j] == 0:
-                diff_objectives += alpha * np.abs(delta_w[idx])
+            if w[j] < 0:
+                diff_objectives -= alpha * delta_w[idx]
+            elif w[j] > 0:
+                diff_objectives += alpha * delta_w[idx]
             else:
-                diff_objectives += np.sign(w[j]) * alpha * delta_w[idx]
+                diff_objectives -= alpha * abs(delta_w[idx])
 
         for i in range(len(y)):
             Xw[i] += diff_t * X_delta_w[i]

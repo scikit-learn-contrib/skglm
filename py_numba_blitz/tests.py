@@ -34,10 +34,8 @@ def test_vs_sklearn(rho):
     # py blitz
     w = py_blitz(alpha, X, y, tol=1e-9)
 
-    print(np.linalg.norm(w - sk_logreg.coef_, ord=np.inf))
-    np.testing.assert_allclose(w, sk_logreg.coef_.flatten())
+    np.testing.assert_allclose(w, sk_logreg.coef_.flatten(), atol=1e-6, rtol=1e-5)
 
 
 if __name__ == '__main__':
-    test_vs_sklearn(0.1)
     pass

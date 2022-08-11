@@ -1,8 +1,8 @@
 import numpy as np
 from numba import njit
 
-# used in Blitz (weird)
-LOGREG_LIPSCHITZ_CONST = 1.
+
+LOGREG_LIPSCHITZ_CONST = 1.  # used in Blitz (weird)
 
 
 @njit
@@ -36,11 +36,11 @@ def update_XTtheta(X, theta, XTtheta, ws):
         XTtheta[j] = X[:, j] @ theta
 
 
-# @njit
+@njit
 def update_phi_XTphi(scaled_theta, scaled_XTtheta, phi, XTphi, alpha, ws):
     """Inplace update of ``phi`` and ``XTphi``."""
     # update as follows: max t for which
-    #   new_phi = t scaled_theta + (1 - t) * phi is feasible
+    #   new_phi = t * scaled_theta + (1 - t) * phi is feasible
     #   <==> |constraint_j(new_phi)| = |X_j.T new_phi| <= alpha for j in ws
     t = best_t = 1.
     for j in ws:

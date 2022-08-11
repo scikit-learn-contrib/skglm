@@ -3,7 +3,7 @@ from skglm.utils import make_correlated_data
 from py_numba_blitz.solver import py_blitz
 
 
-n_samples, n_features = 100, 20
+n_samples, n_features = 100, 200
 rho = 0.1
 X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
 y = np.sign(y)
@@ -12,4 +12,8 @@ y = np.sign(y)
 alpha_max = np.linalg.norm(X.T @ y, ord=np.inf) / 2
 alpha = rho * alpha_max
 
-py_blitz(alpha, X, y, max_iter=10, max_epochs=1000, verbose=True)
+py_blitz(alpha, X, y, max_iter=5, max_epochs=10_000,
+         verbose=True, tol=1e-9)
+
+
+# Iter: 5 Objective: 36.46998863 Dual: 24.19797498 Duality gap: 12.27201365 Features left: 200

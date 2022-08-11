@@ -210,7 +210,7 @@ def test_generic_get_params():
 # the regularization parameter (`C` for sklearn, `alpha` in skglm).
 @pytest.mark.parametrize(
     "estimator_name",
-    ["Lasso", "wLasso", "ElasticNet", "MCP"])
+    ["Lasso", "wLasso", "ElasticNet", "MCP", "SVC"])
 def test_grid_search(estimator_name):
     estimator_sk = dict_estimators_sk[estimator_name]
     estimator_ours = dict_estimators_ours[estimator_name]
@@ -218,7 +218,11 @@ def test_grid_search(estimator_name):
     estimator_ours.tol = 1e-10
     estimator_sk.max_iter = 5000
     estimator_ours.max_iter = 100
-    param_grid = {'alpha': np.geomspace(alpha_max, alpha_max * 0.01, 10)}
+    if estimator_name == "SVC":
+        param_name = 'C'
+    else:
+        param_name = 'alpha'
+    param_grid = {param_name: np.geomspace(alpha_max, alpha_max * 0.01, 10)}
     sk_clf = GridSearchCV(estimator_sk, param_grid).fit(X, y)
     ours_clf = GridSearchCV(estimator_ours, param_grid).fit(X, y)
     res_attr = ["split%i_test_score" % i for i in range(5)] + \
@@ -227,8 +231,8 @@ def test_grid_search(estimator_name):
         np.testing.assert_allclose(sk_clf.cv_results_[attr], ours_clf.cv_results_[attr],
                                    rtol=1e-3)
     np.testing.assert_allclose(sk_clf.best_score_, ours_clf.best_score_, rtol=1e-3)
-    np.testing.assert_allclose(sk_clf.best_params_["alpha"],
-                               ours_clf.best_params_["alpha"], rtol=1e-3)
+    np.testing.assert_allclose(sk_clf.best_params_[param_name],
+                               ours_clf.best_params_[param_name], rtol=1e-3)
 
 
 if __name__ == '__main__':

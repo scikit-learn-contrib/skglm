@@ -57,10 +57,10 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100,
                                                         w, norm2_X_cols, alpha, threshold)
 
         # The output of sorting algo might differ for an array
-        # which some of its elements are equals (e.g [0, 1, 5, 0, 0, 8, 0])
-        # we and Blitz uses sorting algos to build ws and hence may get different
-        # ws which result to different results
-        # This ensure that we have the same ws (for a comparison purpose with Blitz)
+        # which some of its elements are equal (e.g [0, 1, 5, 0, 0, 8, 0])
+        # We and Blitz uses sorting algos to build ws and hence may get different
+        # ws which result into different logs throughout the epochs/iterations
+        # This ensure that we have the same ws (for a comparison purposes with Blitz)
         if sort_ws:
             remaining_features.sort()
 

@@ -837,7 +837,6 @@ class SparseLogisticRegression(GeneralizedLinearEstimator):
             Returns the probability of the sample for each class in the model,
             where classes are ordered as they are in ``self.classes_``.
         """
-
         if not self.is_classif:
             raise ValueError("predict_proba should be used for classification")
         else:

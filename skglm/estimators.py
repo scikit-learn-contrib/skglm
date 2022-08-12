@@ -817,6 +817,28 @@ class SparseLogisticRegression(GeneralizedLinearEstimator):
         return super().get_params(deep)
 
     def predict_proba(self, X):
+        """
+        Probability estimates.
+
+        The returned estimates for all classes are ordered by the
+        label of classes.
+        For a multi_class problem, a one-vs-rest approach, i.e calculate the probability
+        of each class assuming it to be positive using the logistic function.
+        and normalize these values across all the classes.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Vector to be scored, where `n_samples` is the number of samples and
+            `n_features` is the number of features.
+
+        Returns
+        -------
+        T : array-like of shape (n_samples, n_classes)
+            Returns the probability of the sample for each class in the model,
+            where classes are ordered as they are in ``self.classes_``.
+        """
+
         if not self.is_classif:
             raise ValueError("predict_proba should be used for classification")
         else:

@@ -826,6 +826,7 @@ class SparseLogisticRegression(GeneralizedLinearEstimator):
                 # linear_model/_base.py#L458
                 def _predict_proba_lr(X):
                     """Probability estimation for OvR logistic regression.
+
                     Positive class probabilities are computed as
                     1. / (1. + np.exp(-self.decision_function(X)));
                     multiclass is handled by normalizing that over all classes.

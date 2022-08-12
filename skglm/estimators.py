@@ -262,15 +262,16 @@ class GeneralizedLinearEstimator(LinearModel):
         else:
             self.intercept_ = 0.
 
-        if isinstance(self.datafit, QuadraticSVC):
+        if self.is_classif:
             if n_classes_ <= 2:
                 self.coef_ = coefs.T
-                if is_sparse:
-                    primal_coef = ((yXT).multiply(self.coef_[0, :])).T
-                else:
-                    primal_coef = (yXT * self.coef_[0, :]).T
-                primal_coef = primal_coef.sum(axis=0)
-                self.coef_ = np.array(primal_coef).reshape(1, -1)
+                if isinstance(self.datafit, QuadraticSVC):
+                    if is_sparse:
+                        primal_coef = ((yXT).multiply(self.coef_[0, :])).T
+                    else:
+                        primal_coef = (yXT * self.coef_[0, :]).T
+                    primal_coef = primal_coef.sum(axis=0)
+                    self.coef_ = np.array(primal_coef).reshape(1, -1)
             elif n_classes_ > 2:
                 self.coef_ = np.empty([len(self.classes_), X.shape[1]])
                 self.intercept_ = 0
@@ -297,9 +298,9 @@ class GeneralizedLinearEstimator(LinearModel):
             Contain the target values for each sample.
         """
         if self.is_classif:
-            scores = self._decision_function(X).ravel()
-            if len(scores.shape) == 1:
-                indices = (scores > 0).astype(int)
+            scores = self._decision_function(X)
+            if scores.shape[1] == 1:
+                indices = (scores.ravel() > 0).astype(int)
             else:
                 indices = scores.argmax(axis=1)
             return self.classes_[indices]
@@ -816,9 +817,8 @@ class SparseLogisticRegression(GeneralizedLinearEstimator):
         return super().get_params(deep)
 
     def predict_proba(self, X):
-
-        if  not self.is_classif:
-            raise ValueError("predcit_proba should be used for classification")
+        if not self.is_classif:
+            raise ValueError("predict_proba should be used for classification")
         else:
             if len(self.classes_) > 2:
                 # Code taken from https://github.com/scikit-learn/scikit-learn/
@@ -839,9 +839,7 @@ class SparseLogisticRegression(GeneralizedLinearEstimator):
                         prob /= prob.sum(axis=1).reshape((prob.shape[0], -1))
                         return prob
                 # OvR normalization, like LibLinear's
-                if issparse(X):
-                    import ipdb; ipdb.set_trace()
-                return _predict_proba_lr(X).ravel()
+                return _predict_proba_lr(X)
             else:
                 decision = self._decision_function(X)
                 if decision.ndim == 1:
@@ -851,6 +849,7 @@ class SparseLogisticRegression(GeneralizedLinearEstimator):
                 else:
                     decision_2d = decision
                 return softmax(decision_2d, copy=False)
+
 
 class LinearSVC(LinearSVC_sklearn):
     r"""LinearSVC estimator, with hinge loss.

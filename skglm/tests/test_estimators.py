@@ -3,7 +3,6 @@ from collections.abc import Iterable
 import pytest
 import numpy as np
 from numpy.linalg import norm
-from skglm import datafits
 
 from sklearn.base import copy
 from sklearn.linear_model import Lasso as Lasso_sklearn
@@ -186,7 +185,6 @@ def test_estimator_predict(Datafit, Penalty, Estimator_sk):
     else:
         np.testing.assert_allclose(y_pred, y_pred_sk, rtol=1e-5)
 
-
     if isinstance(Datafit, Logistic):
         np.testing.assert_allclose(
             clf.predict_proba(X_test), clf_sk.predict_proba(X_test))
@@ -264,4 +262,4 @@ def test_grid_search(estimator_name):
 
 
 if __name__ == '__main__':
-    test_check_estimator("LogisticRegression")
+    test_estimator_predict(QuadraticSVC, IndicatorBox, LinearSVC_sklearn)

@@ -817,8 +817,7 @@ class SparseLogisticRegression(GeneralizedLinearEstimator):
         return super().get_params(deep)
 
     def predict_proba(self, X):
-        """
-        Probability estimates.
+        """Probability estimates.
 
         The returned estimates for all classes are ordered by the
         label of classes.

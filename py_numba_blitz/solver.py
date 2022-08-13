@@ -1,4 +1,3 @@
-from re import T
 import numpy as np
 from scipy.sparse import issparse
 from numba import njit
@@ -47,7 +46,7 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100,
     for j in range(n_features):
         if is_sparse:
             tmp = 0.
-            for i in range(X.indptr[j], X.indptr[j]):
+            for i in range(X.indptr[j], X.indptr[j+1]):
                 tmp += X.data[i]**2
             norm2_X_cols[j] = np.sqrt(tmp)
         else:

@@ -37,6 +37,16 @@ def update_XTtheta(X, theta, XTtheta, ws):
 
 
 @njit
+def update_XTtheta_s(X_data, X_indptr, X_indices, theta, XTtheta, ws):
+    """Inplace update of ``XTtheta``. Case ``X`` sparse."""
+    for j in ws:
+        tmp = 0.
+        for i in range(X_indptr[j], X_indptr[j+1]):
+            tmp += X_data[i] * theta[X_indices[i]]
+        XTtheta[j] = tmp
+
+
+@njit
 def update_phi_XTphi(scaled_theta, scaled_XTtheta, phi, XTphi, alpha, ws):
     """Inplace update of ``phi`` and ``XTphi``."""
     # update as follows: max t for which

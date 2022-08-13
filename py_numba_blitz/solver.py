@@ -1,8 +1,10 @@
+from re import T
 import numpy as np
+from scipy.sparse import issparse
 from numba import njit
 from py_numba_blitz.utils import(compute_primal_obj, compute_dual_obj,
                                  compute_remaining_features,
-                                 update_XTtheta, update_phi_XTphi,
+                                 update_XTtheta, update_XTtheta_s, update_phi_XTphi,
                                  update_theta_exp_yXw, LOGREG_LIPSCHITZ_CONST)
 from skglm.utils import ST
 
@@ -36,14 +38,27 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100,
 
     remaining_features = np.arange(n_features)
     norm2_X_cols = np.zeros(n_features)
+    is_sparse = issparse(X)
 
     # init vars
+    if is_sparse:
+        X_bundles = (X.data, X.indptr, X.indices)
     update_theta_exp_yXw(y, Xw, theta, exp_yXw)
     for j in range(n_features):
-        norm2_X_cols[j] = np.linalg.norm(X[:, j], ord=2)
+        if is_sparse:
+            tmp = 0.
+            for i in range(X.indptr[j], X.indptr[j]):
+                tmp += X.data[i]**2
+            norm2_X_cols[j] = np.sqrt(tmp)
+        else:
+            norm2_X_cols[j] = np.linalg.norm(X[:, j], ord=2)
 
     for t in range(max_iter):
-        update_XTtheta(X, theta, XTtheta, remaining_features)
+        if is_sparse:
+            update_XTtheta_s(*X_bundles, theta, XTtheta, remaining_features)
+        else:
+            update_XTtheta(X, theta, XTtheta, remaining_features)
+
         update_phi_XTphi(theta_scale * theta, theta_scale * XTtheta, phi,
                          XTphi, alpha, remaining_features)
 
@@ -73,20 +88,36 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100,
         prox_grad_diff = 0.
         prox_grads = np.zeros(ws_size)
         for idx, j in enumerate(remaining_features[:ws_size]):
-            prox_grads[idx] = X[:, j] @ theta
+            if is_sparse:
+                tmp = 0.
+                for i in range(X.indptr[j], X.indptr[j+1]):
+                    tmp += X.data[i] * theta[X.indices[i]]
+                prox_grads[idx] = tmp
+            else:
+                prox_grads[idx] = X[:, j] @ theta
 
         for epoch in range(max_epochs):
             max_cd_iter = MAX_PROX_NEWTON_CD_ITR if epoch else MIN_PROX_NEWTON_CD_ITR
             prev_p_obj_in = p_obj
 
-            (
-                theta_scale,
-                prox_grad_diff
-            ) = _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta,
-                                       prox_grads, alpha,
-                                       ws=remaining_features[:ws_size],
-                                       max_cd_iter=max_cd_iter,
-                                       prox_grad_diff=prox_grad_diff)
+            if is_sparse:
+                (
+                    theta_scale,
+                    prox_grad_diff
+                ) = _prox_newton_iteration_s(*X_bundles, y, w, Xw, exp_yXw,
+                                             theta, prox_grads, alpha,
+                                             ws=remaining_features[:ws_size],
+                                             max_cd_iter=max_cd_iter,
+                                             prox_grad_diff=prox_grad_diff)
+            else:
+                (
+                    theta_scale,
+                    prox_grad_diff
+                ) = _prox_newton_iteration(X, y, w, Xw, exp_yXw,
+                                           theta, prox_grads, alpha,
+                                           ws=remaining_features[:ws_size],
+                                           max_cd_iter=max_cd_iter,
+                                           prox_grad_diff=prox_grad_diff)
 
             p_obj = compute_primal_obj(exp_yXw, w, alpha)
             d_obj_in = compute_dual_obj(y, theta_scale * theta)
@@ -203,6 +234,115 @@ def _prox_newton_iteration(X, y, w, Xw, exp_yXw, theta, prox_grads,
     for idx, j in enumerate(ws):
         new_prox_grad = X[:, j] @ theta
         approximate_grad = prox_grads[idx] + X[:, j] @ (hessian * X_delta_w)
+        prox_grads[idx] = new_prox_grad
+
+        prox_grad_diff += (new_prox_grad - approximate_grad) ** 2
+
+    # compute theta scale
+    theta_scale = 1.
+    max_XTtheta_ws = np.linalg.norm(prox_grads, ord=np.inf)
+    if max_XTtheta_ws > alpha:
+        theta_scale = alpha / max_XTtheta_ws
+
+    return theta_scale, prox_grad_diff
+
+
+@njit
+def _prox_newton_iteration_s(X_data, X_indptr, X_indices, y, w, Xw, exp_yXw,
+                             theta, prox_grads, alpha, ws, max_cd_iter,
+                             prox_grad_diff):
+    # inplace update of w, Xw, exp_yXw, theta, prox_grads
+
+    hessian = -theta * (y + theta)  # \nabla^2 datafit(u)
+    lipschitz = np.zeros(len(ws))  # diag of X.T hessian X
+
+    delta_w = np.zeros(len(ws))  # descent direction
+    X_delta_w = np.zeros(len(y))
+
+    for idx, j in enumerate(ws):
+        tmp = 0.
+        for i in range(X_indptr[j], X_indptr[j+1]):
+            tmp += hessian[X_indices[i]] * X_data[i] ** 2
+        lipschitz[idx] = tmp
+
+    # find descent direction
+    for cd_iter in range(max_cd_iter):
+        sum_sq_hess_diff = 0.
+        for idx, j in enumerate(ws):
+            # skip zero cols
+            if lipschitz[idx] == 0:
+                continue
+
+            old_w_j = w[j] + delta_w[idx]
+
+            # compute grad
+            tmp = 0.
+            for i in range(X_indptr[j], X_indptr[j+1]):
+                tmp += X_data[i] * hessian[X_indices[i]] * X_delta_w[X_indices[i]]
+            grad = prox_grads[idx] + tmp
+
+            step = 1 / lipschitz[idx]
+            new_w_j = ST(old_w_j - step * grad, alpha * step)
+
+            # updates
+            diff = new_w_j - old_w_j
+            if diff == 0:
+                continue
+
+            delta_w[idx] = new_w_j - w[j]
+            for i in range(X_indptr[j], X_indptr[j+1]):
+                X_delta_w[X_indices[i]] += diff * X_data[i]
+            sum_sq_hess_diff += (diff * lipschitz[idx]) ** 2
+
+        if (sum_sq_hess_diff < PROX_NEWTON_EPSILON_RATIO*prox_grad_diff
+                and cd_iter+1 >= MIN_PROX_NEWTON_CD_ITR):
+            break
+
+    # backtracking line search
+    actual_t, prev_t = 1., 0.
+    for backtrack_iter in range(MAX_BACKTRACK_ITER):
+        diff_objectives = 0.
+        diff_t = actual_t - prev_t
+
+        for idx, j in enumerate(ws):
+            w[j] += diff_t * delta_w[idx]
+
+            # diff penalty term
+            if w[j] < 0:
+                diff_objectives -= alpha * delta_w[idx]
+            elif w[j] > 0:
+                diff_objectives += alpha * delta_w[idx]
+            else:
+                diff_objectives -= alpha * abs(delta_w[idx])
+
+        for i in range(len(y)):
+            Xw[i] += diff_t * X_delta_w[i]
+        update_theta_exp_yXw(y, Xw, theta, exp_yXw)
+
+        # diff datafit term
+        diff_objectives += X_delta_w @ theta
+
+        if diff_objectives < 0:
+            break
+        else:
+            prev_t = actual_t
+            actual_t /= 2
+
+    if actual_t != 1.:
+        X_delta_w[:] = actual_t * X_delta_w
+
+    # cache grads next epoch
+    for idx, j in enumerate(ws):
+        tmp = 0.
+        for i in range(X_indptr[j], X_indptr[j+1]):
+            tmp += X_data[i] * theta[X_indices[i]]
+        new_prox_grad = tmp
+
+        tmp = 0.
+        for i in range(X_indptr[j], X_indptr[j+1]):
+            tmp += X_data[i] * hessian[X_indices[i]] * X_delta_w[X_indices[i]]
+        approximate_grad = prox_grads[idx] + tmp
+
         prox_grads[idx] = new_prox_grad
 
         prox_grad_diff += (new_prox_grad - approximate_grad) ** 2

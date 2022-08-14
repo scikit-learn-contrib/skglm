@@ -4,8 +4,10 @@ from py_numba_blitz.solver import py_blitz
 
 
 n_samples, n_features = 100, 200
+X_density = 0.5
 rho = 0.1
-X, y, _ = make_correlated_data(n_samples, n_features, random_state=0, X_density=0.5)
+X, y, _ = make_correlated_data(n_samples, n_features,
+                               random_state=0, X_density=X_density)
 y = np.sign(y)
 
 

@@ -45,13 +45,11 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100,
     update_theta_exp_yXw(y, Xw, theta, exp_yXw)
     for j in range(n_features):
         if is_sparse:
-            tmp = 0.
-            for i in range(X.indptr[j], X.indptr[j+1]):
-                tmp += X.data[i]**2
-            norm2_X_cols[j] = np.sqrt(tmp)
+            norm2_X_cols[j] = norm2_sparse(*X_bundles, j)
         else:
             norm2_X_cols[j] = np.linalg.norm(X[:, j], ord=2)
 
+    # main loop
     for t in range(max_iter):
         if is_sparse:
             update_XTtheta_s(*X_bundles, theta, XTtheta, remaining_features)
@@ -88,10 +86,7 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100,
         prox_grads = np.zeros(ws_size)
         for idx, j in enumerate(remaining_features[:ws_size]):
             if is_sparse:
-                tmp = 0.
-                for i in range(X.indptr[j], X.indptr[j+1]):
-                    tmp += X.data[i] * theta[X.indices[i]]
-                prox_grads[idx] = tmp
+                prox_grads[idx] = xj_dot_sparse(*X_bundles, j, theta)
             else:
                 prox_grads[idx] = X[:, j] @ theta
 
@@ -259,10 +254,8 @@ def _prox_newton_iteration_s(X_data, X_indptr, X_indices, y, w, Xw, exp_yXw,
     X_delta_w = np.zeros(len(y))
 
     for idx, j in enumerate(ws):
-        tmp = 0.
-        for i in range(X_indptr[j], X_indptr[j+1]):
-            tmp += hessian[X_indices[i]] * X_data[i] ** 2
-        lipschitz[idx] = tmp
+        lipschitz[idx] = squared_weighted_norm_sparse(X_data, X_indptr,
+                                                      X_indices, hessian, j)
 
     # find descent direction
     for cd_iter in range(max_cd_iter):
@@ -273,13 +266,8 @@ def _prox_newton_iteration_s(X_data, X_indptr, X_indices, y, w, Xw, exp_yXw,
                 continue
 
             old_w_j = w[j] + delta_w[idx]
-
-            # compute grad
-            tmp = 0.
-            for i in range(X_indptr[j], X_indptr[j+1]):
-                tmp += X_data[i] * hessian[X_indices[i]] * X_delta_w[X_indices[i]]
-            grad = prox_grads[idx] + tmp
-
+            grad = prox_grads[idx] + weighted_dot_sparse(X_data, X_indptr, X_indices,
+                                                         X_delta_w, hessian, j)
             step = 1 / lipschitz[idx]
             new_w_j = ST(old_w_j - step * grad, alpha * step)
 
@@ -332,18 +320,11 @@ def _prox_newton_iteration_s(X_data, X_indptr, X_indices, y, w, Xw, exp_yXw,
 
     # cache grads next epoch
     for idx, j in enumerate(ws):
-        tmp = 0.
-        for i in range(X_indptr[j], X_indptr[j+1]):
-            tmp += X_data[i] * theta[X_indices[i]]
-        new_prox_grad = tmp
-
-        tmp = 0.
-        for i in range(X_indptr[j], X_indptr[j+1]):
-            tmp += X_data[i] * hessian[X_indices[i]] * X_delta_w[X_indices[i]]
-        approximate_grad = prox_grads[idx] + tmp
-
+        new_prox_grad = xj_dot_sparse(X_data, X_indptr, X_indices, j, theta)
+        approximate_grad = prox_grads[idx] + weighted_dot_sparse(X_data, X_indptr,
+                                                                 X_indices, X_delta_w,
+                                                                 hessian, j)
         prox_grads[idx] = new_prox_grad
-
         prox_grad_diff += (new_prox_grad - approximate_grad) ** 2
 
     # compute theta scale
@@ -353,3 +334,39 @@ def _prox_newton_iteration_s(X_data, X_indptr, X_indices, y, w, Xw, exp_yXw,
         theta_scale = alpha / max_XTtheta_ws
 
     return theta_scale, prox_grad_diff
+
+
+@njit
+def norm2_sparse(data, indptr, indices, j):
+    """Compute ``norm(X[:, j], ord=2)`` in case ``X`` sparse."""
+    res = 0.
+    for i in range(indptr[j], indptr[j+1]):
+        res += data[i] ** 2
+    return np.sqrt(res)
+
+
+@njit
+def xj_dot_sparse(data, indptr, indices, j, b):
+    """Dot product of ``X[:, j]`` with ``X`` sparse and ``b``."""
+    res = 0.
+    for i in range(indptr[j], indptr[j + 1]):
+        res += data[i] * b[indices[i]]
+    return res
+
+
+@njit
+def weighted_dot_sparse(data, indptr, indices, b, weights, j):
+    """Weighted dot product between ``X[:, j]`` with ``X`` sparse and ``b``."""
+    res = 0.
+    for i in range(indptr[j], indptr[j + 1]):
+        res += data[i] * b[indices[i]] * weights[indices[i]]
+    return res
+
+
+@njit
+def squared_weighted_norm_sparse(data, indptr, indices, weights, j):
+    """Compute ``weights @ X[:, j]**2`` in case ``X`` sparse."""
+    res = 0.
+    for i in range(indptr[j], indptr[j + 1]):
+        res += (data[i] ** 2) * weights[indices[i]]
+    return res

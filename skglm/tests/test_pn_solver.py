@@ -44,7 +44,7 @@ def test_pn_vs_sklearn(rho, X_density):
     l1_penalty = compiled_clone(L1(alpha))
     w = pn_solver(X, y, log_datafit, l1_penalty, tol=1e-9)[0]
 
-    np.testing.assert_allclose(w, sk_log_reg.coef_.flatten(), rtol=1e-7, atol=1e-6)
+    np.testing.assert_allclose(w, sk_log_reg.coef_.flatten(), rtol=1e-6, atol=1e-6)
 
 
 if __name__ == '__main__':

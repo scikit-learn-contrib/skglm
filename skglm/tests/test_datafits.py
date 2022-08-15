@@ -41,7 +41,7 @@ def test_log_datafit():
 
     log_datafit = Logistic()
     grad = log_datafit.raw_gradient(y, Xw)
-    hess = log_datafit.raw_hessian(y, Xw, grad)
+    hess = log_datafit.raw_hessian(y, Xw)
 
     np.testing.assert_equal(grad.shape, (n_samples,))
     np.testing.assert_equal(hess.shape, (n_samples,))

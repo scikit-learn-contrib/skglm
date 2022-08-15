@@ -5,14 +5,60 @@ from numba import njit
 from skglm.solvers.common import construct_grad, construct_grad_sparse
 
 
-def pn_solver(X, y, datafit, penalty, max_epochs=1000, w_init=None,
-              max_iter=50, p0=10, tol=1e-9, verbose=0):
+def pn_solver(X, y, datafit, penalty, w_init=None, p0=10,
+              max_iter=20, max_epochs=1000, tol=1e-4, verbose=0):
+    """Run a Prox Newton solver.
+
+    Parameters
+    ----------
+    X : array, shape (n_samples, n_features)
+        Design matrix.
+
+    y : array, shape (n_samples,)
+        Target vector.
+
+    datafit : instance of BaseDatafit
+        Datafit object.
+
+    penalty : instance of BasePenalty
+        Penalty object.
+
+    w_init : array, shape (n_features,), default None
+        Initial value of coefficients.
+        If set to None, a zero vector is used instead.
+
+    p0 : int, default 10
+        Minimum number of groups to be included in the working set.
+
+    max_iter : int, default 20
+        Maximum number of iterations.
+
+    max_epochs : int, default 1000
+        Maximum number of epochs.
+
+    tol : float, default 1e-4
+        Tolerance for convergence.
+
+    verbose : bool, default False
+        Amount of verbosity. 0/False is silent.
+
+    Returns
+    -------
+    w : array, shape (n_features,)
+        Solution that minimizes the problem defined by datafit and penalty.
+
+    objs_out: array (max_iter,)
+        The objective values at every outer iteration.
+
+    stop_crit: float
+        The value of the stop criterion.
+    """
     n_samples, n_features = X.shape
     w = np.zeros(n_features) if w_init is None else w_init
     Xw = np.zeros(n_samples) if w_init is None else X @ w_init
     all_features = np.arange(n_features)
     stop_crit = 0.
-    obj_out = []
+    p_objs_out = []
 
     is_sparse = issparse(X)
     if is_sparse:
@@ -95,8 +141,8 @@ def pn_solver(X, y, datafit, penalty, max_epochs=1000, w_init=None,
                 break
 
         p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-        obj_out.append(p_obj)
-    return w, obj_out, stop_crit
+        p_objs_out.append(p_obj)
+    return w, p_objs_out, stop_crit
 
 
 @njit

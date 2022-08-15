@@ -53,23 +53,27 @@ def pn_solver(X, y, datafit, penalty, max_epochs=1000, w_init=None,
 
             # find descent direction
             if is_sparse:
-                delta_w_ws = _compute_descent_direction_s(*X_bundles, y, w, Xw,
-                                                          datafit, penalty, ws,
-                                                          max_cd_iter=20,
-                                                          tol=0.3*tol_in)
+                (
+                    delta_w_ws,
+                    X_delta_w_ws
+                ) = _compute_descent_direction_s(*X_bundles, y, w, Xw, datafit,
+                                                 penalty, ws, max_cd_iter=20,
+                                                 tol=0.3*tol_in)
             else:
-                delta_w_ws = _compute_descent_direction(X, y, w, Xw, datafit, penalty,
-                                                        ws, max_cd_iter=20,
-                                                        tol=0.3*tol_in)
+                (
+                    delta_w_ws,
+                    X_delta_w_ws
+                ) = _compute_descent_direction(X, y, w, Xw, datafit, penalty,
+                                               ws, max_cd_iter=20, tol=0.3*tol_in)
 
             # backtracking line search with inplace update of w, Xw
             if is_sparse:
                 grad_ws = _backtrack_line_search_s(*X_bundles, y, w, Xw, datafit,
-                                                   penalty, delta_w_ws, ws,
-                                                   max_backtrack_iter=20)
+                                                   penalty, delta_w_ws, X_delta_w_ws,
+                                                   ws, max_backtrack_iter=20)
             else:
                 grad_ws = _backtrack_line_search(X, y, w, Xw, datafit, penalty,
-                                                 delta_w_ws, ws, max_backtrack_iter=20)
+                                                 delta_w_ws, X_delta_w_ws, ws, max_backtrack_iter=20)
 
             # check convergence
             opt_in = penalty.subdiff_distance(w, grad_ws, ws)
@@ -104,9 +108,11 @@ def _compute_descent_direction(X, y, w_epoch, Xw_epoch, datafit, penalty,
     raw_grad = datafit.raw_gradient(y, Xw_epoch)
     raw_hess = datafit.raw_hessian(y, Xw_epoch, raw_grad)
 
+    X_ws_raw_grad = np.zeros(len(ws))
     lipschitz = np.zeros(len(ws))
     for idx, j in enumerate(ws):
         lipschitz[idx] = np.sum(raw_hess * X[:, j] ** 2)
+        X_ws_raw_grad[idx] = X[:, j] @ raw_grad
 
     cached_grads = np.zeros(len(ws))
     X_delta_w = np.zeros(X.shape[0])
@@ -119,7 +125,7 @@ def _compute_descent_direction(X, y, w_epoch, Xw_epoch, datafit, penalty,
             if lipschitz[idx] == 0:
                 continue
 
-            cached_grads[idx] = X[:, j] @ (raw_grad + raw_hess * X_delta_w)
+            cached_grads[idx] = X_ws_raw_grad[idx] + X[:, j] @ (raw_hess * X_delta_w)
             old_w_idx = w_ws[idx]
             stepsize = 1 / lipschitz[idx]
 
@@ -137,7 +143,7 @@ def _compute_descent_direction(X, y, w_epoch, Xw_epoch, datafit, penalty,
                 break
 
     # descent direction
-    return w_ws - w_epoch[ws]
+    return w_ws - w_epoch[ws], X_delta_w
 
 
 # sparse version of func above
@@ -148,10 +154,12 @@ def _compute_descent_direction_s(X_data, X_indptr, X_indices, y,
     raw_grad = datafit.raw_gradient(y, Xw_epoch)
     raw_hess = datafit.raw_hessian(y, Xw_epoch, raw_grad)
 
+    X_ws_raw_grad = np.zeros(len(ws))
     lipschitz = np.zeros(len(ws))
     for idx, j in enumerate(ws):
         for i in range(X_indptr[j], X_indptr[j+1]):
             lipschitz[idx] += raw_hess[X_indices[i]] * X_data[i] ** 2
+            X_ws_raw_grad[idx] += X_data[i] * raw_grad[X_indices[i]]
 
     cached_grads = np.zeros(len(ws))
     X_delta_w = np.zeros(len(y))
@@ -164,11 +172,10 @@ def _compute_descent_direction_s(X_data, X_indptr, X_indices, y,
             if lipschitz[idx] == 0:
                 continue
 
-            cached_grads[idx] = 0.
+            cached_grads[idx] = X_ws_raw_grad[idx]
             for i in range(X_indptr[j], X_indptr[j+1]):
                 row_i = X_indices[i]
-                cached_grads[idx] += X_data[i] * (raw_grad[row_i] +
-                                                  raw_hess[row_i] * X_delta_w[row_i])
+                cached_grads[idx] += X_data[i] * raw_hess[row_i] * X_delta_w[row_i]
 
             old_w_idx = w_ws[idx]
             stepsize = 1 / lipschitz[idx]
@@ -188,11 +195,11 @@ def _compute_descent_direction_s(X_data, X_indptr, X_indices, y,
                 break
 
     # descent direction
-    return w_ws - w_epoch[ws]
+    return w_ws - w_epoch[ws], X_delta_w
 
 
 @njit
-def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
+def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws, X_delta_w_ws,
                            ws, max_backtrack_iter):
     # inplace update of w and Xw
     # use linear approx for diff datafit
@@ -202,10 +209,12 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
 
     for backtrack_iter in range(max_backtrack_iter):
         stop_crit = -prev_penalty_val
-        for idx, j in enumerate(ws):
-            old_w_j = w[j]
-            w[j] += (step - prev_step) * delta_w_ws[idx]
-            Xw += (w[j] - old_w_j) * X[:, j]
+        # for idx, j in enumerate(ws):
+        #     old_w_j = w[j]
+        #     w[j] += (step - prev_step) * delta_w_ws[idx]
+        #     Xw += (w[j] - old_w_j) * X[:, j]
+        w[ws] += (step - prev_step) * delta_w_ws
+        Xw += (step - prev_step) * X_delta_w_ws
 
         grad_ws = construct_grad(X, y, w, Xw, datafit, ws)
         stop_crit += step * grad_ws @ delta_w_ws
@@ -224,19 +233,21 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
 @njit
 def _backtrack_line_search_s(X_data, X_indptr, X_indices,
                              y, w, Xw, datafit, penalty, delta_w_ws,
-                             ws, max_backtrack_iter):
+                             X_delta_w_ws, ws, max_backtrack_iter):
     # inplace update of w and Xw
     step, prev_step = 1., 0.
     prev_penalty_val = penalty.value(w[ws])
 
     for backtrack_iter in range(max_backtrack_iter):
         stop_crit = -prev_penalty_val
-        for idx, j in enumerate(ws):
-            old_w_j = w[j]
-            w[j] += (step - prev_step) * delta_w_ws[idx]
+        # for idx, j in enumerate(ws):
+        #     old_w_j = w[j]
+        #     w[j] += (step - prev_step) * delta_w_ws[idx]
 
-            for i in range(X_indptr[j], X_indptr[j+1]):
-                Xw[X_indices[i]] += (w[j] - old_w_j) * X_data[i]
+        #     for i in range(X_indptr[j], X_indptr[j+1]):
+        #         Xw[X_indices[i]] += (w[j] - old_w_j) * X_data[i]
+        w[ws] += (step - prev_step) * delta_w_ws
+        Xw += (step - prev_step) * X_delta_w_ws
 
         grad_ws = construct_grad_sparse(X_data, X_indptr, X_indices,
                                         y, w, Xw, datafit, ws)

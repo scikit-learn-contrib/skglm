@@ -6,7 +6,8 @@ from skglm.solvers.common import construct_grad, construct_grad_sparse
 
 
 def pn_solver(X, y, datafit, penalty, max_epochs=1000, w_init=None,
-              max_iter=50, p0=10, tol=1e-9, use_acc=True, verbose=0):
+              max_iter=50, p0=10, tol=1e-9, use_acc=False,
+              sort_ws=False, verbose=0):
     n_samples, n_features = X.shape
     w = np.zeros(n_features) if w_init is None else w_init
     Xw = np.zeros(n_samples) if w_init is None else X @ w_init
@@ -47,6 +48,9 @@ def pn_solver(X, y, datafit, penalty, max_epochs=1000, w_init=None,
                       min(n_features, 2 * gsupp_size))
         # similar to np.argsort()[-ws_size:] but without sorting
         ws = np.argpartition(opt, -ws_size)[-ws_size:]
+
+        if sort_ws:
+            ws[:] = ws[np.argsort(opt[ws])[::-1]]
 
         for epoch in range(max_epochs):
             tol_in = 0.3 * stop_crit

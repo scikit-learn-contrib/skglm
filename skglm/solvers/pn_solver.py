@@ -59,13 +59,13 @@ def pn_solver(X, y, datafit, penalty, max_epochs=1000, w_init=None,
                     X_delta_w_ws
                 ) = _compute_descent_direction_s(*X_bundles, y, w, Xw, grad_ws,
                                                  datafit, penalty, ws,
-                                                 max_cd_iter=20, tol=tol_in)
+                                                 max_cd_iter=20, tol=0.3*tol_in)
             else:
                 (
                     delta_w_ws,
                     X_delta_w_ws
                 ) = _compute_descent_direction(X, y, w, Xw, grad_ws, datafit, penalty,
-                                               ws, max_cd_iter=20, tol=tol_in)
+                                               ws, max_cd_iter=20, tol=0.3*tol_in)
 
             # backtracking line search with inplace update of w, Xw
             if is_sparse:

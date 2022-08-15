@@ -1,7 +1,7 @@
 from .base import BaseDatafit, BaseMultitaskDatafit  # noqa F401
 
-from .single_task import (  # noqa F401
-    Quadratic, Quadratic_32, QuadraticSVC, QuadraticSVC_32, Logistic, Logistic_32,
-)
+from .single_task import Quadratic, QuadraticSVC, Logistic, Huber  # noqa F401
 
 from .multi_task import QuadraticMultiTask  # noqa F401
+
+from .group import QuadraticGroup  # noqa F401

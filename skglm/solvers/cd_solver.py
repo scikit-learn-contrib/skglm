@@ -2,6 +2,7 @@ import numpy as np
 from numba import njit
 from scipy import sparse
 from sklearn.utils import check_array
+from skglm.solvers.common import construct_grad, construct_grad_sparse, dist_fix_point
 
 
 def cd_solver_path(X, y, datafit, penalty, alphas=None,
@@ -92,7 +93,7 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
     # X_dense, X_data, X_indices, X_indptr = _sparse_and_dense(X)
 
     if alphas is None:
-        raise ValueError('alphas should be passed explicitely')
+        raise ValueError('alphas should be passed explicitly')
         # if hasattr(penalty, "alpha_max"):
         #     if sparse.issparse(X):
         #         grad0 = construct_grad_sparse(
@@ -214,14 +215,14 @@ def cd_solver(
 
     Returns
     -------
-    alphas : array, shape (n_alphas,)
-        The alphas along the path where models are computed.
-
     coefs : array, shape (n_features, n_alphas)
         Coefficients along the path.
 
-    stop_crit : array, shape (n_alphas,)
-        Value of stopping criterion at convergence along the path.
+    obj_out : array, shape (n_iter,)
+        The objective values at every outer iteration.
+
+    stop_crit : float
+        Value of stopping criterion at convergence.
     """
     if ws_strategy not in ("subdiff", "fixpoint"):
         raise ValueError(f'Unsupported value for ws_strategy: {ws_strategy}')
@@ -322,14 +323,14 @@ def cd_solver(
                 p_obj = datafit.value(y, w[ws], Xw) + penalty.value(w)
 
                 if is_sparse:
-                    grad = construct_grad_sparse(
+                    grad_ws = construct_grad_sparse(
                         X.data, X.indptr, X.indices, y, w, Xw, datafit, ws)
                 else:
-                    grad = construct_grad(X, y, w, Xw, datafit, ws)
+                    grad_ws = construct_grad(X, y, w, Xw, datafit, ws)
                 if ws_strategy == "subdiff":
-                    opt_ws = penalty.subdiff_distance(w, grad, ws)
+                    opt_ws = penalty.subdiff_distance(w, grad_ws, ws)
                 elif ws_strategy == "fixpoint":
-                    opt_ws = dist_fix_point(w, grad, datafit, penalty, ws)
+                    opt_ws = dist_fix_point(w, grad_ws, datafit, penalty, ws)
 
                 stop_crit_in = np.max(opt_ws)
                 if max(verbose - 1, 0):
@@ -348,119 +349,7 @@ def cd_solver(
 
 
 @njit
-def dist_fix_point(w, grad, datafit, penalty, ws):
-    """Compute the violation of the fixed point iterate scheme.
-
-    Parameters
-    ----------
-    w : array, shape (n_features,)
-        Coefficient vector.
-
-    grad : array, shape (n_features,)
-        Gradient.
-
-    datafit: instance of BaseDatafit
-        Datafit.
-
-    penalty: instance of BasePenalty
-        Penalty.
-
-    ws : array, shape (n_features,)
-        The working set.
-
-    Returns
-    -------
-    dist_fix_point : array, shape (n_features,)
-        Violation score for every feature.
-    """
-    dist_fix_point = np.zeros(ws.shape[0])
-    for idx, j in enumerate(ws):
-        lcj = datafit.lipschitz[j]
-        if lcj != 0:
-            dist_fix_point[idx] = np.abs(
-                w[j] - penalty.prox_1d(w[j] - grad[idx] / lcj, 1. / lcj, j))
-    return dist_fix_point
-
-
-@njit
-def construct_grad(X, y, w, Xw, datafit, ws):
-    """Compute the gradient of the datafit restricted to the working set.
-
-    Parameters
-    ----------
-    X : array, shape (n_samples, n_features)
-        Design matrix.
-
-    y : array, shape (n_samples,)
-        Target vector.
-
-    w : array, shape (n_features,)
-        Coefficient vector.
-
-    Xw : array, shape (n_samples, )
-        Model fit.
-
-    datafit : Datafit
-        Datafit.
-
-    ws : array, shape (n_features,)
-        The working set.
-
-    Returns
-    -------
-    grad : array, shape (ws_size, n_tasks)
-        The gradient restricted to the working set.
-    """
-    grad = np.zeros(ws.shape[0])
-    for idx, j in enumerate(ws):
-        grad[idx] = datafit.gradient_scalar(X, y, w, Xw, j)
-    return grad
-
-
-@njit
-def construct_grad_sparse(data, indptr, indices, y, w, Xw, datafit, ws):
-    """Compute the gradient of the datafit restricted to the working set.
-
-    Parameters
-    ----------
-    data : array-like
-        Data array of the matrix in CSC format.
-
-    indptr : array-like
-        CSC format index point array.
-
-    indices : array-like
-        CSC format index array.
-
-    y : array, shape (n_samples, )
-        Target matrix.
-
-    w : array, shape (n_features,)
-        Coefficient matrix.
-
-    Xw : array, shape (n_samples, )
-        Model fit.
-
-    datafit : Datafit
-        Datafit.
-
-    ws : array, shape (n_features,)
-        The working set.
-
-    Returns
-    -------
-    grad : array, shape (ws_size, n_tasks)
-        The gradient restricted to the working set.
-    """
-    grad = np.zeros(ws.shape[0])
-    for idx, j in enumerate(ws):
-        grad[idx] = datafit.gradient_scalar_sparse(
-            data, indptr, indices, y, Xw, j)
-    return grad
-
-
-@njit
-def _cd_epoch(X, y, w, Xw, datafit, penalty, feats):
+def _cd_epoch(X, y, w, Xw, datafit, penalty, ws):
     """Run an epoch of coordinate descent in place.
 
     Parameters
@@ -483,11 +372,11 @@ def _cd_epoch(X, y, w, Xw, datafit, penalty, feats):
     penalty : Penalty
         Penalty.
 
-    feats : array, shape (n_features,)
+    ws : array, shape (ws_size,)
         The range of features.
     """
     lc = datafit.lipschitz
-    for j in feats:
+    for j in ws:
         stepsize = 1/lc[j] if lc[j] != 0 else 1000
         Xj = X[:, j]
         old_w_j = w[j]
@@ -499,7 +388,7 @@ def _cd_epoch(X, y, w, Xw, datafit, penalty, feats):
 
 
 @njit
-def _cd_epoch_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, penalty, feats):
+def _cd_epoch_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, penalty, ws):
     """Run an epoch of coordinate descent in place for a sparse CSC array.
 
     Parameters
@@ -528,11 +417,11 @@ def _cd_epoch_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, penalty, fe
     penalty : Penalty
         Penalty.
 
-    feats : array, shape (n_features,)
-        The range of features.
+    ws : array, shape (ws_size,)
+        The working set.
     """
     lc = datafit.lipschitz
-    for j in feats:
+    for j in ws:
         stepsize = 1/lc[j] if lc[j] != 0 else 1000
 
         old_w_j = w[j]

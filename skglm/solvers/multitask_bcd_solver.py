@@ -83,7 +83,7 @@ def bcd_solver_path(
         datafit.initialize_sparse(X.data, X.indptr, X.indices, Y)
     else:
         datafit.initialize(X, Y)
-    n_samples, n_features = X.shape
+    n_features = X.shape[1]
     n_tasks = Y.shape[1]
     if alphas is None:
         raise ValueError("alphas should be provided.")
@@ -194,14 +194,14 @@ def bcd_solver(
 
     Returns
     -------
-    alphas : array, shape (n_alphas,)
-        The alphas along the path where models are computed.
-
     coefs : array, shape (n_features, n_tasks, n_alphas)
         Coefficients along the path.
 
-    stop_crit : array, shape (n_alphas,)
-        Value of stopping criterion at convergence along the path.
+    obj_out : array, shape (n_iter,)
+        The objective values at every outer iteration.
+
+    stop_crit : float
+        Value of stopping criterion at convergence.
     """
     n_tasks = Y.shape[1]
     n_features = X.shape[1]
@@ -285,15 +285,15 @@ def bcd_solver(
                 p_obj = datafit.value(Y, W[ws, :], XW) + penalty.value(W)
 
                 if is_sparse:
-                    grad = construct_grad_sparse(
+                    grad_ws = construct_grad_sparse(
                         X.data, X.indptr, X.indices, Y, XW, datafit, ws)
                 else:
-                    grad = construct_grad(X, Y, W, XW, datafit, ws)
+                    grad_ws = construct_grad(X, Y, W, XW, datafit, ws)
 
                 if ws_strategy == "subdiff":
-                    opt_ws = penalty.subdiff_distance(W, grad, ws)
+                    opt_ws = penalty.subdiff_distance(W, grad_ws, ws)
                 elif ws_strategy == "fixpoint":
-                    opt_ws = dist_fix_point(W, grad, datafit, penalty, ws)
+                    opt_ws = dist_fix_point(W, grad_ws, datafit, penalty, ws)
 
                 stop_crit_in = np.max(opt_ws)
                 if max(verbose - 1, 0):
@@ -312,7 +312,7 @@ def bcd_solver(
 
 
 @njit
-def dist_fix_point(W, grad, datafit, penalty, ws):
+def dist_fix_point(W, grad_ws, datafit, penalty, ws):
     """Compute the violation of the fixed point iterate schema.
 
     Parameters
@@ -320,8 +320,8 @@ def dist_fix_point(W, grad, datafit, penalty, ws):
     W : array, shape (n_features, n_tasks)
         Coefficient matrix.
 
-    grad : array, shape (n_features, n_tasks)
-        Gradient.
+    grad_ws : array, shape (ws_size, n_tasks)
+        Gradient restricted to the working set.
 
     datafit: instance of BaseMultiTaskDatafit
         Datafit.
@@ -329,7 +329,7 @@ def dist_fix_point(W, grad, datafit, penalty, ws):
     penalty: instance of BasePenalty
         Penalty.
 
-    ws : array, shape (n_features,)
+    ws : array, shape (ws_size,)
         The working set.
 
     Returns
@@ -342,7 +342,7 @@ def dist_fix_point(W, grad, datafit, penalty, ws):
         lcj = datafit.lipschitz[j]
         if lcj:
             dist_fix_point[idx] = norm(
-                W[j] - penalty.prox_1feat(W[j] - grad[idx] / lcj, 1. / lcj, j))
+                W[j] - penalty.prox_1feat(W[j] - grad_ws[idx] / lcj, 1. / lcj, j))
     return dist_fix_point
 
 
@@ -367,7 +367,7 @@ def construct_grad(X, Y, W, XW, datafit, ws):
     datafit : instance of BaseMultiTaskDatafit
         Datafit.
 
-    ws : array, shape (n_features,)
+    ws : array, shape (ws_size,)
         The working set.
 
     Returns
@@ -423,7 +423,7 @@ def construct_grad_sparse(data, indptr, indices, Y, XW, datafit, ws):
 
 
 @njit
-def _bcd_epoch(X, Y, W, XW, datafit, penalty, feats):
+def _bcd_epoch(X, Y, W, XW, datafit, penalty, ws):
     """Run an epoch of block coordinate descent in place.
 
     Parameters
@@ -446,12 +446,12 @@ def _bcd_epoch(X, Y, W, XW, datafit, penalty, feats):
     penalty : instance of BasePenalty
         Penalty.
 
-    feats : array, shape (ws_size,)
-        Features to be updated.
+    ws : array, shape (ws_size,)
+        The working set.
     """
     lc = datafit.lipschitz
     n_tasks = Y.shape[1]
-    for j in feats:
+    for j in ws:
         if lc[j] == 0.:
             continue
         Xj = X[:, j]
@@ -467,7 +467,7 @@ def _bcd_epoch(X, Y, W, XW, datafit, penalty, feats):
 
 
 @njit
-def _bcd_epoch_sparse(X_data, X_indptr, X_indices, Y, W, XW, datafit, penalty, feats):
+def _bcd_epoch_sparse(X_data, X_indptr, X_indices, Y, W, XW, datafit, penalty, ws):
     """Run an epoch of block coordinate descent in place for a sparse CSC array.
 
     Parameters
@@ -496,11 +496,11 @@ def _bcd_epoch_sparse(X_data, X_indptr, X_indices, Y, W, XW, datafit, penalty, f
     penalty : instance of BasePenalty
         Penalty.
 
-    feats : array, shape (ws_size,)
+    ws : array, shape (ws_size,)
         Features to be updated.
     """
     lc = datafit.lipschitz
-    for j in feats:
+    for j in ws:
         if lc[j] == 0.:
             continue
         old_W_j = W[j, :].copy()

@@ -3,13 +3,7 @@ from numpy.linalg import norm
 from numba import njit
 from numba import float64
 
-from skglm.datafits.base import BaseDatafit, jit_factory
-
-
-spec_quadratic = [
-    ('Xty', float64[:]),
-    ('lipschitz', float64[:]),
-]
+from skglm.datafits.base import BaseDatafit
 
 
 class Quadratic(BaseDatafit):
@@ -30,13 +24,22 @@ class Quadratic(BaseDatafit):
 
     Note
     ----
-    The class Quadratic is subsequently decorated with a @jitclass decorator with
-    the `jit_factory` function to be compiled. This allows for faster computations
-    using Numba JIT compiler.
+    The class is jit compiled at fit time using Numba compiler.
+    This allows for faster computations.
     """
 
     def __init__(self):
         pass
+
+    def get_spec(self):
+        spec = (
+            ('Xty', float64[:]),
+            ('lipschitz', float64[:]),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict()
 
     def initialize(self, X, y):
         self.Xty = X.T @ y
@@ -85,9 +88,6 @@ class Quadratic(BaseDatafit):
         return grad
 
 
-Quadratic, Quadratic_32 = jit_factory(Quadratic, spec_quadratic)
-
-
 @njit
 def sigmoid(x):
     """Vectorwise sigmoid."""
@@ -95,12 +95,7 @@ def sigmoid(x):
     return out
 
 
-spec_logistic = [
-    ('lipschitz', float64[:]),
-]
-
-
-class _Logistic(BaseDatafit):
+class Logistic(BaseDatafit):
     r"""Logistic datafit with labels in {-1, 1}.
 
     The datafit reads::
@@ -115,13 +110,21 @@ class _Logistic(BaseDatafit):
 
     Note
     ----
-    The class _Logistic is subsequently decorated with a @jitclass decorator with
-    the `jit_factory` function to be compiled. This allows for faster computations
-    using Numba JIT compiler.
+    The class is jit compiled at fit time using Numba compiler.
+    This allows for faster computations.
     """
 
     def __init__(self):
         pass
+
+    def get_spec(self):
+        spec = (
+            ('lipschitz', float64[:]),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict()
 
     def initialize(self, X, y):
         self.lipschitz = (X ** 2).sum(axis=0) / (len(y) * 4)
@@ -158,15 +161,7 @@ class _Logistic(BaseDatafit):
         return grad / len(Xw)
 
 
-Logistic, Logistic_32 = jit_factory(_Logistic, spec_logistic)
-
-
-spec_quadratic_svc = [
-    ('lipschitz', float64[:]),
-]
-
-
-class _QuadraticSVC(BaseDatafit):
+class QuadraticSVC(BaseDatafit):
     """A Quadratic SVC datafit used for classification tasks.
 
     The datafit reads::
@@ -180,13 +175,21 @@ class _QuadraticSVC(BaseDatafit):
 
     Note
     ----
-    The class _Logistic is subsequently decorated with a @jitclass decorator with
-    the `jit_factory` function to be compiled. This allows for faster computations
-    using Numba JIT compiler.
+    The class is jit compiled at fit time using Numba compiler.
+    This allows for faster computations.
     """
 
     def __init__(self):
         pass
+
+    def get_spec(self):
+        spec = (
+            ('lipschitz', float64[:]),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict()
 
     def initialize(self, yXT, y):
         n_features = yXT.shape[1]
@@ -231,4 +234,103 @@ class _QuadraticSVC(BaseDatafit):
         return grad
 
 
-QuadraticSVC, QuadraticSVC_32 = jit_factory(_QuadraticSVC, spec_quadratic_svc)
+class Huber(BaseDatafit):
+    """Huber datafit.
+
+    The datafit reads::
+
+    (1 / n_samples) * sum_{i=1}^{n_samples} f(y_i - Xw_i)
+
+    where f is the Huber function:
+
+    f(x) =
+    1 / 2 * x^2                      if x <= delta
+    delta * |x| - 1/2 * delta^2      if x > delta
+
+    Attributes
+    ----------
+    lipschitz : array, shape (n_features,)
+        The coordinatewise gradient Lipschitz constants.
+
+    Note
+    ----
+    The class is jit compiled at fit time using Numba compiler.
+    This allows for faster computations.
+    """
+
+    def __init__(self, delta):
+        self.delta = delta
+
+    def get_spec(self):
+        spec = (
+            ('delta', float64),
+            ('lipschitz', float64[:])
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(delta=self.delta)
+
+    def initialize(self, X, y):
+        n_features = X.shape[1]
+        self.lipschitz = np.zeros(n_features, dtype=X.dtype)
+        for j in range(n_features):
+            self.lipschitz[j] = (X[:, j] ** 2).sum() / len(y)
+
+    def initialize_sparse(
+            self, X_data, X_indptr, X_indices, y):
+        n_features = len(X_indptr) - 1
+        self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
+        for j in range(n_features):
+            nrm2 = 0.
+            for idx in range(X_indptr[j], X_indptr[j + 1]):
+                nrm2 += X_data[idx] ** 2
+            self.lipschitz[j] = nrm2 / len(y)
+
+    def value(self, y, w, Xw):
+        n_samples = len(y)
+        res = 0.
+        for i in range(n_samples):
+            tmp = abs(y[i] - Xw[i])
+            if tmp < self.delta:
+                res += 0.5 * tmp ** 2
+            else:
+                res += self.delta * tmp - 0.5 * self.delta ** 2
+        return res / n_samples
+
+    def gradient_scalar(self, X, y, w, Xw, j):
+        n_samples = len(y)
+        grad_j = 0.
+        for i in range(n_samples):
+            tmp = y[i] - Xw[i]
+            if abs(tmp) < self.delta:
+                grad_j += - X[i, j] * tmp
+            else:
+                grad_j += - X[i, j] * np.sign(tmp) * self.delta
+        return grad_j / n_samples
+
+    def gradient_scalar_sparse(self, X_data, X_indptr, X_indices, y, Xw, j):
+        grad_j = 0.
+        for i in range(X_indptr[j], X_indptr[j + 1]):
+            tmp = y[X_indices[i]] - Xw[X_indices[i]]
+            if np.abs(tmp) < self.delta:
+                grad_j += - X_data[i] * tmp
+            else:
+                grad_j += - X_data[i] * np.sign(tmp) * self.delta
+        return grad_j / len(Xw)
+
+    def full_grad_sparse(
+            self, X_data, X_indptr, X_indices, y, Xw):
+        n_features = X_indptr.shape[0] - 1
+        n_samples = y.shape[0]
+        grad = np.zeros(n_features, dtype=Xw.dtype)
+        for j in range(n_features):
+            grad_j = 0.
+            for i in range(X_indptr[j], X_indptr[j + 1]):
+                tmp = y[X_indices[i]] - Xw[X_indices[i]]
+                if np.abs(tmp) < self.delta:
+                    grad_j += - X_data[i] * tmp
+                else:
+                    grad_j += - X_data[i] * np.sign(tmp) * self.delta
+            grad[j] = grad_j / n_samples
+        return grad

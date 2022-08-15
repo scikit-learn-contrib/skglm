@@ -103,23 +103,19 @@ def pn_solver(X, y, datafit, penalty, max_epochs=1000, w_init=None,
 def _compute_descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit, penalty,
                                ws, max_cd_iter, tol):
     # Given:
-    #   - b = \nabla   F(X w_epoch)   <------>  raw_grad
+    #   - b = \nabla   F(X w_epoch)
     #   - D = \nabla^2 F(X w_epoch)   <------>  raw_hess
-    # Minimize for w:
-    #  b.T @ X @ (w - w_epoch) + \
-    #  1/2 * (w - w_epoch).T @ X.T @ D @ X @ (w - w_epoch) + penalty(w)
-
-    # raw_grad = datafit.raw_gradient(y, Xw_epoch)
+    # Minimize for delta_w = w - w_epoch:
+    #  b.T @ X @ delta_w + \
+    #  1/2 * delta_w.T @ (X.T @ D @ X) @ delta_w + penalty(w)
     raw_hess = datafit.raw_hessian(y, Xw_epoch)
 
-    # X_ws_raw_grad = np.zeros(len(ws))
     lipschitz = np.zeros(len(ws))
     for idx, j in enumerate(ws):
-        lipschitz[idx] = np.sum(raw_hess * X[:, j] ** 2)
-        # X_ws_raw_grad[idx] = X[:, j] @ raw_grad
+        lipschitz[idx] = raw_hess @ X[:, j] ** 2
 
     cached_grads = np.zeros(len(ws))
-    X_delta_w = np.zeros(X.shape[0])
+    X_delta_w_ws = np.zeros(X.shape[0])
     w_ws = w_epoch[ws]
 
     for cd_iter in range(max_cd_iter):
@@ -129,7 +125,7 @@ def _compute_descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit, penalt
             if lipschitz[idx] == 0:
                 continue
 
-            cached_grads[idx] = grad_ws[idx] + X[:, j] @ (raw_hess * X_delta_w)
+            cached_grads[idx] = grad_ws[idx] + X[:, j] @ (raw_hess * X_delta_w_ws)
             old_w_idx = w_ws[idx]
             stepsize = 1 / lipschitz[idx]
 
@@ -139,7 +135,7 @@ def _compute_descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit, penalt
             )
 
             if w_ws[idx] != old_w_idx:
-                X_delta_w += (w_ws[idx] - old_w_idx) * X[:, j]
+                X_delta_w_ws += (w_ws[idx] - old_w_idx) * X[:, j]
 
         if cd_iter % 5 == 0:
             opt = penalty.subdiff_distance(w_ws, cached_grads, ws)
@@ -147,7 +143,7 @@ def _compute_descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit, penalt
                 break
 
     # descent direction
-    return w_ws - w_epoch[ws], X_delta_w
+    return w_ws - w_epoch[ws], X_delta_w_ws
 
 
 # sparse version of func above
@@ -155,18 +151,15 @@ def _compute_descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit, penalt
 def _compute_descent_direction_s(X_data, X_indptr, X_indices, y,
                                  w_epoch, Xw_epoch, grad_ws, datafit, penalty,
                                  ws, max_cd_iter, tol):
-    #raw_grad = datafit.raw_gradient(y, Xw_epoch)
     raw_hess = datafit.raw_hessian(y, Xw_epoch)
 
-    # X_ws_raw_grad = np.zeros(len(ws))
     lipschitz = np.zeros(len(ws))
     for idx, j in enumerate(ws):
         for i in range(X_indptr[j], X_indptr[j+1]):
             lipschitz[idx] += raw_hess[X_indices[i]] * X_data[i] ** 2
-            # X_ws_raw_grad[idx] += X_data[i] * raw_grad[X_indices[i]]
 
     cached_grads = np.zeros(len(ws))
-    X_delta_w = np.zeros(len(y))
+    X_delta_w_ws = np.zeros(len(y))
     w_ws = w_epoch[ws]
 
     for cd_iter in range(max_cd_iter):
@@ -179,7 +172,7 @@ def _compute_descent_direction_s(X_data, X_indptr, X_indices, y,
             cached_grads[idx] = grad_ws[idx]
             for i in range(X_indptr[j], X_indptr[j+1]):
                 row_i = X_indices[i]
-                cached_grads[idx] += X_data[i] * raw_hess[row_i] * X_delta_w[row_i]
+                cached_grads[idx] += X_data[i] * raw_hess[row_i] * X_delta_w_ws[row_i]
 
             old_w_idx = w_ws[idx]
             stepsize = 1 / lipschitz[idx]
@@ -191,7 +184,7 @@ def _compute_descent_direction_s(X_data, X_indptr, X_indices, y,
 
             if w_ws[idx] != old_w_idx:
                 for i in range(X_indptr[j], X_indptr[j+1]):
-                    X_delta_w[X_indices[i]] += (w_ws[idx] - old_w_idx) * X_data[i]
+                    X_delta_w_ws[X_indices[i]] += (w_ws[idx] - old_w_idx) * X_data[i]
 
         if cd_iter % 5 == 0:
             opt = penalty.subdiff_distance(w_ws, cached_grads, ws)
@@ -199,24 +192,19 @@ def _compute_descent_direction_s(X_data, X_indptr, X_indices, y,
                 break
 
     # descent direction
-    return w_ws - w_epoch[ws], X_delta_w
+    return w_ws - w_epoch[ws], X_delta_w_ws
 
 
 @njit
 def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws, X_delta_w_ws,
                            ws, max_backtrack_iter):
     # inplace update of w and Xw
-    # use linear approx for diff datafit
-    # return grad_ws for last w and Xw
+    # return grad_ws of the last w and Xw
     step, prev_step = 1., 0.
     prev_penalty_val = penalty.value(w[ws])
 
     for backtrack_iter in range(max_backtrack_iter):
         stop_crit = -prev_penalty_val
-        # for idx, j in enumerate(ws):
-        #     old_w_j = w[j]
-        #     w[j] += (step - prev_step) * delta_w_ws[idx]
-        #     Xw += (w[j] - old_w_j) * X[:, j]
         w[ws] += (step - prev_step) * delta_w_ws
         Xw += (step - prev_step) * X_delta_w_ws
 
@@ -244,12 +232,6 @@ def _backtrack_line_search_s(X_data, X_indptr, X_indices,
 
     for backtrack_iter in range(max_backtrack_iter):
         stop_crit = -prev_penalty_val
-        # for idx, j in enumerate(ws):
-        #     old_w_j = w[j]
-        #     w[j] += (step - prev_step) * delta_w_ws[idx]
-
-        #     for i in range(X_indptr[j], X_indptr[j+1]):
-        #         Xw[X_indices[i]] += (w[j] - old_w_j) * X_data[i]
         w[ws] += (step - prev_step) * delta_w_ws
         Xw += (step - prev_step) * X_delta_w_ws
 

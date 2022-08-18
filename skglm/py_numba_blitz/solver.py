@@ -70,7 +70,8 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100,
 
         threshold = np.sqrt(2 * gap / LOGREG_LIPSCHITZ_CONST)
         remaining_features = compute_remaining_features(remaining_features, XTphi,
-                                                        w, norm2_X_cols, alpha, threshold)
+                                                        w, norm2_X_cols, alpha,
+                                                        threshold)
 
         # The output of sorting algo might differ for an array
         # which some of its elements are equal (e.g [0, 1, 5, 0, 0, 8, 0])

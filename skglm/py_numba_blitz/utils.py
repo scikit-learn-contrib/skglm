@@ -72,7 +72,8 @@ def update_phi_XTphi(scaled_theta, scaled_XTtheta, phi, XTphi, alpha, ws):
 
 
 @njit
-def compute_remaining_features(remaining_features, XTphi, w, norm2_X_cols, alpha, threshold):
+def compute_remaining_features(remaining_features, XTphi, w, norm2_X_cols,
+                               alpha, threshold):
     """Discard features whose scores are above ``threshold``."""
     features_scores = np.zeros(len(remaining_features))
 

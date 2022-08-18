@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.sparse import csc_matrix
 from skglm.utils import make_correlated_data
-from py_numba_blitz.solver import (py_blitz, _prox_newton_iteration,
+from py_numba_blitz.solver import (py_blitz, _prox_newton_iteration,  # noqa
                                    _prox_newton_iteration_s)
 import line_profiler
 

@@ -1,10 +1,14 @@
 import numpy as np
 from scipy.sparse import issparse
 from numba import njit
-from py_numba_blitz.utils import(compute_primal_obj, compute_dual_obj,
-                                 compute_remaining_features,
-                                 update_XTtheta, update_XTtheta_s, update_phi_XTphi,
-                                 update_theta_exp_yXw, LOGREG_LIPSCHITZ_CONST)
+from py_numba_blitz.utils import (
+    compute_primal_obj, compute_dual_obj,
+    compute_remaining_features,
+    update_XTtheta, update_XTtheta_s, update_phi_XTphi,
+    update_theta_exp_yXw, weighted_dot_sparse,
+    norm2_sparse, xj_dot_sparse, squared_weighted_norm_sparse,
+    update_X_delta_w, LOGREG_LIPSCHITZ_CONST
+)
 from skglm.utils import ST
 
 
@@ -277,8 +281,10 @@ def _prox_newton_iteration_s(X_data, X_indptr, X_indices, y, w, Xw, exp_yXw,
                 continue
 
             delta_w[idx] = new_w_j - w[j]
-            for i in range(X_indptr[j], X_indptr[j+1]):
-                X_delta_w[X_indices[i]] += diff * X_data[i]
+            # for i in range(X_indptr[j], X_indptr[j+1]):
+            #     X_delta_w[X_indices[i]] += diff * X_data[i]
+            # equivalent to: X_delta_w += diff * X[:, j]
+            update_X_delta_w(X_data, X_indptr, X_indices, X_delta_w, diff, j)
             sum_sq_hess_diff += (diff * lipschitz[idx]) ** 2
 
         if (sum_sq_hess_diff < PROX_NEWTON_EPSILON_RATIO*prox_grad_diff
@@ -334,39 +340,3 @@ def _prox_newton_iteration_s(X_data, X_indptr, X_indices, y, w, Xw, exp_yXw,
         theta_scale = alpha / max_XTtheta_ws
 
     return theta_scale, prox_grad_diff
-
-
-@njit
-def norm2_sparse(data, indptr, indices, j):
-    """Compute ``norm(X[:, j], ord=2)`` in case ``X`` sparse."""
-    res = 0.
-    for i in range(indptr[j], indptr[j+1]):
-        res += data[i] ** 2
-    return np.sqrt(res)
-
-
-@njit
-def xj_dot_sparse(data, indptr, indices, j, b):
-    """Dot product of ``X[:, j]`` with ``X`` sparse and ``b``."""
-    res = 0.
-    for i in range(indptr[j], indptr[j + 1]):
-        res += data[i] * b[indices[i]]
-    return res
-
-
-@njit
-def weighted_dot_sparse(data, indptr, indices, b, weights, j):
-    """Weighted dot product between ``X[:, j]`` with ``X`` sparse and ``b``."""
-    res = 0.
-    for i in range(indptr[j], indptr[j + 1]):
-        res += data[i] * b[indices[i]] * weights[indices[i]]
-    return res
-
-
-@njit
-def squared_weighted_norm_sparse(data, indptr, indices, weights, j):
-    """Compute ``weights @ X[:, j]**2`` in case ``X`` sparse."""
-    res = 0.
-    for i in range(indptr[j], indptr[j + 1]):
-        res += (data[i] ** 2) * weights[indices[i]]
-    return res

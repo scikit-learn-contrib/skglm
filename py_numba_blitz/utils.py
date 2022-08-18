@@ -94,3 +94,46 @@ def compute_remaining_features(remaining_features, XTphi, w, norm2_X_cols, alpha
 
     # discard features
     return remaining_features[features_scores <= threshold]
+
+
+@njit
+def norm2_sparse(data, indptr, indices, j):
+    """Compute ``norm(X[:, j], ord=2)`` in case ``X`` sparse."""
+    res = 0.
+    for i in range(indptr[j], indptr[j+1]):
+        res += data[i] ** 2
+    return np.sqrt(res)
+
+
+@njit
+def xj_dot_sparse(data, indptr, indices, j, b):
+    """Compute ``X[:, j] @ b`` in case ``X`` sparse."""
+    res = 0.
+    for i in range(indptr[j], indptr[j+1]):
+        res += data[i] * b[indices[i]]
+    return res
+
+
+@njit
+def weighted_dot_sparse(data, indptr, indices, b, weights, j):
+    """Computes ``X[:, j] @ (weights * b)`` in case ``X`` sparse."""
+    res = 0.
+    for i in range(indptr[j], indptr[j+1]):
+        res += data[i] * b[indices[i]] * weights[indices[i]]
+    return res
+
+
+@njit
+def squared_weighted_norm_sparse(data, indptr, indices, weights, j):
+    """Compute ``weights @ X[:, j]**2`` in case ``X`` sparse."""
+    res = 0.
+    for i in range(indptr[j], indptr[j+1]):
+        res += weights[indices[i]] * data[i]**2
+    return res
+
+
+@njit
+def update_X_delta_w(data, indptr, indices, X_delta_w, diff, j):
+    """Compute ``X_delta_w += diff * X[:, j]`` case of ``X`` sparse."""
+    for i in range(indptr[j], indptr[j+1]):
+        X_delta_w[indices[i]] += diff * data[i]

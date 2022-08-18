@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.sparse import issparse
 from numba import njit
-from py_numba_blitz.utils import (
+from skglm.py_numba_blitz.utils import (
     compute_primal_obj, compute_dual_obj,
     compute_remaining_features,
     update_XTtheta, update_XTtheta_s, update_phi_XTphi,

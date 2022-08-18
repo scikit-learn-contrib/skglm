@@ -3,7 +3,7 @@ from itertools import product
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 
-from py_numba_blitz.solver import py_blitz
+from skglm.py_numba_blitz.solver import py_blitz
 from skglm.utils import make_correlated_data
 
 

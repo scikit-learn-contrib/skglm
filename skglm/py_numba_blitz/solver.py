@@ -47,11 +47,12 @@ def py_blitz(alpha, X, y, p0=100, max_iter=20, max_epochs=100,
     if is_sparse:
         X_bundles = (X.data, X.indptr, X.indices)
     update_theta_exp_yXw(y, Xw, theta, exp_yXw)
-    for j in range(n_features):
-        if is_sparse:
+
+    if is_sparse:
+        for j in range(n_features):
             norm2_X_cols[j] = norm2_sparse(*X_bundles, j)
-        else:
-            norm2_X_cols[j] = np.linalg.norm(X[:, j], ord=2)
+    else:
+        norm2_X_cols[:] = np.linalg.norm(X, axis=0, ord=2)
 
     # main loop
     for t in range(max_iter):

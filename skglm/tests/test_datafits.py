@@ -40,12 +40,15 @@ def test_log_datafit():
     Xw = X @ w
 
     log_datafit = Logistic()
+    grad = log_datafit.raw_grad(y, Xw)
     hess = log_datafit.raw_hessian(y, Xw)
 
+    np.testing.assert_equal(grad.shape, (n_samples,))
     np.testing.assert_equal(hess.shape, (n_samples,))
 
     exp_yXw = np.exp(-y * Xw)
     np.testing.assert_almost_equal(exp_yXw / (1 + exp_yXw) ** 2 / len(y), hess)
+    np.testing.assert_almost_equal(-grad * (y + n_samples * grad), hess)
 
 
 if __name__ == '__main__':

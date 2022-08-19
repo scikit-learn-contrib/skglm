@@ -126,6 +126,9 @@ class Logistic(BaseDatafit):
     def params_to_dict(self):
         return dict()
 
+    def raw_grad(self, y, Xw):
+        return -y / (1 + np.exp(y * Xw)) / len(y)
+
     def raw_hessian(self, y, Xw):
         """Compute hessian of datafit w.r.t ``Xw``."""
         exp_yXw = np.exp(-y * Xw)

@@ -283,8 +283,6 @@ def _prox_newton_iteration_s(X_data, X_indptr, X_indices, y, w, Xw, exp_yXw,
                 continue
 
             delta_w[idx] = new_w_j - w[j]
-            # for i in range(X_indptr[j], X_indptr[j+1]):
-            #     X_delta_w[X_indices[i]] += diff * X_data[i]
             # equivalent to: X_delta_w += diff * X[:, j]
             update_X_delta_w(X_data, X_indptr, X_indices, X_delta_w, diff, j)
             sum_sq_hess_diff += (diff * lipschitz[idx]) ** 2

@@ -326,7 +326,7 @@ def sparse_xj_dot(data, indptr, indices, j, other):
 
 @njit(fastmath=True)
 def sparse_weighted_dot(data, indptr, indices, j, other, weights):
-    """Computes ``X[:, j] @ (weights * other)`` in case ``X`` sparse."""
+    """Compute ``X[:, j] @ (weights * other)`` in case ``X`` sparse."""
     res = 0.
     for i in range(indptr[j], indptr[j+1]):
         res += data[i] * other[indices[i]] * weights[indices[i]]

@@ -61,13 +61,14 @@ def pn_solver_improved(X, y, datafit, penalty, w_init=None, p0=10,
     p_objs_out = []
 
     is_sparse = issparse(X)
-    if is_sparse:
-        X_bundles = (X.data, X.indptr, X.indices)
+    # if is_sparse:
+    #     X_bundles = (X.data, X.indptr, X.indices)
 
     for t in range(max_iter):
         # compute scores
         if is_sparse:
-            grad = construct_grad_sparse(*X_bundles, y, w, Xw, datafit, all_features)
+            grad = construct_grad_sparse(X.data, X.indptr, X.indices,
+                                         y, w, Xw, datafit, all_features)
         else:
             # X.T @ datafit.raw_grad(y, Xw)
             grad = construct_grad(X, y, w, Xw, datafit, all_features)
@@ -95,16 +96,17 @@ def pn_solver_improved(X, y, datafit, penalty, w_init=None, p0=10,
         # similar to np.argsort()[-ws_size:] but without sorting
         ws = np.argpartition(opt, -ws_size)[-ws_size:]
         grad_ws = grad[ws]
+        tol_in = 0.3 * stop_crit
 
         for epoch in range(max_epochs):
-            tol_in = 0.3 * stop_crit
 
             # find descent direction
             if is_sparse:
                 (
                     delta_w_ws,
                     X_delta_w_ws
-                ) = _compute_descent_direction_s(*X_bundles, y, w, Xw, grad_ws,
+                ) = _compute_descent_direction_s(X.data, X.indptr, X.indices,
+                                                 y, w, Xw, grad_ws,
                                                  datafit, penalty, ws,
                                                  max_cd_iter=20, tol=0.3*tol_in)
             else:
@@ -116,7 +118,8 @@ def pn_solver_improved(X, y, datafit, penalty, w_init=None, p0=10,
 
             # backtracking line search with inplace update of w, Xw
             if is_sparse:
-                grad_ws[:] = _backtrack_line_search_s(*X_bundles, y, w, Xw, datafit,
+                grad_ws[:] = _backtrack_line_search_s(X.data, X.indptr, X.indices,
+                                                      y, w, Xw, datafit,
                                                       penalty, delta_w_ws,
                                                       X_delta_w_ws, ws,
                                                       max_backtrack_iter=20)
@@ -202,8 +205,10 @@ def _compute_descent_direction_s(X_data, X_indptr, X_indices, y,
 
     lipschitz = np.zeros(len(ws))
     for idx, j in enumerate(ws):
-        for i in range(X_indptr[j], X_indptr[j+1]):
-            lipschitz[idx] += raw_hess[X_indices[i]] * X_data[i] ** 2
+        # for i in range(X_indptr[j], X_indptr[j+1]):
+        #     lipschitz[idx] += raw_hess[X_indices[i]] * X_data[i] ** 2
+        lipschitz[idx] = sparse_squared_weighted_norm(X_data, X_indptr, X_indices,
+                                                      j, raw_hess)
 
     cached_grads = np.zeros(len(ws))
     X_delta_w_ws = np.zeros(len(y))
@@ -216,10 +221,13 @@ def _compute_descent_direction_s(X_data, X_indptr, X_indices, y,
             if lipschitz[idx] == 0:
                 continue
 
+            # cached_grads[idx] = grad_ws[idx]
+            # for i in range(X_indptr[j], X_indptr[j+1]):
+            #     row_i = X_indices[i]
+            #     cached_grads[idx] += X_data[i] * raw_hess[row_i] * X_delta_w_ws[row_i]
             cached_grads[idx] = grad_ws[idx]
-            for i in range(X_indptr[j], X_indptr[j+1]):
-                row_i = X_indices[i]
-                cached_grads[idx] += X_data[i] * raw_hess[row_i] * X_delta_w_ws[row_i]
+            cached_grads[idx] += sparse_weighted_dot(X_data, X_indptr, X_indices, j,
+                                                     X_delta_w_ws, raw_hess)
 
             old_w_idx = w_ws[idx]
             stepsize = 1 / lipschitz[idx]
@@ -230,8 +238,10 @@ def _compute_descent_direction_s(X_data, X_indptr, X_indices, y,
             )
 
             if w_ws[idx] != old_w_idx:
-                for i in range(X_indptr[j], X_indptr[j+1]):
-                    X_delta_w_ws[X_indices[i]] += (w_ws[idx] - old_w_idx) * X_data[i]
+                # for i in range(X_indptr[j], X_indptr[j+1]):
+                #     X_delta_w_ws[X_indices[i]] += (w_ws[idx] - old_w_idx) * X_data[i]
+                update_X_delta_w(X_data, X_indptr, X_indices, X_delta_w_ws,
+                                 w_ws[idx] - old_w_idx, j)
 
         if cd_iter % 5 == 0:
             opt = penalty.subdiff_distance(w_ws, cached_grads, ws)
@@ -310,6 +320,41 @@ def construct_grad_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, ws):
     raw_grad = datafit.raw_grad(y, Xw)
     grad = np.zeros(len(ws))
     for idx, j in enumerate(ws):
-        for i in range(X_indptr[j], X_indptr[j+1]):
-            grad[idx] += X_data[i] * raw_grad[X_indices[i]]
+        # for i in range(X_indptr[j], X_indptr[j+1]):
+        #     grad[idx] += X_data[i] * raw_grad[X_indices[i]]
+        grad[idx] = sparse_xj_dot(X_data, X_indptr, X_indices, j, raw_grad)
     return grad
+
+
+@njit(fastmath=True)
+def sparse_xj_dot(data, indptr, indices, j, other):
+    """Compute ``X[:, j] @ other`` in case ``X`` sparse."""
+    res = 0.
+    for i in range(indptr[j], indptr[j+1]):
+        res += data[i] * other[indices[i]]
+    return res
+
+
+@njit(fastmath=True)
+def sparse_weighted_dot(data, indptr, indices, j, other, weights):
+    """Computes ``X[:, j] @ (weights * other)`` in case ``X`` sparse."""
+    res = 0.
+    for i in range(indptr[j], indptr[j+1]):
+        res += data[i] * other[indices[i]] * weights[indices[i]]
+    return res
+
+
+@njit(fastmath=True)
+def sparse_squared_weighted_norm(data, indptr, indices, j, weights):
+    """Compute ``weights @ X[:, j]**2`` in case ``X`` sparse."""
+    res = 0.
+    for i in range(indptr[j], indptr[j+1]):
+        res += weights[indices[i]] * data[i]**2
+    return res
+
+
+@njit(fastmath=True)
+def update_X_delta_w(data, indptr, indices, X_delta_w, diff, j):
+    """Compute ``X_delta_w += diff * X[:, j]`` case of ``X`` sparse."""
+    for i in range(indptr[j], indptr[j+1]):
+        X_delta_w[indices[i]] += diff * data[i]

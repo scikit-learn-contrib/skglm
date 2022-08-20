@@ -127,6 +127,7 @@ class Logistic(BaseDatafit):
         return dict()
 
     def raw_grad(self, y, Xw):
+        """Compute gradient of datafit w.r.t ``Xw``."""
         return -y / (1 + np.exp(y * Xw)) / len(y)
 
     def raw_hessian(self, y, Xw):

@@ -298,6 +298,7 @@ def _backtrack_line_search_s(X_data, X_indptr, X_indices,
 
 @njit
 def construct_grad(X, y, w, Xw, datafit, ws):
+    """Compute grad of datafit restricted to ``ws``."""
     raw_grad = datafit.raw_grad(y, Xw)
     grad = np.zeros(len(ws))
     for idx, j in enumerate(ws):
@@ -307,6 +308,7 @@ def construct_grad(X, y, w, Xw, datafit, ws):
 
 @njit
 def construct_grad_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, ws):
+    """Compute grad of datafit restricted to ``ws`` in case ``X`` sparse."""
     raw_grad = datafit.raw_grad(y, Xw)
     grad = np.zeros(len(ws))
     for idx, j in enumerate(ws):

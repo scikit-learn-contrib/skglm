@@ -2,8 +2,6 @@ import numpy as np
 from scipy.sparse import issparse
 from numba import njit
 
-# from skglm.solvers.common import construct_grad, construct_grad_sparse
-
 
 def pn_solver_improved(X, y, datafit, penalty, w_init=None, p0=10,
                        max_iter=20, max_epochs=1000, tol=1e-4, verbose=0):
@@ -61,8 +59,6 @@ def pn_solver_improved(X, y, datafit, penalty, w_init=None, p0=10,
     p_objs_out = []
 
     is_sparse = issparse(X)
-    # if is_sparse:
-    #     X_bundles = (X.data, X.indptr, X.indices)
 
     for t in range(max_iter):
         # compute scores
@@ -70,7 +66,6 @@ def pn_solver_improved(X, y, datafit, penalty, w_init=None, p0=10,
             grad = construct_grad_sparse(X.data, X.indptr, X.indices,
                                          y, w, Xw, datafit, all_features)
         else:
-            # X.T @ datafit.raw_grad(y, Xw)
             grad = construct_grad(X, y, w, Xw, datafit, all_features)
 
         opt = penalty.subdiff_distance(w, grad, all_features)
@@ -95,6 +90,7 @@ def pn_solver_improved(X, y, datafit, penalty, w_init=None, p0=10,
                       min(n_features, 2 * gsupp_size))
         # similar to np.argsort()[-ws_size:] but without sorting
         ws = np.argpartition(opt, -ws_size)[-ws_size:]
+
         grad_ws = grad[ws]
         tol_in = 0.3 * stop_crit
 
@@ -106,9 +102,9 @@ def pn_solver_improved(X, y, datafit, penalty, w_init=None, p0=10,
                     delta_w_ws,
                     X_delta_w_ws
                 ) = _compute_descent_direction_s(X.data, X.indptr, X.indices,
-                                                 y, w, Xw, grad_ws,
-                                                 datafit, penalty, ws,
-                                                 max_cd_iter=20, tol=0.3*tol_in)
+                                                 y, w, Xw, grad_ws, datafit,
+                                                 penalty, ws, max_cd_iter=20,
+                                                 tol=0.3*tol_in)
             else:
                 (
                     delta_w_ws,
@@ -205,8 +201,7 @@ def _compute_descent_direction_s(X_data, X_indptr, X_indices, y,
 
     lipschitz = np.zeros(len(ws))
     for idx, j in enumerate(ws):
-        # for i in range(X_indptr[j], X_indptr[j+1]):
-        #     lipschitz[idx] += raw_hess[X_indices[i]] * X_data[i] ** 2
+        # equivalent to: lipschitz[idx] += raw_hess * X[:, j] ** 2
         lipschitz[idx] = sparse_squared_weighted_norm(X_data, X_indptr, X_indices,
                                                       j, raw_hess)
 
@@ -221,11 +216,8 @@ def _compute_descent_direction_s(X_data, X_indptr, X_indices, y,
             if lipschitz[idx] == 0:
                 continue
 
-            # cached_grads[idx] = grad_ws[idx]
-            # for i in range(X_indptr[j], X_indptr[j+1]):
-            #     row_i = X_indices[i]
-            #     cached_grads[idx] += X_data[i] * raw_hess[row_i] * X_delta_w_ws[row_i]
             cached_grads[idx] = grad_ws[idx]
+            # equivalent to cached_grads[idx] += X[:, j] @ (raw_hess * X_delta_w_ws)
             cached_grads[idx] += sparse_weighted_dot(X_data, X_indptr, X_indices, j,
                                                      X_delta_w_ws, raw_hess)
 
@@ -238,8 +230,6 @@ def _compute_descent_direction_s(X_data, X_indptr, X_indices, y,
             )
 
             if w_ws[idx] != old_w_idx:
-                # for i in range(X_indptr[j], X_indptr[j+1]):
-                #     X_delta_w_ws[X_indices[i]] += (w_ws[idx] - old_w_idx) * X_data[i]
                 update_X_delta_w(X_data, X_indptr, X_indices, X_delta_w_ws,
                                  w_ws[idx] - old_w_idx, j)
 
@@ -320,8 +310,6 @@ def construct_grad_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, ws):
     raw_grad = datafit.raw_grad(y, Xw)
     grad = np.zeros(len(ws))
     for idx, j in enumerate(ws):
-        # for i in range(X_indptr[j], X_indptr[j+1]):
-        #     grad[idx] += X_data[i] * raw_grad[X_indices[i]]
         grad[idx] = sparse_xj_dot(X_data, X_indptr, X_indices, j, raw_grad)
     return grad
 

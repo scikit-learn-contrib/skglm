@@ -245,7 +245,7 @@ class QuadraticSVC(BaseDatafit):
 
 
 class SqrtQuadratic(BaseDatafit):
-    """"""
+    """norm(y - Xw) / sqrt(len(y))"""
 
     def __init__(self):
         pass

@@ -70,9 +70,9 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
     for t in range(max_iter):
         # compute scores
         if is_sparse:
-            grad = construct_grad_sparse(*X_bundles, y, w, Xw, datafit, all_features)
+            grad = _construct_grad_sparse(*X_bundles, y, w, Xw, datafit, all_features)
         else:
-            grad = construct_grad(X, y, w, Xw, datafit, all_features)
+            grad = _construct_grad(X, y, w, Xw, datafit, all_features)
 
         opt = penalty.subdiff_distance(w, grad, all_features)
 
@@ -87,7 +87,7 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
 
         if stop_crit <= tol:
             if verbose:
-                print('Outer loop early exit')
+                print(f"Stopping criterion max violation: {stop_crit:.2e}")
             break
 
         # build working set
@@ -127,13 +127,13 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
             if max(verbose-1, 0):
                 p_obj = datafit.value(y, w, Xw) + penalty.value(w)
                 print(
-                    f"|—— Epoch {epoch+1}: {p_obj:.10f}, "
+                    f"Epoch {epoch+1}: {p_obj:.10f}, "
                     f"stopping crit in: {stop_crit_in:.2e}"
                 )
 
             if stop_crit_in <= tol_in:
                 if max(verbose-1, 0):
-                    print("|—— Inner loop early exit")
+                    print("Early exit")
                 break
 
         p_obj = datafit.value(y, w, Xw) + penalty.value(w)
@@ -194,8 +194,8 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
     lipschitz = np.zeros(len(ws))
     for idx, j in enumerate(ws):
         # equivalent to: lipschitz[idx] += raw_hess * X[:, j] ** 2
-        lipschitz[idx] = sparse_squared_weighted_norm(X_data, X_indptr, X_indices,
-                                                      j, raw_hess)
+        lipschitz[idx] = _sparse_squared_weighted_norm(X_data, X_indptr, X_indices,
+                                                       j, raw_hess)
 
     cached_grads = np.zeros(len(ws))
     X_delta_w_ws = np.zeros(len(y))
@@ -209,8 +209,8 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
 
             cached_grads[idx] = grad_ws[idx]
             # equivalent to cached_grads[idx] += X[:, j] @ (raw_hess * X_delta_w_ws)
-            cached_grads[idx] += sparse_weighted_dot(X_data, X_indptr, X_indices, j,
-                                                     X_delta_w_ws, raw_hess)
+            cached_grads[idx] += _sparse_weighted_dot(X_data, X_indptr, X_indices, j,
+                                                      X_delta_w_ws, raw_hess)
 
             old_w_idx = w_ws[idx]
             stepsize = 1 / lipschitz[idx]
@@ -219,8 +219,8 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
                 old_w_idx - stepsize * cached_grads[idx], stepsize, j)
 
             if w_ws[idx] != old_w_idx:
-                update_X_delta_w(X_data, X_indptr, X_indices, X_delta_w_ws,
-                                 w_ws[idx] - old_w_idx, j)
+                _update_X_delta_w(X_data, X_indptr, X_indices, X_delta_w_ws,
+                                  w_ws[idx] - old_w_idx, j)
 
         if cd_iter % 5 == 0:
             opt = penalty.subdiff_distance(w_ws, cached_grads, ws)
@@ -237,14 +237,14 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
     # inplace update of w and Xw
     # return grad_ws of the last w and Xw
     step, prev_step = 1., 0.
-    prev_penalty_val = penalty.value(w[ws])
+    epoch_penalty_val = penalty.value(w[ws])
 
     for backtrack_iter in range(MAX_BACKTRACK_ITER):
-        stop_crit = -prev_penalty_val
+        stop_crit = -epoch_penalty_val
         w[ws] += (step - prev_step) * delta_w_ws
         Xw += (step - prev_step) * X_delta_w_ws
 
-        grad_ws = construct_grad(X, y, w, Xw, datafit, ws)
+        grad_ws = _construct_grad(X, y, w, Xw, datafit, ws)
         stop_crit += step * grad_ws @ delta_w_ws
         stop_crit += penalty.value(w[ws])
 
@@ -270,8 +270,8 @@ def _backtrack_line_search_s(X_data, X_indptr, X_indices, y, w, Xw, datafit,
         w[ws] += (step - prev_step) * delta_w_ws
         Xw += (step - prev_step) * X_delta_w_ws
 
-        grad_ws = construct_grad_sparse(X_data, X_indptr, X_indices,
-                                        y, w, Xw, datafit, ws)
+        grad_ws = _construct_grad_sparse(X_data, X_indptr, X_indices,
+                                         y, w, Xw, datafit, ws)
         stop_crit += step * grad_ws.T @ delta_w_ws
         stop_crit += penalty.value(w[ws])
 
@@ -285,8 +285,8 @@ def _backtrack_line_search_s(X_data, X_indptr, X_indices, y, w, Xw, datafit,
 
 
 @njit
-def construct_grad(X, y, w, Xw, datafit, ws):
-    """Compute grad of datafit restricted to ``ws``."""
+def _construct_grad(X, y, w, Xw, datafit, ws):
+    # Compute grad of datafit restricted to ws
     raw_grad = datafit.raw_grad(y, Xw)
     grad = np.zeros(len(ws))
     for idx, j in enumerate(ws):
@@ -295,18 +295,18 @@ def construct_grad(X, y, w, Xw, datafit, ws):
 
 
 @njit
-def construct_grad_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, ws):
-    """Compute grad of datafit restricted to ``ws`` in case ``X`` sparse."""
+def _construct_grad_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, ws):
+    # Compute grad of datafit restricted to ws in case X sparse
     raw_grad = datafit.raw_grad(y, Xw)
     grad = np.zeros(len(ws))
     for idx, j in enumerate(ws):
-        grad[idx] = sparse_xj_dot(X_data, X_indptr, X_indices, j, raw_grad)
+        grad[idx] = _sparse_xj_dot(X_data, X_indptr, X_indices, j, raw_grad)
     return grad
 
 
 @njit(fastmath=True)
-def sparse_xj_dot(X_data, X_indptr, X_indices, j, other):
-    """Compute ``X[:, j] @ other`` in case ``X`` sparse."""
+def _sparse_xj_dot(X_data, X_indptr, X_indices, j, other):
+    # Compute X[:, j] @ other in case X sparse
     res = 0.
     for i in range(X_indptr[j], X_indptr[j+1]):
         res += X_data[i] * other[X_indices[i]]
@@ -314,8 +314,8 @@ def sparse_xj_dot(X_data, X_indptr, X_indices, j, other):
 
 
 @njit(fastmath=True)
-def sparse_weighted_dot(X_data, X_indptr, X_indices, j, other, weights):
-    """Compute ``X[:, j] @ (weights * other)`` in case ``X`` sparse."""
+def _sparse_weighted_dot(X_data, X_indptr, X_indices, j, other, weights):
+    # Compute X[:, j] @ (weights * other) in case X sparse
     res = 0.
     for i in range(X_indptr[j], X_indptr[j+1]):
         res += X_data[i] * other[X_indices[i]] * weights[X_indices[i]]
@@ -323,8 +323,8 @@ def sparse_weighted_dot(X_data, X_indptr, X_indices, j, other, weights):
 
 
 @njit(fastmath=True)
-def sparse_squared_weighted_norm(X_data, X_indptr, X_indices, j, weights):
-    """Compute ``weights @ X[:, j]**2`` in case ``X`` sparse."""
+def _sparse_squared_weighted_norm(X_data, X_indptr, X_indices, j, weights):
+    # Compute weights @ X[:, j]**2 in case X sparse
     res = 0.
     for i in range(X_indptr[j], X_indptr[j+1]):
         res += weights[X_indices[i]] * X_data[i]**2
@@ -332,7 +332,7 @@ def sparse_squared_weighted_norm(X_data, X_indptr, X_indices, j, weights):
 
 
 @njit(fastmath=True)
-def update_X_delta_w(X_data, X_indptr, X_indices, X_delta_w, diff, j):
-    """Compute ``X_delta_w += diff * X[:, j]`` case of ``X`` sparse."""
+def _update_X_delta_w(X_data, X_indptr, X_indices, X_delta_w, diff, j):
+    # Compute X_delta_w += diff * X[:, j] in case of X sparse
     for i in range(X_indptr[j], X_indptr[j+1]):
         X_delta_w[X_indices[i]] += diff * X_data[i]

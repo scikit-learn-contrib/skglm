@@ -12,6 +12,7 @@ from sklearn.linear_model import MultiTaskLasso as MultiTaskLasso_sklearn
 from sklearn.model_selection import GridSearchCV
 from sklearn.svm import LinearSVC as LinearSVC_sklearn
 from sklearn.utils.estimator_checks import check_estimator
+from sklearn.model_selection import KFold
 
 from scipy.sparse import csc_matrix, issparse
 
@@ -96,11 +97,14 @@ def test_check_estimator(estimator_name):
 
 @pytest.mark.parametrize("estimator_name", dict_estimators_ours.keys())
 @pytest.mark.parametrize('X', [X, X_sparse])
-def test_estimator(estimator_name, X):
+def test_estimator(estimator_name, X, fit_intercept=False):
     if estimator_name == "GeneralizedLinearEstimator":
         pytest.skip()
     estimator_sk = dict_estimators_sk[estimator_name]
     estimator_ours = dict_estimators_ours[estimator_name]
+
+    estimator_ours.fit_intercept = fit_intercept
+    estimator_sk.fit_intercept = fit_intercept
 
     estimator_sk.fit(X, y)
     estimator_ours.fit(X, y)
@@ -181,6 +185,10 @@ def test_estimator_predict(Datafit, Penalty, Estimator_sk):
     else:
         np.testing.assert_allclose(y_pred, y_pred_sk, rtol=1e-5)
 
+    if isinstance(Datafit, Logistic):
+        np.testing.assert_allclose(
+            clf.predict_proba(X_test), clf_sk.predict_proba(X_test))
+
 
 def test_generic_get_params():
     def assert_deep_dict_equal(expected_attr, estimator):
@@ -207,7 +215,7 @@ def test_generic_get_params():
 # the regularization parameter (`C` for sklearn, `alpha` in skglm).
 @pytest.mark.parametrize(
     "estimator_name",
-    ["Lasso", "wLasso", "ElasticNet", "MCP"])
+    ["Lasso", "wLasso", "ElasticNet", "MCP", "SVC"])
 def test_grid_search(estimator_name):
     estimator_sk = dict_estimators_sk[estimator_name]
     estimator_ours = dict_estimators_ours[estimator_name]
@@ -215,19 +223,43 @@ def test_grid_search(estimator_name):
     estimator_ours.tol = 1e-10
     estimator_sk.max_iter = 5000
     estimator_ours.max_iter = 100
-    param_grid = {'alpha': np.geomspace(alpha_max, alpha_max * 0.01, 10)}
-    sk_clf = GridSearchCV(estimator_sk, param_grid).fit(X, y)
-    ours_clf = GridSearchCV(estimator_ours, param_grid).fit(X, y)
+    n_splits = 5
+
+    param_values = np.geomspace(alpha_max, alpha_max * 0.01, 10)
+    n_samples = X.shape[0] * (n_splits - 1) / n_splits
+    if estimator_name == "SVC":
+        param_name_sk, param_name_ours = 'C', 'C'
+        param_grid_sk = {param_name_sk: param_values}
+
+    elif estimator_name == "LogisticRegression":
+        param_name_sk = 'C'
+        param_name_ours = 'alpha'
+        param_grid_sk = {param_name_sk: 1 / (n_samples * param_values)}
+    else:
+        param_name_sk, param_name_ours = 'alpha', 'alpha'
+        param_grid_sk = {param_name_sk: param_values}
+
+    param_grid_ours = {param_name_ours: param_values}
+
+    splitter = KFold(n_splits)
+
+    sk_clf = GridSearchCV(estimator_sk, param_grid_sk, cv=splitter).fit(X, y)
+    ours_clf = GridSearchCV(estimator_ours, param_grid_ours, cv=splitter).fit(X, y)
     res_attr = ["split%i_test_score" % i for i in range(5)] + \
                ["mean_test_score", "std_test_score", "rank_test_score"]
     for attr in res_attr:
         np.testing.assert_allclose(sk_clf.cv_results_[attr], ours_clf.cv_results_[attr],
                                    rtol=1e-3)
     np.testing.assert_allclose(sk_clf.best_score_, ours_clf.best_score_, rtol=1e-3)
-    np.testing.assert_allclose(sk_clf.best_params_["alpha"],
-                               ours_clf.best_params_["alpha"], rtol=1e-3)
+    if estimator_name == "LogisticRegression":
+        np.testing.assert_allclose(
+            sk_clf.best_params_[param_name_sk],
+            1 / (n_samples * ours_clf.best_params_[param_name_ours]), rtol=1e-3)
+    else:
+        np.testing.assert_allclose(
+            sk_clf.best_params_[param_name_sk],
+            ours_clf.best_params_[param_name_ours], rtol=1e-3)
 
 
 if __name__ == '__main__':
-    test_generic_get_params()
-    pass
+    test_estimator_predict(QuadraticSVC, IndicatorBox, LinearSVC_sklearn)

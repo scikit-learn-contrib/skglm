@@ -104,11 +104,11 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
 
             # find descent direction
             if is_sparse:
-                delta_w_ws, X_delta_w_ws = _compute_descent_direction_s(
+                delta_w_ws, X_delta_w_ws = _descent_direction_s(
                     *X_bundles, y, w, Xw, grad_ws, datafit,
                     penalty, ws, tol=EPS_TOL*tol_in)
             else:
-                delta_w_ws, X_delta_w_ws = _compute_descent_direction(
+                delta_w_ws, X_delta_w_ws = _descent_direction(
                     X, y, w, Xw, grad_ws, datafit, penalty, ws, tol=EPS_TOL*tol_in)
 
             # backtracking line search with inplace update of w, Xw
@@ -142,8 +142,8 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
 
 
 @njit
-def _compute_descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
-                               penalty, ws, tol):
+def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
+                       penalty, ws, tol):
     # Given:
     #   1) b = \nabla F(X w_epoch)
     #   2) D = \nabla^2 F(X w_epoch)  <------>  raw_hess
@@ -187,8 +187,8 @@ def _compute_descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
 
 # sparse version of _compute_descent_direction
 @njit
-def _compute_descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
-                                 Xw_epoch, grad_ws, datafit, penalty, ws, tol):
+def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
+                         Xw_epoch, grad_ws, datafit, penalty, ws, tol):
     raw_hess = datafit.raw_hessian(y, Xw_epoch)
 
     lipschitz = np.zeros(len(ws))

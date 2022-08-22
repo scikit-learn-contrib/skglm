@@ -3,9 +3,10 @@ import numpy as np
 from scipy import sparse
 from numba import njit
 # import random
-from skglm.datafits import Logistic, Logistic_32
+from skglm.datafits import Logistic
 from skglm.datafits.single_task import sigmoid
 from skglm.solvers.common import construct_grad
+
 
 def prox_newton_solver(
         X, y, datafit, penalty, w, Xw, max_iter=50, max_epochs=1000, max_backtrack=20,
@@ -71,8 +72,8 @@ def prox_newton_solver(
     stop_crit : float
         Value of stopping criterion at convergence.
     """
-    if not isinstance(datafit, (Logistic, Logistic_32)):
-        raise ValueError("Prox-Newton solver only supports Logistic datafits.")
+    if not isinstance(datafit, Logistic):
+        raise ValueError("Prox-Newton solver only supports Logistic datafit.")
     n_samples, n_features = X.shape
     pen = penalty.is_penalized(n_features)
     unpen = ~pen
@@ -134,8 +135,9 @@ def prox_newton_solver(
             #     lc, old_grad, epoch, verbose=verbose)
             delta_w, X_delta_w, n_performed_cd_epochs = _compute_descent_direction(
                 X, w, ws, hessian_diag, old_grad, grad_datafit, lc, penalty, min_pn_cd_epochs,
-            max_pn_cd_epochs, pn_tol_ratio, pn_grad_diff, epoch, verbose=verbose)
-            _backtrack_line_search(w, Xw, delta_w, X_delta_w, ws, y, penalty, max_backtrack)
+                max_pn_cd_epochs, pn_tol_ratio, pn_grad_diff, epoch, verbose=verbose)
+            _backtrack_line_search(w, Xw, delta_w, X_delta_w,
+                                   ws, y, penalty, max_backtrack)
 
             _compute_grad_hessian_datafit(X, y, Xw, ws, hessian_diag, grad_datafit, lc)
 
@@ -147,7 +149,6 @@ def prox_newton_solver(
                 old_grad[idx] = actual_grad
                 grad_diff = actual_grad - approx_grad
                 pn_grad_diff += grad_diff ** 2
-
 
             all_n_cd_epoch.append(n_performed_cd_epochs)
             p_obj = datafit.value(y, w, Xw) + penalty.value(w)

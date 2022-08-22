@@ -11,11 +11,24 @@ from skglm.utils import make_correlated_data
 from numpy.linalg import norm
 
 
-def test_sqrt_lasso():
+def test_alpha_max():
+    n_samples, n_features = 50, 10
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
+
+    alpha_max = norm(X.T @ y, ord=np.inf) / (np.sqrt(n_samples) * norm(y))
+
+    sqrt_quad = compiled_clone(SqrtQuadratic())
+    l1_penalty = compiled_clone(L1(alpha=alpha_max))
+    w = prox_newton(X, y, sqrt_quad, l1_penalty, tol=1e-9)[0]
+
+    np.testing.assert_equal(w, 0)
+
+
+def test_vs_statmodels():
     n_samples, n_features = 100, 20
     rho = 0.001
 
-    X, y, _ = make_correlated_data(n_samples, n_features, random_state=0, snr=3)
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
 
     alpha_max = norm(X.T @ y, ord=np.inf) / (np.sqrt(n_samples) * norm(y))
     alpha = rho * alpha_max
@@ -23,7 +36,7 @@ def test_sqrt_lasso():
     sqrt_quad = compiled_clone(SqrtQuadratic())
     l1_penalty = compiled_clone(L1(alpha=alpha))
 
-    w = prox_newton(X, y, sqrt_quad, l1_penalty, tol=1e-9, max_epochs=20, verbose=0)[0]
+    w = prox_newton(X, y, sqrt_quad, l1_penalty, tol=1e-9, max_epochs=20)[0]
 
     model = linear_model.OLS(y, X)
     model = model.fit_regularized(

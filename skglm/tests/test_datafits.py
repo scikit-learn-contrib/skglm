@@ -67,5 +67,4 @@ def test_sqrt_quad():
 
 
 if __name__ == '__main__':
-    test_sqrt_quad()
     pass

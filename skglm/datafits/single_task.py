@@ -87,6 +87,9 @@ class Quadratic(BaseDatafit):
             grad[j] = (XjTXw - self.Xty[j]) / n_samples
         return grad
 
+    def intercept_update_step(self, y, Xw):
+        return np.sum(Xw - y) / len(Xw)
+
 
 @njit
 def sigmoid(x):
@@ -159,6 +162,9 @@ class Logistic(BaseDatafit):
             idx_i = X_indices[i]
             grad -= X_data[i] * y[idx_i] * sigmoid(- y[idx_i] * Xw[idx_i])
         return grad / len(Xw)
+
+    def intercept_update_step(self, y, Xw):
+        return np.sum((- y * sigmoid(- y * Xw))) / (4 * len(Xw))
 
 
 class QuadraticSVC(BaseDatafit):
@@ -291,32 +297,32 @@ class Huber(BaseDatafit):
         n_samples = len(y)
         res = 0.
         for i in range(n_samples):
-            tmp = abs(y[i] - Xw[i])
-            if tmp < self.delta:
-                res += 0.5 * tmp ** 2
+            residual = abs(y[i] - Xw[i])
+            if residual < self.delta:
+                res += 0.5 * residual ** 2
             else:
-                res += self.delta * tmp - 0.5 * self.delta ** 2
+                res += self.delta * residual - 0.5 * self.delta ** 2
         return res / n_samples
 
     def gradient_scalar(self, X, y, w, Xw, j):
         n_samples = len(y)
         grad_j = 0.
         for i in range(n_samples):
-            tmp = y[i] - Xw[i]
-            if abs(tmp) < self.delta:
-                grad_j += - X[i, j] * tmp
+            residual = y[i] - Xw[i]
+            if abs(residual) < self.delta:
+                grad_j += - X[i, j] * residual
             else:
-                grad_j += - X[i, j] * np.sign(tmp) * self.delta
+                grad_j += - X[i, j] * np.sign(residual) * self.delta
         return grad_j / n_samples
 
     def gradient_scalar_sparse(self, X_data, X_indptr, X_indices, y, Xw, j):
         grad_j = 0.
         for i in range(X_indptr[j], X_indptr[j + 1]):
-            tmp = y[X_indices[i]] - Xw[X_indices[i]]
-            if np.abs(tmp) < self.delta:
-                grad_j += - X_data[i] * tmp
+            residual = y[X_indices[i]] - Xw[X_indices[i]]
+            if np.abs(residual) < self.delta:
+                grad_j += - X_data[i] * residual
             else:
-                grad_j += - X_data[i] * np.sign(tmp) * self.delta
+                grad_j += - X_data[i] * np.sign(residual) * self.delta
         return grad_j / len(Xw)
 
     def full_grad_sparse(
@@ -327,10 +333,21 @@ class Huber(BaseDatafit):
         for j in range(n_features):
             grad_j = 0.
             for i in range(X_indptr[j], X_indptr[j + 1]):
-                tmp = y[X_indices[i]] - Xw[X_indices[i]]
-                if np.abs(tmp) < self.delta:
-                    grad_j += - X_data[i] * tmp
+                residual = y[X_indices[i]] - Xw[X_indices[i]]
+                if np.abs(residual) < self.delta:
+                    grad_j += - X_data[i] * residual
                 else:
-                    grad_j += - X_data[i] * np.sign(tmp) * self.delta
+                    grad_j += - X_data[i] * np.sign(residual) * self.delta
             grad[j] = grad_j / n_samples
         return grad
+
+    def intercept_update_step(self, y, Xw):
+        n_samples = len(y)
+        update = 0.
+        for i in range(n_samples):
+            residual = y[i] - Xw[i]
+            if abs(residual) < self.delta:
+                update -= residual
+            else:
+                update -= np.sign(residual) * self.delta
+        return update / n_samples

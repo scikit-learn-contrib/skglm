@@ -1,3 +1,4 @@
+from textwrap import fill
 import numpy as np
 from numpy.linalg import norm
 from numba import njit
@@ -241,6 +242,32 @@ class QuadraticSVC(BaseDatafit):
                 yXjyXTw += yXT_data[i] * yXTw[yXT_indices[i]]
             grad[j] = yXjyXTw - 1
         return grad
+
+
+class SqrtQuadratic(BaseDatafit):
+    """"""
+
+    def __init__(self):
+        pass
+
+    def get_spec(self):
+        spec = ()
+        return spec
+
+    def params_to_dict(self):
+        return dict()
+
+    def value(self, y, w, Xw):
+        return np.linalg.norm(y - Xw) / np.sqrt(len(y))
+
+    def raw_grad(self, y, Xw):
+        minus_residual = Xw - y
+        return minus_residual / np.linalg.norm(minus_residual) / np.sqrt(len(y))
+
+    def raw_hessian(self, y, Xw):
+        n_samples = len(y)
+        fill_value = 1 / (np.sqrt(n_samples) * (0 + np.linalg.norm(y - Xw)))
+        return np.full(n_samples, fill_value)
 
 
 class Huber(BaseDatafit):

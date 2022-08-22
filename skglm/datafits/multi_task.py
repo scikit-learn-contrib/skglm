@@ -1,18 +1,10 @@
 import numpy as np
 from numpy.linalg import norm
 from numba import float64
-from numba.experimental import jitclass
 
 from skglm.datafits.base import BaseMultitaskDatafit
 
 
-spec_quadratic = [
-    ('XtY', float64[:, :]),
-    ('lipschitz', float64[:]),
-]
-
-
-@jitclass(spec_quadratic)
 class QuadraticMultiTask(BaseMultitaskDatafit):
     """Quadratic datafit used for multi-task regression.
 
@@ -32,6 +24,16 @@ class QuadraticMultiTask(BaseMultitaskDatafit):
 
     def __init__(self):
         pass
+
+    def get_spec(self):
+        spec = (
+            ('XtY', float64[:, :]),
+            ('lipschitz', float64[:]),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict()
 
     def initialize(self, X, Y):
         """Compute optimization quantities before fitting on X and Y."""

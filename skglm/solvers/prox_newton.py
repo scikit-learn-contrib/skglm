@@ -126,11 +126,10 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
 
             if max(verbose-1, 0):
                 p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-                print(np.linalg.norm(y - Xw, ord=np.inf))
-                # print(
-                # f"Epoch {epoch+1}: {p_obj:.10f}, "
-                # f"stopping crit in: {stop_crit_in:.2e}"
-                # )
+                print(
+                    f"Epoch {epoch+1}: {p_obj:.10f}, "
+                    f"stopping crit in: {stop_crit_in:.2e}"
+                )
 
             if stop_crit_in <= tol_in:
                 if max(verbose-1, 0):

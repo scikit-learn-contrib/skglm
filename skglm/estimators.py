@@ -29,20 +29,19 @@ from skglm.datafits import (
 from skglm.utils import compiled_clone
 from skglm.solvers import cd_solver_path, bcd_solver_path
 from skglm.solvers.cd_solver import cd_solver
-from skglm.solvers.multitask_bcd_solver import bcd_solver
 
 
 def glm_fit(X, y, model, datafit, penalty):
+    is_classif = False
+
+    for base in model.__class__.__bases__:
+        if base.__name__ == "ClassifierMixin":
+            is_classif = True
     if y is None:
         raise ValueError("requires y to be passed, but the target y is None")
 
     penalty = penalty if penalty else L1(1.)
     datafit = datafit if datafit else Quadratic()
-
-    if isinstance(penalty, WeightedL1):
-        if len(penalty.weights) != X.shape[1]:
-            raise ValueError(
-                "The size of the WeightedL1 penalty should be n_features")
 
     if isinstance(datafit, Logistic):
         X = check_array(
@@ -78,7 +77,7 @@ def glm_fit(X, y, model, datafit, penalty):
     model.classes_ = None
     n_classes_ = 0
 
-    if model.is_classif:
+    if is_classif:
         check_classification_targets(y)
         enc = LabelEncoder()
         y = enc.fit_transform(y)
@@ -96,7 +95,7 @@ def glm_fit(X, y, model, datafit, penalty):
         else:
             yXT = (X * y[:, None]).T
 
-    n_samples, n_features = X.shape
+    n_samples = X.shape[0]
     if n_samples != y.shape[0]:
         raise ValueError("X and y have inconsistent dimensions (%d != %d)"
                          % (n_samples, y.shape[0]))
@@ -109,6 +108,12 @@ def glm_fit(X, y, model, datafit, penalty):
     w = np.zeros(X_.shape[1], dtype=X_.dtype)
     Xw = np.zeros(X_.shape[0], dtype=X_.dtype)
 
+    # check consistency of weights for WeightedL1
+    if isinstance(penalty, WeightedL1):
+        if len(penalty.weights) != X.shape[1]:
+            raise ValueError(
+                "The size of the WeightedL1 penalty should be n_features")
+
     coefs, n_iter, kkt = cd_solver(
         X_, y, datafit, penalty, w, Xw, max_iter=model.max_iter,
         max_epochs=model.max_epochs, p0=model.p0,
@@ -119,7 +124,7 @@ def glm_fit(X, y, model, datafit, penalty):
     model.n_iter_ = n_iter
     model.intercept_ = 0.
 
-    if model.is_classif:
+    if is_classif:
         if n_classes_ <= 2:
             model.coef_ = coefs.T
             if isinstance(datafit, QuadraticSVC):
@@ -487,10 +492,9 @@ class Lasso(LinearModel, RegressorMixin):
     """
 
     def __init__(self, alpha=1., max_iter=100, max_epochs=50_000, p0=10,
-                 verbose=0, tol=1e-4, fit_intercept=True, is_classif=False,
+                 verbose=0, tol=1e-4, fit_intercept=True,
                  warm_start=False, ws_strategy="subdiff"):
         super().__init__()
-        self.is_classif = is_classif
         self.tol = tol
         self.max_iter = max_iter
         self.fit_intercept = fit_intercept
@@ -552,7 +556,7 @@ class Lasso(LinearModel, RegressorMixin):
             ws_strategy=self.ws_strategy)
 
 
-class WeightedLasso(Lasso_sklearn):
+class WeightedLasso(LinearModel, RegressorMixin):
     r"""WeightedLasso estimator based on Celer solver and primal extrapolation.
 
     The optimization objective for WeightedLasso is::
@@ -615,13 +619,17 @@ class WeightedLasso(Lasso_sklearn):
     """
 
     def __init__(self, alpha=1., weights=None, max_iter=100, max_epochs=50_000, p0=10,
-                 verbose=0, tol=1e-4, fit_intercept=True, warm_start=False):
-        super(WeightedLasso, self).__init__(
-            alpha=alpha, tol=tol, max_iter=max_iter,
-            fit_intercept=fit_intercept, warm_start=warm_start)
+                 verbose=0, tol=1e-4, fit_intercept=True, warm_start=False,
+                 ws_strategy="subdiff"):
+        super().__init__()
+        self.tol = tol
+        self.max_iter = max_iter
+        self.fit_intercept = fit_intercept
+        self.warm_start = warm_start
         self.verbose = verbose
         self.max_epochs = max_epochs
         self.p0 = p0
+        self.ws_strategy = ws_strategy
         self.alpha = alpha
         self.weights = weights
 
@@ -676,6 +684,13 @@ class WeightedLasso(Lasso_sklearn):
             max_iter=self.max_iter, return_n_iter=return_n_iter,
             max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
             verbose=self.verbose)
+
+    def fit(self, X, y):
+        if self.weights is None:
+            penalty = L1(self.alpha)
+        else:
+            penalty = WeightedL1(self.alpha, self.weights)
+        return glm_fit(X, y, self, Quadratic(), penalty)
 
 
 class ElasticNet(ElasticNet_sklearn):

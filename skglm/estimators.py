@@ -30,33 +30,8 @@ from skglm.solvers import cd_solver_path, bcd_solver_path
 from skglm.solvers.cd_solver import cd_solver
 
 
-def glm_fit(X, y, model, datafit, penalty):
-    """Fit function for Generalized Linear Estimator.
+def _glm_fit(X, y, model, datafit, penalty):
 
-    Parameters
-    ----------
-    X : array, shape (n_samples, n_features)
-        Design matrix.
-
-    y : array, shape (n_samples,) or (n_samples, n_tasks)
-        Target array.
-
-    model : object,
-        An instance of an GLM estimator.
-
-    datafit : instance of BaseDatafit,
-        Datafit. If None, `datafit` is initialized as a `Quadratic` datafit.
-        `datafit` is replaced by a JIT-compiled instance when calling fit.
-
-    penalty : instance of BasePenalty,
-        Penalty. If None, `penalty` is initialized as a `L1` penalty.
-        `penalty` is replaced by a JIT-compiled instance when calling fit.
-
-    Returns
-    -------
-    model : object,
-        An instance of the estimator.
-    """
     is_classif = False
 
     for base in model.__class__.__bases__:
@@ -96,12 +71,6 @@ def glm_fit(X, y, model, datafit, penalty):
         warnings.warn("DataConversionWarning('A column-vector y"
                       " was passed when a 1d array was expected")
         y = y[:, 0]
-    penalty = compiled_clone(penalty)
-    datafit = compiled_clone(datafit, to_float32=X.dtype == np.float32)
-    if issparse(X):
-        datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
-    else:
-        datafit.initialize(X, y)
 
     if not hasattr(model, "n_features_in_"):
         model.n_features_in_ = X.shape[1]
@@ -114,13 +83,22 @@ def glm_fit(X, y, model, datafit, penalty):
     if not model.warm_start or not hasattr(model, "coef_"):
         model.coef_ = None
 
+    penalty = compiled_clone(penalty)
+    datafit = compiled_clone(datafit, to_float32=X.dtype == np.float32)
+    if issparse(X):
+        datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
+    else:
+        datafit.initialize(X, y)
+
     if isinstance(datafit, QuadraticSVC):
         if issparse:
             yXT = (X.T).multiply(y)
         else:
             yXT = (X * y[:, None]).T
+        X_ = yXT
+    else:
+        X_ = X
 
-    X_ = yXT if isinstance(datafit, QuadraticSVC) else X
     # TODO allow warm start
     w = np.zeros(X_.shape[1], dtype=X_.dtype)
     Xw = np.zeros(X_.shape[0], dtype=X_.dtype)
@@ -129,7 +107,9 @@ def glm_fit(X, y, model, datafit, penalty):
     if isinstance(penalty, WeightedL1):
         if len(penalty.weights) != X.shape[1]:
             raise ValueError(
-                "The size of the WeightedL1 penalty should be n_features")
+                "The size of the WeightedL1 penalty should be n_features"
+                ", expected %i" % X_.shape[1] +
+                " got %i" % len(penalty.weights))
 
     coefs, n_iter, kkt = cd_solver(
         X_, y, datafit, penalty, w, Xw, max_iter=model.max_iter,
@@ -159,8 +139,7 @@ def glm_fit(X, y, model, datafit, penalty):
                                     for clf in multiclass.estimators_])
             model.n_iter_ = max(
                 clf.n_iter_ for clf in multiclass.estimators_)
-    elif isinstance(datafit, Logistic):
-        model.coef_ = coefs.T
+
     return model
 
 
@@ -538,7 +517,7 @@ class Lasso(LinearModel, RegressorMixin):
         self :
             Fitted estimator.
         """
-        return glm_fit(X, y, self, Quadratic(), L1(self.alpha))
+        return _glm_fit(X, y, self, Quadratic(), L1(self.alpha))
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
         """Compute Lasso path.
@@ -742,7 +721,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
             penalty = L1(self.alpha)
         else:
             penalty = WeightedL1(self.alpha, self.weights)
-        return glm_fit(X, y, self, Quadratic(), penalty)
+        return _glm_fit(X, y, self, Quadratic(), penalty)
 
 
 class ElasticNet(LinearModel, RegressorMixin):
@@ -885,7 +864,7 @@ class ElasticNet(LinearModel, RegressorMixin):
         self :
             Fitted estimator.
         """
-        return glm_fit(X, y, self, Quadratic(), L1_plus_L2(self.alpha, self.l1_ratio))
+        return _glm_fit(X, y, self, Quadratic(), L1_plus_L2(self.alpha, self.l1_ratio))
 
 
 class MCPRegression(LinearModel, RegressorMixin):
@@ -1033,7 +1012,7 @@ class MCPRegression(LinearModel, RegressorMixin):
         self :
             Fitted estimator.
         """
-        return glm_fit(X, y, self, Quadratic(), MCPenalty(self.alpha, self.gamma))
+        return _glm_fit(X, y, self, Quadratic(), MCPenalty(self.alpha, self.gamma))
 
 
 class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
@@ -1125,7 +1104,7 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         self :
             Fitted estimator.
         """
-        return glm_fit(X, y, self, Logistic(), L1(self.alpha))
+        return _glm_fit(X, y, self, Logistic(), L1(self.alpha))
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
         """Compute sparse Logistic Regression path.

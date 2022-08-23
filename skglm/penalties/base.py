@@ -60,14 +60,3 @@ class BasePenalty():
     @abstractmethod
     def generalized_support(self, w):
         r"""Return a mask which is True for coefficients in the generalized support."""
-
-    def get_params(self, deep=False):
-        return self.__dict__
-
-    def set_params(self, **params):
-        valid_params = self.get_params().keys()
-
-        for k, v in params.items():
-            if k in valid_params:
-                setattr(self, k, v)
-        return self

@@ -1,5 +1,6 @@
 # License: BSD 3 clause
 
+from tkinter.messagebox import QUESTION
 import numpy as np
 import numbers
 from scipy.sparse import issparse
@@ -9,7 +10,6 @@ from sklearn.utils.validation import check_X_y
 from sklearn.utils.multiclass import check_classification_targets
 from sklearn.utils import check_array, check_consistent_length
 
-from sklearn.linear_model import Lasso as Lasso_sklearn
 from sklearn.linear_model import LogisticRegression as LogReg_sklearn
 from sklearn.linear_model import MultiTaskLasso as MultiTaskLasso_sklearn
 from sklearn.linear_model._base import LinearModel, RegressorMixin
@@ -817,7 +817,7 @@ class ElasticNet(LinearModel, RegressorMixin):
         return glm_fit(X, y, self, Quadratic(), L1_plus_L2(self.alpha, self.l1_ratio))
 
 
-class MCPRegression(Lasso_sklearn):
+class MCPRegression(LinearModel, RegressorMixin):
     r"""Linear regression with MCP penalty estimator.
 
     The optimization objective for MCPRegression is, with x >= 0::
@@ -883,16 +883,19 @@ class MCPRegression(Lasso_sklearn):
     """
 
     def __init__(self, alpha=1., gamma=3, max_iter=100, max_epochs=50_000, p0=10,
-                 verbose=0, tol=1e-4, fit_intercept=True, warm_start=False):
-        super(MCPRegression, self).__init__(
-            alpha=alpha, tol=tol, max_iter=max_iter,
-            fit_intercept=fit_intercept,
-            warm_start=warm_start)
+                 verbose=0, tol=1e-4, fit_intercept=True, warm_start=False,
+                 ws_strategy="subdiff"):
+        super().__init__()
+        self.tol = tol
+        self.max_iter = max_iter
+        self.fit_intercept = fit_intercept
+        self.warm_start = warm_start
         self.verbose = verbose
         self.max_epochs = max_epochs
         self.p0 = p0
-        self.gamma = gamma
+        self.ws_strategy = ws_strategy
         self.alpha = alpha
+        self.gamma = gamma
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
         """Compute MCPRegression path.
@@ -939,6 +942,9 @@ class MCPRegression(Lasso_sklearn):
             max_iter=self.max_iter, return_n_iter=return_n_iter,
             max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
             verbose=self.verbose)
+
+    def fit(self, X, y):
+        return glm_fit(X, y, self, Quadratic(), MCPenalty(self.alpha, self.gamma))
 
 
 class SparseLogisticRegression(LogReg_sklearn):

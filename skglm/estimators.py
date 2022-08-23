@@ -817,7 +817,8 @@ class ElasticNet(LinearModel, RegressorMixin):
         Amount of verbosity.
 
     ws_strategy : str
-        The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
+        The score used to build the working set.
+        Can be ``fixpoint`` or ``subdiff``.
 
     Attributes
     ----------

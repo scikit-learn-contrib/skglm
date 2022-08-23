@@ -4,7 +4,6 @@ from sklearn.linear_model import HuberRegressor
 from numpy.testing import assert_allclose, assert_array_less
 
 from skglm.datafits import Huber, Logistic
-from skglm.datafits.single_task import SqrtQuadratic
 from skglm.penalties import WeightedL1
 from skglm import GeneralizedLinearEstimator
 from skglm.utils import make_correlated_data
@@ -50,20 +49,6 @@ def test_log_datafit():
     exp_yXw = np.exp(-y * Xw)
     np.testing.assert_almost_equal(exp_yXw / (1 + exp_yXw) ** 2 / len(y), hess)
     np.testing.assert_almost_equal(-grad * (y + n_samples * grad), hess)
-
-
-def test_sqrt_quad():
-    n_samples, n_features = 10, 20
-
-    w = np.ones(n_features)
-    X, y, _ = make_correlated_data(n_samples, n_features)
-    Xw = X @ w
-
-    sqrt_quad = SqrtQuadratic()
-    raw_grad = sqrt_quad.raw_grad(y, Xw)
-    raw_hess = sqrt_quad.raw_hessian(y, Xw)
-
-    np.testing.assert_allclose(raw_grad, (Xw - y) * raw_hess)
 
 
 if __name__ == '__main__':

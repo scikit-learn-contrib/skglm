@@ -234,19 +234,20 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
 @njit
 def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
                            X_delta_w_ws, ws):
-    # inplace update of w and Xw
-    # return grad_ws of the last w and Xw
+    # 1) find step such that:
+    #   penalty(w + step * delta_w) - penalty(w) +
+    #   step * \nabla datafit(w + step * delta_w) @ delta_w < 0
+    # 2) inplace update of w and Xw and return grad_ws of the last w and Xw
     step, prev_step = 1., 0.
-    epoch_penalty_val = penalty.value(w[ws])
+    old_penalty_val = penalty.value(w[ws])
 
     for backtrack_iter in range(MAX_BACKTRACK_ITER):
-        stop_crit = -epoch_penalty_val
         w[ws] += (step - prev_step) * delta_w_ws
         Xw += (step - prev_step) * X_delta_w_ws
 
         grad_ws = _construct_grad(X, y, w, Xw, datafit, ws)
+        stop_crit = penalty.value(w[ws]) - old_penalty_val
         stop_crit += step * grad_ws @ delta_w_ws
-        stop_crit += penalty.value(w[ws])
 
         if stop_crit < 0:
             break
@@ -261,7 +262,6 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
 @njit
 def _backtrack_line_search_s(X_data, X_indptr, X_indices, y, w, Xw, datafit,
                              penalty, delta_w_ws, X_delta_w_ws, ws):
-    # inplace update of w and Xw
     step, prev_step = 1., 0.
     epoch_penalty_val = penalty.value(w[ws])
 

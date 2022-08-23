@@ -114,7 +114,6 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
         tol_in = EPS_TOL * stop_crit
 
         for pn_iter in range(max_pn_iter):
-
             # find descent direction
             if is_sparse:
                 delta_w_ws, X_delta_w_ws = _descent_direction_s(
@@ -169,7 +168,7 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
     for idx, j in enumerate(ws):
         lipschitz[idx] = raw_hess @ X[:, j] ** 2
 
-    cached_grads = np.zeros(len(ws))
+    quadratic_grad = np.zeros(len(ws))
     X_delta_w_ws = np.zeros(X.shape[0])
     w_ws = w_epoch[ws]
 
@@ -179,12 +178,12 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
             if lipschitz[idx] == 0:
                 continue
 
-            cached_grads[idx] = grad_ws[idx] + X[:, j] @ (raw_hess * X_delta_w_ws)
+            quadratic_grad[idx] = grad_ws[idx] + X[:, j] @ (raw_hess * X_delta_w_ws)
             old_w_idx = w_ws[idx]
             stepsize = 1 / lipschitz[idx]
 
             w_ws[idx] = penalty.prox_1d(
-                old_w_idx - stepsize * cached_grads[idx], stepsize, j)
+                old_w_idx - stepsize * quadratic_grad[idx], stepsize, j)
 
             if w_ws[idx] != old_w_idx:
                 X_delta_w_ws += (w_ws[idx] - old_w_idx) * X[:, j]
@@ -193,7 +192,7 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
             # TODO: could be improved by passing in w_ws
             current_w = w_epoch.copy()
             current_w[ws] = w_ws
-            opt = penalty.subdiff_distance(current_w, cached_grads, ws)
+            opt = penalty.subdiff_distance(current_w, quadratic_grad, ws)
             if np.max(opt) <= tol:
                 break
 
@@ -213,7 +212,7 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
         lipschitz[idx] = _sparse_squared_weighted_norm(
             X_data, X_indptr, X_indices, j, raw_hess)
 
-    cached_grads = np.zeros(len(ws))
+    quadratic_grad = np.zeros(len(ws))
     X_delta_w_ws = np.zeros(len(y))
     w_ws = w_epoch[ws]
 
@@ -223,16 +222,16 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
             if lipschitz[idx] == 0:
                 continue
 
-            cached_grads[idx] = grad_ws[idx]
+            quadratic_grad[idx] = grad_ws[idx]
             # equivalent to cached_grads[idx] += X[:, j] @ (raw_hess * X_delta_w_ws)
-            cached_grads[idx] += _sparse_weighted_dot(
+            quadratic_grad[idx] += _sparse_weighted_dot(
                 X_data, X_indptr, X_indices, j, X_delta_w_ws, raw_hess)
 
             old_w_idx = w_ws[idx]
             stepsize = 1 / lipschitz[idx]
 
             w_ws[idx] = penalty.prox_1d(
-                old_w_idx - stepsize * cached_grads[idx], stepsize, j)
+                old_w_idx - stepsize * quadratic_grad[idx], stepsize, j)
 
             if w_ws[idx] != old_w_idx:
                 _update_X_delta_w(X_data, X_indptr, X_indices, X_delta_w_ws,
@@ -242,7 +241,7 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
             # TODO: could be improved by passing in w_ws
             current_w = w_epoch.copy()
             current_w[ws] = w_ws
-            opt = penalty.subdiff_distance(current_w, cached_grads, ws)
+            opt = penalty.subdiff_distance(current_w, quadratic_grad, ws)
             if np.max(opt) <= tol:
                 break
 

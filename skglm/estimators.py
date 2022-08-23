@@ -99,9 +99,12 @@ def _glm_fit(X, y, model, datafit, penalty):
     else:
         X_ = X
 
-    # TODO allow warm start
-    w = np.zeros(X_.shape[1], dtype=X_.dtype)
-    Xw = np.zeros(X_.shape[0], dtype=X_.dtype)
+    if model.warm_start and hasattr(model, 'coef_'):
+        w = model.coef_.copy()
+        Xw = X_ @ w
+    else:
+        w = np.zeros(X_.shape[1], dtype=X_.dtype)
+        Xw = np.zeros(X_.shape[0], dtype=X_.dtype)
 
     # check consistency of weights for WeightedL1
     if isinstance(penalty, WeightedL1):

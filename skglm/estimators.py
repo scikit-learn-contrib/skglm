@@ -3,6 +3,7 @@
 import numpy as np
 import numbers
 from scipy.sparse import issparse
+import warnings
 
 from sklearn.utils.validation import check_X_y
 from sklearn.utils.multiclass import check_classification_targets
@@ -63,8 +64,10 @@ def glm_fit(X, y, model, datafit, penalty):
                         order='F', copy=False, accept_large_sparse=False)
         y = check_array(y, 'csc', dtype=X.dtype.type, order='F', copy=False,
                         ensure_2d=False)
-    if y.ndim == 2:
-        import ipdb; ipdb.set_trace()
+    if y.ndim == 2 and y.shape[1] == 1:
+        warnings.warn("DataConversionWarning('A column-vector y"
+                      " was passed when a 1d array was expected")
+        y = y[:, 0]
     penalty = compiled_clone(penalty)
     datafit = compiled_clone(datafit, to_float32=X.dtype == np.float32)
     if issparse(X):
@@ -106,15 +109,14 @@ def glm_fit(X, y, model, datafit, penalty):
     w = np.zeros(X_.shape[1], dtype=X_.dtype)
     Xw = np.zeros(X_.shape[0], dtype=X_.dtype)
 
-    _func = cd_solver if y.ndim == 1 else bcd_solver
-    coefs, _, kkt = _func(
+    coefs, n_iter, kkt = cd_solver(
         X_, y, datafit, penalty, w, Xw, max_iter=model.max_iter,
         max_epochs=model.max_epochs, p0=model.p0,
         tol=model.tol, use_acc=True, K=5, ws_strategy=model.ws_strategy,
         verbose=model.verbose)
 
     model.coef_, model.stop_crit_ = coefs, kkt
-
+    model.n_iter_ = n_iter
     model.intercept_ = 0.
 
     if model.is_classif:
@@ -487,6 +489,7 @@ class Lasso(LinearModel, RegressorMixin):
     def __init__(self, alpha=1., max_iter=100, max_epochs=50_000, p0=10,
                  verbose=0, tol=1e-4, fit_intercept=True, is_classif=False,
                  warm_start=False, ws_strategy="subdiff"):
+        super().__init__()
         self.is_classif = is_classif
         self.tol = tol
         self.max_iter = max_iter

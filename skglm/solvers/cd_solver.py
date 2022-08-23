@@ -345,7 +345,7 @@ def cd_solver(
                             print("Early exit")
                         break
         obj_out.append(p_obj)
-    return w, np.array(obj_out), stop_crit
+    return w, t, stop_crit
 
 
 @njit

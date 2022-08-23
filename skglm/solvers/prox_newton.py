@@ -190,7 +190,10 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
                 X_delta_w_ws += (w_ws[idx] - old_w_idx) * X[:, j]
 
         if cd_iter % 5 == 0:
-            opt = penalty.subdiff_distance(w_ws, cached_grads, ws)
+            # TODO: could be improved by passing in w_ws
+            current_w = w_epoch.copy()
+            current_w[ws] = w_ws
+            opt = penalty.subdiff_distance(current_w, cached_grads, ws)
             if np.max(opt) <= tol:
                 break
 
@@ -236,7 +239,10 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
                                   w_ws[idx] - old_w_idx, j)
 
         if cd_iter % 5 == 0:
-            opt = penalty.subdiff_distance(w_ws, cached_grads, ws)
+            # TODO: could be improved by passing in w_ws
+            current_w = w_epoch.copy()
+            current_w[ws] = w_ws
+            opt = penalty.subdiff_distance(current_w, cached_grads, ws)
             if np.max(opt) <= tol:
                 break
 
@@ -253,7 +259,8 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
     # ref: https://www.di.ens.fr/~aspremon/PDF/ENSAE/Newton.pdf
     # 2) inplace update of w and Xw and return grad_ws of the last w and Xw
     step, prev_step = 1., 0.
-    old_penalty_val = penalty.value(w[ws])
+    # TODO: could be improved by passing in w[ws]
+    old_penalty_val = penalty.value(w)
 
     # try step = 1, 1/2, 1/4, ...
     for backtrack_iter in range(MAX_BACKTRACK_ITER):
@@ -261,7 +268,8 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
         Xw += (step - prev_step) * X_delta_w_ws
 
         grad_ws = _construct_grad(X, y, w, Xw, datafit, ws)
-        stop_crit = penalty.value(w[ws]) - old_penalty_val
+        # TODO: could be improved by passing in w[ws]
+        stop_crit = penalty.value(w) - old_penalty_val
         stop_crit += step * grad_ws @ delta_w_ws
 
         if stop_crit < 0:
@@ -278,7 +286,8 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
 def _backtrack_line_search_s(X_data, X_indptr, X_indices, y, w, Xw, datafit,
                              penalty, delta_w_ws, X_delta_w_ws, ws):
     step, prev_step = 1., 0.
-    old_penalty_val = penalty.value(w[ws])
+    # TODO: could be improved by passing in w[ws]
+    old_penalty_val = penalty.value(w)
 
     for backtrack_iter in range(MAX_BACKTRACK_ITER):
         w[ws] += (step - prev_step) * delta_w_ws
@@ -286,7 +295,8 @@ def _backtrack_line_search_s(X_data, X_indptr, X_indices, y, w, Xw, datafit,
 
         grad_ws = _construct_grad_sparse(X_data, X_indptr, X_indices,
                                          y, w, Xw, datafit, ws)
-        stop_crit = penalty.value(w[ws]) - old_penalty_val
+        # TODO: could be improved by passing in w[ws]
+        stop_crit = penalty.value(w) - old_penalty_val
         stop_crit += step * grad_ws.T @ delta_w_ws
 
         if stop_crit < 0:

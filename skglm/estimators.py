@@ -3,21 +3,19 @@
 import numpy as np
 from scipy.sparse import issparse
 from scipy.special import expit
-
 import warnings
 
 from sklearn.utils.multiclass import check_classification_targets
 from sklearn.utils import check_array, check_consistent_length
 from sklearn.utils.validation import check_is_fitted
-
 from sklearn.linear_model import MultiTaskLasso as MultiTaskLasso_sklearn
-from sklearn.linear_model._base import LinearModel, RegressorMixin,\
+from sklearn.linear_model._base import (
+    LinearModel, RegressorMixin,
     LinearClassifierMixin, SparseCoefMixin, BaseEstimator
-
+)
 from sklearn.svm import LinearSVC as LinearSVC_sklearn
 from sklearn.preprocessing import LabelEncoder
 from sklearn.multiclass import OneVsRestClassifier
-
 from sklearn.linear_model._base import _preprocess_data
 from sklearn.utils.extmath import softmax
 
@@ -64,11 +62,6 @@ def glm_fit(X, y, model, datafit, penalty):
     for base in model.__class__.__bases__:
         if base.__name__ in ["ClassifierMixin", "LinearClassifierMixin"]:
             is_classif = True
-    if y is None:
-        raise ValueError("requires y to be passed, but the target y is None")
-
-    penalty = penalty if penalty else L1(1.)
-    datafit = datafit if datafit else Quadratic()
 
     if is_classif:
         check_classification_targets(y)

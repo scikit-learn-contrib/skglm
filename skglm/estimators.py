@@ -1,23 +1,25 @@
 # License: BSD 3 clause
 
-from tkinter.messagebox import QUESTION
 import numpy as np
-import numbers
 from scipy.sparse import issparse
+from scipy.special import expit
+
 import warnings
 
-from sklearn.utils.validation import check_X_y
 from sklearn.utils.multiclass import check_classification_targets
 from sklearn.utils import check_array, check_consistent_length
+from sklearn.utils.validation import check_is_fitted
 
-from sklearn.linear_model import LogisticRegression as LogReg_sklearn
 from sklearn.linear_model import MultiTaskLasso as MultiTaskLasso_sklearn
-from sklearn.linear_model._base import LinearModel, RegressorMixin
+from sklearn.linear_model._base import LinearModel, RegressorMixin,\
+    LinearClassifierMixin, SparseCoefMixin, BaseEstimator
+
 from sklearn.svm import LinearSVC as LinearSVC_sklearn
 from sklearn.preprocessing import LabelEncoder
 from sklearn.multiclass import OneVsRestClassifier
 
 from sklearn.linear_model._base import _preprocess_data
+from sklearn.utils.extmath import softmax
 
 from skglm.penalties import (
     L1, WeightedL1, L1_plus_L2, MCPenalty, IndicatorBox, L2_1
@@ -34,7 +36,7 @@ def glm_fit(X, y, model, datafit, penalty):
     is_classif = False
 
     for base in model.__class__.__bases__:
-        if base.__name__ == "ClassifierMixin":
+        if base.__name__ in ["ClassifierMixin", "LinearClassifierMixin"]:
             is_classif = True
     if y is None:
         raise ValueError("requires y to be passed, but the target y is None")
@@ -42,13 +44,22 @@ def glm_fit(X, y, model, datafit, penalty):
     penalty = penalty if penalty else L1(1.)
     datafit = datafit if datafit else Quadratic()
 
-    if isinstance(datafit, Logistic):
+    if is_classif:
+        check_classification_targets(y)
+        enc = LabelEncoder()
+        y = enc.fit_transform(y)
+        model.classes_ = enc.classes_
+        n_classes_ = len(model.classes_)
+        sparse_format = "csc" if isinstance(datafit, Logistic) else "csr"
+        is_sparse = issparse(X)
+        if n_classes_ <= 2:
+            y = 2 * y - 1
         X = check_array(
             X,
-            accept_sparse="csr",
+            accept_sparse=sparse_format,
             dtype=np.float64)
 
-        y = check_array(y, ensure_2d=False, dtype=None)
+        y = check_array(y, ensure_2d=False, dtype=X.dtype.type)
         check_consistent_length(X, y)
     else:
         check_X_params = dict(
@@ -73,26 +84,8 @@ def glm_fit(X, y, model, datafit, penalty):
     else:
         datafit.initialize(X, y)
 
-    model.classes_ = None
-    n_classes_ = 0
-
-    if is_classif:
-        check_classification_targets(y)
-        enc = LabelEncoder()
-        y = enc.fit_transform(y)
-        model.classes_ = enc.classes_
-        n_classes_ = len(model.classes_)
-
     if not hasattr(model, "n_features_in_"):
         model.n_features_in_ = X.shape[1]
-
-    is_sparse = issparse(X)
-    if isinstance(datafit, (QuadraticSVC, Logistic)) and n_classes_ <= 2:
-        y = 2 * y - 1
-        if is_sparse and isinstance(datafit, Logistic):
-            yXT = (X.T).multiply(y)
-        else:
-            yXT = (X * y[:, None]).T
 
     n_samples = X.shape[0]
     if n_samples != y.shape[0]:
@@ -101,6 +94,12 @@ def glm_fit(X, y, model, datafit, penalty):
 
     if not model.warm_start or not hasattr(model, "coef_"):
         model.coef_ = None
+
+    if isinstance(datafit, QuadraticSVC):
+        if issparse:
+            yXT = (X.T).multiply(y)
+        else:
+            yXT = (X * y[:, None]).T
 
     X_ = yXT if isinstance(datafit, QuadraticSVC) else X
     # TODO allow warm start
@@ -125,7 +124,7 @@ def glm_fit(X, y, model, datafit, penalty):
 
     if is_classif:
         if n_classes_ <= 2:
-            model.coef_ = coefs.T
+            model.coef_ = coefs[np.newaxis, :]
             if isinstance(datafit, QuadraticSVC):
                 if is_sparse:
                     primal_coef = ((yXT).multiply(model.coef_[0, :])).T
@@ -947,7 +946,7 @@ class MCPRegression(LinearModel, RegressorMixin):
         return glm_fit(X, y, self, Quadratic(), MCPenalty(self.alpha, self.gamma))
 
 
-class SparseLogisticRegression(LogReg_sklearn):
+class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
     r"""Sparse Logistic regression estimator.
 
     The optimization objective for sparse Logistic regression is::
@@ -1002,19 +1001,18 @@ class SparseLogisticRegression(LogReg_sklearn):
     """
 
     def __init__(
-            self, alpha=1., tol=1e-4,
+            self, alpha=1.0, tol=1e-4,
             fit_intercept=False, max_iter=50, verbose=0,
-            max_epochs=50000, p0=10, warm_start=False):
-
-        super(SparseLogisticRegression, self).__init__(
-            tol=tol, max_iter=max_iter,
-            fit_intercept=fit_intercept,
-            warm_start=warm_start)
+            max_epochs=50000, p0=10, warm_start=False, ws_strategy="subdiff"):
+        super().__init__()
+        self.tol = tol
+        self.max_iter = max_iter
+        self.fit_intercept = fit_intercept
+        self.warm_start = warm_start
         self.verbose = verbose
         self.max_epochs = max_epochs
         self.p0 = p0
-        self.max_iter = max_iter
-        self.fit_intercept = fit_intercept
+        self.ws_strategy = ws_strategy
         self.alpha = alpha
 
     def fit(self, X, y):
@@ -1034,39 +1032,7 @@ class SparseLogisticRegression(LogReg_sklearn):
         self :
             Fitted estimator.
         """
-        # TODO handle normalization, centering
-        # TODO intercept
-        if self.fit_intercept:
-            raise NotImplementedError(
-                "Fitting an intercept is not implement yet")
-        # TODO support warm start
-        if not isinstance(self.alpha, numbers.Number) or self.alpha <= 0:
-            raise ValueError("Penalty term must be positive; got (alpha=%r)"
-                             % self.alpha)
-        # below are copy pasted excerpts from sklearn.linear_model._logistic
-        X, y = check_X_y(X, y, accept_sparse='csr', order="C")
-        check_classification_targets(y)
-        enc = LabelEncoder()
-        y_ind = enc.fit_transform(y)
-        self.classes_ = enc.classes_
-        n_classes = len(enc.classes_)
-
-        if not hasattr(self, "n_features_in_"):
-            self.n_features_in_ = X.shape[1]
-
-        if n_classes <= 2:
-            _, coefs, _, self.n_iter_ = self.path(
-                X, 2 * y_ind - 1, np.array([self.alpha]), solver=self.solver)
-            self.coef_ = coefs.T  # must be [1, n_features]
-            self.intercept_ = 0
-        else:
-            self.coef_ = np.empty([n_classes, X.shape[1]])
-            self.intercept_ = 0.
-            multiclass = OneVsRestClassifier(self).fit(X, y)
-            self.coef_ = np.array([clf.coef_[0]
-                                   for clf in multiclass.estimators_])
-            self.n_iter_ = max(clf.n_iter_ for clf in multiclass.estimators_)
-        return self
+        return glm_fit(X, y, self, Logistic(), L1(self.alpha))
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
         """Compute sparse Logistic Regression path.
@@ -1115,6 +1081,55 @@ class SparseLogisticRegression(LogReg_sklearn):
             coef_init=coef_init, max_iter=self.max_iter,
             return_n_iter=return_n_iter, max_epochs=self.max_epochs,
             p0=self.p0, tol=self.tol, verbose=self.verbose)
+
+    def predict_proba(self, X):
+        """Probability estimates.
+        The returned estimates for all classes are ordered by the
+        label of classes.
+        For a multi_class problem, a one-vs-rest approach, i.e calculate the probability
+        of each class assuming it to be positive using the logistic function.
+        and normalize these values across all the classes.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Vector to be scored, where `n_samples` is the number of samples and
+            `n_features` is the number of features.
+        Returns
+        -------
+        T : array-like of shape (n_samples, n_classes)
+            Returns the probability of the sample for each class in the model,
+            where classes are ordered as they are in ``self.classes_``.
+        """
+        check_is_fitted(self)
+        if len(self.classes_) > 2:
+            # Code taken from https://github.com/scikit-learn/scikit-learn/
+            # blob/c900ad385cecf0063ddd2d78883b0ea0c99cd835/sklearn/
+            # linear_model/_base.py#L458
+            def _predict_proba_lr(X):
+                """Probability estimation for OvR logistic regression.
+                Positive class probabilities are computed as
+                1. / (1. + np.exp(-self.decision_function(X)));
+                multiclass is handled by normalizing that over all classes.
+                """
+                prob = self.decision_function(X)
+                expit(prob, out=prob)
+                if prob.ndim == 1:
+                    return np.vstack([1 - prob, prob]).T
+                else:
+                    # OvR normalization, like LibLinear's predict_probability
+                    prob /= prob.sum(axis=1).reshape((prob.shape[0], -1))
+                    return prob
+            # OvR normalization, like LibLinear's
+            return _predict_proba_lr(X)
+        else:
+            decision = self.decision_function(X)
+            if decision.ndim == 1:
+                # Workaround for multi_class="multinomial" and binary outcomes
+                # which requires softmax prediction with only a 1D decision.
+                decision_2d = np.c_[-decision, decision]
+            else:
+                decision_2d = decision
+            return softmax(decision_2d, copy=False)
 
 
 class LinearSVC(LinearSVC_sklearn):
@@ -1182,7 +1197,7 @@ class LinearSVC(LinearSVC_sklearn):
     """
 
     def __init__(
-            self, C=1., max_iter=100, max_epochs=50_000, p0=10, tol=1e-4,
+            self, C=10., max_iter=100, max_epochs=50_000, p0=10, tol=1e-4,
             fit_intercept=False, warm_start=False, verbose=0):
 
         super(LinearSVC, self).__init__(

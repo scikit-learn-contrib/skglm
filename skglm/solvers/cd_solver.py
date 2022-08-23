@@ -154,7 +154,7 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
         stop_crits[t] = sol[-1]
 
         if return_n_iter:
-            n_iters[t] = sol[1]
+            n_iters[t] = len(sol[1])
 
     results = alphas, coefs, stop_crits
     if return_n_iter:
@@ -345,7 +345,7 @@ def cd_solver(
                             print("Early exit")
                         break
         obj_out.append(p_obj)
-    return w, t, stop_crit
+    return w, np.array(obj_out), stop_crit
 
 
 @njit

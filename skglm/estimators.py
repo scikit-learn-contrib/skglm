@@ -111,14 +111,14 @@ def _glm_fit(X, y, model, datafit, penalty):
                 ", expected %i" % X_.shape[1] +
                 " got %i" % len(penalty.weights))
 
-    coefs, n_iter, kkt = cd_solver(
+    coefs, p_obj, kkt = cd_solver(
         X_, y, datafit, penalty, w, Xw, max_iter=model.max_iter,
         max_epochs=model.max_epochs, p0=model.p0,
         tol=model.tol, use_acc=True, K=5, ws_strategy=model.ws_strategy,
         verbose=model.verbose)
 
     model.coef_, model.stop_crit_ = coefs, kkt
-    model.n_iter_ = n_iter
+    model.n_iter_ = len(p_obj)
     model.intercept_ = 0.
 
     if is_classif:

@@ -58,9 +58,9 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
 
     References
     ----------
-    .. [1] M. Massias, A. Gramfort, J. Salmon
-        "Celer: a Fast Solver for the Lasso wit Dual Extrapolation", ICML 2018,
-        http://proceedings.mlr.press/v80/massias18a.html
+    .. [1] Massias, M. and Vaiter, S. and Gramfort, A. and Salmon, J.
+        "Dual Extrapolation for Sparse Generalized Linear Models", JMLR, 2019,
+        https://arxiv.org/abs/1907.05830
         code: https://github.com/mathurinm/celer
 
     .. [2] Johnson, T. B. and Guestrin, C.

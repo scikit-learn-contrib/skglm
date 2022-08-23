@@ -244,7 +244,7 @@ class QuadraticSVC(BaseDatafit):
 
 
 class SqrtQuadratic(BaseDatafit):
-    """norm(y - Xw) / sqrt(len(y))"""
+    """norm(y - Xw) / sqrt(len(y))."""
 
     def __init__(self):
         pass
@@ -265,7 +265,7 @@ class SqrtQuadratic(BaseDatafit):
 
     def raw_hessian(self, y, Xw):
         n_samples = len(y)
-        fill_value = 1 / (np.sqrt(n_samples) * (0 + np.linalg.norm(y - Xw)))
+        fill_value = 1 / (np.sqrt(n_samples) * np.linalg.norm(y - Xw))
         return np.full(n_samples, fill_value)
 
 

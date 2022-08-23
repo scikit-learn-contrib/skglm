@@ -70,12 +70,12 @@ dict_estimators_sk["LogisticRegression"] = LogReg_sklearn(
     C=1/(alpha * n_samples), fit_intercept=False, tol=tol, penalty='l1',
     solver='liblinear')
 dict_estimators_ours["LogisticRegression"] = SparseLogisticRegression(
-    alpha=alpha, fit_intercept=False, tol=tol, verbose=True)
+    alpha=alpha, fit_intercept=False, tol=tol, verbose=False)
 
 C = 1.0
 dict_estimators_sk["SVC"] = LinearSVC_sklearn(
     penalty='l2', loss='hinge', fit_intercept=False, dual=True, C=C, tol=tol)
-dict_estimators_ours["SVC"] = LinearSVC(C=C, tol=tol)
+dict_estimators_ours["SVC"] = LinearSVC(C=C, tol=tol, verbose=False)
 
 
 # Currently, `GeneralizedLinearEstimator` does not pass sklearn's `check_estimator`
@@ -101,7 +101,6 @@ def test_estimator(estimator_name, X):
         pytest.skip()
     estimator_sk = dict_estimators_sk[estimator_name]
     estimator_ours = dict_estimators_ours[estimator_name]
-
     estimator_sk.fit(X, y)
     estimator_ours.fit(X, y)
     coef_sk = estimator_sk.coef_
@@ -229,4 +228,4 @@ def test_grid_search(estimator_name):
 
 
 if __name__ == '__main__':
-    test_check_estimator("wLasso")
+    test_check_estimator("LogisticRegression")

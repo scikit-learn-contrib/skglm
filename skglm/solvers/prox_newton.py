@@ -9,7 +9,7 @@ MAX_BACKTRACK_ITER = 20
 
 
 def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
-                max_iter=20, max_epochs=1000, tol=1e-4, verbose=0):
+                max_iter=20, max_pn_iter=1000, tol=1e-4, verbose=0):
     """Run a Prox Newton solver combined with working sets.
 
     Parameters
@@ -36,8 +36,8 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
     max_iter : int, default 20
         Maximum number of outer iterations.
 
-    max_epochs : int, default 1000
-        Maximum number of CD epochs to find the descent direction.
+    max_pn_iter : int, default 1000
+        Maximum number of prox newton iteration to find the descent direction.
 
     tol : float, default 1e-4
         Tolerance for convergence.
@@ -61,11 +61,13 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
     .. [1] M. Massias, A. Gramfort, J. Salmon
         "Celer: a Fast Solver for the Lasso wit Dual Extrapolation", ICML 2018,
         http://proceedings.mlr.press/v80/massias18a.html
+        code: https://github.com/mathurinm/celer
 
     .. [2] Johnson, T. B. and Guestrin, C.
         "Blitz: A principled meta-algorithm for scaling sparse optimization",
         ICML, pp. 1171-1179, 2015.
         https://proceedings.mlr.press/v37/johnson15.html
+        code: https://github.com/tbjohns/BlitzL1
     """
     n_samples, n_features = X.shape
     w = np.zeros(n_features) if w_init is None else w_init
@@ -111,7 +113,7 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
         grad_ws = grad[ws]
         tol_in = EPS_TOL * stop_crit
 
-        for epoch in range(max_epochs):
+        for pn_iter in range(max_pn_iter):
 
             # find descent direction
             if is_sparse:
@@ -138,7 +140,7 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
             if max(verbose-1, 0):
                 p_obj = datafit.value(y, w, Xw) + penalty.value(w)
                 print(
-                    f"Epoch {epoch+1}: {p_obj:.10f}, "
+                    f"Epoch {pn_iter+1}: {p_obj:.10f}, "
                     f"stopping crit in: {stop_crit_in:.2e}"
                 )
 
@@ -276,17 +278,16 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
 def _backtrack_line_search_s(X_data, X_indptr, X_indices, y, w, Xw, datafit,
                              penalty, delta_w_ws, X_delta_w_ws, ws):
     step, prev_step = 1., 0.
-    epoch_penalty_val = penalty.value(w[ws])
+    old_penalty_val = penalty.value(w[ws])
 
     for backtrack_iter in range(MAX_BACKTRACK_ITER):
-        stop_crit = -epoch_penalty_val
         w[ws] += (step - prev_step) * delta_w_ws
         Xw += (step - prev_step) * X_delta_w_ws
 
         grad_ws = _construct_grad_sparse(X_data, X_indptr, X_indices,
                                          y, w, Xw, datafit, ws)
+        stop_crit = penalty.value(w[ws]) - old_penalty_val
         stop_crit += step * grad_ws.T @ delta_w_ws
-        stop_crit += penalty.value(w[ws])
 
         if stop_crit < 0:
             break

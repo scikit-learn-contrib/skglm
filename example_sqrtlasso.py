@@ -50,8 +50,8 @@ def test_vs_statmodels():
 if __name__ == '__main__':
     import time
 
-    n_samples, n_features = 100, 20
-    rho = 0.001
+    n_samples, n_features = 300, 500
+    rho = 0.05
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=0, snr=3)
 
     alpha_max = norm(X.T @ y, ord=np.inf) / (np.sqrt(n_samples) * norm(y))
@@ -69,6 +69,14 @@ if __name__ == '__main__':
     # Output: 1.057
 
     start = time.time()
-    prox_newton(X, y, sqrt_quad, l1_penalty, tol=1e-9, max_epochs=20, verbose=0)[0]
+    sol = prox_newton(X, y, sqrt_quad, l1_penalty,
+                      tol=1e-9, max_epochs=20, verbose=1)[0]
     print("skglm: ", time.time() - start)
     # Output: 0.077
+
+    for w, solver_name in zip([sol, model.params], ["skglm", "statmodel"]):
+        print("##########")
+        print(solver_name)
+        print(f"support size: {(np.abs(sol) > 1e-7).sum()}")
+        print(f"Norm coefs: {norm(sol - model.params)}")
+        print(f"Obj: {norm(y - X @ w) / np.sqrt(n_samples) + alpha * norm(w, 1)}")

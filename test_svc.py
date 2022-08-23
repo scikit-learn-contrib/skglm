@@ -14,6 +14,8 @@ clf.fit(X, y)
 clf.fit(X, y)
 
 
-reg = Lasso(verbose=2, warm_start=True)
+reg = Lasso(alpha=0.01, verbose=2, warm_start=True)
+print('##')
 reg.fit(X, y)
+print('##')
 reg.fit(X, y)

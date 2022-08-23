@@ -99,7 +99,7 @@ def _glm_fit(X, y, model, datafit, penalty):
     else:
         X_ = X
 
-    if model.warm_start and hasattr(model, 'coef_'):
+    if model.warm_start and hasattr(model, 'coef_') and model.coef_ is not None:
         w = model.coef_.copy()
         Xw = X_ @ w
     else:

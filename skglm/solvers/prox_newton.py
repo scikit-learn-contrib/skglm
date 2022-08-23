@@ -14,7 +14,7 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
 
     Parameters
     ----------
-    X : array or sparse CSC matrix shape (n_samples, n_features)
+    X : array or sparse CSC matrix, shape (n_samples, n_features)
         Design matrix.
 
     y : array, shape (n_samples,)

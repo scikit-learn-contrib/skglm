@@ -184,8 +184,8 @@ def _glm_classif_fit(X, y, model, datafit, penalty):
         model.coef_ = np.empty([len(model.classes_), X.shape[1]])
         model.intercept_ = 0
         multiclass = OneVsRestClassifier(model).fit(X, y)
-        model.coef_ = np.array([clf.coef_[0]
-                                for clf in multiclass.estimators_])
+        model.coef_ = np.array(
+            [clf.coef_[0] for clf in multiclass.estimators_])
         model.n_iter_ = max(
             clf.n_iter_ for clf in multiclass.estimators_)
 

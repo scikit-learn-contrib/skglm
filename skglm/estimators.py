@@ -10,7 +10,6 @@ from sklearn.utils.multiclass import check_classification_targets
 from sklearn.utils import check_array, check_consistent_length
 
 from sklearn.linear_model import Lasso as Lasso_sklearn
-from sklearn.linear_model import ElasticNet as ElasticNet_sklearn
 from sklearn.linear_model import LogisticRegression as LogReg_sklearn
 from sklearn.linear_model import MultiTaskLasso as MultiTaskLasso_sklearn
 from sklearn.linear_model._base import LinearModel, RegressorMixin
@@ -693,7 +692,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
         return glm_fit(X, y, self, Quadratic(), penalty)
 
 
-class ElasticNet(ElasticNet_sklearn):
+class ElasticNet(LinearModel, RegressorMixin):
     r"""Elastic net estimator.
 
     The optimization objective for Elastic net is::
@@ -755,14 +754,16 @@ class ElasticNet(ElasticNet_sklearn):
 
     def __init__(self, alpha=1., l1_ratio=0.5, max_iter=100,
                  max_epochs=50_000, p0=10, tol=1e-4, fit_intercept=True,
-                 warm_start=False, verbose=0):
-        super(ElasticNet, self).__init__(
-            alpha=alpha, l1_ratio=l1_ratio, tol=tol, max_iter=max_iter,
-            fit_intercept=fit_intercept,
-            warm_start=warm_start)
+                 warm_start=False, verbose=0, ws_strategy="subdiff"):
+        super().__init__()
+        self.tol = tol
+        self.max_iter = max_iter
+        self.fit_intercept = fit_intercept
+        self.warm_start = warm_start
         self.verbose = verbose
         self.max_epochs = max_epochs
         self.p0 = p0
+        self.ws_strategy = ws_strategy
         self.alpha = alpha
         self.l1_ratio = l1_ratio
 
@@ -811,6 +812,9 @@ class ElasticNet(ElasticNet_sklearn):
             max_iter=self.max_iter, return_n_iter=return_n_iter,
             max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
             verbose=self.verbose)
+
+    def fit(self, X, y):
+        return glm_fit(X, y, self, Quadratic(), L1_plus_L2(self.alpha, self.l1_ratio))
 
 
 class MCPRegression(Lasso_sklearn):

@@ -63,7 +63,7 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
         http://proceedings.mlr.press/v80/massias18a.html
 
     .. [2] Johnson, T. B. and Guestrin, C.
-        "Blitz: A principled metaalgorithm for scaling sparse optimization",
+        "Blitz: A principled meta-algorithm for scaling sparse optimization",
         ICML, pp. 1171-1179, 2015.
         https://proceedings.mlr.press/v37/johnson15.html
     """

@@ -1,11 +1,11 @@
 import pytest
 import numpy as np
 from itertools import product
+from sklearn.linear_model import LogisticRegression
 
 from skglm.penalties import L1
 from skglm.datafits import Logistic
 from skglm.solvers.prox_newton import prox_newton
-from sklearn.linear_model import LogisticRegression
 from skglm.utils import make_correlated_data, compiled_clone
 
 

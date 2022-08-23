@@ -80,9 +80,8 @@ def _glm_reg_fit(X, y, model, datafit, penalty):
     if isinstance(penalty, WeightedL1):
         if len(penalty.weights) != X.shape[1]:
             raise ValueError(
-                "The size of the WeightedL1 penalty should be n_features"
-                ", expected %i" % X_.shape[1] +
-                " got %i" % len(penalty.weights))
+                "The size of the WeightedL1 penalty should be n_features, \
+                expected %i, got %i" % (X_.shape[1], len(penalty.weights)))
 
     coefs, p_obj, kkt = cd_solver(
         X_, y, datafit, penalty, w, Xw, max_iter=model.max_iter,
@@ -159,9 +158,8 @@ def _glm_classif_fit(X, y, model, datafit, penalty):
     if isinstance(penalty, WeightedL1):
         if len(penalty.weights) != X.shape[1]:
             raise ValueError(
-                "The size of the WeightedL1 penalty should be n_features"
-                ", expected %i" % X_.shape[1] +
-                " got %i" % len(penalty.weights))
+                "The size of the WeightedL1 penalty should be n_features, \
+                expected %i, got %i" % (X_.shape[1], len(penalty.weights)))
 
     coefs, p_obj, kkt = cd_solver(
         X_, y, datafit, penalty, w, Xw, max_iter=model.max_iter,

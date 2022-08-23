@@ -558,7 +558,7 @@ class Lasso(LinearModel, RegressorMixin):
         Parameters
         ----------
         X : array-like, shape (n_samples, n_features)
-            Training vector, where n_samples is the number of samples and
+            Training data, where n_samples is the number of samples and
             n_features is the number of features.
         y : array-like, shape (n_samples,)
             Target vector relative to X.
@@ -756,7 +756,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
         Parameters
         ----------
         X : array-like, shape (n_samples, n_features)
-            Training vector, where n_samples is the number of samples and
+            Training data, where n_samples is the number of samples and
             n_features is the number of features.
         y : array-like, shape (n_samples,)
             Target vector relative to X.
@@ -905,7 +905,7 @@ class ElasticNet(LinearModel, RegressorMixin):
         Parameters
         ----------
         X : array-like, shape (n_samples, n_features)
-            Training vector, where n_samples is the number of samples and
+            Training data, where n_samples is the number of samples and
             n_features is the number of features.
         y : array-like, shape (n_samples,)
             Target vector relative to X.
@@ -1053,7 +1053,7 @@ class MCPRegression(LinearModel, RegressorMixin):
         Parameters
         ----------
         X : array-like, shape (n_samples, n_features)
-            Training vector, where n_samples is the number of samples and
+            Training data, where n_samples is the number of samples and
             n_features is the number of features.
         y : array-like, shape (n_samples,)
             Target vector relative to X.
@@ -1144,7 +1144,7 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         Parameters
         ----------
         X : array-like, shape (n_samples, n_features)
-            Training vector, where n_samples is the number of samples and
+            Training data, where n_samples is the number of samples and
             n_features is the number of features.
 
         y : array-like, shape (n_samples,)
@@ -1163,7 +1163,7 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         Parameters
         ----------
         X : array-like, shape (n_samples, n_features)
-            Training vector, where n_samples is the number of samples and
+            Training data, where n_samples is the number of samples and
             n_features is the number of features.
 
         y : array-like, shape (n_samples,)
@@ -1422,7 +1422,7 @@ class LinearSVC(LinearSVC_sklearn):
         Parameters
         ----------
         yXT : {array-like, sparse matrix} of shape (n_features, n_samples)
-            Training vector, where n_samples is the number of samples and
+            Training data, where n_samples is the number of samples and
             n_features is the number of features.
 
         y : array-like of shape (n_samples,)

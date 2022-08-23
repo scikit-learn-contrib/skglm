@@ -10,7 +10,7 @@ MAX_BACKTRACK_ITER = 20
 
 def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
                 max_iter=20, max_epochs=1000, tol=1e-4, verbose=0):
-    """Run a Prox Newton solver.
+    """Run a Prox Newton solver combined with working sets.
 
     Parameters
     ----------
@@ -55,6 +55,17 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
 
     stop_crit: float
         The value of the stopping criterion when the solver stops.
+
+    References
+    ----------
+    .. [1] M. Massias, A. Gramfort, J. Salmon
+        "Celer: a Fast Solver for the Lasso wit Dual Extrapolation", ICML 2018,
+        http://proceedings.mlr.press/v80/massias18a.html
+
+    .. [2] Johnson, T. B. and Guestrin, C. 
+        "Blitz: A principled metaalgorithm for scaling sparse optimization". In ICML, pp.
+        1171-1179, 2015.
+        https://proceedings.mlr.press/v37/johnson15.html
     """
     n_samples, n_features = X.shape
     w = np.zeros(n_features) if w_init is None else w_init
@@ -194,8 +205,8 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
     lipschitz = np.zeros(len(ws))
     for idx, j in enumerate(ws):
         # equivalent to: lipschitz[idx] += raw_hess * X[:, j] ** 2
-        lipschitz[idx] = _sparse_squared_weighted_norm(X_data, X_indptr, X_indices,
-                                                       j, raw_hess)
+        lipschitz[idx] = _sparse_squared_weighted_norm(
+            X_data, X_indptr, X_indices, j, raw_hess)
 
     cached_grads = np.zeros(len(ws))
     X_delta_w_ws = np.zeros(len(y))
@@ -209,8 +220,8 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
 
             cached_grads[idx] = grad_ws[idx]
             # equivalent to cached_grads[idx] += X[:, j] @ (raw_hess * X_delta_w_ws)
-            cached_grads[idx] += _sparse_weighted_dot(X_data, X_indptr, X_indices, j,
-                                                      X_delta_w_ws, raw_hess)
+            cached_grads[idx] += _sparse_weighted_dot(
+                X_data, X_indptr, X_indices, j, X_delta_w_ws, raw_hess)
 
             old_w_idx = w_ws[idx]
             stepsize = 1 / lipschitz[idx]
@@ -237,10 +248,12 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
     # 1) find step such that:
     #   penalty(w + step * delta_w) - penalty(w) +
     #   step * \nabla datafit(w + step * delta_w) @ delta_w < 0
+    # ref: https://www.di.ens.fr/~aspremon/PDF/ENSAE/Newton.pdf
     # 2) inplace update of w and Xw and return grad_ws of the last w and Xw
     step, prev_step = 1., 0.
     old_penalty_val = penalty.value(w[ws])
 
+    # try step = 1, 1/2, 1/4, ...
     for backtrack_iter in range(MAX_BACKTRACK_ITER):
         w[ws] += (step - prev_step) * delta_w_ws
         Xw += (step - prev_step) * X_delta_w_ws

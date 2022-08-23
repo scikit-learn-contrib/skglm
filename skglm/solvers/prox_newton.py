@@ -14,32 +14,32 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
 
     Parameters
     ----------
-    X: array or sparse CSC matrix, shape (n_samples, n_features)
+    X : array or sparse CSC matrix, shape (n_samples, n_features)
         Design matrix.
 
-    y: array, shape (n_samples,)
+    y : array, shape (n_samples,)
         Target vector.
 
-    datafit: instance of BaseDatafit
+    datafit : instance of BaseDatafit
         Datafit object.
 
-    penalty: instance of BasePenalty
+    penalty : instance of BasePenalty
         Penalty object.
 
-    w_init: array, shape (n_features,), default None
+    w_init : array, shape (n_features,), default None
         Initial value of coefficients.
         If set to None, a zero vector is used instead.
 
-    p0: int, default 10
+    p0 : int, default 10
         Minimum number of features to be included in the working set.
 
-    max_iter: int, default 20
+    max_iter : int, default 20
         Maximum number of outer iterations.
 
-    max_pn_iter: int, default 1000
+    max_pn_iter : int, default 1000
         Maximum number of prox Newton iterations on each subproblem.
 
-    tol: float, default 1e-4
+    tol : float, default 1e-4
         Tolerance for convergence.
 
     verbose : bool, default False
@@ -47,13 +47,13 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
 
     Returns
     -------
-    w: array, shape (n_features,)
+    w : array, shape (n_features,)
         Solution that minimizes the problem defined by datafit and penalty.
 
-    objs_out: array (max_iter,)
+    objs_out : array (max_iter,)
         The objective values at every outer iteration.
 
-    stop_crit: float
+    stop_crit : float
         The value of the stopping criterion when the solver stops.
 
     References

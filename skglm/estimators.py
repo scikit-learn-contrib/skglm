@@ -33,6 +33,32 @@ from skglm.solvers.cd_solver import cd_solver
 
 
 def glm_fit(X, y, model, datafit, penalty):
+    """Fit function for Generalized Linear Estimator.
+
+    Parameters
+    ----------
+    X : array, shape (n_samples, n_features)
+        Design matrix.
+
+    y : array, shape (n_samples,) or (n_samples, n_tasks)
+        Target array.
+
+    model : object,
+        An instance of an GLM estimator.
+
+    datafit : instance of BaseDatafit,
+        Datafit. If None, `datafit` is initialized as a `Quadratic` datafit.
+        `datafit` is replaced by a JIT-compiled instance when calling fit.
+
+    penalty : instance of BasePenalty,
+        Penalty. If None, `penalty` is initialized as a `L1` penalty.
+        `penalty` is replaced by a JIT-compiled instance when calling fit.
+
+    Returns
+    -------
+    model : object,
+        An instance of the estimator.
+    """
     is_classif = False
 
     for base in model.__class__.__bases__:
@@ -504,6 +530,21 @@ class Lasso(LinearModel, RegressorMixin):
         self.alpha = alpha
 
     def fit(self, X, y):
+        """Fit the model according to the given training data.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            Training vector, where n_samples is the number of samples and
+            n_features is the number of features.
+        y : array-like, shape (n_samples,)
+            Target vector relative to X.
+
+        Returns
+        -------
+        self :
+            Fitted estimator.
+        """
         return glm_fit(X, y, self, Quadratic(), L1(self.alpha))
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
@@ -591,6 +632,9 @@ class WeightedLasso(LinearModel, RegressorMixin):
     warm_start : bool, optional (default=False)
         When set to True, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
+
+    ws_strategy : str
+        The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
 
     Attributes
     ----------
@@ -684,7 +728,24 @@ class WeightedLasso(LinearModel, RegressorMixin):
             verbose=self.verbose)
 
     def fit(self, X, y):
+        """Fit the model according to the given training data.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            Training vector, where n_samples is the number of samples and
+            n_features is the number of features.
+        y : array-like, shape (n_samples,)
+            Target vector relative to X.
+
+        Returns
+        -------
+        self :
+            Fitted estimator.
+        """
         if self.weights is None:
+            warnings.warn(
+                'Weights are not provided, fitting with Lasso penalty')
             penalty = L1(self.alpha)
         else:
             penalty = WeightedL1(self.alpha, self.weights)
@@ -731,6 +792,9 @@ class ElasticNet(LinearModel, RegressorMixin):
 
     verbose : bool or int
         Amount of verbosity.
+
+    ws_strategy : str
+        The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
 
     Attributes
     ----------
@@ -813,6 +877,21 @@ class ElasticNet(LinearModel, RegressorMixin):
             verbose=self.verbose)
 
     def fit(self, X, y):
+        """Fit the model according to the given training data.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            Training vector, where n_samples is the number of samples and
+            n_features is the number of features.
+        y : array-like, shape (n_samples,)
+            Target vector relative to X.
+
+        Returns
+        -------
+        self :
+            Fitted estimator.
+        """
         return glm_fit(X, y, self, Quadratic(), L1_plus_L2(self.alpha, self.l1_ratio))
 
 
@@ -861,6 +940,9 @@ class MCPRegression(LinearModel, RegressorMixin):
     warm_start : bool, optional (default=False)
         When set to True, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
+
+    ws_strategy : str
+        The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
 
     Attributes
     ----------
@@ -943,6 +1025,21 @@ class MCPRegression(LinearModel, RegressorMixin):
             verbose=self.verbose)
 
     def fit(self, X, y):
+        """Fit the model according to the given training data.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            Training vector, where n_samples is the number of samples and
+            n_features is the number of features.
+        y : array-like, shape (n_samples,)
+            Target vector relative to X.
+
+        Returns
+        -------
+        self :
+            Fitted estimator.
+        """
         return glm_fit(X, y, self, Quadratic(), MCPenalty(self.alpha, self.gamma))
 
 
@@ -982,6 +1079,9 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         When set to True, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
         Only False is supported so far.
+
+    ws_strategy : str
+        The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
 
     Attributes
     ----------
@@ -1084,16 +1184,19 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
 
     def predict_proba(self, X):
         """Probability estimates.
+
         The returned estimates for all classes are ordered by the
         label of classes.
         For a multi_class problem, a one-vs-rest approach, i.e calculate the probability
         of each class assuming it to be positive using the logistic function.
         and normalize these values across all the classes.
+
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
             Vector to be scored, where `n_samples` is the number of samples and
             `n_features` is the number of features.
+
         Returns
         -------
         T : array-like of shape (n_samples, n_classes)

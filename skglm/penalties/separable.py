@@ -33,7 +33,6 @@ class L1(BasePenalty):
     def subdiff_distance(self, w, grad, ws):
         """Compute distance of negative gradient to the subdifferential at w."""
         subdiff_dist = np.zeros_like(grad)
-
         for idx, j in enumerate(ws):
             if w[j] == 0:
                 # distance of - grad_j to  [-alpha, alpha]

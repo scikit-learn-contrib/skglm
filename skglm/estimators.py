@@ -6,12 +6,13 @@ from scipy.sparse import issparse
 
 from sklearn.utils.validation import check_X_y
 from sklearn.utils.multiclass import check_classification_targets
+from sklearn.utils import check_array, check_consistent_length
 
 from sklearn.linear_model import Lasso as Lasso_sklearn
 from sklearn.linear_model import ElasticNet as ElasticNet_sklearn
 from sklearn.linear_model import LogisticRegression as LogReg_sklearn
 from sklearn.linear_model import MultiTaskLasso as MultiTaskLasso_sklearn
-from sklearn.linear_model._base import LinearModel
+from sklearn.linear_model._base import LinearModel, RegressorMixin
 from sklearn.svm import LinearSVC as LinearSVC_sklearn
 from sklearn.preprocessing import LabelEncoder
 from sklearn.multiclass import OneVsRestClassifier
@@ -26,6 +27,117 @@ from skglm.datafits import (
 )
 from skglm.utils import compiled_clone
 from skglm.solvers import cd_solver_path, bcd_solver_path
+from skglm.solvers.cd_solver import cd_solver
+from skglm.solvers.multitask_bcd_solver import bcd_solver
+
+
+def glm_fit(X, y, model, datafit, penalty):
+    if y is None:
+        raise ValueError("requires y to be passed, but the target y is None")
+
+    penalty = penalty if penalty else L1(1.)
+    datafit = datafit if datafit else Quadratic()
+
+    if isinstance(penalty, WeightedL1):
+        if len(penalty.weights) != X.shape[1]:
+            raise ValueError(
+                "The size of the WeightedL1 penalty should be n_features")
+
+    if isinstance(datafit, Logistic):
+        X = check_array(
+            X,
+            accept_sparse="csr",
+            dtype=np.float64)
+
+        y = check_array(y, ensure_2d=False, dtype=None)
+        check_consistent_length(X, y)
+    else:
+        check_X_params = dict(
+            dtype=[np.float64, np.float32], order='F',
+            accept_sparse='csc', copy=model.fit_intercept)
+        check_y_params = dict(ensure_2d=False, order='F')
+
+        X, y = model._validate_data(
+            X, y, validate_separately=(check_X_params, check_y_params))
+        X = check_array(X, 'csc', dtype=[np.float64, np.float32],
+                        order='F', copy=False, accept_large_sparse=False)
+        y = check_array(y, 'csc', dtype=X.dtype.type, order='F', copy=False,
+                        ensure_2d=False)
+    if y.ndim == 2:
+        import ipdb; ipdb.set_trace()
+    penalty = compiled_clone(penalty)
+    datafit = compiled_clone(datafit, to_float32=X.dtype == np.float32)
+    if issparse(X):
+        datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
+    else:
+        datafit.initialize(X, y)
+
+    model.classes_ = None
+    n_classes_ = 0
+
+    if model.is_classif:
+        check_classification_targets(y)
+        enc = LabelEncoder()
+        y = enc.fit_transform(y)
+        model.classes_ = enc.classes_
+        n_classes_ = len(model.classes_)
+
+    if not hasattr(model, "n_features_in_"):
+        model.n_features_in_ = X.shape[1]
+
+    is_sparse = issparse(X)
+    if isinstance(datafit, (QuadraticSVC, Logistic)) and n_classes_ <= 2:
+        y = 2 * y - 1
+        if is_sparse and isinstance(datafit, Logistic):
+            yXT = (X.T).multiply(y)
+        else:
+            yXT = (X * y[:, None]).T
+
+    n_samples, n_features = X.shape
+    if n_samples != y.shape[0]:
+        raise ValueError("X and y have inconsistent dimensions (%d != %d)"
+                         % (n_samples, y.shape[0]))
+
+    if not model.warm_start or not hasattr(model, "coef_"):
+        model.coef_ = None
+
+    X_ = yXT if isinstance(datafit, QuadraticSVC) else X
+    # TODO allow warm start
+    w = np.zeros(X_.shape[1], dtype=X_.dtype)
+    Xw = np.zeros(X_.shape[0], dtype=X_.dtype)
+
+    _func = cd_solver if y.ndim == 1 else bcd_solver
+    coefs, _, kkt = _func(
+        X_, y, datafit, penalty, w, Xw, max_iter=model.max_iter,
+        max_epochs=model.max_epochs, p0=model.p0,
+        tol=model.tol, use_acc=True, K=5, ws_strategy=model.ws_strategy,
+        verbose=model.verbose)
+
+    model.coef_, model.stop_crit_ = coefs, kkt
+
+    model.intercept_ = 0.
+
+    if model.is_classif:
+        if n_classes_ <= 2:
+            model.coef_ = coefs.T
+            if isinstance(datafit, QuadraticSVC):
+                if is_sparse:
+                    primal_coef = ((yXT).multiply(model.coef_[0, :])).T
+                else:
+                    primal_coef = (yXT * model.coef_[0, :]).T
+                primal_coef = primal_coef.sum(axis=0)
+                model.coef_ = np.array(primal_coef).reshape(1, -1)
+        elif n_classes_ > 2:
+            model.coef_ = np.empty([len(model.classes_), X.shape[1]])
+            model.intercept_ = 0
+            multiclass = OneVsRestClassifier(model).fit(X, y)
+            model.coef_ = np.array([clf.coef_[0]
+                                    for clf in multiclass.estimators_])
+            model.n_iter_ = max(
+                clf.n_iter_ for clf in multiclass.estimators_)
+    elif isinstance(datafit, Logistic):
+        model.coef_ = coefs.T
+    return model
 
 
 class GeneralizedLinearEstimator(LinearModel):
@@ -315,7 +427,7 @@ class GeneralizedLinearEstimator(LinearModel):
         return params
 
 
-class Lasso(Lasso_sklearn):
+class Lasso(LinearModel, RegressorMixin):
     r"""Lasso estimator based on Celer solver and primal extrapolation.
 
     The optimization objective for Lasso is::
@@ -373,16 +485,21 @@ class Lasso(Lasso_sklearn):
     """
 
     def __init__(self, alpha=1., max_iter=100, max_epochs=50_000, p0=10,
-                 verbose=0, tol=1e-4, fit_intercept=True,
+                 verbose=0, tol=1e-4, fit_intercept=True, is_classif=False,
                  warm_start=False, ws_strategy="subdiff"):
-        super(Lasso, self).__init__(
-            alpha=alpha, tol=tol, max_iter=max_iter,
-            fit_intercept=fit_intercept,
-            warm_start=warm_start)
+        self.is_classif = is_classif
+        self.tol = tol
+        self.max_iter = max_iter
+        self.fit_intercept = fit_intercept
+        self.warm_start = warm_start
         self.verbose = verbose
         self.max_epochs = max_epochs
         self.p0 = p0
         self.ws_strategy = ws_strategy
+        self.alpha = alpha
+
+    def fit(self, X, y):
+        return glm_fit(X, y, self, Quadratic(), L1(self.alpha))
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
         """Compute Lasso path.

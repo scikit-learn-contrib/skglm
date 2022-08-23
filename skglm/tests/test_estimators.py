@@ -229,5 +229,4 @@ def test_grid_search(estimator_name):
 
 
 if __name__ == '__main__':
-    test_generic_get_params()
-    pass
+    test_check_estimator("Lasso")

@@ -916,7 +916,8 @@ class ElasticNet(LinearModel, RegressorMixin):
         self :
             Fitted estimator.
         """
-        return _glm_reg_fit(X, y, self, Quadratic(), L1_plus_L2(self.alpha, self.l1_ratio))
+        return _glm_reg_fit(
+            X, y, self, Quadratic(), L1_plus_L2(self.alpha, self.l1_ratio))
 
 
 class MCPRegression(LinearModel, RegressorMixin):
@@ -1064,7 +1065,8 @@ class MCPRegression(LinearModel, RegressorMixin):
         self :
             Fitted estimator.
         """
-        return _glm_reg_fit(X, y, self, Quadratic(), MCPenalty(self.alpha, self.gamma))
+        return _glm_reg_fit(
+            X, y, self, Quadratic(), MCPenalty(self.alpha, self.gamma))
 
 
 class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):

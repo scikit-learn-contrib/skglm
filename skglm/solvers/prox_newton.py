@@ -37,7 +37,7 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
         Maximum number of outer iterations.
 
     max_epochs : int, default 1000
-        Maximum number of epochs.
+        Maximum number of CD epochs to find the descent direction.
 
     tol : float, default 1e-4
         Tolerance for convergence.

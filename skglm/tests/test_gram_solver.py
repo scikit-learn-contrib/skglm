@@ -6,7 +6,7 @@ from numpy.linalg import norm
 from sklearn.linear_model import Lasso
 
 from skglm.penalties import L1
-from skglm.solvers.gram import gram_solver
+from skglm.solvers.gram_cd import gram_cd_solver
 from skglm.utils import make_correlated_data, compiled_clone
 
 
@@ -17,13 +17,13 @@ def test_alpha_max(n_samples, n_features):
     alpha_max = norm(X.T @ y, ord=np.inf) / n_samples
 
     l1_penalty = compiled_clone(L1(alpha_max))
-    w = gram_solver(X, y, l1_penalty, tol=1e-9, verbose=2)[0]
+    w = gram_cd_solver(X, y, l1_penalty, tol=1e-9, verbose=2)[0]
 
     np.testing.assert_equal(w, 0)
 
 
 @pytest.mark.parametrize("n_samples, n_features, rho",
-                         product([50, 100], [20, 80], [1e-1, 1e-2]))
+                         product([500, 100], [30, 80], [1e-1, 1e-2, 1e-3]))
 def test_vs_lasso_sklearn(n_samples, n_features, rho):
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
     alpha_max = norm(X.T @ y, ord=np.inf) / n_samples
@@ -33,14 +33,9 @@ def test_vs_lasso_sklearn(n_samples, n_features, rho):
     sk_lasso.fit(X, y)
 
     l1_penalty = compiled_clone(L1(alpha))
-    w = gram_solver(X, y, l1_penalty, tol=1e-9, verbose=0, p0=10)[0]
+    w = gram_cd_solver(X, y, l1_penalty, tol=1e-9, verbose=0, max_iter=6000)[0]
 
-    print(
-        f"skglm:   {compute_obj(X, y, alpha, w)}\n"
-        f"sklearn: {compute_obj(X, y, alpha, sk_lasso.coef_.flatten())}"
-    )
-
-    # np.testing.assert_allclose(w, sk_lasso.coef_.flatten(), rtol=1e-5, atol=1e-5)
+    np.testing.assert_allclose(w, sk_lasso.coef_.flatten(), rtol=1e-5, atol=1e-5)
 
 
 def compute_obj(X, y, alpha, coef):
@@ -48,10 +43,4 @@ def compute_obj(X, y, alpha, coef):
 
 
 if __name__ == '__main__':
-    test_vs_lasso_sklearn(50, 80, 0.01)
-
-    # print(
-    #     f"skglm:   {compute_obj(X, y, alpha, w)}\n"
-    #     f"sklearn: {compute_obj(X, y, alpha, sk_lasso.coef_.flatten())}"
-    # )
     pass

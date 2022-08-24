@@ -7,22 +7,22 @@ def gram_cd_solver(X, y, penalty, max_iter=20, use_acc=True, tol=1e-4, verbose=F
     """Run a Gram solver by reformulation the problem as below.
 
     Minimize::
-        w.T @ Q @ w / (2*n_samples) - b.T @ w / n_samples + penalty(w)
+        w.T @ Q @ w / (2*n_samples) - q.T @ w / n_samples + penalty(w)
 
     where::
         Q = X.T @ X
-        b = X.T @ y
+        q = X.T @ y
     """
     n_samples, n_features = X.shape
     XtX = X.T @ X / n_samples
     Xty = X.T @ y / n_samples
     all_features = np.arange(n_features)
+    stop_crit = np.inf
     p_objs_out = []
 
     w = np.zeros(n_features)
     XtXw = np.zeros(n_features)
-    # initial: grad = -Xty
-    opt = penalty.subdiff_distance(w, -Xty, all_features)
+    opt = penalty.subdiff_distance(w, -Xty, all_features)  # initial: grad = -Xty
     if use_acc:
         accelerator = AndersonAcceleration(K=5)
         w_acc = np.zeros(n_features)
@@ -60,7 +60,7 @@ def gram_cd_solver(X, y, penalty, max_iter=20, use_acc=True, tol=1e-4, verbose=F
 
         p_obj = 0.5 * w @ XtXw - Xty @ w + penalty.value(w)
         p_objs_out.append(p_obj)
-    return w, p_objs_out, stop_crit
+    return w, np.array(p_objs_out), stop_crit
 
 
 @njit

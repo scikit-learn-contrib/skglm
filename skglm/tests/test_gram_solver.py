@@ -33,13 +33,9 @@ def test_vs_lasso_sklearn(n_samples, n_features, rho):
     sk_lasso.fit(X, y)
 
     l1_penalty = compiled_clone(L1(alpha))
-    w = gram_cd_solver(X, y, l1_penalty, tol=1e-9, verbose=0, max_iter=6000)[0]
+    w = gram_cd_solver(X, y, l1_penalty, tol=1e-9, verbose=0, max_iter=1000)[0]
 
-    np.testing.assert_allclose(w, sk_lasso.coef_.flatten(), rtol=1e-5, atol=1e-5)
-
-
-def compute_obj(X, y, alpha, coef):
-    return norm(y - X @ coef) ** 2 / (2 * len(y)) + alpha * norm(coef, ord=1)
+    np.testing.assert_allclose(w, sk_lasso.coef_.flatten(), rtol=1e-7, atol=1e-7)
 
 
 if __name__ == '__main__':

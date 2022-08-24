@@ -24,7 +24,7 @@ from skglm.penalties import (
 from skglm.datafits import (
     Quadratic, Logistic, QuadraticSVC, QuadraticMultiTask
 )
-from skglm.utils import compiled_clone, compute_yXt
+from skglm.utils import compiled_clone
 from skglm.solvers import cd_solver_path, bcd_solver_path
 from skglm.solvers.cd_solver import cd_solver
 
@@ -133,8 +133,7 @@ def _glm_classif_fit(X, y, model, datafit, penalty):
         if isinstance(datafit, QuadraticSVC):
             if is_sparse:
                 yXT = (X.T).multiply(y)
-                yXT = yXT.tocsr()
-                import ipdb; ipdb.set_trace()
+                yXT = yXT.tocsc()
             else:
                 yXT = (X * y[:, None]).T
             X_ = yXT
@@ -164,8 +163,8 @@ def _glm_classif_fit(X, y, model, datafit, penalty):
 
         coefs, p_obj, kkt = cd_solver(
             X_, y, datafit_jit, penalty, w, Xw, max_iter=model.max_iter,
-            max_epochs=model.max_epochs, p0=model.p0,
-            tol=model.tol, use_acc=True, K=5, ws_strategy=model.ws_strategy,
+            max_epochs=model.max_epochs, p0=X_.shape[1],
+            tol=model.tol, use_acc=False, K=5, ws_strategy=model.ws_strategy,
             verbose=model.verbose)
 
         model.coef_, model.stop_crit_ = coefs, kkt
@@ -1306,6 +1305,9 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
     verbose : bool or int
         Amount of verbosity.
 
+    ws_strategy : str
+        The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
+
     Attributes
     ----------
     coef_ : array, shape (n_features,)
@@ -1325,7 +1327,7 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
     """
 
     def __init__(
-            self, C=10., max_iter=100, max_epochs=50_000, p0=10, tol=1e-4,
+            self, C=1., max_iter=100, max_epochs=50_000, p0=10, tol=1e-4,
             fit_intercept=False, warm_start=False, verbose=0, ws_strategy="subdiff"):
 
         super().__init__()

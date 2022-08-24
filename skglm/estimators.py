@@ -108,9 +108,10 @@ def _glm_classif_fit(X, y, model, datafit, penalty):
     X = check_array(
         X,
         accept_sparse="csc",
-        dtype=np.float64)
+        dtype=np.float64,
+        accept_large_sparse=False)
 
-    y = check_array(y, ensure_2d=False, dtype=X.dtype.type)
+    y = check_array(y, ensure_2d=False, dtype=X.dtype.type, accept_large_sparse=False)
     check_consistent_length(X, y)
 
     if y.ndim == 2 and y.shape[1] == 1:

@@ -1142,7 +1142,7 @@ class LinearSVC(LinearSVC_sklearn):
             Target vector relative to X.
 
         Cs : ndarray shape (n_Cs,)
-            Values of regularization strenghts for which solutions are
+            Values of regularization strengths for which solutions are
             computed.
 
         coef_init : array, shape (n_features,), optional

@@ -148,7 +148,7 @@ def _glm_classif_fit(X, y, model, datafit, penalty):
             datafit_jit.initialize(X_, y)
 
         if model.warm_start and hasattr(model, 'coef_') and model.coef_ is not None:
-            w = model.coef_.copy()
+            w = model.coef_[:, 0].copy()
             Xw = X_ @ w
         else:
             w = np.zeros(X_.shape[1], dtype=X_.dtype)

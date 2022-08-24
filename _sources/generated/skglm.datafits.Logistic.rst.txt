@@ -21,6 +21,8 @@
       ~Logistic.initialize
       ~Logistic.initialize_sparse
       ~Logistic.params_to_dict
+      ~Logistic.raw_grad
+      ~Logistic.raw_hessian
       ~Logistic.value
    
    

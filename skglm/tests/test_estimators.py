@@ -4,7 +4,7 @@ import pytest
 import numpy as np
 from numpy.linalg import norm
 
-from sklearn.base import copy
+from sklearn.base import copy, clone
 from sklearn.linear_model import Lasso as Lasso_sklearn
 from sklearn.linear_model import ElasticNet as ElasticNet_sklearn
 from sklearn.linear_model import LogisticRegression as LogReg_sklearn
@@ -227,5 +227,16 @@ def test_grid_search(estimator_name):
                                ours_clf.best_params_["alpha"], rtol=1e-3)
 
 
+@pytest.mark.parametrize("estimator_name", ["Lasso", "SVC"])
+def test_warm_start(estimator_name):
+    model = clone(dict_estimators_ours[estimator_name])
+    model.warm_start = True
+    model.fit(X, y)
+    np.testing.assert_array_less(0, model.n_iter_)
+    model.fit(X, y)  # already fitted + warm_start so 0 iter done
+    np.testing.assert_equal(0, model.n_iter_)
+
+
 if __name__ == '__main__':
-    test_check_estimator("LogisticRegression")
+    test_warm_start("Lasso")
+    test_warm_start("SVC")

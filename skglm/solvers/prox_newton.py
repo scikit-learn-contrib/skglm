@@ -317,7 +317,7 @@ def _backtrack_line_search_s(X_data, X_indptr, X_indices, y, w, Xw, datafit,
 
 @njit
 def _construct_grad(X, y, w, Xw, datafit, ws):
-    # Compute grad of datafit restricted to ws. This function avoids 
+    # Compute grad of datafit restricted to ws. This function avoids
     # recomputing raw_grad for every j, which is costly for logreg
     raw_grad = datafit.raw_grad(y, Xw)
     grad = np.zeros(len(ws))

@@ -4,8 +4,8 @@ from numba import njit
 from skglm.utils import AndersonAcceleration, check_group_compatible
 
 
-def bcd_solver(X, y, datafit, penalty, w_init=None, Xw_init=None, p0=10,
-               max_iter=1000, max_epochs=100, tol=1e-4, verbose=False):
+def group_bcd_solver(X, y, datafit, penalty, w_init=None, Xw_init=None, p0=10,
+                     max_iter=1000, max_epochs=100, tol=1e-4, verbose=False):
     """Run a group BCD solver.
 
     Parameters
@@ -24,6 +24,10 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, Xw_init=None, p0=10,
 
     w_init : array, shape (n_features,), default None
         Initial value of coefficients.
+        If set to None, a zero vector is used instead.
+
+    Xw_init : array, shape (n_samples,), default None
+        Initial value of model fit.
         If set to None, a zero vector is used instead.
 
     p0 : int, default 10

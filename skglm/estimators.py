@@ -18,9 +18,10 @@ from sklearn.multiclass import OneVsRestClassifier, check_classification_targets
 
 
 from skglm.utils import compiled_clone
-from skglm.solvers import cd_solver_path, bcd_solver_path
+from skglm.solvers import cd_solver_path, multitask_bcd_solver_path
 from skglm.solvers.cd_solver import cd_solver
-from skglm.solvers.group_bcd_solver import bcd_solver
+from skglm.solvers.group_bcd_solver import group_bcd_solver
+from skglm.solvers.multitask_bcd_solver import multitask_bcd_solver
 from skglm.datafits import Quadratic, Logistic, QuadraticSVC, QuadraticMultiTask
 from skglm.penalties import L1, WeightedL1, L1_plus_L2, MCPenalty, IndicatorBox, L2_1
 
@@ -67,8 +68,13 @@ def _glm_reg_fit(X, y, model, datafit, penalty):
         w = model.coef_.copy()
         Xw = X_ @ w
     else:
-        w = np.zeros(X_.shape[1], dtype=X_.dtype)
-        Xw = np.zeros(X_.shape[0], dtype=X_.dtype)
+        # TODO this should be solver.get_init() do delegate the work
+        if y.ndim == 1:
+            w = np.zeros(X_.shape[1], dtype=X_.dtype)
+            Xw = np.zeros(X_.shape[0], dtype=X_.dtype)
+        else:  # multitask
+            w = np.zeros((X_.shape[1], y.shape[1]), dtype=X_.dtype)
+            Xw = np.zeros(y.shape, dtype=X_.dtype)
 
     # check consistency of weights for WeightedL1
     if isinstance(penalty, WeightedL1):
@@ -77,7 +83,7 @@ def _glm_reg_fit(X, y, model, datafit, penalty):
                 "The size of the WeightedL1 penalty should be n_features, \
                 expected %i, got %i" % (X_.shape[1], len(penalty.weights)))
 
-    solver = cd_solver if y.ndim == 1 else bcd_solver
+    solver = cd_solver if y.ndim == 1 else multitask_bcd_solver
     # TODO this must be replaced by an instance of BaseSolver being passed
     # so that arguments are attributes of the `solver` object and arguments
     # do not need to match across solvers
@@ -1521,5 +1527,5 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
         datafit = compiled_clone(self.datafit, to_float32=X.dtype == np.float32)
         penalty = compiled_clone(self.penalty)
 
-        return bcd_solver_path(X, Y, datafit, penalty, alphas=alphas,
-                               coef_init=coef_init, **params)
+        return multitask_bcd_solver_path(X, Y, datafit, penalty, alphas=alphas,
+                                         coef_init=coef_init, **params)

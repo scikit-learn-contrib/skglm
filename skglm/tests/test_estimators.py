@@ -72,10 +72,10 @@ dict_estimators_sk["LogisticRegression"] = LogReg_sklearn(
 dict_estimators_ours["LogisticRegression"] = SparseLogisticRegression(
     alpha=alpha, fit_intercept=False, tol=tol, verbose=False)
 
-C = 1.0
+C = 1.
 dict_estimators_sk["SVC"] = LinearSVC_sklearn(
     penalty='l2', loss='hinge', fit_intercept=False, dual=True, C=C, tol=tol)
-dict_estimators_ours["SVC"] = LinearSVC(C=C, tol=tol, verbose=False)
+dict_estimators_ours["SVC"] = LinearSVC(C=C, tol=tol, verbose=False, max_epochs=1_000)
 
 
 # Currently, `GeneralizedLinearEstimator` does not pass sklearn's `check_estimator`
@@ -238,5 +238,4 @@ def test_warm_start(estimator_name):
 
 
 if __name__ == '__main__':
-    test_warm_start("Lasso")
-    test_warm_start("SVC")
+    test_check_estimator("SVC")

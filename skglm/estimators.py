@@ -148,7 +148,10 @@ def _glm_classif_fit(X, y, model, datafit, penalty):
             datafit_jit.initialize(X_, y)
 
         if model.warm_start and hasattr(model, 'coef_') and model.coef_ is not None:
-            w = model.coef_[:, 0].copy()
+            if isinstance(datafit, QuadraticSVC):
+                w = model.dual_coef_[0, :].copy()
+            else:
+                w = model.coef_[0, :].copy()
             Xw = X_ @ w
         else:
             w = np.zeros(X_.shape[1], dtype=X_.dtype)
@@ -179,12 +182,18 @@ def _glm_classif_fit(X, y, model, datafit, penalty):
                 primal_coef = (yXT * model.coef_[0, :]).T
             primal_coef = primal_coef.sum(axis=0)
             model.coef_ = np.array(primal_coef).reshape(1, -1)
+            model.dual_coef_ = coefs[np.newaxis, :]
     elif n_classes_ > 2:
         model.coef_ = np.empty([len(model.classes_), X.shape[1]])
+        if isinstance(datafit, QuadraticSVC):
+            model.dual_coef_ = np.empty([len(model.classes_), X.shape[0]])
         model.intercept_ = 0
         multiclass = OneVsRestClassifier(model).fit(X, y)
         model.coef_ = np.array(
             [clf.coef_[0] for clf in multiclass.estimators_])
+        if isinstance(datafit, QuadraticSVC):
+            model.dual_coef_ = np.array(
+                [clf.dual_coef_[0] for clf in multiclass.estimators_])
         model.n_iter_ = max(
             clf.n_iter_ for clf in multiclass.estimators_)
 

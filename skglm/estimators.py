@@ -13,7 +13,6 @@ from sklearn.linear_model._base import (
     LinearModel, RegressorMixin,
     LinearClassifierMixin, SparseCoefMixin, BaseEstimator
 )
-from sklearn.svm import LinearSVC as LinearSVC_sklearn
 from sklearn.preprocessing import LabelEncoder
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.linear_model._base import _preprocess_data
@@ -25,7 +24,7 @@ from skglm.penalties import (
 from skglm.datafits import (
     Quadratic, Logistic, QuadraticSVC, QuadraticMultiTask
 )
-from skglm.utils import compiled_clone
+from skglm.utils import compiled_clone, compute_yXt
 from skglm.solvers import cd_solver_path, bcd_solver_path
 from skglm.solvers.cd_solver import cd_solver
 
@@ -103,13 +102,12 @@ def _glm_classif_fit(X, y, model, datafit, penalty):
     y = enc.fit_transform(y)
     model.classes_ = enc.classes_
     n_classes_ = len(model.classes_)
-    sparse_format = "csc" if isinstance(datafit, Logistic) else "csr"
     is_sparse = issparse(X)
     if n_classes_ <= 2:
         y = 2 * y - 1
     X = check_array(
         X,
-        accept_sparse=sparse_format,
+        accept_sparse="csc",
         dtype=np.float64)
 
     y = check_array(y, ensure_2d=False, dtype=X.dtype.type)
@@ -130,48 +128,50 @@ def _glm_classif_fit(X, y, model, datafit, penalty):
 
     if not model.warm_start or not hasattr(model, "coef_"):
         model.coef_ = None
-
-    penalty = compiled_clone(penalty)
-    datafit = compiled_clone(datafit, to_float32=X.dtype == np.float32)
-    if issparse(X):
-        datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
-    else:
-        datafit.initialize(X, y)
-
-    if isinstance(datafit, QuadraticSVC):
-        if issparse:
-            yXT = (X.T).multiply(y)
-        else:
-            yXT = (X * y[:, None]).T
-        X_ = yXT
-    else:
-        X_ = X
-
-    if model.warm_start and hasattr(model, 'coef_') and model.coef_ is not None:
-        w = model.coef_.copy()
-        Xw = X_ @ w
-    else:
-        w = np.zeros(X_.shape[1], dtype=X_.dtype)
-        Xw = np.zeros(X_.shape[0], dtype=X_.dtype)
-
-    # check consistency of weights for WeightedL1
-    if isinstance(penalty, WeightedL1):
-        if len(penalty.weights) != X.shape[1]:
-            raise ValueError(
-                "The size of the WeightedL1 penalty should be n_features, \
-                expected %i, got %i" % (X_.shape[1], len(penalty.weights)))
-
-    coefs, p_obj, kkt = cd_solver(
-        X_, y, datafit, penalty, w, Xw, max_iter=model.max_iter,
-        max_epochs=model.max_epochs, p0=model.p0,
-        tol=model.tol, use_acc=True, K=5, ws_strategy=model.ws_strategy,
-        verbose=model.verbose)
-
-    model.coef_, model.stop_crit_ = coefs, kkt
-    model.n_iter_ = len(p_obj)
-    model.intercept_ = 0.
-
     if n_classes_ <= 2:
+
+        if isinstance(datafit, QuadraticSVC):
+            if is_sparse:
+                yXT = (X.T).multiply(y)
+                yXT = yXT.tocsr()
+                import ipdb; ipdb.set_trace()
+            else:
+                yXT = (X * y[:, None]).T
+            X_ = yXT
+        else:
+            X_ = X
+
+        penalty = compiled_clone(penalty)
+        datafit_jit = compiled_clone(datafit, to_float32=X.dtype == np.float32)
+        if issparse(X):
+            datafit_jit.initialize_sparse(X_.data, X_.indptr, X_.indices, y)
+        else:
+            datafit_jit.initialize(X_, y)
+
+        if model.warm_start and hasattr(model, 'coef_') and model.coef_ is not None:
+            w = model.coef_.copy()
+            Xw = X_ @ w
+        else:
+            w = np.zeros(X_.shape[1], dtype=X_.dtype)
+            Xw = np.zeros(X_.shape[0], dtype=X_.dtype)
+
+        # check consistency of weights for WeightedL1
+        if isinstance(penalty, WeightedL1):
+            if len(penalty.weights) != X.shape[1]:
+                raise ValueError(
+                    "The size of the WeightedL1 penalty should be n_features, \
+                    expected %i, got %i" % (X_.shape[1], len(penalty.weights)))
+
+        coefs, p_obj, kkt = cd_solver(
+            X_, y, datafit_jit, penalty, w, Xw, max_iter=model.max_iter,
+            max_epochs=model.max_epochs, p0=model.p0,
+            tol=model.tol, use_acc=True, K=5, ws_strategy=model.ws_strategy,
+            verbose=model.verbose)
+
+        model.coef_, model.stop_crit_ = coefs, kkt
+        model.n_iter_ = len(p_obj)
+        model.intercept_ = 0.
+
         model.coef_ = coefs[np.newaxis, :]
         if isinstance(datafit, QuadraticSVC):
             if is_sparse:
@@ -1260,7 +1260,7 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
             return softmax(decision_2d, copy=False)
 
 
-class LinearSVC(LinearSVC_sklearn):
+class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
     r"""LinearSVC estimator, with hinge loss.
 
     The optimization objective for LinearSVC is::
@@ -1326,17 +1326,18 @@ class LinearSVC(LinearSVC_sklearn):
 
     def __init__(
             self, C=10., max_iter=100, max_epochs=50_000, p0=10, tol=1e-4,
-            fit_intercept=False, warm_start=False, verbose=0):
+            fit_intercept=False, warm_start=False, verbose=0, ws_strategy="subdiff"):
 
-        super(LinearSVC, self).__init__(
-            C=C, tol=tol, max_iter=max_iter, penalty='l2', loss='hinge',
-            fit_intercept=False)
+        super().__init__()
+        self.tol = tol
+        self.max_iter = max_iter
+        self.fit_intercept = fit_intercept
+        self.warm_start = warm_start
         self.verbose = verbose
         self.max_epochs = max_epochs
         self.p0 = p0
+        self.ws_strategy = ws_strategy
         self.C = C
-        self.warm_start = warm_start
-        self.fit_intercept = fit_intercept
 
     def fit(self, X, y):
         """Fit LinearSVC classifier.
@@ -1354,116 +1355,7 @@ class LinearSVC(LinearSVC_sklearn):
         self
             Fitted estimator.
         """
-        # TODO support fit_intercept
-        self.intercept_ = 0.
-
-        if self.fit_intercept:
-            raise NotImplementedError(
-                "Fitting an intercept is not implement yet")
-
-        if self.C < 0:
-            raise ValueError(
-                "Penalty term must be positive; got (C=%r)" % self.C)
-
-        X, y = self._validate_data(
-            X,
-            y,
-            accept_sparse="csc",
-            dtype=np.float64,
-            order="C",
-            accept_large_sparse=True,
-        )
-        check_classification_targets(y)
-        self.classes_ = np.unique(y)
-
-        if not hasattr(self, "n_features_in_"):
-            self.n_features_in_ = X.shape[1]
-
-        enc = LabelEncoder()
-        y_ind = enc.fit_transform(y)
-        self.classes_ = enc.classes_
-        n_classes = len(enc.classes_)
-
-        if n_classes <= 2:
-            y_ind = 2 * y_ind - 1
-            is_sparse = issparse(X)
-            if is_sparse:
-                yXT = (X.T).multiply(y_ind)
-            else:
-                yXT = (X * y_ind[:, None]).T
-
-            # Dirty hack to force casting, could find something better
-            yXT = yXT.astype(X.dtype)
-            _, coefs, _, self.n_iter_ = self.path(
-                yXT, y_ind, np.array([self.C]))
-            self.coef_ = coefs.T  # must be [1, n_features]
-            self.intercept_ = 0
-            if is_sparse:
-                primal_coef = ((yXT).multiply(self.coef_[0, :])).T
-            else:
-                primal_coef = (yXT * self.coef_[0, :]).T
-
-            # Primal-Dual relation
-            primal_coef = primal_coef.sum(axis=0)
-            self.dual_ = self.coef_
-            # must be [1, n_features]
-            self.coef_ = np.array(primal_coef).reshape(1, -1)
-        else:
-            self.coef_ = np.empty([n_classes, X.shape[1]])
-            self.intercept_ = 0.
-            multiclass = OneVsRestClassifier(self).fit(X, y)
-            self.coef_ = np.array([clf.coef_[0]
-                                   for clf in multiclass.estimators_])
-            self.n_iter_ = max(clf.n_iter_ for clf in multiclass.estimators_)
-        return self
-
-    def path(self, yXT, y, Cs, coef_init=None, return_n_iter=True, **params):
-        """Compute linear SVC path.
-
-        Parameters
-        ----------
-        yXT : {array-like, sparse matrix} of shape (n_features, n_samples)
-            Training data, where n_samples is the number of samples and
-            n_features is the number of features.
-
-        y : array-like of shape (n_samples,)
-            Target vector relative to X.
-
-        Cs : ndarray shape (n_Cs,)
-            Values of regularization strenghts for which solutions are
-            computed.
-
-        coef_init : array, shape (n_features,), optional
-            Initial value of the coefficients.
-
-        return_n_iter : bool, optional (default=True)
-            Whether or not to return the number of iterations.
-
-        **params : kwargs
-            All parameters supported by path.
-
-        Returns
-        -------
-        alphas : array, shape (n_alphas,)
-            The alphas along the path where models are computed.
-
-        coefs : array, shape (n_features, n_alphas)
-            Coefficients along the path.
-
-        stop_crit : array, shape (n_alphas,)
-            Value of stopping criterion at convergence along the path.
-
-        n_iters : array, shape (n_alphas,), optional
-            The number of iterations along the path. If return_n_iter is set to `True`.
-        """
-        penalty_dual = compiled_clone(IndicatorBox(self.C))
-        datafit = compiled_clone(QuadraticSVC(), to_float32=yXT.dtype == np.float32)
-
-        return cd_solver_path(
-            yXT, y, datafit, penalty_dual, alphas=Cs,
-            coef_init=coef_init, max_iter=self.max_iter,
-            return_n_iter=return_n_iter, max_epochs=self.max_epochs,
-            p0=self.p0, tol=self.tol, verbose=self.verbose)
+        return _glm_classif_fit(X, y, self, QuadraticSVC(), IndicatorBox(self.C))
 
 
 class MultiTaskLasso(MultiTaskLasso_sklearn):

@@ -4,7 +4,7 @@ from numba import njit
 from skglm.utils import AndersonAcceleration, check_group_compatible
 
 
-def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
+def bcd_solver(X, y, datafit, penalty, w_init=None, Xw_init=None, p0=10,
                max_iter=1000, max_epochs=100, tol=1e-4, verbose=False):
     """Run a group BCD solver.
 
@@ -55,12 +55,12 @@ def bcd_solver(X, y, datafit, penalty, w_init=None, p0=10,
     check_group_compatible(datafit)
     check_group_compatible(penalty)
 
-    n_features = X.shape[1]
+    n_samples, n_features = X.shape
     n_groups = len(penalty.grp_ptr) - 1
 
-    # init
     w = np.zeros(n_features) if w_init is None else w_init
-    Xw = X @ w
+    Xw = np.zeros(n_samples) if w_init is None else Xw_init
+    # Xw = X @ w
     datafit.initialize(X, y)
     all_groups = np.arange(n_groups)
     p_objs_out = np.zeros(max_iter)

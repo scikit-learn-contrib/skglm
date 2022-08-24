@@ -20,6 +20,7 @@ from sklearn.multiclass import OneVsRestClassifier, check_classification_targets
 from skglm.utils import compiled_clone
 from skglm.solvers import cd_solver_path, bcd_solver_path
 from skglm.solvers.cd_solver import cd_solver
+from skglm.solvers.group_bcd_solver import bcd_solver
 from skglm.datafits import Quadratic, Logistic, QuadraticSVC, QuadraticMultiTask
 from skglm.penalties import L1, WeightedL1, L1_plus_L2, MCPenalty, IndicatorBox, L2_1
 
@@ -76,10 +77,14 @@ def _glm_reg_fit(X, y, model, datafit, penalty):
                 "The size of the WeightedL1 penalty should be n_features, \
                 expected %i, got %i" % (X_.shape[1], len(penalty.weights)))
 
-    coefs, p_obj, kkt = cd_solver(
+    solver = cd_solver if y.ndim == 1 else bcd_solver
+    # TODO this must be replaced by an instance of BaseSolver being passed
+    # so that arguments are attributes of the `solver` object and arguments
+    # do not need to match across solvers
+    coefs, p_obj, kkt = solver(
         X_, y, datafit, penalty, w, Xw, max_iter=model.max_iter,
         max_epochs=model.max_epochs, p0=model.p0,
-        tol=model.tol, use_acc=True, K=5, ws_strategy=model.ws_strategy,
+        tol=model.tol,  # ws_strategy=model.ws_strategy,
         verbose=model.verbose)
 
     model.coef_, model.stop_crit_ = coefs, kkt

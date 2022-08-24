@@ -12,7 +12,8 @@ from skglm.utils import make_correlated_data, compiled_clone
 @pytest.mark.parametrize('X_density', [1, 0.5])
 def test_alpha_max(X_density):
     n_samples, n_features = 10, 20
-    X, y, _ = make_correlated_data(n_samples, n_features, X_density=X_density)
+    X, y, _ = make_correlated_data(
+        n_samples, n_features, X_density=X_density, random_state=2)
     y = np.sign(y)
 
     alpha_max = np.linalg.norm(X.T @ y, ord=np.inf) / (2 * n_samples)
@@ -26,7 +27,7 @@ def test_alpha_max(X_density):
 
 @pytest.mark.parametrize("rho, X_density", product([1e-1, 1e-2], [1., 0.5]))
 def test_pn_vs_sklearn(rho, X_density):
-    n_samples, n_features = 10, 20
+    n_samples, n_features = 11, 19
 
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=0,
                                    X_density=X_density)

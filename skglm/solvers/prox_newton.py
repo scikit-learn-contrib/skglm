@@ -50,7 +50,7 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
     w : array, shape (n_features,)
         Solution that minimizes the problem defined by datafit and penalty.
 
-    objs_out : array (max_iter,)
+    objs_out : array, shape (n_iter,)
         The objective values at every outer iteration.
 
     stop_crit : float
@@ -150,7 +150,7 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
 
         p_obj = datafit.value(y, w, Xw) + penalty.value(w)
         p_objs_out.append(p_obj)
-    return w, p_objs_out, stop_crit
+    return w, np.asarray(p_objs_out), stop_crit
 
 
 @njit
@@ -317,7 +317,8 @@ def _backtrack_line_search_s(X_data, X_indptr, X_indices, y, w, Xw, datafit,
 
 @njit
 def _construct_grad(X, y, w, Xw, datafit, ws):
-    # Compute grad of datafit restricted to ws
+    # Compute grad of datafit restricted to ws. This function avoids 
+    # recomputing raw_grad for every j, which is costly for logreg
     raw_grad = datafit.raw_grad(y, Xw)
     grad = np.zeros(len(ws))
     for idx, j in enumerate(ws):

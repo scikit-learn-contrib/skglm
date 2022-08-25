@@ -60,12 +60,16 @@ def gram_cd_solver(X, y, penalty, max_iter=100, w_init=None,
         The value of the stopping criterion when the solver stops.
     """
     n_samples, n_features = X.shape
-    scaled_gram = X.T @ X / n_samples
-    scaled_Xty = X.T @ y / n_samples
-    scaled_y_norm2 = np.linalg.norm(y)**2 / (2*n_samples)
 
     if issparse(X):
-        scaled_gram = scaled_gram.toarray()
+        scaled_gram = X.T.dot(X)
+        scaled_gram = scaled_gram.toarray() / n_samples
+        scaled_Xty = X.T.dot(y) / n_samples
+    else:
+        scaled_gram = X.T @ X / n_samples
+        scaled_Xty = X.T @ y / n_samples
+
+    scaled_y_norm2 = np.linalg.norm(y)**2 / (2*n_samples)
 
     all_features = np.arange(n_features)
     stop_crit = np.inf  # prevent ref before assign

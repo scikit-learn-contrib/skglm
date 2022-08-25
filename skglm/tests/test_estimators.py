@@ -227,7 +227,9 @@ def test_grid_search(estimator_name):
                                ours_clf.best_params_["alpha"], rtol=1e-3)
 
 
-@pytest.mark.parametrize("estimator_name", ["Lasso", "SVC"])
+@pytest.mark.parametrize(
+    "estimator_name",
+    ["Lasso", "wLasso", "ElasticNet", "MCP", "LogisticRegression", "SVC"])
 def test_warm_start(estimator_name):
     model = clone(dict_estimators_ours[estimator_name])
     model.warm_start = True
@@ -238,4 +240,6 @@ def test_warm_start(estimator_name):
 
 
 if __name__ == '__main__':
-    test_check_estimator("SVC")
+    test_warm_start("wLasso")
+    # test_check_estimator("SVC")
+    # test_estimator_predict(Logistic, L1, LogReg_sklearn),

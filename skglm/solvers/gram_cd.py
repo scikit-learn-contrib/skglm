@@ -3,7 +3,8 @@ from numba import njit
 from skglm.utils import AndersonAcceleration
 
 
-def gram_cd_solver(X, y, penalty, max_iter=20, use_acc=True, tol=1e-4, verbose=False):
+def gram_cd_solver(X, y, penalty, max_iter=20, w_init=None,
+                   use_acc=True, tol=1e-4, verbose=False):
     """Run coordinate descent while keeping the gradients up-to-date with Gram updates.
 
     Minimize::
@@ -19,13 +20,13 @@ def gram_cd_solver(X, y, penalty, max_iter=20, use_acc=True, tol=1e-4, verbose=F
     n_samples, n_features = X.shape
     scaled_gram = X.T @ X / n_samples
     scaled_Xty = X.T @ y / n_samples
-    scaled_y_norm2 = np.linalg.norm(y) ** 2 / (2 * n_samples)
+    scaled_y_norm2 = np.linalg.norm(y)**2 / (2*n_samples)
     all_features = np.arange(n_features)
     stop_crit = np.inf  # prevent ref before assign
     p_objs_out = []
 
-    w = np.zeros(n_features)
-    scaled_gram_w = np.zeros(n_features)
+    w = np.zeros(n_features) if w_init is None else w_init
+    scaled_gram_w = np.zeros(n_features) if w_init is None else scaled_gram @ w_init
     opt = penalty.subdiff_distance(w, -scaled_Xty, all_features)  # initial: grad = -Xty
     if use_acc:
         accelerator = AndersonAcceleration(K=5)

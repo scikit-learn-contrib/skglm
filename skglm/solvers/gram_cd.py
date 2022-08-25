@@ -4,7 +4,7 @@ from skglm.utils import AndersonAcceleration
 
 
 def gram_cd_solver(X, y, penalty, max_iter=20, w_init=None,
-                   use_acc=True, tol=1e-4, verbose=False):
+                   use_acc=True, cd_type='greedy', tol=1e-4, verbose=False):
     """Run coordinate descent while keeping the gradients up-to-date with Gram updates.
 
     Minimize::
@@ -50,8 +50,9 @@ def gram_cd_solver(X, y, penalty, max_iter=20, w_init=None,
             break
 
         # inplace update of w, XtXw
-        opt = _gram_cd_epoch(scaled_gram, scaled_Xty, w, scaled_gram_w, penalty,
-                             all_features)
+        _gram_cd_epoch = _gram_cd_greedy if cd_type == 'greedy' else _gram_cd_cyclic
+        opt = _gram_cd_epoch(scaled_gram, scaled_Xty, w, scaled_gram_w,
+                             penalty, all_features)
 
         # perform anderson extrapolation
         if use_acc:
@@ -72,7 +73,7 @@ def gram_cd_solver(X, y, penalty, max_iter=20, w_init=None,
 
 
 @njit
-def _gram_cd_epoch(scaled_gram, scaled_Xty, w, scaled_gram_w, penalty, ws):
+def _gram_cd_greedy(scaled_gram, scaled_Xty, w, scaled_gram_w, penalty, ws):
     # inplace update of w, XtXw, opt
     # perform greedy cd updates
     for _ in range(len(w)):
@@ -88,3 +89,23 @@ def _gram_cd_epoch(scaled_gram, scaled_Xty, w, scaled_gram_w, penalty, ws):
         if w[j_max] != old_w_j:
             scaled_gram_w += (w[j_max] - old_w_j) * scaled_gram[:, j_max]
     return opt
+
+
+@njit
+def _gram_cd_cyclic(scaled_gram, scaled_Xty, w, scaled_gram_w, penalty, ws):
+    # inplace update of w, XtXw, opt
+    # perform greedy cd updates
+    for j in range(len(w)):
+        grad = scaled_gram_w - scaled_Xty
+
+        old_w_j = w[j]
+        step = 1 / scaled_gram[j, j]  # 1 / lipchitz_j
+        w[j] = penalty.prox_1d(old_w_j - step * grad[j], step, j)
+
+        # Gram matrix update
+        if w[j] != old_w_j:
+            scaled_gram_w += (w[j] - old_w_j) * scaled_gram[:, j]
+
+    # opt
+    grad = scaled_gram_w - scaled_Xty
+    return penalty.subdiff_distance(w, grad, ws)

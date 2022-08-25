@@ -27,11 +27,13 @@ from skglm.penalties import L1, WeightedL1, L1_plus_L2, MCPenalty, IndicatorBox,
 
 def _glm_fit(X, y, model, datafit, penalty):
 
-    is_classif = False
-
-    for base in model.__class__.__bases__:
-        if base.__name__ in ["ClassifierMixin", "LinearClassifierMixin"]:
-            is_classif = True
+    if hasattr(model, "is_classif"):
+        is_classif = model.is_classif
+    else:
+        is_classif = False
+        for base in model.__class__.__bases__:
+            if base.__name__ in ["ClassifierMixin", "LinearClassifierMixin"]:
+                is_classif = True
 
     if is_classif:
         check_classification_targets(y)

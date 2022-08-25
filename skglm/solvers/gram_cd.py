@@ -1,5 +1,6 @@
 import numpy as np
 from numba import njit
+from scipy.sparse import issparse
 from skglm.utils import AndersonAcceleration
 
 
@@ -21,6 +22,10 @@ def gram_cd_solver(X, y, penalty, max_iter=20, w_init=None,
     scaled_gram = X.T @ X / n_samples
     scaled_Xty = X.T @ y / n_samples
     scaled_y_norm2 = np.linalg.norm(y)**2 / (2*n_samples)
+
+    if issparse(X):
+        scaled_gram = scaled_gram.toarray()
+
     all_features = np.arange(n_features)
     stop_crit = np.inf  # prevent ref before assign
     p_objs_out = []
@@ -28,6 +33,7 @@ def gram_cd_solver(X, y, penalty, max_iter=20, w_init=None,
     w = np.zeros(n_features) if w_init is None else w_init
     scaled_gram_w = np.zeros(n_features) if w_init is None else scaled_gram @ w_init
     opt = penalty.subdiff_distance(w, -scaled_Xty, all_features)  # initial: grad = -Xty
+
     if use_acc:
         accelerator = AndersonAcceleration(K=5)
         w_acc = np.zeros(n_features)

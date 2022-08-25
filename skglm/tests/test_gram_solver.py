@@ -10,10 +10,11 @@ from skglm.solvers.gram_cd import gram_cd_solver
 from skglm.utils import make_correlated_data, compiled_clone
 
 
-@pytest.mark.parametrize("n_samples, n_features",
-                         product([100, 200], [50, 90]))
-def test_alpha_max(n_samples, n_features):
-    X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
+@pytest.mark.parametrize("n_samples, n_features, X_density",
+                         product([100, 200], [50, 90], [1., 0.6]))
+def test_alpha_max(n_samples, n_features, X_density):
+    X, y, _ = make_correlated_data(n_samples, n_features,
+                                   random_state=0, X_density=X_density)
     alpha_max = norm(X.T @ y, ord=np.inf) / n_samples
 
     l1_penalty = compiled_clone(L1(alpha_max))
@@ -22,10 +23,11 @@ def test_alpha_max(n_samples, n_features):
     np.testing.assert_equal(w, 0)
 
 
-@pytest.mark.parametrize("n_samples, n_features, rho",
-                         product([500, 100], [30, 80], [1e-1, 1e-2, 1e-3]))
-def test_vs_lasso_sklearn(n_samples, n_features, rho):
-    X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
+@pytest.mark.parametrize("n_samples, n_features, rho, X_density",
+                         product([500, 100], [30, 80], [1e-1, 1e-2, 1e-3], [1., 0.8]))
+def test_vs_lasso_sklearn(n_samples, n_features, rho, X_density):
+    X, y, _ = make_correlated_data(n_samples, n_features,
+                                   random_state=0, X_density=X_density)
     alpha_max = norm(X.T @ y, ord=np.inf) / n_samples
     alpha = rho * alpha_max
 
@@ -39,4 +41,5 @@ def test_vs_lasso_sklearn(n_samples, n_features, rho):
 
 
 if __name__ == '__main__':
+    test_vs_lasso_sklearn(100, 10, 0.01)
     pass

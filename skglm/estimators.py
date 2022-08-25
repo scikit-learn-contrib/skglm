@@ -59,7 +59,7 @@ def _glm_fit(X, y, model, datafit, penalty):
 
     if y.ndim == 2 and y.shape[1] == 1:
         warnings.warn("DataConversionWarning('A column-vector y"
-                    " was passed when a 1d array was expected")
+                      " was passed when a 1d array was expected")
         y = y[:, 0]
 
     if not hasattr(model, "n_features_in_"):
@@ -68,7 +68,7 @@ def _glm_fit(X, y, model, datafit, penalty):
     n_samples = X.shape[0]
     if n_samples != y.shape[0]:
         raise ValueError("X and y have inconsistent dimensions (%d != %d)"
-                        % (n_samples, y.shape[0]))
+                         % (n_samples, y.shape[0]))
 
     if not model.warm_start or not hasattr(model, "coef_"):
         model.coef_ = None
@@ -104,7 +104,6 @@ def _glm_fit(X, y, model, datafit, penalty):
         datafit_jit.initialize_sparse(X_.data, X_.indptr, X_.indices, y)
     else:
         datafit_jit.initialize(X_, y)
-
 
     if model.warm_start and hasattr(model, 'coef_') and model.coef_ is not None:
         if isinstance(datafit, QuadraticSVC):

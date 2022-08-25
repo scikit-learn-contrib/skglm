@@ -4,7 +4,7 @@ from scipy.sparse import issparse
 from skglm.utils import AndersonAcceleration
 
 
-def gram_cd_solver(X, y, penalty, max_iter=20, w_init=None,
+def gram_cd_solver(X, y, penalty, max_iter=100, w_init=None,
                    use_acc=True, greedy_cd=True, tol=1e-4, verbose=False):
     """Run coordinate descent while keeping the gradients up-to-date with Gram updates.
 
@@ -16,6 +16,48 @@ def gram_cd_solver(X, y, penalty, max_iter=20, w_init=None,
 
     where::
         Q = X.T @ X (gram matrix), and q = X.T @ y
+
+    Parameters
+    ----------
+    X : array or sparse CSC matrix, shape (n_samples, n_features)
+        Design matrix.
+
+    y : array, shape (n_samples,)
+        Target vector.
+
+    penalty : instance of BasePenalty
+        Penalty object.
+
+    max_iter : int, default 100
+        Maximum number of iterations.
+
+    w_init : array, shape (n_features,), default None
+        Initial value of coefficients.
+        If set to None, a zero vector is used instead.
+
+    use_acc : bool, default True
+        Extrapolate the iterates based on the past 5 iterates if set to True.
+
+    greedy_cd : bool, default True
+        Use a greedy strategy to select features to update in Gram CD epoch
+        if set to True. A cyclic strategy is used otherwise.
+
+    tol : float, default 1e-4
+        Tolerance for convergence.
+
+    verbose : bool, default False
+        Amount of verbosity. 0/False is silent.
+
+    Returns
+    -------
+    w : array, shape (n_features,)
+        Solution that minimizes the problem defined by datafit and penalty.
+
+    objs_out : array, shape (n_iter,)
+        The objective values at every outer iteration.
+
+    stop_crit : float
+        The value of the stopping criterion when the solver stops.
     """
     n_samples, n_features = X.shape
     scaled_gram = X.T @ X / n_samples

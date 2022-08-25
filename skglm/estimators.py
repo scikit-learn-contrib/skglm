@@ -302,7 +302,7 @@ class GeneralizedLinearEstimator(LinearModel):
     #         Grid of alpha.
 
     #     coef_init : array, shape (n_features,) or (n_features, n_tasks), optional
-    #         If warm_start is enabled, the optimization problem restarts from coef_init.
+    #  If warm_start is enabled, the optimization problem restarts from coef_init.
 
     #     return_n_iter : bool
     #         Returns the number of iterations along the path.
@@ -322,7 +322,7 @@ class GeneralizedLinearEstimator(LinearModel):
     #         Value of stopping criterion at convergence along the path.
 
     #     n_iters : array, shape (n_alphas,), optional
-    #         The number of iterations along the path. If return_n_iter is set to `True`.
+    #     The number of iterations along the path. If return_n_iter is set to `True`.
     #     """
     #     penalty = compiled_clone(self.penalty)
     #     datafit = compiled_clone(self.datafit, to_float32=X.dtype == np.float32)

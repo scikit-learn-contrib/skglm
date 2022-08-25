@@ -121,21 +121,21 @@ def gram_cd_solver(X, y, penalty, max_iter=100, w_init=None,
 @njit
 def _gram_cd_epoch(scaled_gram, w, grad, penalty, greedy_cd):
     all_features = np.arange(len(w))
-    for j in all_features:
+    for cd_iter in all_features:
         # select feature j
         if greedy_cd:
             opt = penalty.subdiff_distance(w, grad, all_features)
-            chosen_j = np.argmax(opt)
+            j = np.argmax(opt)
         else:  # cyclic
-            chosen_j = j
+            j = cd_iter
 
         # update w_j
-        old_w_j = w[chosen_j]
-        step = 1 / scaled_gram[chosen_j, chosen_j]  # 1 / lipchitz_j
-        w[chosen_j] = penalty.prox_1d(old_w_j - step * grad[chosen_j], step, chosen_j)
+        old_w_j = w[j]
+        step = 1 / scaled_gram[j, j]  # 1 / lipchitz_j
+        w[j] = penalty.prox_1d(old_w_j - step * grad[j], step, j)
 
         # Gram matrix update
-        if w[chosen_j] != old_w_j:
-            grad += (w[chosen_j] - old_w_j) * scaled_gram[:, chosen_j]
+        if w[j] != old_w_j:
+            grad += (w[j] - old_w_j) * scaled_gram[:, j]
 
     return penalty.subdiff_distance(w, grad, all_features)

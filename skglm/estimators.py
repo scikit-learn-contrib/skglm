@@ -58,9 +58,8 @@ def _glm_fit(X, y, model, datafit, penalty):
                         ensure_2d=False)
 
     if y.ndim == 2 and y.shape[1] == 1:
-        warnings.warn(
-            "DataConversionWarning('A column-vector y was passed when a 1d \
-            array was expected")
+        warnings.warn("DataConversionWarning('A column-vector y"
+                    " was passed when a 1d array was expected")
         y = y[:, 0]
 
     if not hasattr(model, "n_features_in_"):

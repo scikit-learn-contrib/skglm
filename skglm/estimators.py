@@ -28,7 +28,7 @@ from skglm.penalties import L1, WeightedL1, L1_plus_L2, MCPenalty, IndicatorBox,
 def _glm_fit(X, y, model, datafit, penalty):
     is_classif = False
     if isinstance(datafit, Logistic) or isinstance(datafit, QuadraticSVC):
-            is_classif = True
+        is_classif = True
 
     if is_classif:
         check_classification_targets(y)
@@ -39,8 +39,10 @@ def _glm_fit(X, y, model, datafit, penalty):
         is_sparse = issparse(X)
         if n_classes_ <= 2:
             y = 2 * y - 1
-        X = check_array(X, accept_sparse="csc", dtype=np.float64, accept_large_sparse=False)
-        y = check_array(y, ensure_2d=False, dtype=X.dtype.type, accept_large_sparse=False)
+        X = check_array(
+            X, accept_sparse="csc", dtype=np.float64, accept_large_sparse=False)
+        y = check_array(
+            y, ensure_2d=False, dtype=X.dtype.type, accept_large_sparse=False)
         check_consistent_length(X, y)
     else:
         check_X_params = dict(
@@ -56,8 +58,9 @@ def _glm_fit(X, y, model, datafit, penalty):
                         ensure_2d=False)
 
     if y.ndim == 2 and y.shape[1] == 1:
-        warnings.warn("DataConversionWarning('A column-vector y"
-                    " was passed when a 1d array was expected")
+        warnings.warn(
+            "DataConversionWarning('A column-vector y was passed when a 1d \
+            array was expected")
         y = y[:, 0]
 
     if not hasattr(model, "n_features_in_"):
@@ -157,7 +160,6 @@ def _glm_fit(X, y, model, datafit, penalty):
             model.coef_ = np.array(primal_coef).reshape(1, -1)
             model.dual_coef_ = coefs[np.newaxis, :]
     return model
-
 
 
 class GeneralizedLinearEstimator(LinearModel):

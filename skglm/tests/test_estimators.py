@@ -94,6 +94,7 @@ def test_check_estimator(estimator_name):
     check_estimator(clf)
 
 
+# Test if skglm solver returns the coefficients
 @pytest.mark.parametrize("estimator_name", dict_estimators_ours.keys())
 @pytest.mark.parametrize('X', [X, X_sparse])
 def test_estimator(estimator_name, X):
@@ -110,6 +111,7 @@ def test_estimator(estimator_name, X):
     np.testing.assert_allclose(coef_ours, coef_sk, atol=1e-6)
 
 
+# Test if skglm multitask solver returns the coefficients
 @pytest.mark.parametrize('X', [X, X_sparse])
 def test_estimator_mtl(X):
     estimator_sk = MultiTaskLasso_sklearn(
@@ -134,6 +136,7 @@ def test_mtl_path():
     np.testing.assert_allclose(coef_ours, coef_sk, rtol=1e-5)
 
 
+# Test if GeneralizedLinearEstimator returns the correct coefficients
 @pytest.mark.parametrize("Datafit, Penalty, is_classif, Estimator, pen_args", [
     (Quadratic, L1, False, Lasso, [alpha]),
     (Quadratic, WeightedL1, False, WeightedLasso,

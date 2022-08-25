@@ -88,7 +88,6 @@ def _glm_fit(X, y, model, datafit, penalty):
             clf.n_iter_ for clf in multiclass.estimators_)
         return model
     if is_classif and n_classes_ <= 2 and isinstance(datafit, QuadraticSVC):
-        # if isinstance(datafit, QuadraticSVC):
         if is_sparse:
             yXT = (X.T).multiply(y)
             yXT = yXT.tocsc()
@@ -136,7 +135,9 @@ def _glm_fit(X, y, model, datafit, penalty):
     # TODO this must be replaced by an instance of BaseSolver being passed
     # so that arguments are attributes of the `solver` object and arguments
     # do not need to match across solvers
-    # QUESTION should p0 be different for SVC ?
+    # TODO QUESTIONS
+    # Should p0 be different for SVC?
+    # What about ws_strategy?
     coefs, p_obj, kkt = solver(
         X_, y, datafit_jit, penalty, w, Xw, max_iter=model.max_iter,
         max_epochs=model.max_epochs, p0=model.p0,

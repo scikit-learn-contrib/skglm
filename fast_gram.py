@@ -33,7 +33,10 @@ def fast_gram_sparse(data, indices, indptr):
     return gram
 
 
-X, _, _ = make_correlated_data(10000, 200, random_state=0, X_density=0.5)
+X, _, _ = make_correlated_data(10, 5, random_state=0, X_density=0.5)
+fast_gram_sparse(X.data, X.indices, X.indptr)
+
+X, _, _ = make_correlated_data(1000, 200, random_state=0, X_density=0.5)
 t0 = time.time()
 gram2 = fast_gram_sparse(X.data, X.indices, X.indptr)
 print(f"us: {time.time() -t0:.3f} s")

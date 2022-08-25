@@ -64,7 +64,7 @@ def group_bcd_solver(X, y, datafit, penalty, w_init=None, Xw_init=None, p0=10,
 
     w = np.zeros(n_features) if w_init is None else w_init
     Xw = np.zeros(n_samples) if w_init is None else Xw_init
-    # Xw = X @ w
+
     datafit.initialize(X, y)
     all_groups = np.arange(n_groups)
     p_objs_out = np.zeros(max_iter)

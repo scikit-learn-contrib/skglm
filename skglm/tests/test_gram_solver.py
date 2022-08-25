@@ -45,5 +45,4 @@ def test_vs_lasso_sklearn(n_samples, n_features, rho, X_density, greedy_cd):
 
 
 if __name__ == '__main__':
-    test_vs_lasso_sklearn(100, 10, 0.01, 1.)
     pass

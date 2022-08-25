@@ -79,13 +79,13 @@ def gram_cd_solver(X, y, penalty, max_iter=100, w_init=None,
     if use_acc:
         accelerator = AndersonAcceleration(K=5)
         w_acc = np.zeros(n_features)
-        scaled_gram_w_acc = np.zeros(n_features)
+        grad_acc = np.zeros(n_features)
 
     for t in range(max_iter):
         # check convergences
         stop_crit = np.max(opt)
         if verbose:
-            p_obj = (0.5 * w @ scaled_gram_w - scaled_Xty @ w +
+            p_obj = (0.5 * w @ (scaled_gram @ w) - scaled_Xty @ w +
                      scaled_y_norm2 + penalty.value(w))
             print(
                 f"Iteration {t+1}: {p_obj:.10f}, "
@@ -98,35 +98,30 @@ def gram_cd_solver(X, y, penalty, max_iter=100, w_init=None,
             break
 
         # inplace update of w, XtXw
-        opt = _gram_cd_epoch(scaled_gram, scaled_Xty, w, scaled_gram_w,
-                             penalty, greedy_cd)
+        opt = _gram_cd_epoch(scaled_gram, w, grad, penalty, greedy_cd)
 
         # perform Anderson extrapolation
         if use_acc:
-            w_acc, scaled_gram_w_acc, is_extrapolated = accelerator.extrapolate(
-                w, scaled_gram_w)
+            w_acc, grad_acc, is_extrapolated = accelerator.extrapolate(w, grad)
 
             if is_extrapolated:
-                p_obj_acc = (0.5 * w_acc @ scaled_gram_w_acc - scaled_Xty @ w_acc +
+                p_obj_acc = (0.5 * w_acc @ (scaled_gram @ w_acc) - scaled_Xty @ w_acc +
                              penalty.value(w_acc))
-                p_obj = 0.5 * w @ scaled_gram_w - scaled_Xty @ w + penalty.value(w)
+                p_obj = 0.5 * w @ (scaled_gram @ w) - scaled_Xty @ w + penalty.value(w)
                 if p_obj_acc < p_obj:
                     w[:] = w_acc
-                    scaled_gram_w[:] = scaled_gram_w_acc
+                    grad[:] = grad_acc
 
         # store p_obj
-        p_obj = 0.5 * w @ scaled_gram_w - scaled_Xty @ w + penalty.value(w)
+        p_obj = 0.5 * w @ (scaled_gram @ w) - scaled_Xty @ w + penalty.value(w)
         p_objs_out.append(p_obj)
     return w, np.array(p_objs_out), stop_crit
 
 
 @njit
-def _gram_cd_epoch(scaled_gram, scaled_Xty, w, scaled_gram_w, penalty, greedy_cd):
+def _gram_cd_epoch(scaled_gram, w, grad, penalty, greedy_cd):
     all_features = np.arange(len(w))
     for j in all_features:
-        # compute grad
-        grad = scaled_gram_w - scaled_Xty
-
         # select feature j
         if greedy_cd:
             opt = penalty.subdiff_distance(w, grad, all_features)
@@ -141,8 +136,6 @@ def _gram_cd_epoch(scaled_gram, scaled_Xty, w, scaled_gram_w, penalty, greedy_cd
 
         # Gram matrix update
         if w[chosen_j] != old_w_j:
-            scaled_gram_w += (w[chosen_j] - old_w_j) * scaled_gram[:, chosen_j]
+            grad += (w[chosen_j] - old_w_j) * scaled_gram[:, chosen_j]
 
-    # opt
-    grad = scaled_gram_w - scaled_Xty
     return penalty.subdiff_distance(w, grad, all_features)

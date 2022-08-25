@@ -102,12 +102,12 @@ def _glm_fit(X, y, model, datafit, penalty):
         else:
             X_ = X
 
-        penalty = compiled_clone(penalty)
-        datafit = compiled_clone(datafit, to_float32=X.dtype == np.float32)
+        jit_penalty = compiled_clone(penalty)
+        jit_datafit = compiled_clone(datafit, to_float32=X.dtype == np.float32)
         if issparse(X):
-            datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
+            jit_datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
         else:
-            datafit.initialize(X, y)
+            jit_datafit.initialize(X, y)
 
         if model.warm_start and hasattr(model, 'coef_') and model.coef_ is not None:
             if is_classif:
@@ -139,7 +139,7 @@ def _glm_fit(X, y, model, datafit, penalty):
         # so that arguments are attributes of the `solver` object and arguments
         # do not need to match across solvers
         coefs, p_obj, kkt = solver(
-            X_, y, datafit, penalty, w, Xw, max_iter=model.max_iter,
+            X_, y, jit_datafit, jit_penalty, w, Xw, max_iter=model.max_iter,
             max_epochs=model.max_epochs, p0=model.p0,
             tol=model.tol,  # ws_strategy=model.ws_strategy,
             verbose=model.verbose)

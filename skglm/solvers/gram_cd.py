@@ -50,8 +50,8 @@ def gram_cd_solver(X, y, penalty, max_iter=20, w_init=None,
             break
 
         # inplace update of w, XtXw
-        opt = _gram_cd_iter(scaled_gram, scaled_Xty, w, scaled_gram_w, penalty,
-                            all_features, n_updates=n_features)
+        opt = _gram_cd_epoch(scaled_gram, scaled_Xty, w, scaled_gram_w, penalty,
+                             all_features)
 
         # perform anderson extrapolation
         if use_acc:
@@ -72,10 +72,10 @@ def gram_cd_solver(X, y, penalty, max_iter=20, w_init=None,
 
 
 @njit
-def _gram_cd_iter(scaled_gram, scaled_Xty, w, scaled_gram_w, penalty, ws, n_updates):
+def _gram_cd_epoch(scaled_gram, scaled_Xty, w, scaled_gram_w, penalty, ws):
     # inplace update of w, XtXw, opt
     # perform greedy cd updates
-    for _ in range(n_updates):
+    for _ in range(len(w)):
         grad = scaled_gram_w - scaled_Xty
         opt = penalty.subdiff_distance(w, grad, ws)
         j_max = np.argmax(opt)

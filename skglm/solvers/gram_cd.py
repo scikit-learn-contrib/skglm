@@ -5,7 +5,7 @@ from skglm.utils import AndersonAcceleration
 
 
 def gram_cd_solver(X, y, penalty, max_iter=20, w_init=None,
-                   use_acc=True, cd_type='greedy', tol=1e-4, verbose=False):
+                   use_acc=True, cd_strategy='greedy', tol=1e-4, verbose=False):
     """Run coordinate descent while keeping the gradients up-to-date with Gram updates.
 
     Minimize::
@@ -15,8 +15,7 @@ def gram_cd_solver(X, y, penalty, max_iter=20, w_init=None,
         w.T @ Q @ w / (2*n_samples) - q.T @ w / n_samples + penalty(w)
 
     where::
-        Q = X.T @ X (gram matrix)
-        q = X.T @ y
+        Q = X.T @ X (gram matrix), and q = X.T @ y
     """
     n_samples, n_features = X.shape
     scaled_gram = X.T @ X / n_samples
@@ -32,7 +31,8 @@ def gram_cd_solver(X, y, penalty, max_iter=20, w_init=None,
 
     w = np.zeros(n_features) if w_init is None else w_init
     scaled_gram_w = np.zeros(n_features) if w_init is None else scaled_gram @ w_init
-    opt = penalty.subdiff_distance(w, -scaled_Xty, all_features)  # initial: grad = -Xty
+    grad = scaled_gram_w - scaled_Xty
+    opt = penalty.subdiff_distance(w, grad, all_features)
 
     if use_acc:
         accelerator = AndersonAcceleration(K=5)
@@ -56,11 +56,10 @@ def gram_cd_solver(X, y, penalty, max_iter=20, w_init=None,
             break
 
         # inplace update of w, XtXw
-        _gram_cd_epoch = _gram_cd_greedy if cd_type == 'greedy' else _gram_cd_cyclic
         opt = _gram_cd_epoch(scaled_gram, scaled_Xty, w, scaled_gram_w,
-                             penalty, all_features)
+                             penalty, cd_strategy)
 
-        # perform anderson extrapolation
+        # perform Anderson extrapolation
         if use_acc:
             w_acc, scaled_gram_w_acc, is_extrapolated = accelerator.extrapolate(
                 w, scaled_gram_w)
@@ -73,45 +72,35 @@ def gram_cd_solver(X, y, penalty, max_iter=20, w_init=None,
                     w[:] = w_acc
                     scaled_gram_w[:] = scaled_gram_w_acc
 
+        # store p_obj
         p_obj = 0.5 * w @ scaled_gram_w - scaled_Xty @ w + penalty.value(w)
         p_objs_out.append(p_obj)
     return w, np.array(p_objs_out), stop_crit
 
 
 @njit
-def _gram_cd_greedy(scaled_gram, scaled_Xty, w, scaled_gram_w, penalty, ws):
-    # inplace update of w, XtXw, opt
-    # perform greedy cd updates
-    for _ in range(len(w)):
-        grad = scaled_gram_w - scaled_Xty
-        opt = penalty.subdiff_distance(w, grad, ws)
-        j_max = np.argmax(opt)
-
-        old_w_j = w[j_max]
-        step = 1 / scaled_gram[j_max, j_max]  # 1 / lipchitz_j
-        w[j_max] = penalty.prox_1d(old_w_j - step * grad[j_max], step, j_max)
-
-        # Gram matrix update
-        if w[j_max] != old_w_j:
-            scaled_gram_w += (w[j_max] - old_w_j) * scaled_gram[:, j_max]
-    return opt
-
-
-@njit
-def _gram_cd_cyclic(scaled_gram, scaled_Xty, w, scaled_gram_w, penalty, ws):
-    # inplace update of w, XtXw, opt
-    # perform greedy cd updates
-    for j in range(len(w)):
+def _gram_cd_epoch(scaled_gram, scaled_Xty, w, scaled_gram_w, penalty, cd_strategy):
+    all_features = np.arange(len(w))
+    for j in all_features:
+        # compute grad
         grad = scaled_gram_w - scaled_Xty
 
-        old_w_j = w[j]
-        step = 1 / scaled_gram[j, j]  # 1 / lipchitz_j
-        w[j] = penalty.prox_1d(old_w_j - step * grad[j], step, j)
+        # select feature j
+        if cd_strategy == 'greedy':
+            opt = penalty.subdiff_distance(w, grad, all_features)
+            chosen_j = np.argmax(opt)
+        else:  # cyclic
+            chosen_j = j
+
+        # update w_j
+        old_w_j = w[chosen_j]
+        step = 1 / scaled_gram[chosen_j, chosen_j]  # 1 / lipchitz_j
+        w[chosen_j] = penalty.prox_1d(old_w_j - step * grad[chosen_j], step, chosen_j)
 
         # Gram matrix update
-        if w[j] != old_w_j:
-            scaled_gram_w += (w[j] - old_w_j) * scaled_gram[:, j]
+        if w[chosen_j] != old_w_j:
+            scaled_gram_w += (w[chosen_j] - old_w_j) * scaled_gram[:, chosen_j]
 
     # opt
     grad = scaled_gram_w - scaled_Xty
-    return penalty.subdiff_distance(w, grad, ws)
+    return penalty.subdiff_distance(w, grad, all_features)

@@ -17,7 +17,7 @@ def test_alpha_max(n_samples, n_features):
     alpha_max = norm(X.T @ y, ord=np.inf) / n_samples
 
     l1_penalty = compiled_clone(L1(alpha_max))
-    w = gram_cd_solver(X, y, l1_penalty, tol=1e-9, verbose=2)[0]
+    w = gram_cd_solver(X, y, l1_penalty, tol=1e-9, verbose=0)[0]
 
     np.testing.assert_equal(w, 0)
 

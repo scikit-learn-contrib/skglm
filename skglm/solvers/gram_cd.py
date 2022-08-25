@@ -5,7 +5,7 @@ from skglm.utils import AndersonAcceleration
 
 
 def gram_cd_solver(X, y, penalty, max_iter=20, w_init=None,
-                   use_acc=True, cd_strategy='greedy', tol=1e-4, verbose=False):
+                   use_acc=True, greedy_cd=True, tol=1e-4, verbose=False):
     """Run coordinate descent while keeping the gradients up-to-date with Gram updates.
 
     Minimize::
@@ -57,7 +57,7 @@ def gram_cd_solver(X, y, penalty, max_iter=20, w_init=None,
 
         # inplace update of w, XtXw
         opt = _gram_cd_epoch(scaled_gram, scaled_Xty, w, scaled_gram_w,
-                             penalty, cd_strategy)
+                             penalty, greedy_cd)
 
         # perform Anderson extrapolation
         if use_acc:
@@ -79,14 +79,14 @@ def gram_cd_solver(X, y, penalty, max_iter=20, w_init=None,
 
 
 @njit
-def _gram_cd_epoch(scaled_gram, scaled_Xty, w, scaled_gram_w, penalty, cd_strategy):
+def _gram_cd_epoch(scaled_gram, scaled_Xty, w, scaled_gram_w, penalty, greedy_cd):
     all_features = np.arange(len(w))
     for j in all_features:
         # compute grad
         grad = scaled_gram_w - scaled_Xty
 
         # select feature j
-        if cd_strategy == 'greedy':
+        if greedy_cd:
             opt = penalty.subdiff_distance(w, grad, all_features)
             chosen_j = np.argmax(opt)
         else:  # cyclic

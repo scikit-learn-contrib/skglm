@@ -1,16 +1,20 @@
 from skglm.solvers.cd_solver import cd_solver, cd_solver_path
-from skglm.datafits import Quadratic, Logistic, Huber
-from skglm.penalties import L1, WeightedL1
+from skglm.solvers.multitask_bcd_solver import multitask_bcd_solver
+from skglm.datafits import Quadratic, Logistic, Huber, QuadraticMultiTask
+from skglm.penalties import L1, WeightedL1, L2_1
 from skglm.utils import make_correlated_data
+
 from sklearn.linear_model import HuberRegressor, Lasso, LogisticRegression
 import numpy as np
 import pytest
 from skglm.utils import compiled_clone
 from sklearn.linear_model import enet_path
+from sklearn.linear_model import MultiTaskLasso as MultiTaskLasso_sklearn
 
-X, y, _ = make_correlated_data(n_samples=20, n_features=10, random_state=0)
+X, Y, _ = make_correlated_data(n_samples=20, n_features=10, random_state=0, n_tasks=9)
 n_samples, n_features = X.shape
 # Lasso will fit with binary values, but else logreg's alpha_max is wrong:
+y = Y[:, 0]
 y = np.sign(y)
 alpha_max = np.linalg.norm(X.T @ y, ord=np.inf) / n_samples
 alpha = 0.05 * alpha_max
@@ -62,6 +66,32 @@ def test_intercept(name_estimator):
     np.testing.assert_allclose(intercept_sk, intercept_ours, atol=1e-4)
 
 
+# Test if skglm multitask solver returns the coefficients
+def test_intercept_mtl():
+    # initialize datafits
+    datafit, penalty = QuadraticMultiTask(), L2_1(alpha=alpha)
+    penalty = compiled_clone(penalty)
+    datafit = compiled_clone(datafit, to_float32=X.dtype == np.float32)
+
+    datafit.initialize(X, Y)
+
+    # initialize coefficients for cd solver
+    W = np.zeros((X.shape[1] + 1, Y.shape[1]))
+    XW = np.zeros((X.shape[0], Y.shape[1]))
+    coefs_ours, _, _ = multitask_bcd_solver(
+        X, Y, datafit, penalty,
+        W, XW, fit_intercept=True, max_iter=50,
+        max_epochs=50_000, tol=tol, verbose=0, use_acc=True)
+
+    intercept_ours = coefs_ours[-1, :]
+    coefs_ours = coefs_ours[:X.shape[1], :]
+    mlt_sk = MultiTaskLasso_sklearn(alpha=alpha, fit_intercept=True, tol=1e-8)
+    coefs_sk = mlt_sk.fit(X, Y).coef_
+    intercept_sk = mlt_sk.intercept_
+    np.testing.assert_allclose(coefs_ours.T, coefs_sk, atol=1e-4)
+    np.testing.assert_allclose(intercept_sk, intercept_ours, atol=1e-4)
+
+
 def test_path():
     n_samples, n_features = 10, 20
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
@@ -78,4 +108,4 @@ def test_path():
 
 
 if __name__ == '__main__':
-    test_path()
+    test_intercept_mtl()

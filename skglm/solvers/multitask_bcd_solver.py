@@ -125,7 +125,7 @@ def multitask_bcd_solver_path(
                 p_t = max(len(np.where(W[:, 0] != 0)[0]), p0)
             else:
                 W = np.zeros(
-                    (n_features, n_tasks), dtype=X.dtype, order='C')
+                    (n_features + fit_intercept, n_tasks), dtype=X.dtype, order='C')
                 p_t = 10
         sol = multitask_bcd_solver(
             X, Y, datafit, penalty, W, XW, fit_intercept=fit_intercept, p0=p_t,
@@ -265,10 +265,9 @@ def multitask_bcd_solver(
                     ws)
             else:
                 _bcd_epoch(X, Y, W, XW, datafit, penalty, ws)
-
             # update intercept
             if fit_intercept:
-                intercept_old = W[-1, :]
+                intercept_old = W[-1, :].copy()
                 W[-1, :] -= datafit.intercept_update_step(Y, XW)
                 XW += (W[-1, :] - intercept_old)
 

@@ -25,10 +25,4 @@
 
    
    
-   .. rubric:: Attributes
-
-   .. autosummary::
-   
-      ~MCPRegression.sparse_coef_
-   
    

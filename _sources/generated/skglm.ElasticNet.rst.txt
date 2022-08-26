@@ -25,10 +25,4 @@
 
    
    
-   .. rubric:: Attributes
-
-   .. autosummary::
-   
-      ~ElasticNet.sparse_coef_
-   
    

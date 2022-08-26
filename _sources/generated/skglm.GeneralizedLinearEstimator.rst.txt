@@ -16,7 +16,6 @@
       ~GeneralizedLinearEstimator.__init__
       ~GeneralizedLinearEstimator.fit
       ~GeneralizedLinearEstimator.get_params
-      ~GeneralizedLinearEstimator.path
       ~GeneralizedLinearEstimator.predict
       ~GeneralizedLinearEstimator.set_params
    

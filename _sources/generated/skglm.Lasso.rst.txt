@@ -25,10 +25,4 @@
 
    
    
-   .. rubric:: Attributes
-
-   .. autosummary::
-   
-      ~Lasso.sparse_coef_
-   
    

@@ -20,7 +20,6 @@
       ~SparseLogisticRegression.get_params
       ~SparseLogisticRegression.path
       ~SparseLogisticRegression.predict
-      ~SparseLogisticRegression.predict_log_proba
       ~SparseLogisticRegression.predict_proba
       ~SparseLogisticRegression.score
       ~SparseLogisticRegression.set_params

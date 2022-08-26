@@ -18,7 +18,6 @@
       ~LinearSVC.densify
       ~LinearSVC.fit
       ~LinearSVC.get_params
-      ~LinearSVC.path
       ~LinearSVC.predict
       ~LinearSVC.score
       ~LinearSVC.set_params

@@ -69,14 +69,13 @@ def test_path():
 
     quad_datafit = compiled_clone(Quadratic())
     l1_penalty = compiled_clone(L1(alpha=1.))
-    alphas = [alpha_max, alpha_max / 10]
+    alphas = np.geomspace(alpha_max, alpha_max / 10, num=3)
 
-    _, coefs, _ = cd_solver_path(X, y, quad_datafit, l1_penalty, alphas=alphas)
-    _, sk_coefs, _ = enet_path(X, y, l1_ratio=1., alphas=alphas)
-
-    np.testing.assert_allclose(coefs, sk_coefs)
+    _, coefs, _ = cd_solver_path(
+        X, y, quad_datafit, l1_penalty, alphas=alphas, tol=1e-10)
+    _, sk_coefs, _ = enet_path(X, y, l1_ratio=1., alphas=alphas, tol=1e-10)
+    np.testing.assert_allclose(coefs, sk_coefs, atol=1e-5)
 
 
 if __name__ == '__main__':
     test_path()
-    pass

@@ -112,7 +112,8 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None, fit_intercept=False,
         n_iters = np.zeros(n_alphas, dtype=int)
 
     for t in range(n_alphas):
-        penalty.alpha = alphas[t]
+        alpha = alphas[t]
+        penalty.alpha = alpha
         if verbose:
             to_print = "##### Computing alpha %d/%d" % (t + 1, n_alphas)
             print("#" * len(to_print))

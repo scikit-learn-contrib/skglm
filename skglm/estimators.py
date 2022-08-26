@@ -87,6 +87,7 @@ def _glm_fit(X, y, model, datafit, penalty):
         model.n_iter_ = max(
             clf.n_iter_ for clf in multiclass.estimators_)
         return model
+
     if is_classif and n_classes_ <= 2 and isinstance(datafit, QuadraticSVC):
         if is_sparse:
             yXT = (X.T).multiply(y)
@@ -97,7 +98,7 @@ def _glm_fit(X, y, model, datafit, penalty):
     else:
         X_ = X
 
-    penalty = compiled_clone(penalty)
+    penalty_jit = compiled_clone(penalty)
     datafit_jit = compiled_clone(datafit, to_float32=X.dtype == np.float32)
     if issparse(X):
         datafit_jit.initialize_sparse(X_.data, X_.indptr, X_.indices, y)
@@ -125,7 +126,7 @@ def _glm_fit(X, y, model, datafit, penalty):
     if isinstance(penalty, WeightedL1):
         if len(penalty.weights) != X.shape[1]:
             raise ValueError(
-                "The size of the WeightedL1 penalty should be n_features, \
+                "The size of the WeightedL1 penalty weights should be n_features, \
                 expected %i, got %i" % (X_.shape[1], len(penalty.weights)))
 
     if is_classif:
@@ -139,7 +140,7 @@ def _glm_fit(X, y, model, datafit, penalty):
     # Should p0 be different for SVC?
     # What about ws_strategy?
     coefs, p_obj, kkt = solver(
-        X_, y, datafit_jit, penalty, w, Xw, max_iter=model.max_iter,
+        X_, y, datafit_jit, penalty_jit, w, Xw, max_iter=model.max_iter,
         max_epochs=model.max_epochs, p0=model.p0,
         tol=model.tol,  # ws_strategy=model.ws_strategy,
         verbose=model.verbose)

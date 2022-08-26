@@ -129,6 +129,15 @@ class Logistic(BaseDatafit):
     def params_to_dict(self):
         return dict()
 
+    def raw_grad(self, y, Xw):
+        """Compute gradient of datafit w.r.t ``Xw``."""
+        return -y / (1 + np.exp(y * Xw)) / len(y)
+
+    def raw_hessian(self, y, Xw):
+        """Compute Hessian of datafit w.r.t ``Xw``."""
+        exp_minus_yXw = np.exp(-y * Xw)
+        return exp_minus_yXw / (1 + exp_minus_yXw) ** 2 / len(y)
+
     def initialize(self, X, y):
         self.lipschitz = (X ** 2).sum(axis=0) / (len(y) * 4)
 

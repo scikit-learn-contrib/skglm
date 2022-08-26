@@ -6,7 +6,7 @@ from numpy.linalg import norm
 from sklearn.utils import check_array
 
 
-def bcd_solver_path(
+def multitask_bcd_solver_path(
         X, Y, datafit, penalty, alphas=None,
         coef_init=None, max_iter=100, max_epochs=50_000, p0=10, tol=1e-6,
         use_acc=True, return_n_iter=False, ws_strategy="subdiff", verbose=0):
@@ -124,7 +124,7 @@ def bcd_solver_path(
                 W = np.zeros(
                     (n_features, n_tasks), dtype=X.dtype, order='C')
                 p_t = 10
-        sol = bcd_solver(
+        sol = multitask_bcd_solver(
             X, Y, datafit, penalty, W, XW, p0=p_t,
             tol=tol, max_iter=max_iter, max_epochs=max_epochs,
             verbose=verbose, use_acc=use_acc, ws_strategy=ws_strategy)
@@ -142,10 +142,10 @@ def bcd_solver_path(
     return results
 
 
-def bcd_solver(
+def multitask_bcd_solver(
         X, Y, datafit, penalty, W, XW, max_iter=50, max_epochs=50_000, p0=10,
         tol=1e-4, use_acc=True, K=5, ws_strategy="subdiff", verbose=0):
-    r"""Run a block coordinate descent solver.
+    r"""Run a multitask block coordinate descent solver.
 
     Parameters
     ----------

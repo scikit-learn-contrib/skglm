@@ -8,7 +8,7 @@ from skglm.utils import AndersonAcceleration
 
 def gram_cd_solver(X, y, penalty, max_iter=100, w_init=None,
                    use_acc=True, greedy_cd=True, tol=1e-4, verbose=False):
-    """Run coordinate descent while keeping the gradients up-to-date with Gram updates.
+    r"""Run coordinate descent while keeping the gradients up-to-date with Gram updates.
 
     This solver should be used when n_features < n_samples, and computes the
     (n_features, n_features) Gram matrix which comes with an overhead.

@@ -4,8 +4,9 @@ from numba import njit
 from skglm.utils import AndersonAcceleration, check_group_compatible
 
 
-def group_bcd_solver(X, y, datafit, penalty, w_init=None, Xw_init=None, p0=10,
-                     max_iter=1000, max_epochs=100, tol=1e-4, verbose=False):
+def group_bcd_solver(
+        X, y, datafit, penalty, fit_intercept=False, w_init=None,
+        Xw_init=None, p0=10, max_iter=1000, max_epochs=100, tol=1e-4, verbose=False):
     """Run a group BCD solver.
 
     Parameters
@@ -21,6 +22,9 @@ def group_bcd_solver(X, y, datafit, penalty, w_init=None, Xw_init=None, p0=10,
 
     penalty : instance of BasePenalty
         Penalty object.
+
+    fit_intercept : bool
+        Whether or not to fit an intercept.
 
     w_init : array, shape (n_features,), default None
         Initial value of coefficients.
@@ -62,9 +66,12 @@ def group_bcd_solver(X, y, datafit, penalty, w_init=None, Xw_init=None, p0=10,
     n_samples, n_features = X.shape
     n_groups = len(penalty.grp_ptr) - 1
 
-    w = np.zeros(n_features) if w_init is None else w_init
+    w = np.zeros(n_features + fit_intercept) if w_init is None else w_init
     Xw = np.zeros(n_samples) if w_init is None else Xw_init
-    # Xw = X @ w
+    if len(w) != n_features + fit_intercept:
+        raise ValueError(
+            "Shape of w should be n_features + 1 when fit_intercept=True.")
+
     datafit.initialize(X, y)
     all_groups = np.arange(n_groups)
     p_objs_out = np.zeros(max_iter)
@@ -94,6 +101,12 @@ def group_bcd_solver(X, y, datafit, penalty, w_init=None, Xw_init=None, p0=10,
         for epoch in range(max_epochs):
             # inplace update of w and Xw
             _bcd_epoch(X, y, w, Xw, datafit, penalty, ws)
+
+            # update intercept
+            if fit_intercept:
+                intercept_old = w[-1]
+                w[-1] -= datafit.intercept_update_step(y, Xw)
+                Xw += (w[-1] - intercept_old)
 
             w_acc, Xw_acc, is_extrapolated = accelerator.extrapolate(w, Xw)
 

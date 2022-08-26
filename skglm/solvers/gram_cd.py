@@ -11,12 +11,13 @@ def gram_cd_solver(X, y, penalty, max_iter=100, w_init=None,
     r"""Run coordinate descent while keeping the gradients up-to-date with Gram updates.
 
     This solver should be used when n_features < n_samples, and computes the
-    (n_features, n_features) Gram matrix which comes with an overhead.
+    (n_features, n_features) Gram matrix which comes with an overhead. It is  only
+    suited to Quadratic datafits.
 
-    Minimize::
+    It minimizes::
         1 / (2*n_samples) * norm(y - Xw)**2 + penalty(w)
 
-    Which can be rewritten as::
+    which can be rewritten as::
         w.T @ Q @ w / (2*n_samples) - q.T @ w / n_samples + penalty(w)
 
     where::
@@ -146,7 +147,7 @@ def _gram_cd_epoch(scaled_gram, w, grad, penalty, greedy_cd):
 
         # update w_j
         old_w_j = w[j]
-        step = 1 / scaled_gram[j, j]  # 1 / lipchitz_j
+        step = 1 / scaled_gram[j, j]  # 1 / lipschitz_j
         w[j] = penalty.prox_1d(old_w_j - step * grad[j], step, j)
 
         # gradient update with Gram matrix

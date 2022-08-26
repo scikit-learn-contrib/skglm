@@ -59,7 +59,7 @@ class SqrtLasso(Lasso):
 
         for i in range(n_alphas):
             l1_penalty.alpha = alphas[i]
-            coef_init = coefs[:, i-1]
+            coef_init = coefs[:, i-1].copy()
 
             coef, p_objs_out, stop_crit = prox_newton(
                 X, y, sqrt_quadratic, l1_penalty,

@@ -12,7 +12,7 @@ def test_alpha_max():
 
     alpha_max = norm(X.T @ y, ord=np.inf) / (np.sqrt(n_samples) * norm(y))
 
-    sqrt_lasso = SqrtLasso(alpha=alpha_max, fit_intercept=False)
+    sqrt_lasso = SqrtLasso(alpha=alpha_max)
     sqrt_lasso.fit(X, y)
 
     np.testing.assert_equal(sqrt_lasso.coef_.flatten(), 0)

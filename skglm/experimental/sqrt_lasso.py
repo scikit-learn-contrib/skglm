@@ -1,6 +1,8 @@
+import warnings
 import numpy as np
 from numpy.linalg import norm
-from sklearn.linear_model import Lasso
+from sklearn.exceptions import ConvergenceWarning
+from sklearn.linear_model._base import LinearModel, RegressorMixin
 
 from skglm.penalties import L1
 from skglm.utils import compiled_clone
@@ -34,38 +36,55 @@ class SqrtQuadratic(BaseDatafit):
         return np.full(n_samples, fill_value)
 
 
-class SqrtLasso(Lasso):
+class SqrtLasso(LinearModel, RegressorMixin):
 
     def __init__(self, alpha=1., max_iter=100, max_pn_iter=1000, p0=10,
-                 tol=1e-4, fit_intercept=True, verbose=0,):
-        super(Lasso, self).__init__(
-            alpha=alpha, tol=tol, max_iter=max_iter,
-            fit_intercept=fit_intercept)
-        self.p0 = p0
-        self.verbose = verbose
+                 tol=1e-4, verbose=0):
+        super().__init__()
+        self.alpha = alpha
+        self.max_iter = max_iter
         self.max_pn_iter = max_pn_iter
 
-    def path(self, X, y, alphas=None, **kwargs):
+        self.p0 = p0
+        self.tol = tol
+        self.verbose = verbose
+
+    def fit(self, X, y):
+        self.coef_ = self.path(X, y, alphas=[self.alpha])[1]
+        return self
+
+    def path(self, X, y, alphas=None):
         n_features = X.shape[1]
         n_alphas = len(alphas)
         alphas = np.sort(alphas)[::-1]
+        scaled_norm_y = np.linalg.norm(y) / np.sqrt(len(y))
 
         sqrt_quadratic = compiled_clone(SqrtQuadratic())
         l1_penalty = compiled_clone(L1(1.))
 
-        coefs = np.zeros((n_features, n_alphas+1))
+        coefs = np.zeros((n_features, n_alphas))
         stop_criteria = np.zeros(n_alphas)
         n_iters = np.zeros(n_alphas)
 
         for i in range(n_alphas):
             l1_penalty.alpha = alphas[i]
-            coef_init = coefs[:, i-1].copy()
+            # no warm start for the first alpha
+            coef_init = coefs[:, i].copy() if i else np.zeros(n_features)
 
             coef, p_objs_out, stop_crit = prox_newton(
                 X, y, sqrt_quadratic, l1_penalty,
                 w_init=coef_init, max_iter=self.max_iter,
                 max_pn_iter=self.max_pn_iter,
                 tol=self.tol, verbose=self.verbose)
+
+            residual = sqrt_quadratic.value(y, coef, X @ coef)
+            if residual < self.tol * scaled_norm_y:
+                warnings.warn(
+                    f"Small residuals will prevent the solver from converging.\n"
+                    f"Square root of residuals: {residual * np.sqrt(len(y))}\n"
+                    f"Considering taking greater than {alphas[i]}",
+                    ConvergenceWarning
+                )
 
             coefs[:, i] = coef
             stop_criteria[i] = stop_crit

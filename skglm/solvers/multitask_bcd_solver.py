@@ -245,7 +245,7 @@ def multitask_bcd_solver(
                       min(2 * (norm(W, axis=1) != 0).sum() - n_unpen,
                           n_features))
         opt[unpen] = np.inf  # always include unpenalized features
-        opt[norm(W, axis=1) != 0] = np.inf  # TODO check
+        opt[norm(W[:n_features, :], axis=1) != 0] = np.inf  # TODO check
         ws = np.argpartition(opt, -ws_size)[-ws_size:]
         # is equivalent to ws = np.argsort(kkt)[-ws_size:]
 
@@ -274,9 +274,10 @@ def multitask_bcd_solver(
 
             if use_acc:
                 if fit_intercept:
-                    last_K_w[epoch % (K + 1)] = W[np.append(ws, -1), :].ravel()
+                    ws_ = np.append(ws, -1)
                 else:
-                    last_K_w[epoch % (K + 1)] = W[ws, :].ravel()
+                    ws_ = ws.copy()
+                last_K_w[epoch % (K + 1)] = W[ws_, :].ravel()
 
                 # 3) do Anderson acceleration on smaller problem
                 if epoch % (K + 1) == K:
@@ -288,9 +289,9 @@ def multitask_bcd_solver(
                         z = np.linalg.solve(C, np.ones(K))
                         c = z / z.sum()
                         W_acc = np.zeros((n_features + fit_intercept, n_tasks))
-                        W_acc[ws, :] = np.sum(
+                        W_acc[ws_, :] = np.sum(
                             last_K_w[:-1] * c[:, None], axis=0).reshape(
-                                (ws_size, n_tasks))
+                                (ws_size + fit_intercept, n_tasks))
                         p_obj = datafit.value(Y, W, XW) + penalty.value(W)
                         Xw_acc = X[:, ws] @ W_acc[ws] + fit_intercept * W_acc[-1]
                         p_obj_acc = datafit.value(

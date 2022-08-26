@@ -132,6 +132,44 @@ def test_vs_celer_grouplasso(n_groups, n_features, shuffle):
     np.testing.assert_allclose(model.coef_, w, atol=1e-5)
 
 
+@pytest.mark.parametrize("n_groups, n_features, shuffle",
+                         [[15, 50, False]])
+def test_intercept_grouplasso(n_groups, n_features, shuffle):
+    n_samples = 100
+    rnd = np.random.RandomState(42)
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=rnd)
+
+    grp_indices, grp_ptr, groups = _generate_random_grp(n_groups, n_features, shuffle)
+    weights = abs(rnd.randn(n_groups))
+
+    alpha_max = 0.
+    for g in range(n_groups):
+        grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
+        alpha_max = max(
+            alpha_max,
+            norm(X[:, grp_g_indices].T @ y) / n_samples / weights[g]
+        )
+    alpha = alpha_max / 10.
+
+    quad_group = QuadraticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
+    group_penalty = WeightedGroupL2(
+        alpha=alpha, grp_ptr=grp_ptr,
+        grp_indices=grp_indices, weights=weights)
+
+    # compile classes
+    quad_group = compiled_clone(quad_group, to_float32=X.dtype == np.float32)
+    group_penalty = compiled_clone(group_penalty)
+    w = group_bcd_solver(
+        X, y, quad_group, group_penalty, fit_intercept=True, tol=1e-12)[0]
+
+    model = GroupLasso(groups=groups, alpha=alpha, weights=weights,
+                       fit_intercept=True, tol=1e-12)
+    model.fit(X, y)
+
+    np.testing.assert_allclose(model.coef_, w[:X.shape[1]], atol=1e-5)
+    np.testing.assert_allclose(model.intercept_, w[-1], atol=1e-5)
+
+
 def test_anderson_acceleration():
     # VAR: w = rho * w + 1 with |rho| < 1
     # converges to w_star = 1 / (1 - rho)
@@ -173,4 +211,4 @@ def test_anderson_acceleration():
 
 
 if __name__ == '__main__':
-    pass
+    test_intercept_grouplasso(15, 50, False)

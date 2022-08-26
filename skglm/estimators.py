@@ -1329,6 +1329,8 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
             Fitted estimator.
         """
         return _glm_fit(X, y, self, QuadraticSVC(), IndicatorBox(self.C))
+    
+    # TODO add predict_proba for LinearSVC
 
 
 class MultiTaskLasso(MultiTaskLasso_sklearn):

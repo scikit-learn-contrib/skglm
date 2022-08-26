@@ -243,32 +243,6 @@ class QuadraticSVC(BaseDatafit):
         return grad
 
 
-class SqrtQuadratic(BaseDatafit):
-    """norm(y - Xw) / sqrt(len(y))."""
-
-    def __init__(self):
-        pass
-
-    def get_spec(self):
-        spec = ()
-        return spec
-
-    def params_to_dict(self):
-        return dict()
-
-    def value(self, y, w, Xw):
-        return np.linalg.norm(y - Xw) / np.sqrt(len(y))
-
-    def raw_grad(self, y, Xw):
-        minus_residual = Xw - y
-        return minus_residual / np.linalg.norm(minus_residual) / np.sqrt(len(y))
-
-    def raw_hessian(self, y, Xw):
-        n_samples = len(y)
-        fill_value = 1 / (np.sqrt(n_samples) * np.linalg.norm(y - Xw))
-        return np.full(n_samples, fill_value)
-
-
 class Huber(BaseDatafit):
     """Huber datafit.
 

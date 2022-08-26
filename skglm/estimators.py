@@ -398,10 +398,7 @@ class GeneralizedLinearEstimator(LinearModel):
         # elif isinstance(self.datafit, Logistic):
         #     self.coef_ = coefs.T
         # return self
-        if self.is_classif:
-            return _glm_fit(X, y, self, self.datafit, self.penalty)
-        else:
-            return _glm_fit(X, y, self, self.datafit, self.penalty)
+        return _glm_fit(X, y, self, self.datafit, self.penalty)
 
     def predict(self, X):
         """Predict target values for samples in X.

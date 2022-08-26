@@ -91,3 +91,6 @@ class QuadraticMultiTask(BaseMultitaskDatafit):
                     XjTXW[t] += X_data[i] * XW[X_indices[i], t]
             grad[j, :] = (XjTXW - self.XtY[j, :]) / n_samples
         return grad
+
+    def intercept_update_step(self, Y, XW):
+        return np.sum(XW - Y, axis=0) / Y.shape[0]

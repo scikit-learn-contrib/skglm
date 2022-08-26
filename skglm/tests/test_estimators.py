@@ -75,7 +75,7 @@ dict_estimators_ours["LogisticRegression"] = SparseLogisticRegression(
 C = 1.
 dict_estimators_sk["SVC"] = LinearSVC_sklearn(
     penalty='l2', loss='hinge', fit_intercept=False, dual=True, C=C, tol=tol)
-dict_estimators_ours["SVC"] = LinearSVC(C=C, tol=tol, verbose=False, max_epochs=1_000)
+dict_estimators_ours["SVC"] = LinearSVC(C=C, tol=tol)
 
 
 # Currently, `GeneralizedLinearEstimator` does not pass sklearn's `check_estimator`

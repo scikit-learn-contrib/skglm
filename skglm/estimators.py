@@ -136,7 +136,6 @@ def _glm_fit(X, y, model, datafit, penalty):
     # so that arguments are attributes of the `solver` object and arguments
     # do not need to match across solvers
     # TODO QUESTIONS
-    # Should p0 be different for SVC?
     # What about ws_strategy?
     coefs, p_obj, kkt = solver(
         X_, y, datafit_jit, penalty, w, Xw, max_iter=model.max_iter,

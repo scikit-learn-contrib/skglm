@@ -97,27 +97,38 @@ def test_check_estimator(estimator_name):
 # Test if skglm solver returns the coefficients
 @pytest.mark.parametrize("estimator_name", dict_estimators_ours.keys())
 @pytest.mark.parametrize('X', [X, X_sparse])
-def test_estimator(estimator_name, X):
+@pytest.mark.parametrize('fit_intercept', [True, False])
+def test_estimator(estimator_name, X, fit_intercept):
     if estimator_name == "GeneralizedLinearEstimator":
         pytest.skip()
     estimator_sk = dict_estimators_sk[estimator_name]
     estimator_ours = dict_estimators_ours[estimator_name]
+    # TODO This seems a bit unusal, maybe to discuss
+    if fit_intercept:
+        estimator_sk.fit_intercpet = True
+        estimator_ours.fit_intercpet = True
     estimator_sk.fit(X, y)
     estimator_ours.fit(X, y)
     coef_sk = estimator_sk.coef_
     coef_ours = estimator_ours.coef_
     # assert that something was fitted:
+    if fit_intercept:
+        # add test intercept from fit_intercept
+        estimator_sk.fit_intercpet = False
+        estimator_ours.fit_intercpet = False
+
     np.testing.assert_array_less(1e-5, norm(coef_ours))
     np.testing.assert_allclose(coef_ours, coef_sk, atol=1e-6)
 
 
 # Test if skglm multitask solver returns the coefficients
 @pytest.mark.parametrize('X', [X, X_sparse])
-def test_estimator_mtl(X):
+@pytest.mark.parametrize('fit_intercept', [True, False])
+def test_estimator_mtl(X, fit_intercept):
     estimator_sk = MultiTaskLasso_sklearn(
-        alpha, fit_intercept=False, tol=1e-8)
+        alpha, fit_intercept=fit_intercept, tol=1e-8)
     estimator_ours = MultiTaskLasso(
-        alpha, verbose=2, max_iter=10, fit_intercept=False, tol=1e-8)
+        alpha, verbose=2, max_iter=10, fit_intercept=fit_intercept, tol=1e-8)
 
     estimator_sk.fit(X.toarray() if issparse(X) else X, Y)
     estimator_ours.fit(X, Y)
@@ -126,12 +137,14 @@ def test_estimator_mtl(X):
     np.testing.assert_allclose(coef_ours, coef_sk, atol=1e-6)
 
 
-def test_mtl_path():
+# TODO also add a test for the sparse case?
+@pytest.mark.parametrize('fit_intercept', [True, False])
+def test_mtl_path(fit_intercept):
     alphas = np.geomspace(alpha_max, alpha_max * 0.01, 10)
     alpha_sk, coef_sk, _ = MultiTaskLasso_sklearn(
-        alpha, fit_intercept=False).path(
+        alpha, fit_intercept=fit_intercept).path(
             X, Y, l1_ratio=1, tol=1e-10, max_iter=5_000, alphas=alphas)
-    coef_ours = MultiTaskLasso(alpha_max, fit_intercept=False).path(
+    coef_ours = MultiTaskLasso(alpha_max, fit_intercept=fit_intercept).path(
         X, Y, alpha_sk, max_iter=10, tol=1e-10)[1]
     np.testing.assert_allclose(coef_ours, coef_sk, rtol=1e-5)
 
@@ -146,12 +159,20 @@ def test_mtl_path():
     (QuadraticSVC, IndicatorBox, True, LinearSVC, [alpha]),
     (Logistic, L1, True, SparseLogisticRegression, [alpha]),
 ])
-def test_generic_estimator(Datafit, Penalty, is_classif, Estimator, pen_args):
-    target = Y if Datafit == QuadraticMultiTask else y
-    clf = GeneralizedLinearEstimator(Datafit(), Penalty(*pen_args), is_classif,
-                                     tol=1e-10, fit_intercept=False).fit(X, target)
-    clf_est = Estimator(*pen_args, tol=1e-10, fit_intercept=False).fit(X, target)
-    np.testing.assert_allclose(clf_est.coef_, clf.coef_, rtol=1e-5)
+@pytest.mark.parametrize('fit_intercept', [True, False])
+def test_generic_estimator(
+    Datafit, Penalty, is_classif, Estimator, pen_args, fit_intercept):
+    if isinstance(Datafit(), QuadraticSVC) and fit_intercept:
+        # TODO replace by xfail
+        pass
+    else:
+        target = Y if Datafit == QuadraticMultiTask else y
+        clf = GeneralizedLinearEstimator(
+            Datafit(), Penalty(*pen_args), is_classif, tol=1e-10, fit_intercept=fit_intercept).fit(X, target)
+        clf_est = Estimator(
+            *pen_args, tol=1e-10, fit_intercept=fit_intercept).fit(X, target)
+        np.testing.assert_allclose(clf_est.coef_, clf.coef_, rtol=1e-5)
+        # TODO add test for the intercept?
 
 
 @pytest.mark.parametrize("Datafit, Penalty, Estimator_sk", [
@@ -243,4 +264,6 @@ def test_warm_start(estimator_name):
 
 
 if __name__ == '__main__':
-    pass
+    # test_estimator_mtl(X, True)
+    # test_estimator_mtl(X, False)
+    test_generic_estimator(QuadraticSVC, IndicatorBox, True, LinearSVC, [alpha], True)

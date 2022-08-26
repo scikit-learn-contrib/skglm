@@ -250,54 +250,6 @@ class GeneralizedLinearEstimator(LinearModel):
             % (self.datafit.__class__.__name__, self.penalty.__class__.__name__,
                self.penalty.alpha, self.is_classif))
 
-    # def path(self, X, y, alphas, coef_init=None, return_n_iter=False, **params):
-    #     """Compute regularization path.
-
-    #     Parameters
-    #     ----------
-    #     X : array, shape (n_samples, n_features)
-    #         Design matrix.
-
-    #     y : array, shape (n_samples,) or (n_samples, n_tasks)
-    #         Target array.
-
-    #     alphas : array, shape (n_alphas,)
-    #         Grid of alpha.
-
-    #     coef_init : array, shape (n_features,) or (n_features, n_tasks), optional
-    #  If warm_start is enabled, the optimization problem restarts from coef_init.
-
-    #     return_n_iter : bool
-    #         Returns the number of iterations along the path.
-
-    #     **params : kwargs
-    #         All parameters supported by path.
-
-    #     Returns
-    #     -------
-    #     alphas : array, shape (n_alphas,)
-    #         The alphas along the path where models are computed.
-
-    #     coefs : array, shape (n_features, n_alphas) or (n_features, n_tasks, n_alphas)
-    #         Coefficients along the path.
-
-    #     stop_crit : array, shape (n_alphas,)
-    #         Value of stopping criterion at convergence along the path.
-
-    #     n_iters : array, shape (n_alphas,), optional
-    #     The number of iterations along the path. If return_n_iter is set to `True`.
-    #     """
-    #     penalty = compiled_clone(self.penalty)
-    #     datafit = compiled_clone(self.datafit, to_float32=X.dtype == np.float32)
-
-    #     path_func = cd_solver_path if y.ndim == 1 else bcd_solver_path
-    #     return path_func(
-    #         X, y, datafit, penalty, alphas=alphas,
-    #         coef_init=coef_init, max_iter=self.max_iter,
-    #         return_n_iter=return_n_iter, max_epochs=self.max_epochs, p0=self.p0,
-    #         tol=self.tol, use_acc=True, ws_strategy=self.ws_strategy,
-    #         verbose=self.verbose)
-
     def fit(self, X, y):
         """Fit estimator.
 
@@ -325,79 +277,6 @@ class GeneralizedLinearEstimator(LinearModel):
         """
         self.penalty = self.penalty if self.penalty else L1(1.)
         self.datafit = self.datafit if self.datafit else Quadratic()
-
-        # if not hasattr(self, "n_features_in_"):
-        #     self.n_features_in_ = X.shape[1]
-
-        # self.classes_ = None
-        # n_classes_ = 0
-
-        # if self.is_classif:
-        #     check_classification_targets(y)
-        #     enc = LabelEncoder()
-        #     y = enc.fit_transform(y)
-        #     self.classes_ = enc.classes_
-        #     n_classes_ = len(self.classes_)
-
-        # check_X_params = dict(dtype=[np.float64, np.float32], order='F',
-        #                       accept_sparse='csc', copy=self.fit_intercept)
-        # check_y_params = dict(ensure_2d=False, order='F')
-
-        # X, y = self._validate_data(X, y, validate_separately=(check_X_params,
-        #                                                       check_y_params))
-        # is_sparse = issparse(X)
-        # if isinstance(self.datafit, (QuadraticSVC, Logistic)) and n_classes_ <= 2:
-        #     y = 2 * y - 1
-        #     if is_sparse and isinstance(self.datafit, Logistic):
-        #         yXT = (X.T).multiply(y)
-        #     else:
-        #         yXT = (X * y[:, None]).T
-
-        # n_samples = X.shape[0]
-        # if n_samples != y.shape[0]:
-        #     raise ValueError("X and y have inconsistent dimensions (%d != %d)"
-        #                      % (n_samples, y.shape[0]))
-
-        # # X, y, X_offset, y_offset, X_scale = _preprocess_data(
-        # #     X, y, self.fit_intercept, copy=False)
-
-        # if not self.warm_start or not hasattr(self, "coef_"):
-        #     self.coef_ = None
-
-        # X_ = yXT if isinstance(self.datafit, QuadraticSVC) else X
-
-        # _, coefs, kkt = self.path(
-        #     X_, y, alphas=[self.penalty.alpha],
-        #     coef_init=self.coef_, max_iter=self.max_iter,
-        #     max_epochs=self.max_epochs, p0=self.p0, verbose=self.verbose,
-        #     tol=self.tol, ws_strategy=self.ws_strategy)
-
-        # self.coef_, self.stop_crit_ = coefs[..., 0], kkt[-1]
-        # self.n_iter_ = len(kkt)
-        # # TODO: handle intercept for Quadratic, Logistic, etc.
-        # # self._set_intercept(X_offset, y_offset, X_scale)
-        # self.intercept_ = 0.
-
-        # if isinstance(self.datafit, QuadraticSVC):
-        #     if n_classes_ <= 2:
-        #         self.coef_ = coefs.T
-        #         if is_sparse:
-        #             primal_coef = ((yXT).multiply(self.coef_[0, :])).T
-        #         else:
-        #             primal_coef = (yXT * self.coef_[0, :]).T
-        #         primal_coef = primal_coef.sum(axis=0)
-        #         self.coef_ = np.array(primal_coef).reshape(1, -1)
-        #     elif n_classes_ > 2:
-        #         self.coef_ = np.empty([len(self.classes_), X.shape[1]])
-        #         self.intercept_ = 0
-        #         multiclass = OneVsRestClassifier(self).fit(X, y)
-        #         self.coef_ = np.array([clf.coef_[0]
-        #                                for clf in multiclass.estimators_])
-        #         self.n_iter_ = max(
-        #             clf.n_iter_ for clf in multiclass.estimators_)
-        # elif isinstance(self.datafit, Logistic):
-        #     self.coef_ = coefs.T
-        # return self
         return _glm_fit(X, y, self, self.datafit, self.penalty)
 
     def predict(self, X):

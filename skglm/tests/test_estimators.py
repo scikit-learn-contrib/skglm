@@ -243,6 +243,4 @@ def test_warm_start(estimator_name):
 
 
 if __name__ == '__main__':
-    test_warm_start("wLasso")
-    # test_check_estimator("SVC")
-    # test_estimator_predict(Logistic, L1, LogReg_sklearn),
+    pass

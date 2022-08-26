@@ -132,8 +132,8 @@ class Logistic(BaseDatafit):
 
     def raw_hessian(self, y, Xw):
         """Compute Hessian of datafit w.r.t ``Xw``."""
-        exp_yXw = np.exp(-y * Xw)
-        return exp_yXw / (1 + exp_yXw) ** 2 / len(y)
+        exp_minus_yXw = np.exp(-y * Xw)
+        return exp_minus_yXw / (1 + exp_minus_yXw) ** 2 / len(y)
 
     def initialize(self, X, y):
         self.lipschitz = (X ** 2).sum(axis=0) / (len(y) * 4)

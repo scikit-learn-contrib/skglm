@@ -9,12 +9,12 @@ MAX_BACKTRACK_ITER = 20
 
 
 def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
-                max_iter=20, max_epochs=1000, tol=1e-4, verbose=0):
-    """Run a Prox Newton solver.
+                max_iter=20, max_pn_iter=1000, tol=1e-4, verbose=0):
+    """Run a Prox Newton solver combined with working sets.
 
     Parameters
     ----------
-    X : array or sparse CSC matrix shape (n_samples, n_features)
+    X : array or sparse CSC matrix, shape (n_samples, n_features)
         Design matrix.
 
     y : array, shape (n_samples,)
@@ -36,8 +36,8 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
     max_iter : int, default 20
         Maximum number of outer iterations.
 
-    max_epochs : int, default 1000
-        Maximum number of epochs.
+    max_pn_iter : int, default 1000
+        Maximum number of prox Newton iterations on each subproblem.
 
     tol : float, default 1e-4
         Tolerance for convergence.
@@ -50,11 +50,24 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
     w : array, shape (n_features,)
         Solution that minimizes the problem defined by datafit and penalty.
 
-    objs_out: array (max_iter,)
+    objs_out : array, shape (n_iter,)
         The objective values at every outer iteration.
 
-    stop_crit: float
+    stop_crit : float
         The value of the stopping criterion when the solver stops.
+
+    References
+    ----------
+    .. [1] Massias, M. and Vaiter, S. and Gramfort, A. and Salmon, J.
+        "Dual Extrapolation for Sparse Generalized Linear Models", JMLR, 2020,
+        https://arxiv.org/abs/1907.05830
+        code: https://github.com/mathurinm/celer
+
+    .. [2] Johnson, T. B. and Guestrin, C.
+        "Blitz: A principled meta-algorithm for scaling sparse optimization",
+        ICML, 2015.
+        https://proceedings.mlr.press/v37/johnson15.html
+        code: https://github.com/tbjohns/BlitzL1
     """
     n_samples, n_features = X.shape
     w = np.zeros(n_features) if w_init is None else w_init
@@ -100,8 +113,7 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
         grad_ws = grad[ws]
         tol_in = EPS_TOL * stop_crit
 
-        for epoch in range(max_epochs):
-
+        for pn_iter in range(max_pn_iter):
             # find descent direction
             if is_sparse:
                 delta_w_ws, X_delta_w_ws = _descent_direction_s(
@@ -113,12 +125,12 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
 
             # backtracking line search with inplace update of w, Xw
             if is_sparse:
-                grad_ws[:] = _backtrack_line_search_s(*X_bundles, y, w, Xw,
-                                                      datafit, penalty, delta_w_ws,
-                                                      X_delta_w_ws, ws)
+                grad_ws[:] = _backtrack_line_search_s(
+                    *X_bundles, y, w, Xw, datafit, penalty, delta_w_ws,
+                    X_delta_w_ws, ws)
             else:
-                grad_ws[:] = _backtrack_line_search(X, y, w, Xw, datafit, penalty,
-                                                    delta_w_ws, X_delta_w_ws, ws)
+                grad_ws[:] = _backtrack_line_search(
+                    X, y, w, Xw, datafit, penalty, delta_w_ws, X_delta_w_ws, ws)
 
             # check convergence
             opt_in = penalty.subdiff_distance(w, grad_ws, ws)
@@ -127,7 +139,7 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
             if max(verbose-1, 0):
                 p_obj = datafit.value(y, w, Xw) + penalty.value(w)
                 print(
-                    f"Epoch {epoch+1}: {p_obj:.10f}, "
+                    f"PN iteration {pn_iter+1}: {p_obj:.10f}, "
                     f"stopping crit in: {stop_crit_in:.2e}"
                 )
 
@@ -138,7 +150,7 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
 
         p_obj = datafit.value(y, w, Xw) + penalty.value(w)
         p_objs_out.append(p_obj)
-    return w, p_objs_out, stop_crit
+    return w, np.asarray(p_objs_out), stop_crit
 
 
 @njit
@@ -156,7 +168,9 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
     for idx, j in enumerate(ws):
         lipschitz[idx] = raw_hess @ X[:, j] ** 2
 
-    cached_grads = np.zeros(len(ws))
+    # for a less costly stopping criterion, we do no compute the exact gradient,
+    # but store each coordinate-wise gradient every time we upate one coordinate:
+    past_grads = np.zeros(len(ws))
     X_delta_w_ws = np.zeros(X.shape[0])
     w_ws = w_epoch[ws]
 
@@ -166,18 +180,21 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
             if lipschitz[idx] == 0:
                 continue
 
-            cached_grads[idx] = grad_ws[idx] + X[:, j] @ (raw_hess * X_delta_w_ws)
+            past_grads[idx] = grad_ws[idx] + X[:, j] @ (raw_hess * X_delta_w_ws)
             old_w_idx = w_ws[idx]
             stepsize = 1 / lipschitz[idx]
 
             w_ws[idx] = penalty.prox_1d(
-                old_w_idx - stepsize * cached_grads[idx], stepsize, j)
+                old_w_idx - stepsize * past_grads[idx], stepsize, j)
 
             if w_ws[idx] != old_w_idx:
                 X_delta_w_ws += (w_ws[idx] - old_w_idx) * X[:, j]
 
         if cd_iter % 5 == 0:
-            opt = penalty.subdiff_distance(w_ws, cached_grads, ws)
+            # TODO: can be improved by passing in w_ws but breaks for WeightedL1
+            current_w = w_epoch.copy()
+            current_w[ws] = w_ws
+            opt = penalty.subdiff_distance(current_w, past_grads, ws)
             if np.max(opt) <= tol:
                 break
 
@@ -194,10 +211,11 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
     lipschitz = np.zeros(len(ws))
     for idx, j in enumerate(ws):
         # equivalent to: lipschitz[idx] += raw_hess * X[:, j] ** 2
-        lipschitz[idx] = _sparse_squared_weighted_norm(X_data, X_indptr, X_indices,
-                                                       j, raw_hess)
+        lipschitz[idx] = _sparse_squared_weighted_norm(
+            X_data, X_indptr, X_indices, j, raw_hess)
 
-    cached_grads = np.zeros(len(ws))
+    # see _descent_direction() comment
+    past_grads = np.zeros(len(ws))
     X_delta_w_ws = np.zeros(len(y))
     w_ws = w_epoch[ws]
 
@@ -207,23 +225,26 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
             if lipschitz[idx] == 0:
                 continue
 
-            cached_grads[idx] = grad_ws[idx]
+            past_grads[idx] = grad_ws[idx]
             # equivalent to cached_grads[idx] += X[:, j] @ (raw_hess * X_delta_w_ws)
-            cached_grads[idx] += _sparse_weighted_dot(X_data, X_indptr, X_indices, j,
-                                                      X_delta_w_ws, raw_hess)
+            past_grads[idx] += _sparse_weighted_dot(
+                X_data, X_indptr, X_indices, j, X_delta_w_ws, raw_hess)
 
             old_w_idx = w_ws[idx]
             stepsize = 1 / lipschitz[idx]
 
             w_ws[idx] = penalty.prox_1d(
-                old_w_idx - stepsize * cached_grads[idx], stepsize, j)
+                old_w_idx - stepsize * past_grads[idx], stepsize, j)
 
             if w_ws[idx] != old_w_idx:
                 _update_X_delta_w(X_data, X_indptr, X_indices, X_delta_w_ws,
                                   w_ws[idx] - old_w_idx, j)
 
         if cd_iter % 5 == 0:
-            opt = penalty.subdiff_distance(w_ws, cached_grads, ws)
+            # TODO: could be improved by passing in w_ws
+            current_w = w_epoch.copy()
+            current_w[ws] = w_ws
+            opt = penalty.subdiff_distance(current_w, past_grads, ws)
             if np.max(opt) <= tol:
                 break
 
@@ -234,25 +255,33 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
 @njit
 def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
                            X_delta_w_ws, ws):
-    # inplace update of w and Xw
-    # return grad_ws of the last w and Xw
+    # 1) find step in [0, 1] such that:
+    #   penalty(w + step * delta_w) - penalty(w) +
+    #   step * \nabla datafit(w + step * delta_w) @ delta_w < 0
+    # ref: https://www.di.ens.fr/~aspremon/PDF/ENSAE/Newton.pdf
+    # 2) inplace update of w and Xw and return grad_ws of the last w and Xw
     step, prev_step = 1., 0.
-    epoch_penalty_val = penalty.value(w[ws])
+    # TODO: could be improved by passing in w[ws]
+    old_penalty_val = penalty.value(w)
 
-    for backtrack_iter in range(MAX_BACKTRACK_ITER):
-        stop_crit = -epoch_penalty_val
+    # try step = 1, 1/2, 1/4, ...
+    for _ in range(MAX_BACKTRACK_ITER):
         w[ws] += (step - prev_step) * delta_w_ws
         Xw += (step - prev_step) * X_delta_w_ws
 
         grad_ws = _construct_grad(X, y, w, Xw, datafit, ws)
+        # TODO: could be improved by passing in w[ws]
+        stop_crit = penalty.value(w) - old_penalty_val
         stop_crit += step * grad_ws @ delta_w_ws
-        stop_crit += penalty.value(w[ws])
 
         if stop_crit < 0:
             break
         else:
             prev_step = step
             step /= 2
+    else:
+        pass
+        # TODO this case is not handled yet
 
     return grad_ws
 
@@ -261,32 +290,35 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
 @njit
 def _backtrack_line_search_s(X_data, X_indptr, X_indices, y, w, Xw, datafit,
                              penalty, delta_w_ws, X_delta_w_ws, ws):
-    # inplace update of w and Xw
     step, prev_step = 1., 0.
-    epoch_penalty_val = penalty.value(w[ws])
+    # TODO: could be improved by passing in w[ws]
+    old_penalty_val = penalty.value(w)
 
-    for backtrack_iter in range(MAX_BACKTRACK_ITER):
-        stop_crit = -epoch_penalty_val
+    for _ in range(MAX_BACKTRACK_ITER):
         w[ws] += (step - prev_step) * delta_w_ws
         Xw += (step - prev_step) * X_delta_w_ws
 
         grad_ws = _construct_grad_sparse(X_data, X_indptr, X_indices,
                                          y, w, Xw, datafit, ws)
+        # TODO: could be improved by passing in w[ws]
+        stop_crit = penalty.value(w) - old_penalty_val
         stop_crit += step * grad_ws.T @ delta_w_ws
-        stop_crit += penalty.value(w[ws])
 
         if stop_crit < 0:
             break
         else:
             prev_step = step
             step /= 2
+    else:
+        pass  # TODO
 
     return grad_ws
 
 
 @njit
 def _construct_grad(X, y, w, Xw, datafit, ws):
-    # Compute grad of datafit restricted to ws
+    # Compute grad of datafit restricted to ws. This function avoids
+    # recomputing raw_grad for every j, which is costly for logreg
     raw_grad = datafit.raw_grad(y, Xw)
     grad = np.zeros(len(ws))
     for idx, j in enumerate(ws):

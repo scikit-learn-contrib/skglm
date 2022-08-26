@@ -1,12 +1,17 @@
+import warnings
 import numpy as np
 from numba import njit
 from scipy.sparse import issparse
+
 from skglm.utils import AndersonAcceleration
 
 
 def gram_cd_solver(X, y, penalty, max_iter=100, w_init=None,
                    use_acc=True, greedy_cd=True, tol=1e-4, verbose=False):
     """Run coordinate descent while keeping the gradients up-to-date with Gram updates.
+
+    This solver should be used when n_features < n_samples, and computes the
+    (n_features, n_features) Gram matrix which comes with an overhead.
 
     Minimize::
         1 / (2*n_samples) * norm(y - Xw)**2 + penalty(w)
@@ -39,7 +44,7 @@ def gram_cd_solver(X, y, penalty, max_iter=100, w_init=None,
         Extrapolate the iterates based on the past 5 iterates if set to True.
 
     greedy_cd : bool, default True
-        Use a greedy strategy to select features to update in Gram CD epoch
+        Use a greedy strategy to select features to update in coordinate descent epochs
         if set to True. A cyclic strategy is used otherwise.
 
     tol : float, default 1e-4
@@ -68,6 +73,7 @@ def gram_cd_solver(X, y, penalty, max_iter=100, w_init=None,
     else:
         scaled_gram = X.T @ X / n_samples
         scaled_Xty = X.T @ y / n_samples
+    # TODO potential improvement: allow to pass scaled_gram (e.g. for path computation)
 
     scaled_y_norm2 = np.linalg.norm(y)**2 / (2*n_samples)
 
@@ -76,11 +82,14 @@ def gram_cd_solver(X, y, penalty, max_iter=100, w_init=None,
     p_objs_out = []
 
     w = np.zeros(n_features) if w_init is None else w_init
-    scaled_gram_w = np.zeros(n_features) if w_init is None else scaled_gram @ w_init
-    grad = scaled_gram_w - scaled_Xty
+    grad = - scaled_Xty if w_init is None else scaled_gram @ w_init - scaled_Xty
     opt = penalty.subdiff_distance(w, grad, all_features)
 
     if use_acc:
+        if greedy_cd:
+            warnings.warn(
+                UserWarning,
+                "Anderson acceleration does not work with greedy_cd, set use_acc=False")
         accelerator = AndersonAcceleration(K=5)
         w_acc = np.zeros(n_features)
         grad_acc = np.zeros(n_features)
@@ -109,6 +118,7 @@ def gram_cd_solver(X, y, penalty, max_iter=100, w_init=None,
             w_acc, grad_acc, is_extrapolated = accelerator.extrapolate(w, grad)
 
             if is_extrapolated:
+                # omit constant term for comparison
                 p_obj_acc = (0.5 * w_acc @ (scaled_gram @ w_acc) - scaled_Xty @ w_acc +
                              penalty.value(w_acc))
                 p_obj = 0.5 * w @ (scaled_gram @ w) - scaled_Xty @ w + penalty.value(w)
@@ -138,7 +148,7 @@ def _gram_cd_epoch(scaled_gram, w, grad, penalty, greedy_cd):
         step = 1 / scaled_gram[j, j]  # 1 / lipchitz_j
         w[j] = penalty.prox_1d(old_w_j - step * grad[j], step, j)
 
-        # Gram matrix update
+        # gradient update with Gram matrix
         if w[j] != old_w_j:
             grad += (w[j] - old_w_j) * scaled_gram[:, j]
 

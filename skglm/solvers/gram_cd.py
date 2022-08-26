@@ -88,8 +88,8 @@ def gram_cd_solver(X, y, penalty, max_iter=100, w_init=None,
     if use_acc:
         if greedy_cd:
             warnings.warn(
-                UserWarning,
-                "Anderson acceleration does not work with greedy_cd, set use_acc=False")
+                "Anderson acceleration does not work with greedy_cd, set use_acc=False",
+                UserWarning)
         accelerator = AndersonAcceleration(K=5)
         w_acc = np.zeros(n_features)
         grad_acc = np.zeros(n_features)

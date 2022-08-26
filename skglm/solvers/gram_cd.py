@@ -110,7 +110,7 @@ def gram_cd_solver(X, y, penalty, max_iter=100, w_init=None,
                 print(f"Stopping criterion max violation: {stop_crit:.2e}")
             break
 
-        # inplace update of w, XtXw
+        # inplace update of w, grad
         opt = _gram_cd_epoch(scaled_gram, w, grad, penalty, greedy_cd)
 
         # perform Anderson extrapolation

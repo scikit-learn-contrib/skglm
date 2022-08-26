@@ -98,6 +98,8 @@ def _glm_fit(X, y, model, datafit, penalty):
     else:
         X_ = X
 
+    n_samples, n_features = X_.shape
+
     penalty_jit = compiled_clone(penalty)
     datafit_jit = compiled_clone(datafit, to_float32=X.dtype == np.float32)
     if issparse(X):
@@ -116,15 +118,15 @@ def _glm_fit(X, y, model, datafit, penalty):
     else:
         # TODO this should be solver.get_init() do delegate the work
         if y.ndim == 1:
-            w = np.zeros(X_.shape[1], dtype=X_.dtype)
-            Xw = np.zeros(X_.shape[0], dtype=X_.dtype)
+            w = np.zeros(n_features + model.fit_intercept, dtype=X_.dtype)
+            Xw = np.zeros(n_samples, dtype=X_.dtype)
         else:  # multitask
-            w = np.zeros((X_.shape[1], y.shape[1]), dtype=X_.dtype)
+            w = np.zeros((n_features + model.fit_intercept, y.shape[1]), dtype=X_.dtype)
             Xw = np.zeros(y.shape, dtype=X_.dtype)
 
     # check consistency of weights for WeightedL1
     if isinstance(penalty, WeightedL1):
-        if len(penalty.weights) != X.shape[1]:
+        if len(penalty.weights) != n_features:
             raise ValueError(
                 "The size of the WeightedL1 penalty weights should be n_features, \
                 expected %i, got %i" % (X_.shape[1], len(penalty.weights)))
@@ -141,15 +143,26 @@ def _glm_fit(X, y, model, datafit, penalty):
     coefs, p_obj, kkt = solver(
         X_, y, datafit_jit, penalty_jit, w, Xw, max_iter=model.max_iter,
         max_epochs=model.max_epochs, p0=model.p0,
-        tol=model.tol,  # ws_strategy=model.ws_strategy,
+        tol=model.tol, fit_intercept=model.fit_intercept,
+        # ws_strategy=model.ws_strategy,
         verbose=model.verbose)
+    if y.ndim == 1:
+        model.coef_, model.stop_crit_ = coefs[:n_features], kkt
+        if model.fit_intercept:
+            model.intercept_ = coefs[-1]
+        else:
+            model.intercept_ = 0.
+    else:
+        model.coef_, model.stop_crit_ = coefs[:n_features, :], kkt
+        if model.fit_intercept:
+            model.intercept_ = coefs[-1, :]
+        else:
+            model.intercept_ = np.zeros(y.shape[1])
 
-    model.coef_, model.stop_crit_ = coefs, kkt
     model.n_iter_ = len(p_obj)
-    model.intercept_ = 0.
 
     if is_classif and n_classes_ <= 2:
-        model.coef_ = coefs[np.newaxis, :]
+        model.coef_ = coefs[np.newaxis, :n_features]
         if isinstance(datafit, QuadraticSVC):
             if is_sparse:
                 primal_coef = ((yXT).multiply(model.coef_[0, :])).T

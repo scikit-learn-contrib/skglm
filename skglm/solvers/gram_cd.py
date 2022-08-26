@@ -127,7 +127,8 @@ def gram_cd_solver(X, y, penalty, max_iter=100, w_init=None,
                     grad[:] = grad_acc
 
         # store p_obj
-        p_obj = 0.5 * w @ (scaled_gram @ w) - scaled_Xty @ w + penalty.value(w)
+        p_obj = (0.5 * w @ (scaled_gram @ w) - scaled_Xty @ w + scaled_y_norm2 +
+                 penalty.value(w))
         p_objs_out.append(p_obj)
     return w, np.array(p_objs_out), stop_crit
 

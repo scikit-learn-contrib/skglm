@@ -67,6 +67,9 @@ class SqrtLasso(LinearModel, RegressorMixin):
         n_iters = np.zeros(n_alphas)
 
         for i in range(n_alphas):
+            if self.verbose:
+                print(f"======== alpha {i+1} ========")
+
             l1_penalty.alpha = alphas[i]
             # no warm start for the first alpha
             coef_init = coefs[:, i].copy() if i else np.zeros(n_features)
@@ -81,8 +84,7 @@ class SqrtLasso(LinearModel, RegressorMixin):
             if residual < self.tol * scaled_norm_y:
                 warnings.warn(
                     f"Small residuals will prevent the solver from converging.\n"
-                    f"Square root of residuals: {residual * np.sqrt(len(y))}\n"
-                    f"Considering taking greater than {alphas[i]}",
+                    f"Considering taking alphas greater than {alphas[i]:.4e}",
                     ConvergenceWarning
                 )
 

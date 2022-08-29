@@ -88,7 +88,7 @@ class Quadratic(BaseDatafit):
         return grad
 
     def intercept_update_step(self, y, Xw):
-        return np.sum(Xw - y) / len(Xw)
+        return np.mean(Xw - y)
 
 
 @njit
@@ -173,7 +173,7 @@ class Logistic(BaseDatafit):
         return grad / len(Xw)
 
     def intercept_update_step(self, y, Xw):
-        return np.sum((- y * sigmoid(- y * Xw))) / (4 * len(Xw))
+        return np.mean((- y * sigmoid(- y * Xw))) / 4
 
 
 class QuadraticSVC(BaseDatafit):

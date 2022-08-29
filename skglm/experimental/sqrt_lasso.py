@@ -42,9 +42,8 @@ class SqrtQuadratic(BaseDatafit):
         norm_residuals = norm(minus_residual)
 
         if norm_residuals < 1e-10:
-            raise Exception(
-                "Too small residuals will impact the convergence of the solver."
-            )
+            raise Exception("SmallResidualException")
+
         return minus_residual / norm_residuals / np.sqrt(len(y))
 
     def raw_hessian(self, y, Xw):
@@ -173,7 +172,12 @@ class SqrtLasso(LinearModel, RegressorMixin):
                     w_init=coef_init, max_iter=self.max_iter,
                     max_pn_iter=self.max_pn_iter,
                     tol=self.tol, verbose=self.verbose)
-            except Exception:
+            except Exception as e:
+                # make sure to catch residual error
+                # it's implemented this way as Numba doesn't support custom Exception
+                if not str(e).startswith("SmallResidualException"):
+                    raise
+
                 # save coef despite not converging
                 # coef_init holds a ref to coef
                 coef = coef_init

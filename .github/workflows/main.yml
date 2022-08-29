@@ -24,5 +24,6 @@ jobs:
         pip install pytest
         pip install numpydoc
         pip install .
+        pip install statsmodels cvxopt
     - name: Test with pytest
       run: pytest -v skglm/

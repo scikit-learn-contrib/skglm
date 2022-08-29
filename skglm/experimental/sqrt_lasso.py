@@ -41,10 +41,10 @@ class SqrtQuadratic(BaseDatafit):
         minus_residual = Xw - y
         norm_residuals = norm(minus_residual)
 
-        if norm_residuals < 1e-10:
-            raise Exception("SmallResidualException")
+        if norm_residuals < 1e-2 * norm(y):
+            raise ValueError("SmallResidualException")
 
-        return minus_residual / norm_residuals / np.sqrt(len(y))
+        return minus_residual / (norm_residuals * np.sqrt(len(y)))
 
     def raw_hessian(self, y, Xw):
         """Upper bound of the hessian w.r.t eigenvalues."""
@@ -172,10 +172,10 @@ class SqrtLasso(LinearModel, RegressorMixin):
                     w_init=coef_init, max_iter=self.max_iter,
                     max_pn_iter=self.max_pn_iter,
                     tol=self.tol, verbose=self.verbose)
-            except Exception as e:
+            except ValueError as val_exception:
                 # make sure to catch residual error
                 # it's implemented this way as Numba doesn't support custom Exception
-                if not str(e).startswith("SmallResidualException"):
+                if not str(val_exception) == "SmallResidualException":
                     raise
 
                 # save coef despite not converging
@@ -185,7 +185,7 @@ class SqrtLasso(LinearModel, RegressorMixin):
                 warnings.warn(
                     f"Small residuals will prevent the solver from converging.\n"
                     f"Consider taking alphas greater than {alphas[i]:.4e}\n"
-                    f"value of residual: {residual:.4e}",
+                    f"norm of scaled residual: {residual:.4e}",
                     ConvergenceWarning
                 )
 

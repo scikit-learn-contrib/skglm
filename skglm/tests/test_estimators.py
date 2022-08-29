@@ -161,14 +161,15 @@ def test_mtl_path(fit_intercept):
 ])
 @pytest.mark.parametrize('fit_intercept', [True, False])
 def test_generic_estimator(
-    Datafit, Penalty, is_classif, Estimator, pen_args, fit_intercept):
+        Datafit, Penalty, is_classif, Estimator, pen_args, fit_intercept):
     if isinstance(Datafit(), QuadraticSVC) and fit_intercept:
         # TODO replace by xfail
         pass
     else:
         target = Y if Datafit == QuadraticMultiTask else y
         clf = GeneralizedLinearEstimator(
-            Datafit(), Penalty(*pen_args), is_classif, tol=1e-10, fit_intercept=fit_intercept).fit(X, target)
+            Datafit(), Penalty(*pen_args), is_classif, tol=1e-10,
+            fit_intercept=fit_intercept).fit(X, target)
         clf_est = Estimator(
             *pen_args, tol=1e-10, fit_intercept=fit_intercept).fit(X, target)
         np.testing.assert_allclose(clf_est.coef_, clf.coef_, rtol=1e-5)

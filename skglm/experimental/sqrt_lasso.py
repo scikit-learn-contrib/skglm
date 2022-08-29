@@ -14,7 +14,7 @@ class SqrtQuadratic(BaseDatafit):
     """Square root quadratic datafit.
 
     The datafit reads::
-        ||y - Xw||_2 / sqrt(n_samples) 
+        ||y - Xw||_2 / sqrt(n_samples)
     """
 
     def __init__(self):
@@ -43,7 +43,7 @@ class SqrtQuadratic(BaseDatafit):
 
         if norm_residuals < 1e-10:
             raise Exception(
-                f"Too small residuals will impact the convergence of the solver."
+                "Too small residuals will impact the convergence of the solver."
             )
         return minus_residual / norm_residuals / np.sqrt(len(y))
 
@@ -131,7 +131,7 @@ class SqrtLasso(LinearModel, RegressorMixin):
             (0, alpha_max] with a length ``eps``.
 
         eps: float, default 1e-2
-            Length of the path. ``eps=1e-3`` means that 
+            Length of the path. ``eps=1e-3`` means that
             ``alpha_min = 1e-3 * alpha_max``.
 
         n_alphas: int, default 10
@@ -174,7 +174,7 @@ class SqrtLasso(LinearModel, RegressorMixin):
                     w_init=coef_init, max_iter=self.max_iter,
                     max_pn_iter=self.max_pn_iter,
                     tol=self.tol, verbose=self.verbose)
-            except:
+            except Exception:
                 # save coef despite not converging
                 # coef_init holds a ref to coef
                 coef = coef_init

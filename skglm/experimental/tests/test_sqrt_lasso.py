@@ -18,6 +18,22 @@ def test_alpha_max():
     np.testing.assert_equal(sqrt_lasso.coef_.flatten(), 0)
 
 
+def test_path():
+    n_samples, n_features = 50, 10
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
+
+    alpha_max = norm(X.T @ y, ord=np.inf) / (np.sqrt(n_samples) * norm(y))
+    n_alphas, eps = 10, 1e-3
+    alphas = alpha_max * np.geomspace(1, eps, n_alphas)
+
+    sqrt_lasso = SqrtLasso(tol=1e-9)
+    coefs_skglm = sqrt_lasso.path(X, y, alphas)[1]
+    coefs_skglm_2 = sqrt_lasso.path(X, y)[1]
+
+    np.testing.assert_almost_equal(coefs_skglm, coefs_skglm_2)
+    pass
+
+
 def test_vs_statsmodels():
     n_samples, n_features = 50, 10
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)

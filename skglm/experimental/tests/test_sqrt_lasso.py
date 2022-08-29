@@ -26,10 +26,10 @@ def test_vs_statsmodels():
     n_alphas = 3
     alphas = alpha_max * np.geomspace(1, 1e-2, n_alphas+1)[1:]
 
-    sqrt_lasso = SqrtLasso()
+    sqrt_lasso = SqrtLasso(tol=1e-9)
     coefs_skglm = sqrt_lasso.path(X, y, alphas)[1]
 
-    coefs_statsmodels = np.zeros((n_features, len(alphas)))
+    coefs_statsmodels = np.zeros((len(alphas), n_features))
 
     # fit statsmodels on path
     for i in range(n_alphas):
@@ -37,10 +37,11 @@ def test_vs_statsmodels():
         model = linear_model.OLS(y, X)
         model = model.fit_regularized(method='sqrt_lasso', L1_wt=1.,
                                       alpha=n_samples * alpha)
-        coefs_statsmodels[:, i] = model.params
+        coefs_statsmodels[i] = model.params
 
     np.testing.assert_almost_equal(coefs_skglm, coefs_statsmodels, decimal=4)
 
 
 if __name__ == '__main__':
+    test_vs_statsmodels()
     pass

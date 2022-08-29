@@ -56,7 +56,7 @@ class SqrtQuadratic(BaseDatafit):
 
 class SqrtLasso(LinearModel, RegressorMixin):
 
-    def __init__(self, alpha=1., max_iter=100, max_pn_iter=1000, p0=10,
+    def __init__(self, alpha=1., max_iter=100, max_pn_iter=100, p0=10,
                  tol=1e-4, verbose=0):
         super().__init__()
         self.alpha = alpha
@@ -81,8 +81,6 @@ class SqrtLasso(LinearModel, RegressorMixin):
         l1_penalty = compiled_clone(L1(1.))
 
         coefs = np.zeros((n_alphas, n_features))
-        stop_criteria = np.zeros(n_alphas)
-        n_iters = np.zeros(n_alphas)
 
         for i in range(n_alphas):
             if self.verbose:
@@ -93,7 +91,7 @@ class SqrtLasso(LinearModel, RegressorMixin):
             coef_init = coefs[i].copy() if i else np.zeros(n_features)
 
             try:
-                coef, p_objs_out, stop_crit = prox_newton(
+                coef, _, _ = prox_newton(
                     X, y, sqrt_quadratic, l1_penalty,
                     w_init=coef_init, max_iter=self.max_iter,
                     max_pn_iter=self.max_pn_iter,
@@ -111,7 +109,4 @@ class SqrtLasso(LinearModel, RegressorMixin):
                 )
 
             coefs[i] = coef
-            stop_criteria[i] = stop_crit
-            n_iters[i] = len(p_objs_out)
-
-        return alphas, coefs, stop_criteria, n_iters
+        return alphas, coefs

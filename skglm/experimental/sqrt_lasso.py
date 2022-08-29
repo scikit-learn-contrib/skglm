@@ -50,7 +50,8 @@ class SqrtLasso(LinearModel, RegressorMixin):
         self.verbose = verbose
 
     def fit(self, X, y):
-        self.coef_ = self.path(X, y, alphas=[self.alpha])[1]
+        self.coef_ = self.path(X, y, alphas=[self.alpha])[1][0]
+        self.intercept_ = 0.  # TODO handle fit_intercept
         return self
 
     def path(self, X, y, alphas=None):
@@ -62,7 +63,7 @@ class SqrtLasso(LinearModel, RegressorMixin):
         sqrt_quadratic = compiled_clone(SqrtQuadratic())
         l1_penalty = compiled_clone(L1(1.))
 
-        coefs = np.zeros((n_features, n_alphas))
+        coefs = np.zeros((n_alphas, n_features))
         stop_criteria = np.zeros(n_alphas)
         n_iters = np.zeros(n_alphas)
 
@@ -72,7 +73,7 @@ class SqrtLasso(LinearModel, RegressorMixin):
 
             l1_penalty.alpha = alphas[i]
             # no warm start for the first alpha
-            coef_init = coefs[:, i].copy() if i else np.zeros(n_features)
+            coef_init = coefs[i].copy() if i else np.zeros(n_features)
 
             coef, p_objs_out, stop_crit = prox_newton(
                 X, y, sqrt_quadratic, l1_penalty,
@@ -88,8 +89,8 @@ class SqrtLasso(LinearModel, RegressorMixin):
                     ConvergenceWarning
                 )
 
-            coefs[:, i] = coef
+            coefs[i] = coef
             stop_criteria[i] = stop_crit
             n_iters[i] = len(p_objs_out)
 
-        return alphas, coefs[:, :-1], stop_criteria, n_iters
+        return alphas, coefs, stop_criteria, n_iters

@@ -233,7 +233,8 @@ def cd_solver(
 
     if len(w) != n_features + fit_intercept:
         raise ValueError(
-            "Shape of w should be n_features + 1 when fit_intercept=True.")
+            "The size of weights should be n_features + 1, \
+                expected %i, got %i" % (n_features + fit_intercept, len(w)))
 
     for t in range(max_iter):
         if is_sparse:

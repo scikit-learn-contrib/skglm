@@ -70,7 +70,8 @@ def group_bcd_solver(
     Xw = np.zeros(n_samples) if w_init is None else Xw_init
     if len(w) != n_features + fit_intercept:
         raise ValueError(
-            "Shape of w should be n_features + 1 when fit_intercept=True.")
+            "The size of weights should be n_features + 1, \
+                expected %i, got %i" % (n_features + fit_intercept, len(w)))
 
     datafit.initialize(X, y)
     all_groups = np.arange(n_groups)
@@ -100,7 +101,7 @@ def group_bcd_solver(
 
         for epoch in range(max_epochs):
             # inplace update of w and Xw
-            _bcd_epoch(X, y, w, Xw, datafit, penalty, ws)
+            _bcd_epoch(X, y, w[:n_features], Xw, datafit, penalty, ws)
 
             # update intercept
             if fit_intercept:

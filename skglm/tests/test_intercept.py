@@ -1,15 +1,15 @@
+import numpy as np
+import pytest
+from sklearn.linear_model import enet_path
+from sklearn.linear_model import MultiTaskLasso as MultiTaskLasso_sklearn
+from sklearn.linear_model import HuberRegressor, Lasso, LogisticRegression
+
 from skglm.solvers.cd_solver import cd_solver, cd_solver_path
 from skglm.solvers.multitask_bcd_solver import multitask_bcd_solver
 from skglm.datafits import Quadratic, Logistic, Huber, QuadraticMultiTask
 from skglm.penalties import L1, WeightedL1, L2_1
 from skglm.utils import make_correlated_data
-
-from sklearn.linear_model import HuberRegressor, Lasso, LogisticRegression
-import numpy as np
-import pytest
 from skglm.utils import compiled_clone
-from sklearn.linear_model import enet_path
-from sklearn.linear_model import MultiTaskLasso as MultiTaskLasso_sklearn
 
 X, Y, _ = make_correlated_data(n_samples=20, n_features=10, random_state=0, n_tasks=9)
 n_samples, n_features = X.shape

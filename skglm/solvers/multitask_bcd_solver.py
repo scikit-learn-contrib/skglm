@@ -221,7 +221,8 @@ def multitask_bcd_solver(
 
     if W.shape[0] != n_features + fit_intercept:
         raise ValueError(
-            "Shape of W should be n_features + 1 when fit_intercept=True.")
+            "The size of weights should be n_features + 1, \
+                expected %i, got %i" % (n_features + fit_intercept, W.shape[0]))
 
     is_sparse = sparse.issparse(X)
     for t in range(max_iter):
@@ -245,7 +246,7 @@ def multitask_bcd_solver(
                       min(2 * (norm(W, axis=1) != 0).sum() - n_unpen,
                           n_features))
         opt[unpen] = np.inf  # always include unpenalized features
-        opt[norm(W[:n_features, :], axis=1) != 0] = np.inf  # TODO check
+        opt[norm(W[:n_features], axis=1) != 0] = np.inf  # TODO check
         ws = np.argpartition(opt, -ws_size)[-ws_size:]
         # is equivalent to ws = np.argsort(kkt)[-ws_size:]
 

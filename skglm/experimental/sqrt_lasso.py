@@ -76,7 +76,6 @@ class SqrtLasso(LinearModel, RegressorMixin):
         n_features = X.shape[1]
         n_alphas = len(alphas)
         alphas = np.sort(alphas)[::-1]
-        scaled_norm_y = np.linalg.norm(y) / np.sqrt(len(y))
 
         sqrt_quadratic = compiled_clone(SqrtQuadratic())
         l1_penalty = compiled_clone(L1(1.))
@@ -93,17 +92,21 @@ class SqrtLasso(LinearModel, RegressorMixin):
             # no warm start for the first alpha
             coef_init = coefs[i].copy() if i else np.zeros(n_features)
 
-            coef, p_objs_out, stop_crit = prox_newton(
-                X, y, sqrt_quadratic, l1_penalty,
-                w_init=coef_init, max_iter=self.max_iter,
-                max_pn_iter=self.max_pn_iter,
-                tol=self.tol, verbose=self.verbose)
-
-            residual = sqrt_quadratic.value(y, coef, X @ coef)
-            if residual < self.tol * scaled_norm_y:
+            try:
+                coef, p_objs_out, stop_crit = prox_newton(
+                    X, y, sqrt_quadratic, l1_penalty,
+                    w_init=coef_init, max_iter=self.max_iter,
+                    max_pn_iter=self.max_pn_iter,
+                    tol=self.tol, verbose=self.verbose)
+            except:
+                # save coef despite not converging
+                # coef_init holds a ref to coef
+                coef = coef_init
+                residual = sqrt_quadratic.value(y, coef, X @ coef)
                 warnings.warn(
                     f"Small residuals will prevent the solver from converging.\n"
-                    f"Considering taking alphas greater than {alphas[i]:.4e}",
+                    f"Consider taking alphas greater than {alphas[i]:.4e}\n"
+                    f"value of residual: {residual:.4e}",
                     ConvergenceWarning
                 )
 

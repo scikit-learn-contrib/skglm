@@ -33,8 +33,8 @@ class SqrtQuadratic(BaseDatafit):
     def raw_grad(self, y, Xw):
         """Compute gradient of datafit w.r.t ``Xw``.
 
-        Raises:
-        -------
+        Raises
+        ------
             Exception
                 if value of residuals is too small (less than ``1e-10``).
         """
@@ -55,7 +55,6 @@ class SqrtQuadratic(BaseDatafit):
 
 
 class SqrtLasso(LinearModel, RegressorMixin):
-
     """Square root Lasso estimator based on Prox Newton solver.
 
     The optimization objective for square root Lasso is::
@@ -156,7 +155,7 @@ class SqrtLasso(LinearModel, RegressorMixin):
 
         n_features = X.shape[1]
         sqrt_quadratic = compiled_clone(SqrtQuadratic())
-        l1_penalty = compiled_clone(L1(1.))
+        l1_penalty = compiled_clone(L1(1.))  # alpha is set along the path
 
         coefs = np.zeros((n_alphas, n_features))
 

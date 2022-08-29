@@ -56,6 +56,33 @@ class SqrtQuadratic(BaseDatafit):
 
 class SqrtLasso(LinearModel, RegressorMixin):
 
+    """Square root Lasso estimator based on Prox Newton solver.
+
+    The optimization objective for square root Lasso is::
+
+        |y - X w||_2 / sqrt(n_samples) + alpha * ||w||_1
+
+    Parameters
+    ----------
+    alpha : float, default 1
+        Penalty strength.
+
+    max_iter : int, default 20
+        Maximum number of outer iterations.
+
+    max_pn_iter : int, default 1000
+        Maximum number of prox Newton iterations on each subproblem.
+
+    p0 : int, default 10
+        Minimum number of features to be included in the working set.
+
+    tol : float, default 1e-4
+        Tolerance for convergence.
+
+    verbose : bool, default False
+        Amount of verbosity. 0/False is silent.
+    """
+
     def __init__(self, alpha=1., max_iter=100, max_pn_iter=100, p0=10,
                  tol=1e-4, verbose=0):
         super().__init__()
@@ -68,15 +95,66 @@ class SqrtLasso(LinearModel, RegressorMixin):
         self.verbose = verbose
 
     def fit(self, X, y):
+        """Fit the model according to the given training data.
+
+        Parameters
+        ----------
+        X : array or sparse CSC matrix, shape (n_samples, n_features)
+            Training data, where n_samples is the number of samples and
+            n_features is the number of features.
+
+        y : array-like, shape (n_samples,)
+            Target vector relative to X.
+
+        Returns
+        -------
+        self :
+            Fitted estimator.
+        """
         self.coef_ = self.path(X, y, alphas=[self.alpha])[1][0]
         self.intercept_ = 0.  # TODO handle fit_intercept
         return self
 
-    def path(self, X, y, alphas=None):
-        n_features = X.shape[1]
-        n_alphas = len(alphas)
-        alphas = np.sort(alphas)[::-1]
+    def path(self, X, y, alphas=None, eps=1e-3, n_alphas=10):
+        """Compute Lasso path.
 
+        Parameters
+        ----------
+        X : array, shape (n_samples, n_features)
+            Design matrix.
+
+        y : array, shape (n_samples,)
+            Target vector.
+
+        alphas : array, shape (n_alphas,) default None
+            Grid of alpha. If None a path is constructed from
+            (0, alpha_max] with a length ``eps``.
+
+        eps: float, default 1e-2
+            Length of the path. ``eps=1e-3`` means that 
+            ``alpha_min = 1e-3 * alpha_max``.
+
+        n_alphas: int, default 10
+            Number of alphas along the path. This argument is
+            ignored if ``alphas`` was provided.
+
+        Returns
+        -------
+        alphas : array, shape (n_alphas,)
+            The alphas along the path where models are computed.
+
+        coefs : array, shape (n_features, n_alphas)
+            Coefficients along the path.
+        """
+        # build path
+        if alphas is None:
+            alpha_max = norm(X.T @ y, ord=np.inf) / (np.sqrt(len(y)) * norm(y))
+            alphas = alpha_max * np.geomspace(1, eps, n_alphas)
+        else:
+            n_alphas = len(alphas)
+            alphas = np.sort(alphas)[::-1]
+
+        n_features = X.shape[1]
         sqrt_quadratic = compiled_clone(SqrtQuadratic())
         l1_penalty = compiled_clone(L1(1.))
 

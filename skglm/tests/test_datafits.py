@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.linear_model import HuberRegressor
 from numpy.testing import assert_allclose, assert_array_less
 
-from skglm.datafits import Huber
+from skglm.datafits import Huber, Logistic
 from skglm.penalties import WeightedL1
 from skglm import GeneralizedLinearEstimator
 from skglm.utils import make_correlated_data
@@ -29,3 +29,28 @@ def test_huber_datafit():
 
     assert_allclose(ours.coef_, their.coef_, rtol=1e-3)
     assert_array_less(ours.stop_crit_, ours.tol)
+
+
+def test_log_datafit():
+    n_samples, n_features = 10, 20
+
+    w = np.ones(n_features)
+    X, y, _ = make_correlated_data(n_samples, n_features)
+    y = np.sign(y)
+    Xw = X @ w
+
+    log_datafit = Logistic()
+    grad = log_datafit.raw_grad(y, Xw)
+    hess = log_datafit.raw_hessian(y, Xw)
+
+    np.testing.assert_equal(grad.shape, (n_samples,))
+    np.testing.assert_equal(hess.shape, (n_samples,))
+
+    exp_minus_yXw = np.exp(-y * Xw)
+    np.testing.assert_almost_equal(
+        exp_minus_yXw / (1 + exp_minus_yXw) ** 2 / len(y), hess)
+    np.testing.assert_almost_equal(-grad * (y + n_samples * grad), hess)
+
+
+if __name__ == '__main__':
+    pass

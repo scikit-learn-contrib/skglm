@@ -4,7 +4,7 @@ import pytest
 import numpy as np
 from numpy.linalg import norm
 
-from sklearn.base import copy
+from sklearn.base import copy, clone
 from sklearn.linear_model import Lasso as Lasso_sklearn
 from sklearn.linear_model import ElasticNet as ElasticNet_sklearn
 from sklearn.linear_model import LogisticRegression as LogReg_sklearn
@@ -70,9 +70,9 @@ dict_estimators_sk["LogisticRegression"] = LogReg_sklearn(
     C=1/(alpha * n_samples), fit_intercept=False, tol=tol, penalty='l1',
     solver='liblinear')
 dict_estimators_ours["LogisticRegression"] = SparseLogisticRegression(
-    alpha=alpha, fit_intercept=False, tol=tol, verbose=True)
+    alpha=alpha, fit_intercept=False, tol=tol, verbose=False)
 
-C = 1.0
+C = 1.
 dict_estimators_sk["SVC"] = LinearSVC_sklearn(
     penalty='l2', loss='hinge', fit_intercept=False, dual=True, C=C, tol=tol)
 dict_estimators_ours["SVC"] = LinearSVC(C=C, tol=tol)
@@ -94,6 +94,7 @@ def test_check_estimator(estimator_name):
     check_estimator(clf)
 
 
+# Test if skglm solver returns the coefficients
 @pytest.mark.parametrize("estimator_name", dict_estimators_ours.keys())
 @pytest.mark.parametrize('X', [X, X_sparse])
 def test_estimator(estimator_name, X):
@@ -101,7 +102,6 @@ def test_estimator(estimator_name, X):
         pytest.skip()
     estimator_sk = dict_estimators_sk[estimator_name]
     estimator_ours = dict_estimators_ours[estimator_name]
-
     estimator_sk.fit(X, y)
     estimator_ours.fit(X, y)
     coef_sk = estimator_sk.coef_
@@ -111,6 +111,7 @@ def test_estimator(estimator_name, X):
     np.testing.assert_allclose(coef_ours, coef_sk, atol=1e-6)
 
 
+# Test if skglm multitask solver returns the coefficients
 @pytest.mark.parametrize('X', [X, X_sparse])
 def test_estimator_mtl(X):
     estimator_sk = MultiTaskLasso_sklearn(
@@ -135,6 +136,7 @@ def test_mtl_path():
     np.testing.assert_allclose(coef_ours, coef_sk, rtol=1e-5)
 
 
+# Test if GeneralizedLinearEstimator returns the correct coefficients
 @pytest.mark.parametrize("Datafit, Penalty, is_classif, Estimator, pen_args", [
     (Quadratic, L1, False, Lasso, [alpha]),
     (Quadratic, WeightedL1, False, WeightedLasso,
@@ -191,15 +193,14 @@ def test_generic_get_params():
                 np.testing.assert_allclose(v, v_est)
             else:
                 assert v == v_est
-    df_reg, df_clf = Quadratic(), Logistic()
-    pen_reg, pen_clf = L1(4.), MCPenalty(2., 3.)
-    reg = GeneralizedLinearEstimator(df_reg, pen_reg, is_classif=False)
-    clf = GeneralizedLinearEstimator(df_clf, pen_clf, is_classif=True)
-    expected_clf_attr = {
-        'penalty__alpha': 2., 'penalty__gamma': 3., 'datafit__lipschitz': np.array([])}
-    expected_reg_attr = {
-        'penalty__alpha': 4., 'datafit__lipschitz': np.array([]),
-        'datafit__Xty': np.array([])}
+
+    reg = GeneralizedLinearEstimator(Quadratic(), L1(4.), is_classif=False)
+    clf = GeneralizedLinearEstimator(Logistic(), MCPenalty(2., 3.), is_classif=True)
+
+    # Xty and lipschitz attributes are defined for jit compiled classes
+    # hence they are not included in the test
+    expected_clf_attr = {'penalty__alpha': 2., 'penalty__gamma': 3.}
+    expected_reg_attr = {'penalty__alpha': 4.}
     assert_deep_dict_equal(expected_reg_attr, reg)
     assert_deep_dict_equal(expected_clf_attr, clf)
 
@@ -229,7 +230,17 @@ def test_grid_search(estimator_name):
                                ours_clf.best_params_["alpha"], rtol=1e-3)
 
 
+@pytest.mark.parametrize(
+    "estimator_name",
+    ["Lasso", "wLasso", "ElasticNet", "MCP", "LogisticRegression", "SVC"])
+def test_warm_start(estimator_name):
+    model = clone(dict_estimators_ours[estimator_name])
+    model.warm_start = True
+    model.fit(X, y)
+    np.testing.assert_array_less(0, model.n_iter_)
+    model.fit(X, y)  # already fitted + warm_start so 0 iter done
+    np.testing.assert_equal(0, model.n_iter_)
+
+
 if __name__ == '__main__':
-    Datafit, Penalty, Estimator = Logistic, L1, SparseLogisticRegression
-    pen_args = [alpha]
-    test_generic_estimator(Datafit, Penalty, True, Estimator, pen_args)
+    pass

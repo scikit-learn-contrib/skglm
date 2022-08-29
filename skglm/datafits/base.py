@@ -1,61 +1,28 @@
 from abc import abstractmethod
 
-import numba
-from numba import float32, float64
-from numba.experimental import jitclass
-
-
-def spec_to_float32(spec):
-    """Convert a numba specification to an equivalent float32 one.
-
-    Parameters
-    ----------
-    spec : list
-        A list of (name, dtype) for every attribute of a jitclass.
-
-    Returns
-    -------
-    spec32 : list
-        A list of (name, dtype) for every attribute of a jitclass, where float64
-        have been replaced by float32.
-    """
-    spec32 = []
-    for name, dtype in spec:
-        if dtype == float64:
-            dtype32 = float32
-        elif isinstance(dtype, numba.core.types.npytypes.Array):
-            dtype32 = dtype.copy(dtype=float32)
-        else:
-            raise ValueError(f"Unknown spec type {dtype}")
-        spec32.append((name, dtype32))
-    return spec32
-
-
-def jit_factory(Datafit, spec):
-    """JIT-compile a datafit class in float32 and float64 contexts.
-
-    Parameters
-    ----------
-    Datafit : datafit class, inheriting from BaseDatafit
-        A datafit class, to be compiled.
-
-    spec : list
-        A list of type specifications for every attribute of Datafit.
-
-    Returns
-    -------
-    Datafit_64 : Jitclass
-        A compiled datafit class with attribute types float64.
-
-    Datafit_32 : Jitclass
-        A compiled datafit class with attribute types float32.
-    """
-    spec32 = spec_to_float32(spec)
-    return jitclass(spec)(Datafit), jitclass(spec32)(Datafit)
-
 
 class BaseDatafit():
     """Base class for datafits."""
+
+    @abstractmethod
+    def get_spec(self):
+        """Specify the numba types of the class attributes.
+
+        Returns
+        -------
+        spec: Tuple of (attribute_name, dtype)
+            spec to be passed to Numba jitclass to compile the class.
+        """
+
+    @abstractmethod
+    def params_to_dict(self):
+        """Get the parameters to initialize an instance of the class.
+
+        Returns
+        -------
+        dict_of_params : dict
+            The parameters to instantiate an object of the class.
+        """
 
     @abstractmethod
     def initialize(self, X, y):
@@ -171,6 +138,26 @@ class BaseDatafit():
 
 class BaseMultitaskDatafit():
     """Base class for multitask datafits."""
+
+    @abstractmethod
+    def get_spec(self):
+        """Specify the numba types of the class attributes.
+
+        Returns
+        -------
+        spec: Tuple of (attribute_name, dtype)
+            spec to be passed to Numba jitclass to compile the class.
+        """
+
+    @abstractmethod
+    def params_to_dict(self):
+        """Get the parameters to initialize an instance of the class.
+
+        Returns
+        -------
+        dict_of_params : dict
+            The parameters to instantiate an object of the class.
+        """
 
     @abstractmethod
     def initialize(self, X, Y):

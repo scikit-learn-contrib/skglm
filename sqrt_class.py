@@ -6,7 +6,8 @@ from skglm.experimental.sqrt_lasso import SqrtLasso
 
 
 n_samples, n_features = 100, 200
-rho = 0.15
+rho = 0.15  # this gives high enough residual norm
+# rho = 0.15  # solver gets stuck for this one
 
 X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
 
@@ -16,3 +17,6 @@ alpha = rho * alpha_max
 clf = SqrtLasso(alpha=alpha, verbose=2)
 
 clf.fit(X, y)
+
+print(clf.coef_)
+print(norm(y - clf.predict(X)))

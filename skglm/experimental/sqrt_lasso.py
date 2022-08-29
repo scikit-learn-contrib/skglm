@@ -11,7 +11,11 @@ from skglm.solvers.prox_newton import prox_newton
 
 
 class SqrtQuadratic(BaseDatafit):
-    """norm(y - Xw) / sqrt(len(y))."""
+    """Square root quadratic datafit.
+
+    The datafit reads::
+        ||y - Xw||_2 / sqrt(n_samples) 
+    """
 
     def __init__(self):
         pass
@@ -27,10 +31,24 @@ class SqrtQuadratic(BaseDatafit):
         return np.linalg.norm(y - Xw) / np.sqrt(len(y))
 
     def raw_grad(self, y, Xw):
+        """Compute gradient of datafit w.r.t ``Xw``.
+
+        Raises:
+        -------
+            Exception
+                if value of residuals is too small (less than ``1e-10``).
+        """
         minus_residual = Xw - y
-        return minus_residual / norm(minus_residual) / np.sqrt(len(y))
+        norm_residuals = norm(minus_residual)
+
+        if norm_residuals < 1e-10:
+            raise Exception(
+                f"Too small residuals will impact the convergence of the solver."
+            )
+        return minus_residual / norm_residuals / np.sqrt(len(y))
 
     def raw_hessian(self, y, Xw):
+        """Upper bound of the hessian w.r.t eigenvalues."""
         n_samples = len(y)
         fill_value = 1 / (np.sqrt(n_samples) * norm(y - Xw))
         return np.full(n_samples, fill_value)

@@ -6,7 +6,7 @@ from skglm.experimental.sqrt_lasso import SqrtLasso
 
 
 n_samples, n_features = 100, 200
-rho = 0.01
+rho = 0.15
 
 X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
 

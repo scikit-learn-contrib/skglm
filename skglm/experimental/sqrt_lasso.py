@@ -160,7 +160,10 @@ class SqrtLasso(LinearModel, RegressorMixin):
 
         for i in range(n_alphas):
             if self.verbose:
-                print(f"======== alpha {i+1} ========")
+                to_print = "##### Computing alpha %d/%d" % (i + 1, n_alphas)
+                print("#" * len(to_print))
+                print(to_print)
+                print("#" * len(to_print))
 
             l1_penalty.alpha = alphas[i]
             # no warm start for the first alpha
@@ -172,6 +175,7 @@ class SqrtLasso(LinearModel, RegressorMixin):
                     w_init=coef_init, max_iter=self.max_iter,
                     max_pn_iter=self.max_pn_iter,
                     tol=self.tol, verbose=self.verbose)
+                coefs[i] = coef
             except ValueError as val_exception:
                 # make sure to catch residual error
                 # it's implemented this way as Numba doesn't support custom Exception
@@ -181,13 +185,14 @@ class SqrtLasso(LinearModel, RegressorMixin):
                 # save coef despite not converging
                 # coef_init holds a ref to coef
                 coef = coef_init
-                residual = sqrt_quadratic.value(y, coef, X @ coef)
+                res_norm = norm(y - X @ coef)
                 warnings.warn(
-                    f"Small residuals will prevent the solver from converging.\n"
-                    f"Consider taking alphas greater than {alphas[i]:.4e}\n"
-                    f"norm of scaled residual: {residual:.4e}",
+                    f"Small residuals prevented the solver from converging "
+                    f"at alpha={alphas[i]:.2e} (residuals' norm: {res_norm:.4e}). "
+                    "Consider fitting with higher alpha.",
                     ConvergenceWarning
                 )
+                coefs[i] = coef
+                break
 
-            coefs[i] = coef
         return alphas, coefs

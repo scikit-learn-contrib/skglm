@@ -69,7 +69,7 @@ def multitask_bcd_solver_path(
     alphas : array, shape (n_alphas,)
         The alphas along the path where models are computed.
 
-    coefs : array, shape (n_features + 1, n_tasks, n_alphas)
+    coefs : array, shape (n_features + fit_intercept, n_tasks, n_alphas)
         Coefficients along the path.
 
     stop_crit : array, shape (n_alphas,)
@@ -221,7 +221,7 @@ def multitask_bcd_solver(
 
     if W.shape[0] != n_features + fit_intercept:
         raise ValueError(
-            "The size of weights should be n_features + 1, \
+            "The size of weights should be n_features + fit_intercept, \
                 expected %i, got %i" % (n_features + fit_intercept, W.shape[0]))
 
     is_sparse = sparse.issparse(X)

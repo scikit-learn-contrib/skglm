@@ -51,7 +51,7 @@ def group_bcd_solver(
 
     Returns
     -------
-    w : array, shape (n_features,)
+    w : array, shape (n_features + fit_intercept,)
         Solution that minimizes the problem defined by datafit and penalty.
 
     p_objs_out: array (max_iter,)
@@ -70,7 +70,7 @@ def group_bcd_solver(
     Xw = np.zeros(n_samples) if w_init is None else Xw_init
     if len(w) != n_features + fit_intercept:
         raise ValueError(
-            "The size of weights should be n_features + 1, \
+            "The size of weights should be n_features + fit_intercept, \
                 expected %i, got %i" % (n_features + fit_intercept, len(w)))
 
     datafit.initialize(X, y)

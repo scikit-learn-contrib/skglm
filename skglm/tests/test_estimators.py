@@ -137,18 +137,18 @@ def test_mtl_path():
 
 
 # Test if GeneralizedLinearEstimator returns the correct coefficients
-@pytest.mark.parametrize("Datafit, Penalty, is_classif, Estimator, pen_args", [
-    (Quadratic, L1, False, Lasso, [alpha]),
-    (Quadratic, WeightedL1, False, WeightedLasso,
+@pytest.mark.parametrize("Datafit, Penalty, Estimator, pen_args", [
+    (Quadratic, L1, Lasso, [alpha]),
+    (Quadratic, WeightedL1, WeightedLasso,
      [alpha, np.random.choice(3, n_features)]),
-    (Quadratic, L1_plus_L2, False, ElasticNet, [alpha, 0.3]),
-    (Quadratic, MCPenalty, False, MCPRegression, [alpha, 3]),
-    (QuadraticSVC, IndicatorBox, True, LinearSVC, [alpha]),
-    (Logistic, L1, True, SparseLogisticRegression, [alpha]),
+    (Quadratic, L1_plus_L2, ElasticNet, [alpha, 0.3]),
+    (Quadratic, MCPenalty, MCPRegression, [alpha, 3]),
+    (QuadraticSVC, IndicatorBox, LinearSVC, [alpha]),
+    (Logistic, L1, SparseLogisticRegression, [alpha]),
 ])
-def test_generic_estimator(Datafit, Penalty, is_classif, Estimator, pen_args):
+def test_generic_estimator(Datafit, Penalty, Estimator, pen_args):
     target = Y if Datafit == QuadraticMultiTask else y
-    clf = GeneralizedLinearEstimator(Datafit(), Penalty(*pen_args), is_classif,
+    clf = GeneralizedLinearEstimator(Datafit(), Penalty(*pen_args),
                                      tol=1e-10, fit_intercept=False).fit(X, target)
     clf_est = Estimator(*pen_args, tol=1e-10, fit_intercept=False).fit(X, target)
     np.testing.assert_allclose(clf_est.coef_, clf.coef_, rtol=1e-5)
@@ -174,7 +174,7 @@ def test_estimator_predict(Datafit, Penalty, Estimator_sk):
     }
     X_test = np.random.normal(0, 1, (n_samples, n_features))
     clf = GeneralizedLinearEstimator(
-        Datafit(), Penalty(1.), is_classif, fit_intercept=False, tol=tol).fit(X, y)
+        Datafit(), Penalty(1.), fit_intercept=False, tol=tol).fit(X, y)
     clf_sk = Estimator_sk(**estim_args[Estimator_sk]).fit(X, y)
     y_pred = clf.predict(X_test)
     y_pred_sk = clf_sk.predict(X_test)

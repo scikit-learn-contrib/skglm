@@ -276,19 +276,33 @@ if __name__ == "__main__":
     estimator_sk.tol = 1e-10
     estimator_ours.tol = 1e-10
 
-    estimator_sk.fit(X, y)
-    estimator_ours.fit(X, y)
+    # estimator_sk.fit(X, y)
+    # estimator_ours.fit(X, y)
+    X = X
+    y = y
 
-    estimator_sk.max_iter = 5000
-    estimator_ours.max_iter = 100
-    param_grid = {'alpha': np.geomspace(alpha_max, alpha_max * 0.01, 10)}
-    sk_clf = GridSearchCV(estimator_sk, param_grid).fit(X, y)
-    ours_clf = GridSearchCV(estimator_ours, param_grid).fit(X, y)
-    attr = "split0_test_score"
-    np.testing.assert_allclose(sk_clf.cv_results_[attr], ours_clf.cv_results_[attr],
-                               rtol=1e-3)
-    # only first value in array above differ.
+    from sklearn.model_selection import KFold
+    cv = KFold(n_splits=5, shuffle=True, random_state=3)
+    train, test = list(cv.split(X, y))[0]
+    X_train, y_train = X[train], y[train]
+    X_test, y_test = X[test], y[test]
+    estimator_sk.alpha = alpha_max
+    estimator_ours.alpha = alpha_max
+    estimator_sk.fit(X_train, y_train)
+    estimator_ours.fit(X_train, y_train)
 
-    np.testing.assert_allclose(sk_clf.best_score_, ours_clf.best_score_, rtol=1e-3)
-    np.testing.assert_allclose(sk_clf.best_params_["alpha"],
-                               ours_clf.best_params_["alpha"], rtol=1e-3)
+    np.testing.assert_array_equal(estimator_ours.intercept_, estimator_sk.intercept_)
+
+    # estimator_sk.max_iter = 5000
+    # estimator_ours.max_iter = 100
+    # param_grid = {'alpha': np.geomspace(alpha_max, alpha_max * 0.01, 10)}
+    # sk_clf = GridSearchCV(estimator_sk, param_grid, cv=cv).fit(X, y)
+    # ours_clf = GridSearchCV(estimator_ours, param_grid, cv=cv).fit(X, y)
+    # attr = "split0_test_score"
+    # np.testing.assert_allclose(sk_clf.cv_results_[attr], ours_clf.cv_results_[attr],
+    #                            rtol=1e-3)
+    # # only first value in array above differ.
+
+    # np.testing.assert_allclose(sk_clf.best_score_, ours_clf.best_score_, rtol=1e-3)
+    # np.testing.assert_allclose(sk_clf.best_params_["alpha"],
+    #                            ours_clf.best_params_["alpha"], rtol=1e-3)

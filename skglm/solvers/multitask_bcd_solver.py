@@ -221,8 +221,8 @@ def multitask_bcd_solver(
 
     if W.shape[0] != n_features + fit_intercept:
         raise ValueError(
-            "The size of weights should be n_features + fit_intercept, \
-                expected %i, got %i" % (n_features + fit_intercept, W.shape[0]))
+            "The size of init coefficients should be n_features + fit_intercept, "
+            "expected %i, got %i" % (n_features + fit_intercept, W.shape[0]))
 
     is_sparse = sparse.issparse(X)
     for t in range(max_iter):

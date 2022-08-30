@@ -1299,7 +1299,6 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
         self :
             The fitted estimator.
         """
-        # TODO check if we could just patch `bcd_solver_path` as we do in Lasso case.
         # Below is copied from sklearn, with path replaced by our path.
         # Need to validate separately here.
         # We can't pass multi_output=True because that would allow y to be csr.
@@ -1320,9 +1319,10 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
             raise ValueError("X and Y have inconsistent dimensions (%d != %d)"
                              % (n_samples, Y.shape[0]))
 
-        X, Y, X_offset, Y_offset, X_scale = _preprocess_data(
-            X, Y, self.fit_intercept, copy=False)
+        # X, Y, X_offset, Y_offset, X_scale = _preprocess_data(
+        #     X, Y, self.fit_intercept, copy=False)
 
+        # TODO handle and test warm start for MTL
         if not self.warm_start or not hasattr(self, "coef_"):
             self.coef_ = None
 
@@ -1332,9 +1332,12 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
             max_epochs=self.max_epochs, p0=self.p0, verbose=self.verbose,
             tol=self.tol)
 
-        self.coef_, self.dual_gap_ = coefs[..., 0], kkt[-1]
+        import ipdb
+        ipdb.set_trace()
+        self.coef_ = coefs[:, :X.shape[1] - self.fit_intercept, 0]
+        self.intercept_ = self.fit_intercept * coefs[:, -1, 0]
+        self.stopping_crit = kkt[-1]
         self.n_iter_ = len(kkt)
-        self._set_intercept(X_offset, Y_offset, X_scale)
 
         return self
 
@@ -1376,4 +1379,5 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
         penalty = compiled_clone(self.penalty)
 
         return multitask_bcd_solver_path(X, Y, datafit, penalty, alphas=alphas,
-                                         coef_init=coef_init, **params)
+                                         coef_init=coef_init,
+                                         fit_intercept=self.fit_intercept)

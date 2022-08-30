@@ -262,42 +262,42 @@ def test_warm_start(estimator_name):
 
 
 if __name__ == "__main__":
-    # fit_intercept = True
-    # X = X_sparse
-    # # X = X.toarray()
-    # estimator_sk = MultiTaskLasso_sklearn(
-    #     alpha, fit_intercept=fit_intercept, tol=1e-8)
-    # estimator_ours = MultiTaskLasso(
-    #     alpha, max_iter=10, fit_intercept=fit_intercept, tol=1e-8, verbose=0)
+    fit_intercept = True
+    X = X_sparse
+    X = X.toarray()
+    estimator_sk = MultiTaskLasso_sklearn(
+        alpha, fit_intercept=fit_intercept, tol=1e-8)
+    estimator_ours = MultiTaskLasso(
+        alpha, max_iter=10, fit_intercept=fit_intercept, tol=1e-8, verbose=0)
 
-    # estimator_sk.fit(X.toarray() if issparse(X) else X, Y)
-    # estimator_ours.fit(X, Y)
-    # coef_sk = estimator_sk.coef_
-    # coef_ours = estimator_ours.coef_
-    # np.testing.assert_allclose(coef_ours, coef_sk, atol=1e-6)
+    estimator_sk.fit(X.toarray() if issparse(X) else X, Y)
+    estimator_ours.fit(X, Y)
+    coef_sk = estimator_sk.coef_
+    coef_ours = estimator_ours.coef_
+    np.testing.assert_allclose(coef_ours, coef_sk, atol=1e-6)
 
-    estimator_name = "Lasso"
-    estimator_sk = clone(dict_estimators_sk[estimator_name])
-    estimator_ours = clone(dict_estimators_ours[estimator_name])
+    # estimator_name = "Lasso"
+    # estimator_sk = clone(dict_estimators_sk[estimator_name])
+    # estimator_ours = clone(dict_estimators_ours[estimator_name])
 
-    # estimator_sk.fit_intercept=False
-    # estimator_ours.fit_intercept=False
-    estimator_sk.tol = 1e-10
-    estimator_ours.tol = 1e-10
+    # # estimator_sk.fit_intercept=False
+    # # estimator_ours.fit_intercept=False
+    # estimator_sk.tol = 1e-10
+    # estimator_ours.tol = 1e-10
 
-    estimator_sk.fit(X, y)
-    estimator_ours.fit(X, y)
+    # estimator_sk.fit(X, y)
+    # estimator_ours.fit(X, y)
 
-    estimator_sk.max_iter = 5000
-    estimator_ours.max_iter = 100
-    param_grid = {'alpha': np.geomspace(alpha_max, alpha_max * 0.01, 10)}
-    sk_clf = GridSearchCV(estimator_sk, param_grid).fit(X, y)
-    ours_clf = GridSearchCV(estimator_ours, param_grid).fit(X, y)
-    attr = "split0_test_score"
-    np.testing.assert_allclose(sk_clf.cv_results_[attr], ours_clf.cv_results_[attr],
-                               rtol=1e-3)
-    # only first value in array above differ.
+    # estimator_sk.max_iter = 5000
+    # estimator_ours.max_iter = 100
+    # param_grid = {'alpha': np.geomspace(alpha_max, alpha_max * 0.01, 10)}
+    # sk_clf = GridSearchCV(estimator_sk, param_grid).fit(X, y)
+    # ours_clf = GridSearchCV(estimator_ours, param_grid).fit(X, y)
+    # attr = "split0_test_score"
+    # np.testing.assert_allclose(sk_clf.cv_results_[attr], ours_clf.cv_results_[attr],
+    #                            rtol=1e-3)
+    # # only first value in array above differ.
 
-    np.testing.assert_allclose(sk_clf.best_score_, ours_clf.best_score_, rtol=1e-3)
-    np.testing.assert_allclose(sk_clf.best_params_["alpha"],
-                               ours_clf.best_params_["alpha"], rtol=1e-3)
+    # np.testing.assert_allclose(sk_clf.best_score_, ours_clf.best_score_, rtol=1e-3)
+    # np.testing.assert_allclose(sk_clf.best_params_["alpha"],
+    #                            ours_clf.best_params_["alpha"], rtol=1e-3)

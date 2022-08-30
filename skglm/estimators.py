@@ -239,7 +239,7 @@ class GeneralizedLinearEstimator(LinearModel):
             String representation.
         """
         return (
-            'GeneralizedLinearEstimator(datafit=%s, penalty=%s, alpha=%s, classif=%s)'
+            'GeneralizedLinearEstimator(datafit=%s, penalty=%s, alpha=%s)'
             % (self.datafit.__class__.__name__, self.penalty.__class__.__name__,
                self.penalty.alpha))
 

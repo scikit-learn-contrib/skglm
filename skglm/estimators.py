@@ -148,10 +148,6 @@ def _glm_fit(X, y, model, datafit, penalty):
     model.coef_, model.stop_crit_ = coefs[:n_features], kkt
     if y.ndim == 1:
         model.intercept_ = coefs[-1] if model.fit_intercept else 0.
-        # if model.fit_intercept:
-        #     model.intercept_ = coefs[-1]
-        # else:
-        #     model.intercept_ = 0.
     else:
         model.intercept_ = coefs[-1, :] if model.fit_intercept else np.zeros(
             y.shape[1])

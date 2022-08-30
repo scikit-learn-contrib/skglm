@@ -221,7 +221,7 @@ def cd_solver(
     obj_out = []
     all_feats = np.arange(n_features)
     stop_crit = np.inf  # initialize for case n_iter=0
-    w_acc, Xw_acc = np.zeros(n_features+fit_intercept), np.zeros(n_samples)
+    w_acc, Xw_acc = np.zeros(n_features + fit_intercept), np.zeros(n_samples)
 
     is_sparse = sparse.issparse(X)
 

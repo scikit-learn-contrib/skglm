@@ -16,7 +16,7 @@ n_samples = 20
 n_features = 10
 n_tasks = 10
 X, Y, _ = make_correlated_data(
-    n_samples=n_samples, n_features=n_features, n_tasks=n_tasks, density=0.1,
+    n_samples=n_samples, n_features=n_features, n_tasks=n_tasks, density=0.5,
     random_state=0)
 y = Y[:, 0]
 
@@ -43,21 +43,31 @@ block_penalties = [
 
 @pytest.mark.parametrize('penalty', penalties)
 def test_subdiff_diff(penalty):
+    tol = 1e-10
+    # tol=1e-14 is too low when coefs are of order 1. square roots are computed in
+    # some penalties and precision is lost
     est = GeneralizedLinearEstimator(
         datafit=Quadratic(),
         penalty=penalty,
-        tol=1e-14,
+        tol=tol,
+        verbose=2,
+        max_iter=1,
     ).fit(X, y)
     # assert the stopping criterion is satisfied
-    assert_array_less(est.stop_crit_, est.tol)
+    assert_array_less(est.stop_crit_, tol)
 
 
 @pytest.mark.parametrize('block_penalty', block_penalties)
 def test_subdiff_diff_block(block_penalty):
+    tol = 1e-10  # seee test_subdiff_dist
     est = GeneralizedLinearEstimator(
         datafit=QuadraticMultiTask(),
         penalty=block_penalty,
-        tol=1e-14,
+        tol=tol,
     ).fit(X, Y)
     # assert the stopping criterion is satisfied
     assert_array_less(est.stop_crit_, est.tol)
+
+
+if __name__ == "__main__":
+    pass

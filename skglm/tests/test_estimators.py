@@ -194,8 +194,8 @@ def test_generic_get_params():
             else:
                 assert v == v_est
 
-    reg = GeneralizedLinearEstimator(Quadratic(), L1(4.), is_classif=False)
-    clf = GeneralizedLinearEstimator(Logistic(), MCPenalty(2., 3.), is_classif=True)
+    reg = GeneralizedLinearEstimator(Quadratic(), L1(4.))
+    clf = GeneralizedLinearEstimator(Logistic(), MCPenalty(2., 3.))
 
     # Xty and lipschitz attributes are defined for jit compiled classes
     # hence they are not included in the test

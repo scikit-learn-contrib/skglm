@@ -285,7 +285,7 @@ class GeneralizedLinearEstimator(LinearModel):
         y_pred : array, shape (n_samples)
             Contain the target values for each sample.
         """
-        if isinstance(self.datafit, [Logistic, QuadraticSVC]):
+        if isinstance(self.datafit, (Logistic, QuadraticSVC)):
             scores = self._decision_function(X).ravel()
             if len(scores.shape) == 1:
                 indices = (scores > 0).astype(int)

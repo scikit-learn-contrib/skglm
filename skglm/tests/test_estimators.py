@@ -262,9 +262,3 @@ def test_warm_start(estimator_name):
     np.testing.assert_array_less(0, model.n_iter_)
     model.fit(X, y)  # already fitted + warm_start so 0 iter done
     np.testing.assert_equal(0, model.n_iter_)
-
-
-if __name__ == '__main__':
-    # test_estimator_mtl(X, True)
-    # test_estimator_mtl(X, False)
-    test_generic_estimator(QuadraticSVC, IndicatorBox, True, LinearSVC, [alpha], True)

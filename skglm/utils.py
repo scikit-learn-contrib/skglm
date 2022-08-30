@@ -393,7 +393,7 @@ def check_group_compatible(obj):
             )
 
 
-def alpha_max_group_lasso(X, y, n_groups, grp_indices, grp_ptr, weights):
+def _alpha_max_group_lasso(X, y, n_groups, grp_indices, grp_ptr, weights):
     n_samples = len(y)
     alpha_max = 0.
     for g in range(n_groups):

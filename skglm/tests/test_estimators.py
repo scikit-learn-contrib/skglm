@@ -279,18 +279,25 @@ if __name__ == "__main__":
     estimator_name = "Lasso"
     estimator_sk = clone(dict_estimators_sk[estimator_name])
     estimator_ours = clone(dict_estimators_ours[estimator_name])
+
+    # estimator_sk.fit_intercept=False
+    # estimator_ours.fit_intercept=False
     estimator_sk.tol = 1e-10
     estimator_ours.tol = 1e-10
+
+    estimator_sk.fit(X, y)
+    estimator_ours.fit(X, y)
+
     estimator_sk.max_iter = 5000
     estimator_ours.max_iter = 100
     param_grid = {'alpha': np.geomspace(alpha_max, alpha_max * 0.01, 10)}
     sk_clf = GridSearchCV(estimator_sk, param_grid).fit(X, y)
     ours_clf = GridSearchCV(estimator_ours, param_grid).fit(X, y)
-    res_attr = ["split%i_test_score" % i for i in range(5)] + \
-               ["mean_test_score", "std_test_score", "rank_test_score"]
-    for attr in res_attr:
-        np.testing.assert_allclose(sk_clf.cv_results_[attr], ours_clf.cv_results_[attr],
-                                   rtol=1e-3)
+    attr = "split0_test_score"
+    np.testing.assert_allclose(sk_clf.cv_results_[attr], ours_clf.cv_results_[attr],
+                               rtol=1e-3)
+    # only first value in array above differ.
+
     np.testing.assert_allclose(sk_clf.best_score_, ours_clf.best_score_, rtol=1e-3)
     np.testing.assert_allclose(sk_clf.best_params_["alpha"],
                                ours_clf.best_params_["alpha"], rtol=1e-3)

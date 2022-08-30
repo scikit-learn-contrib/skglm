@@ -237,6 +237,9 @@ def cd_solver(
         else:
             grad = construct_grad(X, y, w[:n_features], Xw, datafit, all_feats)
 
+        # The intercept is not taken into account in the optimality conditions since
+        # the derivative w.r.t. to the intercept may be very large. It is not likely
+        # to change significantly the optimality conditions.
         if ws_strategy == "subdiff":
             opt = penalty.subdiff_distance(w[:n_features], grad, all_feats)
         elif ws_strategy == "fixpoint":

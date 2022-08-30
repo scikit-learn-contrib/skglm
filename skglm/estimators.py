@@ -9,7 +9,7 @@ from sklearn.utils.validation import check_is_fitted
 from sklearn.utils import check_array, check_consistent_length
 from sklearn.linear_model import MultiTaskLasso as MultiTaskLasso_sklearn
 from sklearn.linear_model._base import (
-    _preprocess_data, LinearModel, RegressorMixin,
+    LinearModel, RegressorMixin,
     LinearClassifierMixin, SparseCoefMixin, BaseEstimator
 )
 from sklearn.utils.extmath import softmax

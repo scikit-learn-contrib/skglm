@@ -9,7 +9,7 @@ from skglm.datafits.group import QuadraticGroup
 from skglm.solvers.group_bcd_solver import group_bcd_solver
 
 from skglm.utils import (
-    alpha_max_group_lasso, grp_converter, make_correlated_data, AndersonAcceleration)
+    _alpha_max_group_lasso, grp_converter, make_correlated_data, AndersonAcceleration)
 from skglm.utils import compiled_clone
 from celer import GroupLasso, Lasso
 
@@ -107,7 +107,7 @@ def test_vs_celer_grouplasso(n_groups, n_features, shuffle):
     grp_indices, grp_ptr, groups = _generate_random_grp(n_groups, n_features, shuffle)
     weights = abs(rnd.randn(n_groups))
 
-    alpha_max = alpha_max_group_lasso(X, y, n_groups, grp_indices, grp_ptr, weights)
+    alpha_max = _alpha_max_group_lasso(X, y, n_groups, grp_indices, grp_ptr, weights)
     alpha = alpha_max / 10.
 
     quad_group = QuadraticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)

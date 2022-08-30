@@ -50,8 +50,6 @@ def test_subdiff_diff(penalty):
         datafit=Quadratic(),
         penalty=penalty,
         tol=tol,
-        verbose=2,
-        max_iter=1,
     ).fit(X, y)
     # assert the stopping criterion is satisfied
     assert_array_less(est.stop_crit_, tol)
@@ -59,7 +57,7 @@ def test_subdiff_diff(penalty):
 
 @pytest.mark.parametrize('block_penalty', block_penalties)
 def test_subdiff_diff_block(block_penalty):
-    tol = 1e-10  # seee test_subdiff_dist
+    tol = 1e-10  # see test_subdiff_dist
     est = GeneralizedLinearEstimator(
         datafit=QuadraticMultiTask(),
         penalty=block_penalty,

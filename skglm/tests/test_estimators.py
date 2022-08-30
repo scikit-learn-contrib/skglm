@@ -120,14 +120,14 @@ def test_estimator(estimator_name, X, fit_intercept):
         np.testing.assert_array_less(1e-4, estimator_ours.intercept_)
 
 
-# Test if skglm multitask solver returns the coefficients
 @pytest.mark.parametrize('X, fit_intercept', product([X, X_sparse], [True, False]))
-def test_estimator_mtl(X, fit_intercept):
+def test_mtl_vs_sklearn(X, fit_intercept):
     estimator_sk = MultiTaskLasso_sklearn(
         alpha, fit_intercept=fit_intercept, tol=1e-8)
     estimator_ours = MultiTaskLasso(
-        alpha, max_iter=10, fit_intercept=fit_intercept, tol=1e-8)
+        alpha, fit_intercept=fit_intercept, tol=1e-8)
 
+    # sklearn does not support sparse X:
     estimator_sk.fit(X.toarray() if issparse(X) else X, Y)
     estimator_ours.fit(X, Y)
     coef_sk = estimator_sk.coef_
@@ -140,7 +140,7 @@ def test_estimator_mtl(X, fit_intercept):
 # TODO also add a test for the sparse case?
 def test_mtl_path():
     fit_intercept = False  # sklearn cannot fit an intercept in path. It is done
-    # only in thiur fit method.
+    # only in their fit method.
     alphas = np.geomspace(alpha_max, alpha_max * 0.01, 10)
     coef_sk = MultiTaskLasso_sklearn(
         fit_intercept=fit_intercept).path(
@@ -267,38 +267,28 @@ def test_warm_start(estimator_name):
 
 
 if __name__ == "__main__":
-    fit_intercept = False
-    alphas = np.geomspace(alpha_max, alpha_max * 0.01, 10)
-    coef_sk = MultiTaskLasso_sklearn(
-        fit_intercept=fit_intercept).path(
-            X, Y, l1_ratio=1, tol=1e-14, max_iter=5_000, alphas=alphas
-    )[1][:, :X.shape[1]]
-    coef_ours = MultiTaskLasso(fit_intercept=fit_intercept, tol=1e-14).path(
-        X, Y, alphas, max_iter=10)[1][:, :X.shape[1]]
-    np.testing.assert_allclose(coef_ours, coef_sk, rtol=1e-5)
+    estimator_name = "Lasso"
+    estimator_sk = clone(dict_estimators_sk[estimator_name])
+    estimator_ours = clone(dict_estimators_ours[estimator_name])
 
-    # estimator_name = "Lasso"
-    # estimator_sk = clone(dict_estimators_sk[estimator_name])
-    # estimator_ours = clone(dict_estimators_ours[estimator_name])
+    # estimator_sk.fit_intercept=False
+    # estimator_ours.fit_intercept=False
+    estimator_sk.tol = 1e-10
+    estimator_ours.tol = 1e-10
 
-    # # estimator_sk.fit_intercept=False
-    # # estimator_ours.fit_intercept=False
-    # estimator_sk.tol = 1e-10
-    # estimator_ours.tol = 1e-10
+    estimator_sk.fit(X, y)
+    estimator_ours.fit(X, y)
 
-    # estimator_sk.fit(X, y)
-    # estimator_ours.fit(X, y)
+    estimator_sk.max_iter = 5000
+    estimator_ours.max_iter = 100
+    param_grid = {'alpha': np.geomspace(alpha_max, alpha_max * 0.01, 10)}
+    sk_clf = GridSearchCV(estimator_sk, param_grid).fit(X, y)
+    ours_clf = GridSearchCV(estimator_ours, param_grid).fit(X, y)
+    attr = "split0_test_score"
+    np.testing.assert_allclose(sk_clf.cv_results_[attr], ours_clf.cv_results_[attr],
+                               rtol=1e-3)
+    # only first value in array above differ.
 
-    # estimator_sk.max_iter = 5000
-    # estimator_ours.max_iter = 100
-    # param_grid = {'alpha': np.geomspace(alpha_max, alpha_max * 0.01, 10)}
-    # sk_clf = GridSearchCV(estimator_sk, param_grid).fit(X, y)
-    # ours_clf = GridSearchCV(estimator_ours, param_grid).fit(X, y)
-    # attr = "split0_test_score"
-    # np.testing.assert_allclose(sk_clf.cv_results_[attr], ours_clf.cv_results_[attr],
-    #                            rtol=1e-3)
-    # # only first value in array above differ.
-
-    # np.testing.assert_allclose(sk_clf.best_score_, ours_clf.best_score_, rtol=1e-3)
-    # np.testing.assert_allclose(sk_clf.best_params_["alpha"],
-    #                            ours_clf.best_params_["alpha"], rtol=1e-3)
+    np.testing.assert_allclose(sk_clf.best_score_, ours_clf.best_score_, rtol=1e-3)
+    np.testing.assert_allclose(sk_clf.best_params_["alpha"],
+                               ours_clf.best_params_["alpha"], rtol=1e-3)

@@ -36,7 +36,7 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None, fit_intercept=False,
     fit_intercept : bool
         Whether or not to fit an intercept.
 
-    coef_init : ndarray, shape (n_features + 1,) | None, optional, (default=None)
+    coef_init : ndarray, shape (n_features + fit_intercept,) | None, optional 
         Initial value of coefficients. If None, np.zeros(n_features) is used.
 
     max_iter : int, optional

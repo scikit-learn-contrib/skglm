@@ -221,7 +221,7 @@ def cd_solver(
     obj_out = []
     all_feats = np.arange(n_features)
     stop_crit = np.inf  # initialize for case n_iter=0
-    w_acc, Xw_acc = np.zeros(n_features), np.zeros(n_samples)
+    w_acc, Xw_acc = np.zeros(n_features+fit_intercept), np.zeros(n_samples)
 
     is_sparse = sparse.issparse(X)
 
@@ -308,7 +308,8 @@ def cd_solver(
 
                 stop_crit_in = np.max(opt_ws)
                 if max(verbose - 1, 0):
-                    p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+                    p_obj = datafit.value(y, w[:n_features], Xw) + \
+                        penalty.value(w[:n_features])
                     print(f"Epoch {epoch + 1}, objective {p_obj:.10f}, "
                           f"stopping crit {stop_crit_in:.2e}")
                 if ws_size == n_features:
@@ -319,7 +320,7 @@ def cd_solver(
                         if max(verbose - 1, 0):
                             print("Early exit")
                         break
-        p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+        p_obj = datafit.value(y, w[:n_features], Xw) + penalty.value(w[:n_features])
         obj_out.append(p_obj)
     return w, np.array(obj_out), stop_crit
 

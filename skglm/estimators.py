@@ -144,15 +144,10 @@ def _glm_fit(X, y, model, datafit, penalty):
         X_, y, datafit_jit, penalty_jit, w, Xw, max_iter=model.max_iter,
         max_epochs=model.max_epochs, p0=model.p0,
         tol=model.tol, fit_intercept=model.fit_intercept,
-        # ws_strategy=model.ws_strategy,
         verbose=model.verbose)
     model.coef_, model.stop_crit_ = coefs[:n_features], kkt
     if y.ndim == 1:
         model.intercept_ = coefs[-1] if model.fit_intercept else 0.
-        # if model.fit_intercept:
-        #     model.intercept_ = coefs[-1]
-        # else:
-        #     model.intercept_ = 0.
     else:
         model.intercept_ = coefs[-1, :] if model.fit_intercept else np.zeros(
             y.shape[1])

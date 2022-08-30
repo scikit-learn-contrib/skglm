@@ -105,8 +105,8 @@ def test_estimator(estimator_name, X, fit_intercept):
     estimator_ours = dict_estimators_ours[estimator_name]
     # TODO This seems a bit unusal, maybe to discuss
     if fit_intercept:
-        estimator_sk.fit_intercpet = True
-        estimator_ours.fit_intercpet = True
+        estimator_sk.fit_intercept = True
+        estimator_ours.fit_intercept = True
     estimator_sk.fit(X, y)
     estimator_ours.fit(X, y)
     coef_sk = estimator_sk.coef_
@@ -114,8 +114,8 @@ def test_estimator(estimator_name, X, fit_intercept):
     # assert that something was fitted:
     if fit_intercept:
         # add test intercept from fit_intercept
-        estimator_sk.fit_intercpet = False
-        estimator_ours.fit_intercpet = False
+        estimator_sk.fit_intercept = False
+        estimator_ours.fit_intercept = False
 
     np.testing.assert_array_less(1e-5, norm(coef_ours))
     np.testing.assert_allclose(coef_ours, coef_sk, atol=1e-6)
@@ -263,6 +263,4 @@ def test_warm_start(estimator_name):
     np.testing.assert_equal(0, model.n_iter_)
 
 
-if __name__ == '__main__':
-    test_estimator_mtl(X_sparse, False)
-    pass
+<< << << < HEAD

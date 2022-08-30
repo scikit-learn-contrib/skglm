@@ -36,7 +36,7 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None, fit_intercept=False,
     fit_intercept : bool
         Whether or not to fit an intercept.
 
-    coef_init : ndarray, shape (n_features + 1,) | None, optional, (default=None)
+    coef_init : ndarray, shape (n_features + fit_intercept,) | None, optional 
         Initial value of coefficients. If None, np.zeros(n_features) is used.
 
     max_iter : int, optional
@@ -66,7 +66,7 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None, fit_intercept=False,
     alphas : array, shape (n_alphas,)
         The alphas along the path where models are computed.
 
-    coefs : array, shape (n_features + 1, n_alphas)
+    coefs : array, shape (n_features + fit_intercept, n_alphas)
         Coefficients along the path.
 
     stop_crit : array, shape (n_alphas,)
@@ -221,13 +221,13 @@ def cd_solver(
     obj_out = []
     all_feats = np.arange(n_features)
     stop_crit = np.inf  # initialize for case n_iter=0
-    w_acc, Xw_acc = np.zeros(n_features+fit_intercept), np.zeros(n_samples)
+    w_acc, Xw_acc = np.zeros(n_features + fit_intercept), np.zeros(n_samples)
 
     is_sparse = sparse.issparse(X)
 
     if len(w) != n_features + fit_intercept:
         raise ValueError(
-            "The size of weights should be n_features + fit_intercept, \
+            "The size of coefficients should be n_features + fit_intercept, \
                 expected %i, got %i" % (n_features + fit_intercept, len(w)))
 
     for t in range(max_iter):
@@ -237,6 +237,9 @@ def cd_solver(
         else:
             grad = construct_grad(X, y, w[:n_features], Xw, datafit, all_feats)
 
+        # The intercept is not taken into account in the optimality conditions since
+        # the derivative w.r.t. to the intercept may be very large. It is not likely
+        # to change significantly the optimality conditions.
         if ws_strategy == "subdiff":
             opt = penalty.subdiff_distance(w[:n_features], grad, all_feats)
         elif ws_strategy == "fixpoint":

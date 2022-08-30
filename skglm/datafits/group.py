@@ -70,4 +70,4 @@ class QuadraticGroup(BaseDatafit):
         return X[:, j] @ (Xw - y) / len(y)
 
     def intercept_update_step(self, y, Xw):
-        return np.sum(Xw - y) / len(y)
+        return np.mean(Xw - y)

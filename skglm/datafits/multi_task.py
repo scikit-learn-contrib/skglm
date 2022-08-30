@@ -93,4 +93,4 @@ class QuadraticMultiTask(BaseMultitaskDatafit):
         return grad
 
     def intercept_update_step(self, Y, XW):
-        return np.sum(XW - Y, axis=0) / Y.shape[0]
+        return np.mean(XW - Y, axis=0)

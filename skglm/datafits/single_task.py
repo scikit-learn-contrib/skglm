@@ -173,7 +173,7 @@ class Logistic(BaseDatafit):
         return grad / len(Xw)
 
     def intercept_update_step(self, y, Xw):
-        return np.mean((- y * sigmoid(- y * Xw))) / 4
+        return np.mean(- y * sigmoid(- y * Xw)) / 4
 
 
 class QuadraticSVC(BaseDatafit):

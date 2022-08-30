@@ -279,16 +279,17 @@ def cd_solver(
                 intercept_old = w[-1]
                 w[-1] -= datafit.intercept_update_step(y, Xw)
                 Xw += (w[-1] - intercept_old)
+
             # 3) do Anderson acceleration on smaller problem
             # TODO optimize computation using ws
             w_acc[:], Xw_acc[:], is_extrapolated = accelerator.extrapolate(w, Xw)
 
             if is_extrapolated:  # avoid computing p_obj for un-extrapolated w, Xw
                 # TODO : manage penalty.value(w, ws) for weighted Lasso
-                p_obj = datafit.value(y, w[:n_features], Xw) + \
-                    penalty.value(w[:n_features])
-                p_obj_acc = datafit.value(
-                    y, w_acc[:n_features], Xw_acc) + penalty.value(w_acc[:n_features])
+                p_obj = (datafit.value(y, w[:n_features], Xw) +
+                         penalty.value(w[:n_features]))
+                p_obj_acc = (datafit.value(y, w_acc[:n_features], Xw_acc) +
+                             penalty.value(w_acc[:n_features]))
 
                 if p_obj_acc < p_obj:
                     w[:], Xw[:] = w_acc, Xw_acc
@@ -308,8 +309,8 @@ def cd_solver(
 
                 stop_crit_in = np.max(opt_ws)
                 if max(verbose - 1, 0):
-                    p_obj = datafit.value(y, w[:n_features], Xw) + \
-                        penalty.value(w[:n_features])
+                    p_obj = (datafit.value(y, w[:n_features], Xw) +
+                             penalty.value(w[:n_features]))
                     print(f"Epoch {epoch + 1}, objective {p_obj:.10f}, "
                           f"stopping crit {stop_crit_in:.2e}")
                 if ws_size == n_features:

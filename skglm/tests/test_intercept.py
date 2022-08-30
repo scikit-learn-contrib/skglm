@@ -55,7 +55,7 @@ def test_intercept(name_estimator):
     coefs_ours, _, _ = cd_solver(
         X, y, datafit, penalty,
         w, Xw, fit_intercept=True, max_iter=50,
-        max_epochs=50_000, tol=tol, verbose=0, use_acc=True)
+        max_epochs=50_000, tol=tol, verbose=0)
 
     intercept_ours = np.array([coefs_ours[-1]])
     coefs_ours = coefs_ours[:X.shape[1]]

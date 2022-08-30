@@ -262,25 +262,11 @@ def test_warm_start(estimator_name):
 
 
 if __name__ == "__main__":
-    fit_intercept = True
-    for estimator_name in dict_estimators_ours.keys():
-        print(estimator_name)
-        if estimator_name == "GeneralizedLinearEstimator":
-            pytest.skip()
-        estimator_sk = clone(dict_estimators_sk[estimator_name])
-        estimator_ours = clone(dict_estimators_ours[estimator_name])
-
-        estimator_sk.set_params(fit_intercept=fit_intercept)
-        estimator_ours.set_params(fit_intercept=fit_intercept)
-
-        estimator_sk.fit(X, y)
-        estimator_ours.fit(X, y)
-        coef_sk = estimator_sk.coef_
-        coef_ours = estimator_ours.coef_
-
-        np.testing.assert_array_less(1e-5, norm(coef_ours))
-        np.testing.assert_allclose(coef_ours, coef_sk, atol=1e-6)
-        np.testing.assert_allclose(
-            estimator_sk.intercept_, estimator_ours.intercept_, rtol=1e-4)
-        if fit_intercept:
-            np.testing.assert_array_less(1e-4, estimator_ours.intercept_)
+    estimator_name = "LogisticRegression"
+    model = clone(dict_estimators_ours[estimator_name])
+    model.verbose = 2
+    model.warm_start = True
+    model.fit(X, y)
+    np.testing.assert_array_less(0, model.n_iter_)
+    model.fit(X, y)  # already fitted + warm_start so 0 iter done
+    np.testing.assert_equal(0, model.n_iter_)

@@ -114,7 +114,9 @@ def _glm_fit(X, y, model, datafit, penalty):
             w = model.coef_[0, :].copy()
         else:
             w = model.coef_.copy()
-        Xw = X_ @ w
+        if model.fit_intercept:
+            w = np.hstack([w, model.intercept_])
+        Xw = X_ @ w[:w.shape[0] - model.fit_intercept] + model.intercept_
     else:
         # TODO this should be solver.get_init() do delegate the work
         if y.ndim == 1:
@@ -128,8 +130,8 @@ def _glm_fit(X, y, model, datafit, penalty):
     if isinstance(penalty, WeightedL1):
         if len(penalty.weights) != n_features:
             raise ValueError(
-                "The size of the WeightedL1 penalty weights should be n_features, \
-                expected %i, got %i" % (X_.shape[1], len(penalty.weights)))
+                "The size of the WeightedL1 penalty weights should be n_features, "
+                "expected %i, got %i." % (X_.shape[1], len(penalty.weights)))
 
     if is_classif:
         solver = cd_solver  # TODO to be be replaced by an instance of BaseSolver

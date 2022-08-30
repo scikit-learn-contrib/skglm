@@ -38,7 +38,7 @@ block_penalties = [
     L2_1(alpha=alpha), L2_05(alpha=alpha),
     BlockMCPenalty(alpha=alpha, gamma=4),
     BlockSCAD(alpha=alpha, gamma=4)
-    ]
+]
 
 
 @pytest.mark.parametrize('penalty', penalties)

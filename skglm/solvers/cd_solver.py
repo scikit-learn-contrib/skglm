@@ -66,7 +66,7 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None, fit_intercept=False,
     alphas : array, shape (n_alphas,)
         The alphas along the path where models are computed.
 
-    coefs : array, shape (n_features + 1, n_alphas)
+    coefs : array, shape (n_features + fit_intercept, n_alphas)
         Coefficients along the path.
 
     stop_crit : array, shape (n_alphas,)

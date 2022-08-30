@@ -230,8 +230,8 @@ def test_generic_get_params():
     "estimator_name",
     ["Lasso", "wLasso", "ElasticNet", "MCP"])
 def test_grid_search(estimator_name):
-    estimator_sk = dict_estimators_sk[estimator_name]
-    estimator_ours = dict_estimators_ours[estimator_name]
+    estimator_sk = clone(dict_estimators_sk[estimator_name])
+    estimator_ours = clone(dict_estimators_ours[estimator_name])
     estimator_sk.tol = 1e-10
     estimator_ours.tol = 1e-10
     estimator_sk.max_iter = 5000
@@ -262,11 +262,35 @@ def test_warm_start(estimator_name):
 
 
 if __name__ == "__main__":
-    estimator_name = "LogisticRegression"
-    model = clone(dict_estimators_ours[estimator_name])
-    model.verbose = 2
-    model.warm_start = True
-    model.fit(X, y)
-    np.testing.assert_array_less(0, model.n_iter_)
-    model.fit(X, y)  # already fitted + warm_start so 0 iter done
-    np.testing.assert_equal(0, model.n_iter_)
+    # fit_intercept = True
+    # X = X_sparse
+    # # X = X.toarray()
+    # estimator_sk = MultiTaskLasso_sklearn(
+    #     alpha, fit_intercept=fit_intercept, tol=1e-8)
+    # estimator_ours = MultiTaskLasso(
+    #     alpha, max_iter=10, fit_intercept=fit_intercept, tol=1e-8, verbose=0)
+
+    # estimator_sk.fit(X.toarray() if issparse(X) else X, Y)
+    # estimator_ours.fit(X, Y)
+    # coef_sk = estimator_sk.coef_
+    # coef_ours = estimator_ours.coef_
+    # np.testing.assert_allclose(coef_ours, coef_sk, atol=1e-6)
+
+    estimator_name = "Lasso"
+    estimator_sk = clone(dict_estimators_sk[estimator_name])
+    estimator_ours = clone(dict_estimators_ours[estimator_name])
+    estimator_sk.tol = 1e-10
+    estimator_ours.tol = 1e-10
+    estimator_sk.max_iter = 5000
+    estimator_ours.max_iter = 100
+    param_grid = {'alpha': np.geomspace(alpha_max, alpha_max * 0.01, 10)}
+    sk_clf = GridSearchCV(estimator_sk, param_grid).fit(X, y)
+    ours_clf = GridSearchCV(estimator_ours, param_grid).fit(X, y)
+    res_attr = ["split%i_test_score" % i for i in range(5)] + \
+               ["mean_test_score", "std_test_score", "rank_test_score"]
+    for attr in res_attr:
+        np.testing.assert_allclose(sk_clf.cv_results_[attr], ours_clf.cv_results_[attr],
+                                   rtol=1e-3)
+    np.testing.assert_allclose(sk_clf.best_score_, ours_clf.best_score_, rtol=1e-3)
+    np.testing.assert_allclose(sk_clf.best_params_["alpha"],
+                               ours_clf.best_params_["alpha"], rtol=1e-3)

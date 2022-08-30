@@ -1379,4 +1379,4 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
 
         return multitask_bcd_solver_path(X, Y, datafit, penalty, alphas=alphas,
                                          coef_init=coef_init,
-                                         fit_intercept=self.fit_intercept)
+                                         fit_intercept=self.fit_intercept, tol=self.tol)

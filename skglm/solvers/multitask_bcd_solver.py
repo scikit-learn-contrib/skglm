@@ -242,9 +242,10 @@ def multitask_bcd_solver(
         if stop_crit <= tol:
             break
         # 1) select features : all unpenalized, + 2 * (nnz and penalized)
-        ws_size = max(p0 + n_unpen,
-                      min(2 * (norm(W, axis=1) != 0).sum() - n_unpen,
-                          n_features))
+        # TODO fix p0 takes the intercept into account
+        ws_size = min(n_features,
+                      max(2 * (norm(W, axis=1) != 0).sum() - n_unpen,
+                          p0 + n_unpen))
         opt[unpen] = np.inf  # always include unpenalized features
         opt[norm(W[:n_features], axis=1) != 0] = np.inf  # TODO check
         ws = np.argpartition(opt, -ws_size)[-ws_size:]

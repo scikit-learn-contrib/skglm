@@ -138,14 +138,16 @@ def test_estimator_mtl(X, fit_intercept):
 
 
 # TODO also add a test for the sparse case?
-@pytest.mark.parametrize('fit_intercept', [True, False])
-def test_mtl_path(fit_intercept):
+def test_mtl_path():
+    fit_intercept = False  # sklearn cannot fit an intercept in path. It is done
+    # only in thiur fit method.
     alphas = np.geomspace(alpha_max, alpha_max * 0.01, 10)
-    alpha_sk, coef_sk, _ = MultiTaskLasso_sklearn(
-        alpha, fit_intercept=fit_intercept).path(
-            X, Y, l1_ratio=1, tol=1e-10, max_iter=5_000, alphas=alphas)
-    coef_ours = MultiTaskLasso(alpha_max, fit_intercept=fit_intercept).path(
-        X, Y, alpha_sk, max_iter=10, tol=1e-10)[1]
+    coef_sk = MultiTaskLasso_sklearn(
+        fit_intercept=fit_intercept).path(
+            X, Y, l1_ratio=1, tol=1e-14, max_iter=5_000, alphas=alphas
+    )[1][:, :X.shape[1]]
+    coef_ours = MultiTaskLasso(fit_intercept=fit_intercept, tol=1e-14).path(
+        X, Y, alphas, max_iter=10)[1][:, :X.shape[1]]
     np.testing.assert_allclose(coef_ours, coef_sk, rtol=1e-5)
 
 
@@ -265,21 +267,15 @@ def test_warm_start(estimator_name):
 
 
 if __name__ == "__main__":
-    fit_intercept = True
-    X = X_sparse
-    # X = X.toarray()
-    estimator_sk = MultiTaskLasso_sklearn(
-        alpha, fit_intercept=fit_intercept, tol=1e-10)
-    estimator_ours = MultiTaskLasso(
-        alpha, max_iter=10, fit_intercept=fit_intercept, tol=1e-10, verbose=0)
-
-    estimator_sk.fit(X.toarray() if issparse(X) else X, Y)
-    estimator_ours.fit(X, Y)
-    coef_sk = estimator_sk.coef_
-    coef_ours = estimator_ours.coef_
-    np.testing.assert_allclose(coef_ours, coef_sk, atol=1e-4)
-    np.testing.assert_allclose(estimator_ours.intercept_,
-                               estimator_sk.intercept_, rtol=1e-4)
+    fit_intercept = False
+    alphas = np.geomspace(alpha_max, alpha_max * 0.01, 10)
+    coef_sk = MultiTaskLasso_sklearn(
+        fit_intercept=fit_intercept).path(
+            X, Y, l1_ratio=1, tol=1e-14, max_iter=5_000, alphas=alphas
+    )[1][:, :X.shape[1]]
+    coef_ours = MultiTaskLasso(fit_intercept=fit_intercept, tol=1e-14).path(
+        X, Y, alphas, max_iter=10)[1][:, :X.shape[1]]
+    np.testing.assert_allclose(coef_ours, coef_sk, rtol=1e-5)
 
     # estimator_name = "Lasso"
     # estimator_sk = clone(dict_estimators_sk[estimator_name])

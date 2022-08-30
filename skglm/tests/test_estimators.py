@@ -1,3 +1,4 @@
+from itertools import product
 from collections.abc import Iterable
 
 import pytest
@@ -120,7 +121,7 @@ def test_estimator(estimator_name, X, fit_intercept):
 
 
 # Test if skglm multitask solver returns the coefficients
-@pytest.mark.parametrize('X, fit_intercept', [[X, X_sparse], [True, False]])
+@pytest.mark.parametrize('X, fit_intercept', product([X, X_sparse], [True, False]))
 def test_estimator_mtl(X, fit_intercept):
     estimator_sk = MultiTaskLasso_sklearn(
         alpha, fit_intercept=fit_intercept, tol=1e-8)

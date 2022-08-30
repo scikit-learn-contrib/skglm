@@ -227,7 +227,7 @@ def cd_solver(
 
     if len(w) != n_features + fit_intercept:
         raise ValueError(
-            "The size of weights should be n_features + fit_intercept, \
+            "The size of coefficients should be n_features + fit_intercept, \
                 expected %i, got %i" % (n_features + fit_intercept, len(w)))
 
     for t in range(max_iter):

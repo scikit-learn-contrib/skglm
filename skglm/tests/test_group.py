@@ -208,7 +208,3 @@ def test_anderson_acceleration():
 
     np.testing.assert_array_equal(n_iter_acc, 13)
     np.testing.assert_array_equal(n_iter, 99)
-
-
-if __name__ == '__main__':
-    test_intercept_grouplasso(15, 50, False)

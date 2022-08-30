@@ -227,8 +227,8 @@ def cd_solver(
 
     if len(w) != n_features + fit_intercept:
         raise ValueError(
-            "The size of coefficients should be n_features + fit_intercept, \
-                expected %i, got %i" % (n_features + fit_intercept, len(w)))
+            "The size of coefficients should be n_features + %i, expected %i, got %i" %
+            (fit_intercept, n_features + fit_intercept, len(w)))
 
     for t in range(max_iter):
         if is_sparse:

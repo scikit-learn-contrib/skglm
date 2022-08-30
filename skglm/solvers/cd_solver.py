@@ -4,10 +4,12 @@ from scipy import sparse
 from sklearn.utils import check_array
 from skglm.solvers.common import construct_grad, construct_grad_sparse, dist_fix_point
 
+from skglm.utils import AndersonAcceleration
+
 
 def cd_solver_path(X, y, datafit, penalty, alphas=None,
                    coef_init=None, max_iter=20, max_epochs=50_000,
-                   p0=10, tol=1e-4, use_acc=True, return_n_iter=False,
+                   p0=10, tol=1e-4, return_n_iter=False,
                    ws_strategy="subdiff", verbose=0):
     r"""Compute optimization path with Anderson accelerated coordinate descent.
 
@@ -46,9 +48,6 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
 
     tol : float, optional
         The tolerance for the optimization.
-
-    use_acc : bool, optional
-        Usage of Anderson acceleration for faster convergence.
 
     return_n_iter : bool, optional
         If True, number of iterations along the path are returned.
@@ -148,7 +147,7 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
         sol = cd_solver(
             X, y, datafit, penalty, w, Xw,
             max_iter=max_iter, max_epochs=max_epochs, p0=p0, tol=tol,
-            use_acc=use_acc, verbose=verbose, ws_strategy=ws_strategy)
+            verbose=verbose, ws_strategy=ws_strategy)
 
         coefs[:, t] = w
         stop_crits[t] = sol[-1]
@@ -165,7 +164,7 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
 
 def cd_solver(
         X, y, datafit, penalty, w, Xw, max_iter=50, max_epochs=50_000, p0=10,
-        tol=1e-4, use_acc=True, K=5, ws_strategy="subdiff", verbose=0):
+        tol=1e-4, ws_strategy="subdiff", verbose=0):
     r"""Run a coordinate descent solver.
 
     Parameters
@@ -201,12 +200,6 @@ def cd_solver(
     tol : float, optional
         The tolerance for the optimization.
 
-    use_acc : bool, optional
-        Usage of Anderson acceleration for faster convergence.
-
-    K : int, optional
-        The number of past primal iterates used to build an extrapolated point.
-
     ws_strategy : ('subdiff'|'fixpoint'), optional
         The score used to build the working set.
 
@@ -226,13 +219,14 @@ def cd_solver(
     """
     if ws_strategy not in ("subdiff", "fixpoint"):
         raise ValueError(f'Unsupported value for ws_strategy: {ws_strategy}')
-    n_features = X.shape[1]
+    n_samples, n_features = X.shape
     pen = penalty.is_penalized(n_features)
     unpen = ~pen
     n_unpen = unpen.sum()
     obj_out = []
     all_feats = np.arange(n_features)
     stop_crit = np.inf  # initialize for case n_iter=0
+    w_acc, Xw_acc = np.zeros(n_features), np.zeros(n_samples)
 
     is_sparse = sparse.issparse(X)
     for t in range(max_iter):
@@ -259,14 +253,12 @@ def cd_solver(
         opt[unpen] = np.inf  # always include unpenalized features
         opt[penalty.generalized_support(w)] = np.inf
 
-        # here use topk instead of sorting the full array
-        # ie the following line
+        # here use topk instead of np.argsort(opt)[-ws_size:]
         ws = np.argpartition(opt, -ws_size)[-ws_size:]
-        # is equivalent to ws = np.argsort(opt)[-ws_size:]
 
-        if use_acc:
-            last_K_w = np.zeros([K + 1, ws_size])
-            U = np.zeros([K, ws_size])
+        # re init AA at every iter to consider ws
+        accelerator = AndersonAcceleration(K=5)
+        w_acc[:] = 0.
 
         if verbose:
             print(f'Iteration {t + 1}, {ws_size} feats in subpb.')
@@ -283,45 +275,18 @@ def cd_solver(
 
             # 3) do Anderson acceleration on smaller problem
             # TODO optimize computation using ws
-            if use_acc:
-                last_K_w[epoch % (K + 1)] = w[ws]
+            w_acc[ws], Xw_acc[:], is_extrapolated = accelerator.extrapolate(w[ws], Xw)
 
-                if epoch % (K + 1) == K:
-                    for k in range(K):
-                        U[k] = last_K_w[k + 1] - last_K_w[k]
-                    C = np.dot(U, U.T)
+            if is_extrapolated:  # avoid computing p_obj for un-extrapolated w, Xw
+                # TODO : manage penalty.value(w, ws) for weighted Lasso
+                p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+                p_obj_acc = datafit.value(y, w_acc, Xw_acc) + penalty.value(w_acc)
 
-                    try:
-                        z = np.linalg.solve(C, np.ones(K))
-                        # When C is ill-conditioned, z can take very large finite
-                        # positive and negative values (1e35 and -1e35), which leads
-                        # to z.sum() being null.
-                        if z.sum() == 0:
-                            raise np.linalg.LinAlgError
-                    except np.linalg.LinAlgError:
-                        if max(verbose - 1, 0):
-                            print("----------Linalg error")
-                    else:
-                        c = z / z.sum()
-                        w_acc = np.zeros(n_features)
-                        w_acc[ws] = np.sum(
-                            last_K_w[:-1] * c[:, None], axis=0)
-                        # TODO create a p_obj function ?
-                        # TODO : managed penalty.value(w[ws])
-                        p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-                        # p_obj = datafit.value(y, w, Xw) +penalty.value(w[ws])
-                        Xw_acc = X[:, ws] @ w_acc[ws]
-                        # TODO : managed penalty.value(w[ws])
-                        p_obj_acc = datafit.value(
-                            y, w_acc, Xw_acc) + penalty.value(w_acc)
-                        if p_obj_acc < p_obj:
-                            w[:] = w_acc
-                            Xw[:] = Xw_acc
+                if p_obj_acc < p_obj:
+                    w[:], Xw[:] = w_acc, Xw_acc
+                    p_obj = p_obj_acc
 
             if epoch % 10 == 0:
-                # TODO : manage penalty.value(w, ws) for weighted Lasso
-                p_obj = datafit.value(y, w[ws], Xw) + penalty.value(w)
-
                 if is_sparse:
                     grad_ws = construct_grad_sparse(
                         X.data, X.indptr, X.indices, y, w, Xw, datafit, ws)
@@ -334,6 +299,7 @@ def cd_solver(
 
                 stop_crit_in = np.max(opt_ws)
                 if max(verbose - 1, 0):
+                    p_obj = datafit.value(y, w, Xw) + penalty.value(w)
                     print(f"Epoch {epoch + 1}, objective {p_obj:.10f}, "
                           f"stopping crit {stop_crit_in:.2e}")
                 if ws_size == n_features:
@@ -344,6 +310,7 @@ def cd_solver(
                         if max(verbose - 1, 0):
                             print("Early exit")
                         break
+        p_obj = datafit.value(y, w, Xw) + penalty.value(w)
         obj_out.append(p_obj)
     return w, np.array(obj_out), stop_crit
 

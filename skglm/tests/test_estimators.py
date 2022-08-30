@@ -165,19 +165,20 @@ def test_mtl_path():
 ])
 @pytest.mark.parametrize('fit_intercept', [True, False])
 def test_generic_estimator(
-        Datafit, Penalty, is_classif, Estimator, pen_args, fit_intercept):
+        fit_intercept, Datafit, Penalty, is_classif, Estimator, pen_args):
     if isinstance(Datafit(), QuadraticSVC) and fit_intercept:
-        # TODO replace by xfail
-        pass
+        pytest.xfail()
+    elif Datafit == Logistic and fit_intercept:
+        pytest.xfail("TODO support intercept in Logistic datafit")
     else:
         target = Y if Datafit == QuadraticMultiTask else y
-        clf = GeneralizedLinearEstimator(
+        gle = GeneralizedLinearEstimator(
             Datafit(), Penalty(*pen_args), is_classif, tol=1e-10,
             fit_intercept=fit_intercept).fit(X, target)
-        clf_est = Estimator(
+        est = Estimator(
             *pen_args, tol=1e-10, fit_intercept=fit_intercept).fit(X, target)
-        np.testing.assert_allclose(clf_est.coef_, clf.coef_, rtol=1e-5)
-        # TODO add test for the intercept?
+        np.testing.assert_allclose(gle.coef_, est.coef_, rtol=1e-5)
+        np.testing.assert_allclose(gle.intercept_, est.intercept_)
 
 
 @pytest.mark.parametrize("Datafit, Penalty, Estimator_sk", [
@@ -242,7 +243,6 @@ def test_grid_search(estimator_name):
     estimator_sk.tol = 1e-10
     estimator_ours.tol = 1e-10
     estimator_sk.max_iter = 10_000
-    # estimator_ours.max_iter = 100
     param_grid = {'alpha': np.geomspace(alpha_max, alpha_max * 0.01, 10)}
     sk_clf = GridSearchCV(estimator_sk, param_grid).fit(X, y)
     ours_clf = GridSearchCV(estimator_ours, param_grid).fit(X, y)
@@ -270,32 +270,3 @@ def test_warm_start(estimator_name):
 
 if __name__ == "__main__":
     pass
-    # estimator_name = "Lasso"
-    # estimator_sk = clone(dict_estimators_sk[estimator_name])
-    # estimator_ours = clone(dict_estimators_ours[estimator_name])
-    # estimator_sk.tol = 1e-10
-    # estimator_ours.tol = 1e-10
-    # estimator_sk.max_iter = 10_000
-    # estimator_ours.max_iter = 100
-    # param_grid = {'alpha': np.geomspace(alpha_max, alpha_max * 0.01, 5)}
-    # sk_clf = GridSearchCV(estimator_sk, param_grid).fit(X, y)
-    # ours_clf = GridSearchCV(estimator_ours, param_grid).fit(X, y)
-    # res_attr = ["split%i_test_score" % i for i in range(5)] + \
-    #            ["mean_test_score", "std_test_score", "rank_test_score"]
-    # for attr in res_attr:
-    #     np.testing.assert_allclose(sk_clf.cv_results_[attr], ours_clf.cv_results_[attr],
-    #                                rtol=1e-3)
-    # np.testing.assert_allclose(sk_clf.best_score_, ours_clf.best_score_, rtol=1e-3)
-    # np.testing.assert_allclose(sk_clf.best_params_["alpha"],
-    #                            ours_clf.best_params_["alpha"], rtol=1e-3)
-
-    # from sklearn.model_selection import KFold
-    # cv = KFold(n_splits=5, shuffle=True, random_state=3)
-    # train, test = list(cv.split(X, y))[0]
-    # X_train, y_train = X[train], y[train]
-    # X_test, y_test = X[test], y[test]
-    # estimator_sk.alpha = alpha_max / 100
-    # estimator_ours.alpha = alpha_max / 100
-    # estimator_ours.verbose = 2
-    # estimator_sk.fit(X_train, y_train)
-    # estimator_ours.fit(X_train, y_train)

@@ -1220,6 +1220,7 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
     # TODO add predict_proba for LinearSVC
 
 
+# TODO we should no longer inherit from sklearn
 class MultiTaskLasso(MultiTaskLasso_sklearn):
     r"""MultiTaskLasso estimator.
 
@@ -1332,9 +1333,7 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
             max_epochs=self.max_epochs, p0=self.p0, verbose=self.verbose,
             tol=self.tol)
 
-        import ipdb
-        ipdb.set_trace()
-        self.coef_ = coefs[:, :X.shape[1] - self.fit_intercept, 0]
+        self.coef_ = coefs[:, :X.shape[1], 0]
         self.intercept_ = self.fit_intercept * coefs[:, -1, 0]
         self.stopping_crit = kkt[-1]
         self.n_iter_ = len(kkt)

@@ -131,7 +131,9 @@ def test_estimator_mtl(X, fit_intercept):
     estimator_ours.fit(X, Y)
     coef_sk = estimator_sk.coef_
     coef_ours = estimator_ours.coef_
-    np.testing.assert_allclose(coef_ours, coef_sk, atol=1e-6)
+    np.testing.assert_allclose(coef_ours, coef_sk, atol=1e-4)
+    np.testing.assert_allclose(
+        estimator_ours.intercept_, estimator_sk.intercept_, rtol=1e-4)
 
 
 # TODO also add a test for the sparse case?
@@ -264,17 +266,19 @@ def test_warm_start(estimator_name):
 if __name__ == "__main__":
     fit_intercept = True
     X = X_sparse
-    X = X.toarray()
+    # X = X.toarray()
     estimator_sk = MultiTaskLasso_sklearn(
-        alpha, fit_intercept=fit_intercept, tol=1e-8)
+        alpha, fit_intercept=fit_intercept, tol=1e-10)
     estimator_ours = MultiTaskLasso(
-        alpha, max_iter=10, fit_intercept=fit_intercept, tol=1e-8, verbose=0)
+        alpha, max_iter=10, fit_intercept=fit_intercept, tol=1e-10, verbose=0)
 
     estimator_sk.fit(X.toarray() if issparse(X) else X, Y)
     estimator_ours.fit(X, Y)
     coef_sk = estimator_sk.coef_
     coef_ours = estimator_ours.coef_
-    np.testing.assert_allclose(coef_ours, coef_sk, atol=1e-6)
+    np.testing.assert_allclose(coef_ours, coef_sk, atol=1e-4)
+    np.testing.assert_allclose(estimator_ours.intercept_,
+                               estimator_sk.intercept_, rtol=1e-4)
 
     # estimator_name = "Lasso"
     # estimator_sk = clone(dict_estimators_sk[estimator_name])

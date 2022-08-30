@@ -116,7 +116,7 @@ def _glm_fit(X, y, model, datafit, penalty):
             w = model.coef_.copy()
         if model.fit_intercept:
             w = np.hstack([w, model.intercept_])
-        Xw = X_ @ w[:w.shape[0] - model.fit_intercept] + model.intercept_
+        Xw = X_ @ w[:w.shape[0] - model.fit_intercept] + model.fit_intercept * w[-1]
     else:
         # TODO this should be solver.get_init() do delegate the work
         if y.ndim == 1:

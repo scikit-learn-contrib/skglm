@@ -36,7 +36,7 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None, fit_intercept=False,
     fit_intercept : bool
         Whether or not to fit an intercept.
 
-    coef_init : ndarray, shape (n_features + fit_intercept,) | None, optional 
+    coef_init : ndarray, shape (n_features + fit_intercept,) | None, optional
         Initial value of coefficients. If None, np.zeros(n_features) is used.
 
     max_iter : int, optional
@@ -244,7 +244,16 @@ def cd_solver(
             opt = penalty.subdiff_distance(w[:n_features], grad, all_feats)
         elif ws_strategy == "fixpoint":
             opt = dist_fix_point(w[:n_features], grad, datafit, penalty, all_feats)
-        stop_crit = np.max(opt)
+
+        if fit_intercept:
+            intercept_opt = np.abs(datafit.intercept_update_step(y, Xw))
+        else:
+            intercept_opt = 0.
+
+        stop_crit = max(
+            np.max(opt),
+            intercept_opt,
+        )
         if verbose:
             print(f"Stopping criterion max violation: {stop_crit:.2e}")
         if stop_crit <= tol:

@@ -9,7 +9,7 @@ from sklearn.utils.validation import check_is_fitted
 from sklearn.utils import check_array, check_consistent_length
 from sklearn.linear_model import MultiTaskLasso as MultiTaskLasso_sklearn
 from sklearn.linear_model._base import (
-    _preprocess_data, LinearModel, RegressorMixin,
+    LinearModel, RegressorMixin,
     LinearClassifierMixin, SparseCoefMixin, BaseEstimator
 )
 from sklearn.utils.extmath import softmax
@@ -114,7 +114,9 @@ def _glm_fit(X, y, model, datafit, penalty):
             w = model.coef_[0, :].copy()
         else:
             w = model.coef_.copy()
-        Xw = X_ @ w
+        if model.fit_intercept:
+            w = np.hstack([w, model.intercept_])
+        Xw = X_ @ w[:w.shape[0] - model.fit_intercept] + model.fit_intercept * w[-1]
     else:
         # TODO this should be solver.get_init() do delegate the work
         if y.ndim == 1:
@@ -128,8 +130,8 @@ def _glm_fit(X, y, model, datafit, penalty):
     if isinstance(penalty, WeightedL1):
         if len(penalty.weights) != n_features:
             raise ValueError(
-                "The size of the WeightedL1 penalty weights should be n_features, \
-                expected %i, got %i" % (X_.shape[1], len(penalty.weights)))
+                "The size of the WeightedL1 penalty weights should be n_features, "
+                "expected %i, got %i." % (X_.shape[1], len(penalty.weights)))
 
     if is_classif:
         solver = cd_solver  # TODO to be be replaced by an instance of BaseSolver
@@ -1218,6 +1220,7 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
     # TODO add predict_proba for LinearSVC
 
 
+# TODO we should no longer inherit from sklearn
 class MultiTaskLasso(MultiTaskLasso_sklearn):
     r"""MultiTaskLasso estimator.
 
@@ -1297,7 +1300,6 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
         self :
             The fitted estimator.
         """
-        # TODO check if we could just patch `bcd_solver_path` as we do in Lasso case.
         # Below is copied from sklearn, with path replaced by our path.
         # Need to validate separately here.
         # We can't pass multi_output=True because that would allow y to be csr.
@@ -1318,9 +1320,10 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
             raise ValueError("X and Y have inconsistent dimensions (%d != %d)"
                              % (n_samples, Y.shape[0]))
 
-        X, Y, X_offset, Y_offset, X_scale = _preprocess_data(
-            X, Y, self.fit_intercept, copy=False)
+        # X, Y, X_offset, Y_offset, X_scale = _preprocess_data(
+        #     X, Y, self.fit_intercept, copy=False)
 
+        # TODO handle and test warm start for MTL
         if not self.warm_start or not hasattr(self, "coef_"):
             self.coef_ = None
 
@@ -1330,9 +1333,10 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
             max_epochs=self.max_epochs, p0=self.p0, verbose=self.verbose,
             tol=self.tol)
 
-        self.coef_, self.dual_gap_ = coefs[..., 0], kkt[-1]
+        self.coef_ = coefs[:, :X.shape[1], 0]
+        self.intercept_ = self.fit_intercept * coefs[:, -1, 0]
+        self.stopping_crit = kkt[-1]
         self.n_iter_ = len(kkt)
-        self._set_intercept(X_offset, Y_offset, X_scale)
 
         return self
 
@@ -1374,4 +1378,5 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
         penalty = compiled_clone(self.penalty)
 
         return multitask_bcd_solver_path(X, Y, datafit, penalty, alphas=alphas,
-                                         coef_init=coef_init, **params)
+                                         coef_init=coef_init,
+                                         fit_intercept=self.fit_intercept, tol=self.tol)

@@ -30,6 +30,7 @@ def test_huber_datafit(fit_intercept):
     ).fit(X, y)
 
     assert_allclose(ours.coef_, their.coef_, rtol=1e-3)
+    assert_allclose(ours.intercept_, their.intercept_, rtol=1e-4)
     assert_array_less(ours.stop_crit_, ours.tol)
 
 

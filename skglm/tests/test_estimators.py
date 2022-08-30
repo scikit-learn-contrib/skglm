@@ -122,13 +122,12 @@ def test_estimator(estimator_name, X, fit_intercept):
 
 
 # Test if skglm multitask solver returns the coefficients
-@pytest.mark.parametrize('X', [X, X_sparse])
-@pytest.mark.parametrize('fit_intercept', [True, False])
+@pytest.mark.parametrize('X, fit_intercept', [[X, X_sparse], [True, False]])
 def test_estimator_mtl(X, fit_intercept):
     estimator_sk = MultiTaskLasso_sklearn(
         alpha, fit_intercept=fit_intercept, tol=1e-8)
     estimator_ours = MultiTaskLasso(
-        alpha, verbose=2, max_iter=10, fit_intercept=fit_intercept, tol=1e-8)
+        alpha, max_iter=10, fit_intercept=fit_intercept, tol=1e-8)
 
     estimator_sk.fit(X.toarray() if issparse(X) else X, Y)
     estimator_ours.fit(X, Y)
@@ -265,6 +264,5 @@ def test_warm_start(estimator_name):
 
 
 if __name__ == '__main__':
-    # test_estimator_mtl(X, True)
-    # test_estimator_mtl(X, False)
-    test_generic_estimator(QuadraticSVC, IndicatorBox, True, LinearSVC, [alpha], True)
+    test_estimator_mtl(X_sparse, False)
+    pass

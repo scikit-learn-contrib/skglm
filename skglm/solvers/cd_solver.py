@@ -58,6 +58,7 @@ class AcceleratedCD:
         if self.ws_strategy not in ("subdiff", "fixpoint"):
             raise ValueError(
                 'Unsupported value for self.ws_strategy:', self.ws_strategy)
+
         n_samples, n_features = X.shape
         w = np.zeros(n_features) if w_init is None else w_init
         Xw = np.zeros(n_samples) if Xw_init is None else Xw_init
@@ -70,6 +71,10 @@ class AcceleratedCD:
         w_acc, Xw_acc = np.zeros(n_features + self.fit_intercept), np.zeros(n_samples)
 
         is_sparse = sparse.issparse(X)
+        if is_sparse:
+            datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
+        else:
+            datafit.initialize(X, y)
 
         if len(w) != n_features + self.fit_intercept:
             if self.fit_intercept:

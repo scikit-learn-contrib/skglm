@@ -7,7 +7,7 @@ from sklearn.utils import check_array
 
 
 def multitask_bcd_solver_path(
-        X, Y, datafit, penalty, alphas=None,
+        X, Y, datafit, penalty, alphas=None, fit_intercept=False,
         coef_init=None, max_iter=100, max_epochs=50_000, p0=10, tol=1e-6,
         use_acc=True, return_n_iter=False, ws_strategy="subdiff", verbose=0):
     r"""Compute optimization path for multi-task optimization problem.
@@ -32,6 +32,9 @@ def multitask_bcd_solver_path(
     alphas : ndarray, optional
         List of alphas where to compute the models.
         If ``None`` alphas are set automatically.
+
+    fit_intercept : bool
+        Whether or not to fit an intercept.
 
     coef_init : ndarray, shape (n_features, n_tasks) | None, optional, (default=None)
         Initial value of coefficients. If None, np.zeros(n_features, n_tasks) is used.
@@ -66,7 +69,7 @@ def multitask_bcd_solver_path(
     alphas : array, shape (n_alphas,)
         The alphas along the path where models are computed.
 
-    coefs : array, shape (n_features, n_tasks, n_alphas)
+    coefs : array, shape (n_features + fit_intercept, n_tasks, n_alphas)
         Coefficients along the path.
 
     stop_crit : array, shape (n_alphas,)
@@ -95,7 +98,7 @@ def multitask_bcd_solver_path(
 
     n_alphas = len(alphas)
 
-    coefs = np.zeros((n_features, n_tasks, n_alphas), order="C",
+    coefs = np.zeros((n_features + fit_intercept, n_tasks, n_alphas), order="C",
                      dtype=X.dtype)
     stop_crits = np.zeros(n_alphas)
 
@@ -122,10 +125,10 @@ def multitask_bcd_solver_path(
                 p_t = max(len(np.where(W[:, 0] != 0)[0]), p0)
             else:
                 W = np.zeros(
-                    (n_features, n_tasks), dtype=X.dtype, order='C')
+                    (n_features + fit_intercept, n_tasks), dtype=X.dtype, order='C')
                 p_t = 10
         sol = multitask_bcd_solver(
-            X, Y, datafit, penalty, W, XW, p0=p_t,
+            X, Y, datafit, penalty, W, XW, fit_intercept=fit_intercept, p0=p_t,
             tol=tol, max_iter=max_iter, max_epochs=max_epochs,
             verbose=verbose, use_acc=use_acc, ws_strategy=ws_strategy)
         coefs[:, :, t], stop_crits[t] = sol[0], sol[2]
@@ -143,8 +146,9 @@ def multitask_bcd_solver_path(
 
 
 def multitask_bcd_solver(
-        X, Y, datafit, penalty, W, XW, max_iter=50, max_epochs=50_000, p0=10,
-        tol=1e-4, use_acc=True, K=5, ws_strategy="subdiff", verbose=0):
+        X, Y, datafit, penalty, W, XW, fit_intercept=True, max_iter=50,
+        max_epochs=50_000, p0=10, tol=1e-4, use_acc=True, K=5,
+        ws_strategy="subdiff", verbose=0):
     r"""Run a multitask block coordinate descent solver.
 
     Parameters
@@ -166,6 +170,9 @@ def multitask_bcd_solver(
 
     XW : ndarray, shape (n_samples, n_tasks)
         Model fit.
+
+    fit_intercept : bool
+        Whether or not to fit an intercept.
 
     max_iter : int, optional
         The maximum number of iterations (definition of working set and
@@ -212,6 +219,17 @@ def multitask_bcd_solver(
     all_feats = np.arange(n_features)
     stop_crit = np.inf  # initialize for case n_iter=0
 
+    if W.shape[0] != n_features + fit_intercept:
+        if fit_intercept:
+            val_error_message = (
+                "Inconsistent size of coefficients with n_features + 1\n"
+                f"expected {n_features + 1}, got {W.shape[0]}")
+        else:
+            val_error_message = (
+                "Inconsistent size of coefficients with n_features\n"
+                f"expected {n_features}, got {W.shape[0]}")
+        raise ValueError(val_error_message)
+
     is_sparse = sparse.issparse(X)
     for t in range(max_iter):
         if is_sparse:
@@ -230,17 +248,18 @@ def multitask_bcd_solver(
         if stop_crit <= tol:
             break
         # 1) select features : all unpenalized, + 2 * (nnz and penalized)
-        ws_size = max(p0 + n_unpen,
-                      min(2 * (norm(W, axis=1) != 0).sum() - n_unpen,
-                          n_features))
+        # TODO fix p0 takes the intercept into account
+        ws_size = min(n_features,
+                      max(2 * (norm(W, axis=1) != 0).sum() - n_unpen,
+                          p0 + n_unpen))
         opt[unpen] = np.inf  # always include unpenalized features
-        opt[norm(W, axis=1) != 0] = np.inf  # TODO check
+        opt[norm(W[:n_features], axis=1) != 0] = np.inf  # TODO check
         ws = np.argpartition(opt, -ws_size)[-ws_size:]
         # is equivalent to ws = np.argsort(kkt)[-ws_size:]
 
         if use_acc:
-            last_K_w = np.zeros([K + 1, ws_size * n_tasks])
-            U = np.zeros([K, ws_size * n_tasks])
+            last_K_w = np.zeros([K + 1, (ws_size + fit_intercept) * n_tasks])
+            U = np.zeros([K, (ws_size + fit_intercept) * n_tasks])
 
         if verbose:
             print(f'Iteration {t + 1}, {ws_size} feats in subpb.')
@@ -254,8 +273,18 @@ def multitask_bcd_solver(
                     ws)
             else:
                 _bcd_epoch(X, Y, W, XW, datafit, penalty, ws)
+            # update intercept
+            if fit_intercept:
+                intercept_old = W[-1, :].copy()
+                W[-1, :] -= datafit.intercept_update_step(Y, XW)
+                XW += (W[-1, :] - intercept_old)
+
             if use_acc:
-                last_K_w[epoch % (K + 1)] = W[ws, :].ravel()
+                if fit_intercept:
+                    ws_ = np.append(ws, -1)
+                else:
+                    ws_ = ws.copy()
+                last_K_w[epoch % (K + 1)] = W[ws_, :].ravel()
 
                 # 3) do Anderson acceleration on smaller problem
                 if epoch % (K + 1) == K:
@@ -266,12 +295,12 @@ def multitask_bcd_solver(
                     try:
                         z = np.linalg.solve(C, np.ones(K))
                         c = z / z.sum()
-                        W_acc = np.zeros((n_features, n_tasks))
-                        W_acc[ws, :] = np.sum(
+                        W_acc = np.zeros((n_features + fit_intercept, n_tasks))
+                        W_acc[ws_, :] = np.sum(
                             last_K_w[:-1] * c[:, None], axis=0).reshape(
-                                (ws_size, n_tasks))
+                                (ws_size + fit_intercept, n_tasks))
                         p_obj = datafit.value(Y, W, XW) + penalty.value(W)
-                        Xw_acc = X[:, ws] @ W_acc[ws]
+                        Xw_acc = X[:, ws] @ W_acc[ws] + fit_intercept * W_acc[-1]
                         p_obj_acc = datafit.value(
                             Y, W_acc, Xw_acc) + penalty.value(W_acc)
                         if p_obj_acc < p_obj:

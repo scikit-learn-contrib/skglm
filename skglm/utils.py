@@ -393,6 +393,19 @@ def check_group_compatible(obj):
             )
 
 
+def _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights):
+    n_samples = len(y)
+    n_groups = len(grp_ptr) - 1
+    alpha_max = 0.
+    for g in range(n_groups):
+        grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
+        alpha_max = max(
+            alpha_max,
+            norm(X[:, grp_g_indices].T @ y) / (n_samples * weights[g])
+        )
+    return alpha_max
+
+
 class AndersonAcceleration:
     """Abstraction of Anderson Acceleration.
 

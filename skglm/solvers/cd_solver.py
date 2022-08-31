@@ -226,9 +226,13 @@ def cd_solver(
     is_sparse = sparse.issparse(X)
 
     if len(w) != n_features + fit_intercept:
-        raise ValueError(
-            "The size of coefficients should be n_features + %i, expected %i, got %i" %
-            (fit_intercept, n_features + fit_intercept, len(w)))
+        if fit_intercept:
+            val_error_message = (f"Inconsistent size of coefficients with n_features + 1\n"
+                                 f"expected {n_features + 1}, got {len(w)}")
+        else:
+            val_error_message = (f"Inconsistent size of coefficients with n_features\n"
+                                 f"expected {n_features}, got {len(w)}")
+        raise ValueError(val_error_message)
 
     for t in range(max_iter):
         if is_sparse:

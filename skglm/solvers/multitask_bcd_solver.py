@@ -219,10 +219,14 @@ def multitask_bcd_solver(
     all_feats = np.arange(n_features)
     stop_crit = np.inf  # initialize for case n_iter=0
 
-    if W.shape[0] != n_features + fit_intercept:
-        raise ValueError(
-            "The size of init coefficients should be n_features + fit_intercept, "
-            "expected %i, got %i" % (n_features + fit_intercept, W.shape[0]))
+    if len(W.shape[0]) != n_features + fit_intercept:
+        if fit_intercept:
+            val_error_message = (f"Inconsistent size of coefficients with n_features + 1\n"
+                                 f"expected {n_features + 1}, got {len(W.shape[0])}")
+        else:
+            val_error_message = (f"Inconsistent size of coefficients with n_features\n"
+                                 f"expected {n_features}, got {len(W.shape[0])}")
+        raise ValueError(val_error_message)
 
     is_sparse = sparse.issparse(X)
     for t in range(max_iter):

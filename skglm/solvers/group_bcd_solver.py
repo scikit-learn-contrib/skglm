@@ -68,10 +68,15 @@ def group_bcd_solver(
 
     w = np.zeros(n_features + fit_intercept) if w_init is None else w_init
     Xw = np.zeros(n_samples) if w_init is None else Xw_init
+
     if len(w) != n_features + fit_intercept:
-        raise ValueError(
-            "The size of coefficients should be n_features + fit_intercept, \
-                expected %i, got %i" % (n_features + fit_intercept, len(w)))
+        if fit_intercept:
+            val_error_message = (f"Inconsistent size of coefficients with n_features + 1\n"
+                                 f"expected {n_features + 1}, got {len(w)}")
+        else:
+            val_error_message = (f"Inconsistent size of coefficients with n_features\n"
+                                 f"expected {n_features}, got {len(w)}")
+        raise ValueError(val_error_message)
 
     datafit.initialize(X, y)
     all_groups = np.arange(n_groups)

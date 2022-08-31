@@ -25,7 +25,7 @@ from skglm.datafits import Quadratic, Logistic, QuadraticSVC, QuadraticMultiTask
 from skglm.penalties import L1, WeightedL1, L1_plus_L2, MCPenalty, IndicatorBox, L2_1
 
 
-def _glm_fit(X, y, model, datafit, penalty):
+def _glm_fit(X, y, model, datafit, penalty, solver):
     is_classif = False
     if isinstance(datafit, Logistic) or isinstance(datafit, QuadraticSVC):
         is_classif = True
@@ -133,30 +133,9 @@ def _glm_fit(X, y, model, datafit, penalty):
                 "The size of the WeightedL1 penalty weights should be n_features, "
                 "expected %i, got %i." % (X_.shape[1], len(penalty.weights)))
 
-    # TODO Handle multi-task case
-    if is_classif:
-        if isinstance(datafit, Logistic):
-            solver = ProxNewton(
-                p0=model.p0, tol=model.tol, fit_intercept=model.fit_intercept,
-                max_iter=model.max_iter, max_epochs=model.max_epochs,
-                verbose=model.verbose)
-        else:
-            solver = AcceleratedCD(
-                fit_intercept=model.fit_intercept, max_iter=model.max_iter,
-                max_epochs=model.max_epochs, p0=model.p0, tol=model.tol,
-                ws_strategy=model.ws_strategy, verbose=model.verbose)
-    else:
-        solver = AcceleratedCD(
-                fit_intercept=model.fit_intercept, max_iter=model.max_iter,
-                max_epochs=model.max_epochs, p0=model.p0, tol=model.tol,
-                ws_strategy=model.ws_strategy, verbose=model.verbose)
     # TODO QUESTIONS
     # What about ws_strategy?
-    coefs, p_obj, kkt = solver.solve(
-        X_, y, datafit_jit, penalty_jit, w, Xw, max_iter=model.max_iter,
-        max_epochs=model.max_epochs, p0=model.p0,
-        tol=model.tol, fit_intercept=model.fit_intercept,
-        verbose=model.verbose)
+    coefs, p_obj, kkt = solver.solve(X_, y, datafit_jit, penalty_jit, w, Xw) 
     model.coef_, model.stop_crit_ = coefs[:n_features], kkt
     if y.ndim == 1:
         model.intercept_ = coefs[-1] if model.fit_intercept else 0.
@@ -295,7 +274,17 @@ class GeneralizedLinearEstimator(LinearModel):
         """
         self.penalty = self.penalty if self.penalty else L1(1.)
         self.datafit = self.datafit if self.datafit else Quadratic()
-        return _glm_fit(X, y, self, self.datafit, self.penalty)
+        if isinstance(self.datafit, Logistic):
+            solver = ProxNewton(
+                p0=self.p0, tol=self.tol, fit_intercept=self.fit_intercept,
+                max_iter=self.max_iter, max_epochs=self.max_epochs,
+                verbose=self.verbose)
+        else:
+            solver = AcceleratedCD(
+                fit_intercept=self.fit_intercept, max_iter=self.max_iter,
+                max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
+                ws_strategy=self.ws_strategy, verbose=self.verbose) 
+        return _glm_fit(X, y, self, self.datafit, self.penalty, solver)
 
     def predict(self, X):
         """Predict target values for samples in X.

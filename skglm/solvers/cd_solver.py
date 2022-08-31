@@ -276,6 +276,8 @@ def cd_solver(
         # re init AA at every iter to consider ws
         accelerator = AndersonAcceleration(K=5)
         w_acc[:] = 0.
+        # ws to be used in AndersonAcceleration
+        ws_intercept = np.append(ws, -1) if fit_intercept else ws
 
         if verbose:
             print(f'Iteration {t + 1}, {ws_size} feats in subpb.')
@@ -297,8 +299,8 @@ def cd_solver(
                 Xw += (w[-1] - intercept_old)
 
             # 3) do Anderson acceleration on smaller problem
-            # TODO optimize computation using ws
-            w_acc[:], Xw_acc[:], is_extrapolated = accelerator.extrapolate(w, Xw)
+            w_acc[ws_intercept], Xw_acc[:], is_extrapolated = accelerator.extrapolate(
+                w[ws_intercept], Xw)
 
             if is_extrapolated:  # avoid computing p_obj for un-extrapolated w, Xw
                 # TODO : manage penalty.value(w, ws) for weighted Lasso

@@ -87,7 +87,13 @@ def group_bcd_solver(
     for t in range(max_iter):
         grad = _construct_grad(X, y, w, Xw, datafit, all_groups)
         opt = penalty.subdiff_distance(w, grad, all_groups)
-        stop_crit = np.max(opt)
+
+        if fit_intercept:
+            intercept_opt = np.abs(datafit.intercept_update_step(y, Xw))
+        else:
+            intercept_opt = 0.
+
+        stop_crit = max(np.max(opt), intercept_opt)
 
         if verbose:
             p_obj = datafit.value(y, w, Xw) + penalty.value(w)

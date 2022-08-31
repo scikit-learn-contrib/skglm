@@ -254,10 +254,8 @@ def cd_solver(
         else:
             intercept_opt = 0.
 
-        stop_crit = max(
-            np.max(opt),
-            intercept_opt,
-        )
+        stop_crit = max(np.max(opt), intercept_opt)
+
         if verbose:
             print(f"Stopping criterion max violation: {stop_crit:.2e}")
         if stop_crit <= tol:

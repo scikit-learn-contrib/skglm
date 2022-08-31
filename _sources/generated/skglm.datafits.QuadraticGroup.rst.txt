@@ -20,6 +20,7 @@
       ~QuadraticGroup.gradient_scalar_sparse
       ~QuadraticGroup.initialize
       ~QuadraticGroup.initialize_sparse
+      ~QuadraticGroup.intercept_update_step
       ~QuadraticGroup.params_to_dict
       ~QuadraticGroup.value
    

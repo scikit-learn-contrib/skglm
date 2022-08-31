@@ -437,6 +437,9 @@ See for example the implementation of the <code class="docutils literal notransl
                 <span class="n">XjTXw</span> <span class="o">+=</span> <span class="n">X_data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">Xw</span><span class="p">[</span><span class="n">X_indices</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
             <span class="n">grad</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">XjTXw</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Xty</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="o">/</span> <span class="n">n_samples</span>
         <span class="k">return</span> <span class="n">grad</span>
+
+    <span class="k">def</span> <span class="nf">intercept_update_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">Xw</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">Xw</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>

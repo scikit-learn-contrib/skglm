@@ -100,7 +100,7 @@
 <h1>skglm.datafits.Logistic<a class="headerlink" href="#skglm-datafits-logistic" title="Permalink to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="skglm.datafits.Logistic">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">Logistic</span></span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/92e1266/skglm/datafits/single_task.py#L98"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.Logistic" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">Logistic</span></span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/3b80cf6/skglm/datafits/single_task.py#L101"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.Logistic" title="Permalink to this definition">¶</a></dt>
 <dd><p>Logistic datafit with labels in {-1, 1}.</p>
 <p>The datafit reads:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">n_samples</span><span class="p">)</span> <span class="o">*</span> \<span class="n">sum_i</span> <span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">y_i</span> <span class="o">*</span> <span class="n">Xw_i</span><span class="p">))</span>
@@ -117,7 +117,7 @@ norm(X, axis=0) ** 2 / (4 * n_samples).</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="skglm.datafits.Logistic.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/92e1266/skglm/datafits/single_task.py#L117"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.Logistic.__init__" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/3b80cf6/skglm/datafits/single_task.py#L120"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.Logistic.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
@@ -144,16 +144,19 @@ norm(X, axis=0) ** 2 / (4 * n_samples).</p>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_sparse</span></code>(X_data, X_indptr, X_indices, y)</p></td>
 <td><p>Pre-computations before fitting on X and y when X is a sparse matrix.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">intercept_update_step</span></code>(y, Xw)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
 <td><p>Get the parameters to initialize an instance of the class.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">raw_grad</span></code>(y, Xw)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">raw_grad</span></code>(y, Xw)</p></td>
 <td><p>Compute gradient of datafit w.r.t <code class="docutils literal notranslate"><span class="pre">Xw</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">raw_hessian</span></code>(y, Xw)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">raw_hessian</span></code>(y, Xw)</p></td>
 <td><p>Compute Hessian of datafit w.r.t <code class="docutils literal notranslate"><span class="pre">Xw</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(y, w, Xw)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(y, w, Xw)</p></td>
 <td><p>Value of datafit at vector w.</p></td>
 </tr>
 </tbody>

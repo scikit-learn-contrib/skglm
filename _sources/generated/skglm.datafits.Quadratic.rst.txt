@@ -20,6 +20,7 @@
       ~Quadratic.gradient_scalar_sparse
       ~Quadratic.initialize
       ~Quadratic.initialize_sparse
+      ~Quadratic.intercept_update_step
       ~Quadratic.params_to_dict
       ~Quadratic.value
    

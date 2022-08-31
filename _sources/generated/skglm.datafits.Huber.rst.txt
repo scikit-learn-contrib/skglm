@@ -20,6 +20,7 @@
       ~Huber.gradient_scalar_sparse
       ~Huber.initialize
       ~Huber.initialize_sparse
+      ~Huber.intercept_update_step
       ~Huber.params_to_dict
       ~Huber.value
    

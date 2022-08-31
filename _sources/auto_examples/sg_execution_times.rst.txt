@@ -5,18 +5,18 @@
 
 Computation times
 =================
-**01:15.610** total execution time for **auto_examples** files:
+**01:43.807** total execution time for **auto_examples** files:
 
 +-------------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_auto_examples_plot_compare_time.py` (``plot_compare_time.py``)                         | 00:49.017 | 0.0 MB |
+| :ref:`sphx_glr_auto_examples_plot_compare_time.py` (``plot_compare_time.py``)                         | 01:05.157 | 0.0 MB |
 +-------------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_auto_examples_plot_sparse_recovery.py` (``plot_sparse_recovery.py``)                   | 00:10.145 | 0.0 MB |
+| :ref:`sphx_glr_auto_examples_plot_sparse_recovery.py` (``plot_sparse_recovery.py``)                   | 00:14.105 | 0.0 MB |
 +-------------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_auto_examples_plot_logreg_various_penalties.py` (``plot_logreg_various_penalties.py``) | 00:08.192 | 0.0 MB |
+| :ref:`sphx_glr_auto_examples_plot_logreg_various_penalties.py` (``plot_logreg_various_penalties.py``) | 00:12.579 | 0.0 MB |
 +-------------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_auto_examples_plot_lasso_vs_weighted.py` (``plot_lasso_vs_weighted.py``)               | 00:05.293 | 0.0 MB |
+| :ref:`sphx_glr_auto_examples_plot_lasso_vs_weighted.py` (``plot_lasso_vs_weighted.py``)               | 00:07.716 | 0.0 MB |
 +-------------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_auto_examples_plot_pen_prox.py` (``plot_pen_prox.py``)                                 | 00:02.589 | 0.0 MB |
+| :ref:`sphx_glr_auto_examples_plot_pen_prox.py` (``plot_pen_prox.py``)                                 | 00:03.758 | 0.0 MB |
 +-------------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_auto_examples_plot_zero_weights_lasso.py` (``plot_zero_weights_lasso.py``)             | 00:00.373 | 0.0 MB |
+| :ref:`sphx_glr_auto_examples_plot_zero_weights_lasso.py` (``plot_zero_weights_lasso.py``)             | 00:00.492 | 0.0 MB |
 +-------------------------------------------------------------------------------------------------------+-----------+--------+

@@ -4,6 +4,7 @@ import warnings
 import numpy as np
 from scipy.sparse import issparse
 from scipy.special import expit
+from skglm.solvers.prox_newton import ProxNewton
 
 from sklearn.utils.validation import check_is_fitted
 from sklearn.utils import check_array, check_consistent_length
@@ -18,8 +19,7 @@ from sklearn.multiclass import OneVsRestClassifier, check_classification_targets
 
 
 from skglm.utils import compiled_clone
-from skglm.solvers import cd_solver_path, multitask_bcd_solver_path
-from skglm.solvers.cd_solver import cd_solver
+from skglm.solvers import AcceleratedCD, multitask_bcd_solver_path
 from skglm.solvers.multitask_bcd_solver import multitask_bcd_solver
 from skglm.datafits import Quadratic, Logistic, QuadraticSVC, QuadraticMultiTask
 from skglm.penalties import L1, WeightedL1, L1_plus_L2, MCPenalty, IndicatorBox, L2_1
@@ -133,16 +133,26 @@ def _glm_fit(X, y, model, datafit, penalty):
                 "The size of the WeightedL1 penalty weights should be n_features, "
                 "expected %i, got %i." % (X_.shape[1], len(penalty.weights)))
 
+    # TODO Handle multi-task case
     if is_classif:
-        solver = cd_solver  # TODO to be be replaced by an instance of BaseSolver
+        if isinstance(datafit, Logistic):
+            solver = ProxNewton(
+                p0=model.p0, tol=model.tol, fit_intercept=model.fit_intercept,
+                max_iter=model.max_iter, max_epochs=model.max_epochs, 
+                verbose=model.verbose)
+        else:
+            solver = AcceleratedCD(
+                fit_intercept=model.fit_intercept, max_iter=model.max_iter, 
+                max_epochs=model.max_epochs, p0=model.p0, tol=model.tol,
+                ws_strategy=model.ws_strategy, verbose=model.verbose)
     else:
-        solver = cd_solver if y.ndim == 1 else multitask_bcd_solver
-    # TODO this must be replaced by an instance of BaseSolver being passed
-    # so that arguments are attributes of the `solver` object and arguments
-    # do not need to match across solvers
+        solver = AcceleratedCD( 
+                fit_intercept=model.fit_intercept, max_iter=model.max_iter, 
+                max_epochs=model.max_epochs, p0=model.p0, tol=model.tol,
+                ws_strategy=model.ws_strategy, verbose=model.verbose)
     # TODO QUESTIONS
     # What about ws_strategy?
-    coefs, p_obj, kkt = solver(
+    coefs, p_obj, kkt = solver.solve(
         X_, y, datafit_jit, penalty_jit, w, Xw, max_iter=model.max_iter,
         max_epochs=model.max_epochs, p0=model.p0,
         tol=model.tol, fit_intercept=model.fit_intercept,

@@ -422,7 +422,11 @@ class Lasso(LinearModel, RegressorMixin):
         self :
             Fitted estimator.
         """
-        return _glm_fit(X, y, self, Quadratic(), L1(self.alpha))
+        solver = AcceleratedCD(
+            fit_intercept=self.fit_intercept, max_iter=self.max_iter,
+            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
+            ws_strategy=self.ws_strategy, verbose=self.verbose) 
+        return _glm_fit(X, y, self, Quadratic(), L1(self.alpha), solver)
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
         """Compute Lasso path.
@@ -626,7 +630,11 @@ class WeightedLasso(LinearModel, RegressorMixin):
             penalty = L1(self.alpha)
         else:
             penalty = WeightedL1(self.alpha, self.weights)
-        return _glm_fit(X, y, self, Quadratic(), penalty)
+        solver = AcceleratedCD(
+            fit_intercept=self.fit_intercept, max_iter=self.max_iter,
+            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
+            ws_strategy=self.ws_strategy, verbose=self.verbose) 
+        return _glm_fit(X, y, self, Quadratic(), penalty, solver)
 
 
 class ElasticNet(LinearModel, RegressorMixin):
@@ -770,8 +778,12 @@ class ElasticNet(LinearModel, RegressorMixin):
         self :
             Fitted estimator.
         """
+        solver = AcceleratedCD(
+            fit_intercept=self.fit_intercept, max_iter=self.max_iter,
+            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
+            ws_strategy=self.ws_strategy, verbose=self.verbose) 
         return _glm_fit(
-            X, y, self, Quadratic(), L1_plus_L2(self.alpha, self.l1_ratio))
+            X, y, self, Quadratic(), L1_plus_L2(self.alpha, self.l1_ratio), solver)
 
 
 class MCPRegression(LinearModel, RegressorMixin):
@@ -919,8 +931,12 @@ class MCPRegression(LinearModel, RegressorMixin):
         self :
             Fitted estimator.
         """
+        solver = AcceleratedCD(
+            fit_intercept=self.fit_intercept, max_iter=self.max_iter,
+            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
+            ws_strategy=self.ws_strategy, verbose=self.verbose) 
         return _glm_fit(
-            X, y, self, Quadratic(), MCPenalty(self.alpha, self.gamma))
+            X, y, self, Quadratic(), MCPenalty(self.alpha, self.gamma), solver)
 
 
 class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
@@ -1012,7 +1028,11 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         self :
             Fitted estimator.
         """
-        return _glm_fit(X, y, self, Logistic(), L1(self.alpha))
+        solver = ProxNewton(
+            p0=self.p0, tol=self.tol, fit_intercept=self.fit_intercept,
+            max_iter=self.max_iter, max_epochs=self.max_epochs,
+            verbose=self.verbose)
+        return _glm_fit(X, y, self, Logistic(), L1(self.alpha), solver)
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
         """Compute sparse Logistic Regression path.

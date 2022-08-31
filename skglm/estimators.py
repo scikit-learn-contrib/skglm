@@ -138,16 +138,16 @@ def _glm_fit(X, y, model, datafit, penalty):
         if isinstance(datafit, Logistic):
             solver = ProxNewton(
                 p0=model.p0, tol=model.tol, fit_intercept=model.fit_intercept,
-                max_iter=model.max_iter, max_epochs=model.max_epochs, 
+                max_iter=model.max_iter, max_epochs=model.max_epochs,
                 verbose=model.verbose)
         else:
             solver = AcceleratedCD(
-                fit_intercept=model.fit_intercept, max_iter=model.max_iter, 
+                fit_intercept=model.fit_intercept, max_iter=model.max_iter,
                 max_epochs=model.max_epochs, p0=model.p0, tol=model.tol,
                 ws_strategy=model.ws_strategy, verbose=model.verbose)
     else:
-        solver = AcceleratedCD( 
-                fit_intercept=model.fit_intercept, max_iter=model.max_iter, 
+        solver = AcceleratedCD(
+                fit_intercept=model.fit_intercept, max_iter=model.max_iter,
                 max_epochs=model.max_epochs, p0=model.p0, tol=model.tol,
                 ws_strategy=model.ws_strategy, verbose=model.verbose)
     # TODO QUESTIONS

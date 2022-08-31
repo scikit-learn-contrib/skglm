@@ -227,11 +227,13 @@ def cd_solver(
 
     if len(w) != n_features + fit_intercept:
         if fit_intercept:
-            val_error_message = (f"Inconsistent size of coefficients with n_features + 1\n"
-                                 f"expected {n_features + 1}, got {len(w)}")
+            val_error_message = (
+                "Inconsistent size of coefficients with n_features + 1\n"
+                f"expected {n_features + 1}, got {len(w)}")
         else:
-            val_error_message = (f"Inconsistent size of coefficients with n_features\n"
-                                 f"expected {n_features}, got {len(w)}")
+            val_error_message = (
+                "Inconsistent size of coefficients with n_features\n"
+                f"expected {n_features}, got {len(w)}")
         raise ValueError(val_error_message)
 
     for t in range(max_iter):

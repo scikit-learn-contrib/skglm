@@ -450,7 +450,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
     Supports weights equal to 0, i.e. unpenalized features.
     """
 
-    def __init__(self, alpha=1., fit_intercept=True, warm_start=False, weights=None,
+    def __init__(self, alpha=1., weights=None, fit_intercept=True, warm_start=False,
                  solver=None):
         super().__init__()
         self.alpha = alpha
@@ -704,7 +704,7 @@ class MCPRegression(LinearModel, RegressorMixin):
     Lasso : Lasso regularization.
     """
 
-    def __init__(self, alpha=1., gamma=3, solver=None, fit_intercept=True, 
+    def __init__(self, alpha=1., gamma=3, solver=None, fit_intercept=True,
                  warm_start=False):
         super().__init__()
         self.alpha = alpha

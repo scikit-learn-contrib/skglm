@@ -45,7 +45,7 @@ class GramCD:
         Amount of verbosity. 0/False is silent.
     """
 
-    def __init__(self, max_iter=100, use_acc=True, greedy_cd=True, tol=1e-4, 
+    def __init__(self, max_iter=100, use_acc=True, greedy_cd=True, tol=1e-4,
                  fit_intercept=True, warm_start=False, verbose=0):
         self.max_iter = max_iter
         self.use_acc = use_acc
@@ -81,7 +81,7 @@ class GramCD:
         if self.use_acc:
             if self.greedy_cd:
                 warnings.warn(
-                    "Anderson acceleration does not work with greedy_cd, " + \
+                    "Anderson acceleration does not work with greedy_cd, " +
                     "set use_acc=False", UserWarning)
             accelerator = AndersonAcceleration(K=5)
             w_acc = np.zeros(n_features)

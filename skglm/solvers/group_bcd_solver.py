@@ -33,7 +33,7 @@ class GroupBCD:
         Amount of verbosity. 0/False is silent.
     """
 
-    def __init__(self, max_iter=1000, max_epochs=100, p0=10, tol=1e-4, 
+    def __init__(self, max_iter=1000, max_epochs=100, p0=10, tol=1e-4,
                  fit_intercept=False, warm_start=False, verbose=0):
         self.max_iter = max_iter
         self.max_epochs = max_epochs

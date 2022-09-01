@@ -8,7 +8,7 @@ from sklearn.utils import check_array
 
 class MultiTaskBCD:
     """Block coordinate descent solver for multi-task problems."""
-    
+
     def __init__(self, max_iter=100, max_epochs=50_000, p0=10, tol=1e-6,
                  use_acc=True, ws_strategy="subdiff", fit_intercept=True,
                  warm_start=False, verbose=0):
@@ -37,7 +37,7 @@ class MultiTaskBCD:
             raise ValueError("alphas should be provided.")
         n_alphas = len(alphas)
 
-        coefs = np.zeros((n_features + self.fit_intercept, n_tasks, n_alphas), 
+        coefs = np.zeros((n_features + self.fit_intercept, n_tasks, n_alphas),
                          order="C", dtype=X.dtype)
         stop_crits = np.zeros(n_alphas)
 
@@ -65,7 +65,7 @@ class MultiTaskBCD:
                     p_t = max(len(np.where(W[:, 0] != 0)[0]), self.p0)
                 else:
                     W = np.zeros(
-                        (n_features + self.fit_intercept, n_tasks), dtype=X.dtype, 
+                        (n_features + self.fit_intercept, n_tasks), dtype=X.dtype,
                         order='C')
                     p_t = 10
             # TODO: missing p0 = p_t
@@ -135,7 +135,7 @@ class MultiTaskBCD:
             # is equivalent to ws = np.argsort(kkt)[-ws_size:]
 
             if self.use_acc:
-                last_K_w = np.zeros([K + 1, 
+                last_K_w = np.zeros([K + 1,
                                      (ws_size + self.fit_intercept) * n_tasks])
                 U = np.zeros([K, (ws_size + self.fit_intercept) * n_tasks])
 
@@ -178,7 +178,7 @@ class MultiTaskBCD:
                                 last_K_w[:-1] * c[:, None], axis=0).reshape(
                                     (ws_size + self.fit_intercept, n_tasks))
                             p_obj = datafit.value(Y, W, XW) + penalty.value(W)
-                            Xw_acc = (X[:, ws] @ W_acc[ws] 
+                            Xw_acc = (X[:, ws] @ W_acc[ws]
                                       + self.fit_intercept * W_acc[-1])
                             p_obj_acc = datafit.value(
                                 Y, W_acc, Xw_acc) + penalty.value(W_acc)
@@ -206,7 +206,7 @@ class MultiTaskBCD:
                     stop_crit_in = np.max(opt_ws)
                     if max(self.verbose - 1, 0):
                         print(f"Epoch {epoch + 1}, objective {p_obj:.10f}, "
-                            f"stopping crit {stop_crit_in:.2e}")
+                              f"stopping crit {stop_crit_in:.2e}")
                     if ws_size == n_features:
                         if stop_crit_in <= self.tol:
                             break

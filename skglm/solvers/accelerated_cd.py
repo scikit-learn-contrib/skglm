@@ -45,7 +45,7 @@ class AcceleratedCD:
     """
 
     def __init__(self, max_iter=50, max_epochs=50_000, p0=10,
-                 tol=1e-4, ws_strategy="subdiff", fit_intercept=True, 
+                 tol=1e-4, ws_strategy="subdiff", fit_intercept=True,
                  warm_start=False, verbose=0):
         self.max_iter = max_iter
         self.max_epochs = max_epochs

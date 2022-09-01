@@ -18,7 +18,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.multiclass import OneVsRestClassifier, check_classification_targets
 
 from skglm.utils import compiled_clone
-from skglm.solvers import AcceleratedCD, MultiTaskBCD 
+from skglm.solvers import AcceleratedCD, MultiTaskBCD
 from skglm.datafits import Quadratic, Logistic, QuadraticSVC, QuadraticMultiTask
 from skglm.penalties import L1, WeightedL1, L1_plus_L2, MCPenalty, IndicatorBox, L2_1
 
@@ -815,7 +815,7 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         Number of subproblems solved to reach the specified tolerance.
     """
 
-    def __init__(self, alpha=1.0, solver=None, tol=1e-4, fit_intercept=True, 
+    def __init__(self, alpha=1.0, solver=None, tol=1e-4, fit_intercept=True,
                  warm_start=False):
         super().__init__()
         self.alpha = alpha
@@ -991,7 +991,7 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
         Number of subproblems solved to reach the specified tolerance.
     """
 
-    def __init__(self, C=1., solver=None, tol=1e-4, fit_intercept=True, 
+    def __init__(self, C=1., solver=None, tol=1e-4, fit_intercept=True,
                  warm_start=False):
         super().__init__()
         self.C = C

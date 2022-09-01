@@ -52,7 +52,7 @@ class GramCD:
         self.tol = tol
         self.verbose = verbose
 
-    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+    def solve(self, X, y, model, datafit, penalty, w_init=None, Xw_init=None):
         n_samples, n_features = X.shape
 
         if issparse(X):

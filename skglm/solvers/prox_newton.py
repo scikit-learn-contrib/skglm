@@ -67,7 +67,7 @@ class ProxNewton:
     #         'verbose': self.verbose,
     #     }
 
-    def solve(self, X, y, datafit, penalty, w_init=None):
+    def solve(self, X, y, model, datafit, penalty, w_init=None):
         n_samples, n_features = X.shape
         w = np.zeros(n_features) if w_init is None else w_init
         Xw = np.zeros(n_samples) if w_init is None else X @ w_init

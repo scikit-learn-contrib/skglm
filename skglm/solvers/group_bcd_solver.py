@@ -4,28 +4,11 @@ from numba import njit
 from skglm.utils import AndersonAcceleration, check_group_compatible
 
 
-def group_bcd_solver(
-        X, y, datafit, penalty, fit_intercept=False, w_init=None,
-        Xw_init=None, p0=10, max_iter=1000, max_epochs=100, tol=1e-4, verbose=False):
-    """Run a group BCD solver.
+class GroupBCD:
+    """Block coordinate descent solver for group problems.
 
-    Parameters
+    Attributes
     ----------
-    X : array, shape (n_samples, n_features)
-        Design matrix.
-
-    y : array, shape (n_samples,)
-        Target vector.
-
-    datafit : instance of BaseDatafit
-        Datafit object.
-
-    penalty : instance of BasePenalty
-        Penalty object.
-
-    fit_intercept : bool
-        Whether or not to fit an intercept.
-
     w_init : array, shape (n_features,), default None
         Initial value of coefficients.
         If set to None, a zero vector is used instead.
@@ -48,109 +31,107 @@ def group_bcd_solver(
 
     verbose : bool, default False
         Amount of verbosity. 0/False is silent.
-
-    Returns
-    -------
-    w : array, shape (n_features + fit_intercept,)
-        Solution that minimizes the problem defined by datafit and penalty.
-
-    p_objs_out: array (max_iter,)
-        The objective values at every outer iteration.
-
-    stop_crit: float
-        The value of the stop criterion.
     """
-    check_group_compatible(datafit)
-    check_group_compatible(penalty)
 
-    n_samples, n_features = X.shape
-    n_groups = len(penalty.grp_ptr) - 1
+    def __init__(self, max_iter=1000, max_epochs=100, p0=10, tol=1e-4, verbose=0):
+        self.max_iter = max_iter
+        self.max_epochs = max_epochs
+        self.p0 = p0
+        self.tol = tol
+        self.verbose = verbose
 
-    w = np.zeros(n_features + fit_intercept) if w_init is None else w_init
-    Xw = np.zeros(n_samples) if w_init is None else Xw_init
+    def solve(self, X, y, model, datafit, penalty, w_init=None, Xw_init=None):
+        check_group_compatible(datafit)
+        check_group_compatible(penalty)
 
-    if len(w) != n_features + fit_intercept:
-        if fit_intercept:
-            val_error_message = (
-                "Inconsistent size of coefficients with n_features + 1\n"
-                f"expected {n_features + 1}, got {len(w)}")
-        else:
-            val_error_message = (
-                "Inconsistent size of coefficients with n_features\n"
-                f"expected {n_features}, got {len(w)}")
-        raise ValueError(val_error_message)
+        n_samples, n_features = X.shape
+        n_groups = len(penalty.grp_ptr) - 1
 
-    datafit.initialize(X, y)
-    all_groups = np.arange(n_groups)
-    p_objs_out = np.zeros(max_iter)
-    stop_crit = 0.  # prevent ref before assign when max_iter == 0
-    accelerator = AndersonAcceleration(K=5)
+        w = np.zeros(n_features + model.fit_intercept) if w_init is None else w_init
+        Xw = np.zeros(n_samples) if w_init is None else Xw_init
 
-    for t in range(max_iter):
-        grad = _construct_grad(X, y, w, Xw, datafit, all_groups)
-        opt = penalty.subdiff_distance(w, grad, all_groups)
+        if len(w) != n_features + model.fit_intercept:
+            if model.fit_intercept:
+                val_error_message = (
+                    "Inconsistent size of coefficients with n_features + 1\n"
+                    f"expected {n_features + 1}, got {len(w)}")
+            else:
+                val_error_message = (
+                    "Inconsistent size of coefficients with n_features\n"
+                    f"expected {n_features}, got {len(w)}")
+            raise ValueError(val_error_message)
 
-        if fit_intercept:
-            intercept_opt = np.abs(datafit.intercept_update_step(y, Xw))
-        else:
-            intercept_opt = 0.
+        datafit.initialize(X, y)
+        all_groups = np.arange(n_groups)
+        p_objs_out = np.zeros(self.max_iter)
+        stop_crit = 0.  # prevent ref before assign when max_iter == 0
+        accelerator = AndersonAcceleration(K=5)
 
-        stop_crit = max(np.max(opt), intercept_opt)
+        for t in range(self.max_iter):
+            grad = _construct_grad(X, y, w, Xw, datafit, all_groups)
+            opt = penalty.subdiff_distance(w, grad, all_groups)
 
-        if verbose:
-            p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-            print(
-                f"Iteration {t+1}: {p_obj:.10f}, "
-                f"stopping crit: {stop_crit:.2e}"
-            )
+            if model.fit_intercept:
+                intercept_opt = np.abs(datafit.intercept_update_step(y, Xw))
+            else:
+                intercept_opt = 0.
 
-        if stop_crit <= tol:
-            break
+            stop_crit = max(np.max(opt), intercept_opt)
 
-        gsupp_size = penalty.generalized_support(w).sum()
-        ws_size = max(min(p0, n_groups),
-                      min(n_groups, 2 * gsupp_size))
-        ws = np.argpartition(opt, -ws_size)[-ws_size:]  # k-largest items (no sort)
-
-        for epoch in range(max_epochs):
-            # inplace update of w and Xw
-            _bcd_epoch(X, y, w[:n_features], Xw, datafit, penalty, ws)
-
-            # update intercept
-            if fit_intercept:
-                intercept_old = w[-1]
-                w[-1] -= datafit.intercept_update_step(y, Xw)
-                Xw += (w[-1] - intercept_old)
-
-            w_acc, Xw_acc, is_extrapolated = accelerator.extrapolate(w, Xw)
-
-            if is_extrapolated:  # avoid computing p_obj for un-extrapolated w, Xw
+            if self.verbose:
                 p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-                p_obj_acc = datafit.value(y, w_acc, Xw_acc) + penalty.value(w_acc)
+                print(
+                    f"Iteration {t+1}: {p_obj:.10f}, "
+                    f"stopping crit: {stop_crit:.2e}"
+                )
 
-                if p_obj_acc < p_obj:
-                    w[:], Xw[:] = w_acc, Xw_acc
-                    p_obj = p_obj_acc
+            if stop_crit <= self.tol:
+                break
 
-            # check sub-optimality every 10 epochs
-            if epoch % 10 == 0:
-                grad_ws = _construct_grad(X, y, w, Xw, datafit, ws)
-                opt_in = penalty.subdiff_distance(w, grad_ws, ws)
-                stop_crit_in = np.max(opt_in)
+            gsupp_size = penalty.generalized_support(w).sum()
+            ws_size = max(min(self.p0, n_groups),
+                          min(n_groups, 2 * gsupp_size))
+            ws = np.argpartition(opt, -ws_size)[-ws_size:]  # k-largest items (no sort)
 
-                if max(verbose - 1, 0):
+            for epoch in range(self.max_epochs):
+                # inplace update of w and Xw
+                _bcd_epoch(X, y, w[:n_features], Xw, datafit, penalty, ws)
+
+                # update intercept
+                if model.fit_intercept:
+                    intercept_old = w[-1]
+                    w[-1] -= datafit.intercept_update_step(y, Xw)
+                    Xw += (w[-1] - intercept_old)
+
+                w_acc, Xw_acc, is_extrapolated = accelerator.extrapolate(w, Xw)
+
+                if is_extrapolated:  # avoid computing p_obj for un-extrapolated w, Xw
                     p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-                    print(
-                        f"Epoch {epoch + 1}, objective {p_obj:.10f}, "
-                        f"stopping crit {stop_crit_in:.2e}"
-                    )
+                    p_obj_acc = datafit.value(y, w_acc, Xw_acc) + penalty.value(w_acc)
 
-                if stop_crit_in <= 0.3 * stop_crit:
-                    break
-        p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-        p_objs_out[t] = p_obj
+                    if p_obj_acc < p_obj:
+                        w[:], Xw[:] = w_acc, Xw_acc
+                        p_obj = p_obj_acc
 
-    return w, p_objs_out, stop_crit
+                # check sub-optimality every 10 epochs
+                if epoch % 10 == 0:
+                    grad_ws = _construct_grad(X, y, w, Xw, datafit, ws)
+                    opt_in = penalty.subdiff_distance(w, grad_ws, ws)
+                    stop_crit_in = np.max(opt_in)
+
+                    if max(self.verbose - 1, 0):
+                        p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+                        print(
+                            f"Epoch {epoch + 1}, objective {p_obj:.10f}, "
+                            f"stopping crit {stop_crit_in:.2e}"
+                        )
+
+                    if stop_crit_in <= 0.3 * stop_crit:
+                        break
+            p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+            p_objs_out[t] = p_obj
+
+        return w, p_objs_out, stop_crit
 
 
 @njit

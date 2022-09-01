@@ -1,4 +1,3 @@
-# TODO this should be name accelerated_cd.py
 import numpy as np
 from numba import njit
 from scipy import sparse

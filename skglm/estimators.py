@@ -398,14 +398,10 @@ class Lasso(LinearModel, RegressorMixin):
         """
         penalty = compiled_clone(L1(self.alpha))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
-
-        # TODO missing import here
-        return cd_solver_path(
-            X, y, datafit, penalty, alphas=alphas,
-            coef_init=coef_init, max_iter=self.max_iter,
-            return_n_iter=return_n_iter, max_epochs=self.max_epochs,
-            p0=self.p0, tol=self.tol, verbose=self.verbose,
-            ws_strategy=self.ws_strategy)
+        self.solver = self.solver if self.solver else AcceleratedCD(
+            fit_intercept=self.fit_intercept, tol=self.tol, warm_start=self.warm_start)
+        return self.solver.path(X, y, datafit, penalty, alphas, coef_init,
+                                return_n_iter)
 
 
 class WeightedLasso(LinearModel, RegressorMixin):
@@ -506,12 +502,10 @@ class WeightedLasso(LinearModel, RegressorMixin):
 
         penalty = compiled_clone(WeightedL1(self.alpha, weights))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
-
-        return cd_solver_path(
-            X, y, datafit, penalty, alphas=alphas, coef_init=coef_init,
-            max_iter=self.max_iter, return_n_iter=return_n_iter,
-            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
-            verbose=self.verbose)
+        self.solver = self.solver if self.solver else AcceleratedCD(
+            fit_intercept=self.fit_intercept, tol=self.tol, warm_start=self.warm_start)
+        return self.solver.path(X, y, datafit, penalty, alphas, coef_init,
+                                return_n_iter)
 
     def fit(self, X, y):
         """Fit the model according to the given training data.
@@ -630,12 +624,10 @@ class ElasticNet(LinearModel, RegressorMixin):
         """
         penalty = compiled_clone(L1_plus_L2(self.alpha, self.l1_ratio))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
-
-        return cd_solver_path(
-            X, y, datafit, penalty, alphas=alphas, coef_init=coef_init,
-            max_iter=self.max_iter, return_n_iter=return_n_iter,
-            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
-            verbose=self.verbose)
+        self.solver = self.solver if self.solver else AcceleratedCD(
+            fit_intercept=self.fit_intercept, tol=self.tol, warm_start=self.warm_start)
+        return self.solver.path(X, y, datafit, penalty, alphas, coef_init,
+                                return_n_iter)
 
     def fit(self, X, y):
         """Fit the model according to the given training data.
@@ -754,12 +746,10 @@ class MCPRegression(LinearModel, RegressorMixin):
         """
         penalty = compiled_clone(MCPenalty(self.alpha, self.gamma))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
-
-        return cd_solver_path(
-            X, y, datafit, penalty, alphas=alphas, coef_init=coef_init,
-            max_iter=self.max_iter, return_n_iter=return_n_iter,
-            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
-            verbose=self.verbose)
+        self.solver = self.solver if self.solver else AcceleratedCD(
+            fit_intercept=self.fit_intercept, tol=self.tol, warm_start=self.warm_start)
+        return self.solver.path(X, y, datafit, penalty, alphas, coef_init,
+                                return_n_iter)
 
     def fit(self, X, y):
         """Fit the model according to the given training data.
@@ -886,12 +876,9 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         """
         penalty = compiled_clone(L1(self.alpha))
         datafit = compiled_clone(Logistic(), to_float32=X.dtype == np.float32)
-
-        return cd_solver_path(
-            X, y, datafit, penalty, alphas=alphas,
-            coef_init=coef_init, max_iter=self.max_iter,
-            return_n_iter=return_n_iter, max_epochs=self.max_epochs,
-            p0=self.p0, tol=self.tol, verbose=self.verbose)
+        self.solver = self.solver if self.solver else AcceleratedCD(
+            fit_intercept=self.fit_intercept, tol=self.tol, warm_start=self.warm_start)
+        return self.solver.path(X, y, datafit, penalty, alphas, coef_init)
 
     def predict_proba(self, X):
         """Probability estimates.
@@ -1143,7 +1130,7 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
 
         return self
 
-    def path(self, X, Y, alphas, coef_init=None, **params):
+    def path(self, X, Y, alphas, coef_init=None, return_n_iter=False, **params):
         """Compute MultitaskLasso path.
 
         Parameters
@@ -1179,7 +1166,7 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
         """
         datafit = compiled_clone(self.datafit, to_float32=X.dtype == np.float32)
         penalty = compiled_clone(self.penalty)
-
-        return multitask_bcd_solver_path(X, Y, datafit, penalty, alphas=alphas,
-                                         coef_init=coef_init,
-                                         fit_intercept=self.fit_intercept, tol=self.tol)
+        self.solver = self.solver if self.solver else MultiTaskBCD(
+            fit_intercept=self.fit_intercept, tol=self.tol, warm_start=self.warm_start)
+        return self.solver.path(X, Y, datafit, penalty, alphas, coef_init,
+                                return_n_iter)

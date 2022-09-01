@@ -83,7 +83,8 @@ class MultiTaskBCD:
 
         return results
 
-    def solve(self, X, Y, datafit, penalty, W_init=None, XW_init=None):
+    def solve(self, X, Y, datafit, penalty, W_init=None, XW_init=None,
+              return_n_iter=False):
         n_samples, n_features = X.shape
         n_tasks = Y.shape[1]
         pen = penalty.is_penalized(n_features)

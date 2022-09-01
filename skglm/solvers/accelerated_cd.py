@@ -196,7 +196,7 @@ class AcceleratedCD:
             obj_out.append(p_obj)
         return w, np.array(obj_out), stop_crit
 
-    def path(self, X, y, model, datafit, penalty, alphas=None, w_init=None,
+    def path(self, X, y, datafit, penalty, alphas=None, w_init=None, 
              return_n_iter=False):
         X = check_array(X, 'csc', dtype=[np.float64, np.float32],
                         order='F', copy=False, accept_large_sparse=False)

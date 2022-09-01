@@ -223,11 +223,11 @@ def multitask_bcd_solver(
         if fit_intercept:
             val_error_message = (
                 "W.shape[0] should be n_features + 1 when using fit_intercept=True: "
-                f"expected {n_features + 1}, got {len(W)}.")
+                f"expected {n_features + 1}, got {W.shape[0]}.")
         else:
             val_error_message = (
                 "W.shape[0] should be of size n_features: "
-                f"expected {n_features}, got {len(W)}.")
+                f"expected {n_features}, got {W.shape[0]}.")
         raise ValueError(val_error_message)
 
     is_sparse = sparse.issparse(X)

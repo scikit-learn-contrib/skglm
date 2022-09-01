@@ -175,12 +175,12 @@ def test_generic_estimator(
     elif Datafit == Logistic and fit_intercept:
         pytest.xfail("TODO support intercept in Logistic datafit")
     else:
+        solver = AcceleratedCD(tol=tol, fit_intercept=fit_intercept)
         target = Y if Datafit == QuadraticMultiTask else y
         gle = GeneralizedLinearEstimator(
-            Datafit(), Penalty(*pen_args), solver, is_classif,
-            fit_intercept=fit_intercept).fit(X, target)
+            Datafit(), Penalty(*pen_args), solver, is_classif).fit(X, target)
         est = Estimator(
-            *pen_args, solver=solver, fit_intercept=fit_intercept).fit(X, target)
+            *pen_args, solver=solver).fit(X, target)
         np.testing.assert_allclose(gle.coef_, est.coef_, rtol=1e-5)
         np.testing.assert_allclose(gle.intercept_, est.intercept_)
 
@@ -205,7 +205,7 @@ def test_estimator_predict(Datafit, Penalty, Estimator_sk):
     }
     X_test = np.random.normal(0, 1, (n_samples, n_features))
     clf = GeneralizedLinearEstimator(
-        Datafit(), Penalty(1.), solver, is_classif, fit_intercept=False).fit(X, y)
+        Datafit(), Penalty(1.), AcceleratedCD(fit_intercept=False), is_classif).fit(X, y)
     clf_sk = Estimator_sk(**estim_args[Estimator_sk]).fit(X, y)
     y_pred = clf.predict(X_test)
     y_pred_sk = clf_sk.predict(X_test)

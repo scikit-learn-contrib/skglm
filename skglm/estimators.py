@@ -24,10 +24,11 @@ from skglm.penalties import L1, WeightedL1, L1_plus_L2, MCPenalty, IndicatorBox,
 
 
 def _glm_fit(X, y, model, datafit, penalty, solver):
+    fit_intercept = solver.fit_intercept
     is_classif = False
     if isinstance(datafit, Logistic) or isinstance(datafit, QuadraticSVC):
         is_classif = True
-    
+
     if is_classif:
         check_classification_targets(y)
         enc = LabelEncoder()
@@ -45,7 +46,7 @@ def _glm_fit(X, y, model, datafit, penalty, solver):
     else:
         check_X_params = dict(
             dtype=[np.float64, np.float32], order='F',
-            accept_sparse='csc', copy=model.fit_intercept)
+            accept_sparse='csc', copy=fit_intercept)
         check_y_params = dict(ensure_2d=False, order='F')
 
         X, y = model._validate_data(
@@ -68,7 +69,8 @@ def _glm_fit(X, y, model, datafit, penalty, solver):
         raise ValueError("X and y have inconsistent dimensions (%d != %d)"
                          % (n_samples, y.shape[0]))
 
-    if not model.warm_start or not hasattr(model, "coef_"):
+    # if not model.warm_start or not hasattr(model, "coef_"):
+    if not solver.warm_start or not hasattr(model, "coef_"):
         model.coef_ = None
 
     if is_classif and n_classes_ > 2:
@@ -105,23 +107,25 @@ def _glm_fit(X, y, model, datafit, penalty, solver):
     else:
         datafit_jit.initialize(X_, y)
 
-    if model.warm_start and hasattr(model, 'coef_') and model.coef_ is not None:
+    # if model.warm_start and hasattr(model, 'coef_') and model.coef_ is not None:
+    if solver.warm_start and hasattr(model, 'coef_') and model.coef_ is not None:
         if isinstance(datafit, QuadraticSVC):
             w = model.dual_coef_[0, :].copy()
         elif is_classif:
             w = model.coef_[0, :].copy()
         else:
             w = model.coef_.copy()
-        if model.fit_intercept:
+        if fit_intercept:
             w = np.hstack([w, model.intercept_])
-        Xw = X_ @ w[:w.shape[0] - model.fit_intercept] + model.fit_intercept * w[-1]
+        Xw = X_ @ w[:w.shape[0] - fit_intercept] + fit_intercept * w[-1]
     else:
         # TODO this should be solver.get_init() do delegate the work
         if y.ndim == 1:
-            w = np.zeros(n_features + model.fit_intercept, dtype=X_.dtype)
+            w = np.zeros(n_features + solver.fit_intercept, dtype=X_.dtype)
             Xw = np.zeros(n_samples, dtype=X_.dtype)
         else:  # multitask
-            w = np.zeros((n_features + model.fit_intercept, y.shape[1]), dtype=X_.dtype)
+            w = np.zeros((n_features + solver.fit_intercept,
+                         y.shape[1]), dtype=X_.dtype)
             Xw = np.zeros(y.shape, dtype=X_.dtype)
 
     # check consistency of weights for WeightedL1
@@ -134,9 +138,9 @@ def _glm_fit(X, y, model, datafit, penalty, solver):
     coefs, p_obj, kkt = solver.solve(X_, y, datafit_jit, penalty_jit, w, Xw)
     model.coef_, model.stop_crit_ = coefs[:n_features], kkt
     if y.ndim == 1:
-        model.intercept_ = coefs[-1] if model.fit_intercept else 0.
+        model.intercept_ = coefs[-1] if fit_intercept else 0.
     else:
-        model.intercept_ = coefs[-1, :] if model.fit_intercept else np.zeros(
+        model.intercept_ = coefs[-1, :] if fit_intercept else np.zeros(
             y.shape[1])
 
     model.n_iter_ = len(p_obj)
@@ -193,14 +197,15 @@ class GeneralizedLinearEstimator(LinearModel):
     """
 
     def __init__(self, datafit=None, penalty=None, solver=None, is_classif=False,
-                 fit_intercept=True, warm_start=False):
+                 #  fit_intercept=True, warm_start=False):
+                 ):
         super(GeneralizedLinearEstimator, self).__init__()
         self.is_classif = is_classif
         self.penalty = penalty
         self.datafit = datafit
         self.solver = solver
-        self.fit_intercept = fit_intercept
-        self.warm_start = warm_start
+        # self.fit_intercept = fit_intercept
+        # self.warm_start = warm_start
 
     def __repr__(self):
         """Get string representation of the estimator.
@@ -242,8 +247,9 @@ class GeneralizedLinearEstimator(LinearModel):
         """
         self.penalty = self.penalty if self.penalty else L1(1.)
         self.datafit = self.datafit if self.datafit else Quadratic()
-        self.solver = self.solver if self.solver else AcceleratedCD(
-            fit_intercept=self.fit_intercept, warm_start=self.warm_start)
+        # self.solver = self.solver if self.solver else AcceleratedCD(
+        # fit_intercept=self.fit_intercept, warm_start=self.warm_start)
+        self.solver = self.solver if self.solver else AcceleratedCD()
         return _glm_fit(X, y, self, self.datafit, self.penalty, self.solver)
 
     def predict(self, X):

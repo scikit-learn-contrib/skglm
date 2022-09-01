@@ -1159,8 +1159,8 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
-        datafit = compiled_clone(self.datafit, to_float32=X.dtype == np.float32)
-        penalty = compiled_clone(self.penalty)
+        datafit = compiled_clone(QuadraticMultiTask(), to_float32=X.dtype == np.float32)
+        penalty = compiled_clone(L2_1(self.alpha))
         self.solver = self.solver if self.solver else MultiTaskBCD(
             fit_intercept=self.fit_intercept, tol=self.tol, warm_start=self.warm_start)
         return self.solver.path(X, Y, datafit, penalty, alphas, coef_init,

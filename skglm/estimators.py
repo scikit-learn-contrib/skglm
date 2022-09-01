@@ -243,7 +243,7 @@ class GeneralizedLinearEstimator(LinearModel):
         self.penalty = self.penalty if self.penalty else L1(1.)
         self.datafit = self.datafit if self.datafit else Quadratic()
         self.solver = self.solver if self.solver else AcceleratedCD(
-            fit_intercept=self.fit_intercept)
+            fit_intercept=self.fit_intercept, warm_start=self.warm_start)
         return _glm_fit(X, y, self, self.datafit, self.penalty, self.solver)
 
     def predict(self, X):
@@ -356,7 +356,7 @@ class Lasso(LinearModel, RegressorMixin):
             Fitted estimator.
         """
         self.solver = self.solver if self.solver else AcceleratedCD(
-            fit_intercept=self.fit_intercept, tol=self.tol)
+            fit_intercept=self.fit_intercept, tol=self.tol, warm_start=self.warm_start)
         return _glm_fit(X, y, self, Quadratic(), L1(self.alpha), self.solver)
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
@@ -536,7 +536,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
         else:
             penalty = WeightedL1(self.alpha, self.weights)
         self.solver = self.solver if self.solver else AcceleratedCD(
-            fit_intercept=self.fit_intercept, tol=self.tol)
+            fit_intercept=self.fit_intercept, tol=self.tol, warm_start=self.warm_start)
         return _glm_fit(X, y, self, Quadratic(), penalty, self.solver)
 
 
@@ -654,7 +654,7 @@ class ElasticNet(LinearModel, RegressorMixin):
             Fitted estimator.
         """
         self.solver = self.solver if self.solver else AcceleratedCD(
-            fit_intercept=self.fit_intercept, tol=self.tol)
+            fit_intercept=self.fit_intercept, tol=self.tol, warm_start=self.warm_start)
         return _glm_fit(X, y, self, Quadratic(),
                         L1_plus_L2(self.alpha, self.l1_ratio), self.solver)
 
@@ -778,7 +778,7 @@ class MCPRegression(LinearModel, RegressorMixin):
             Fitted estimator.
         """
         self.solver = self.solver if self.solver else AcceleratedCD(
-            fit_intercept=self.fit_intercept, tol=self.tol)
+            fit_intercept=self.fit_intercept, tol=self.tol, warm_start=self.warm_start)
         return _glm_fit(X, y, self, Quadratic(), MCPenalty(self.alpha, self.gamma),
                         self.solver)
 
@@ -841,7 +841,8 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         self :
             Fitted estimator.
         """
-        self.solver = self.solver if self.solver else ProxNewton(tol=self.tol)
+        self.solver = self.solver if self.solver else ProxNewton(
+            tol=self.tol, fit_intercept=self.fit_intercept, warm_start=self.warm_start)
         return _glm_fit(X, y, self, Logistic(), L1(self.alpha), self.solver)
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
@@ -1017,7 +1018,7 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
             Fitted estimator.
         """
         self.solver = self.solver if self.solver else AcceleratedCD(
-            fit_intercept=self.fit_intercept, tol=self.tol)
+            fit_intercept=self.fit_intercept, tol=self.tol, warm_start=self.warm_start)
         return _glm_fit(X, y, self, QuadraticSVC(), IndicatorBox(self.C), self.solver)
 
     # TODO add predict_proba for LinearSVC
@@ -1075,17 +1076,13 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
         Number of subproblems solved by Celer to reach the specified tolerance.
     """
 
-    def __init__(self, alpha=1., max_iter=100,
-                 max_epochs=50000, p0=10, verbose=0, tol=1e-4,
+    def __init__(self, alpha=1., tol=1e-4, verbose=0, solver=None,
                  fit_intercept=True, warm_start=False):
         super().__init__(
-            alpha=alpha, tol=tol, max_iter=max_iter,
+            alpha=alpha, tol=tol,
             fit_intercept=fit_intercept, warm_start=warm_start)
         self.verbose = verbose
-        self.max_epochs = max_epochs
-        self.p0 = p0
-        self.datafit = QuadraticMultiTask()
-        self.penalty = L2_1(alpha)
+        self.solver = solver
 
     def fit(self, X, Y):
         """Fit MultiTaskLasso model.
@@ -1130,11 +1127,14 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
         if not self.warm_start or not hasattr(self, "coef_"):
             self.coef_ = None
 
-        _, coefs, kkt = self.path(
-            X, Y, alphas=[self.alpha],
-            coef_init=self.coef_, max_iter=self.max_iter,
-            max_epochs=self.max_epochs, p0=self.p0, verbose=self.verbose,
-            tol=self.tol)
+        # _, coefs, kkt = self.path(
+        #     X, Y, alphas=[self.alpha],
+        #     coef_init=self.coef_, max_iter=self.max_iter,
+        #     max_epochs=self.max_epochs, p0=self.p0, verbose=self.verbose,
+        #     tol=self.tol)
+        self.solver = self.solver if self.solver else MultiTaskBCD(
+            fit_intercept=self.fit_intercept, tol=self.tol, warm_start=self.warm_start)
+        _, coefs, kkt = self.solver.solve(X, Y, QuadraticMultiTask(), L2_1(self.alpha))
 
         self.coef_ = coefs[:, :X.shape[1], 0]
         self.intercept_ = self.fit_intercept * coefs[:, -1, 0]

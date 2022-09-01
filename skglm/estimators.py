@@ -132,7 +132,7 @@ def _glm_fit(X, y, model, datafit, penalty, solver):
                 "The size of the WeightedL1 penalty weights should be n_features, "
                 "expected %i, got %i." % (X_.shape[1], len(penalty.weights)))
 
-    coefs, p_obj, kkt = solver.solve(X_, y, datafit_jit, penalty_jit, w, Xw)
+    coefs, p_obj, kkt = solver.solve(X_, y, model, datafit_jit, penalty_jit, w, Xw)
     model.coef_, model.stop_crit_ = coefs[:n_features], kkt
     if y.ndim == 1:
         model.intercept_ = coefs[-1] if model.fit_intercept else 0.
@@ -447,9 +447,12 @@ class WeightedLasso(LinearModel, RegressorMixin):
     Supports weights equal to 0, i.e. unpenalized features.
     """
 
-    def __init__(self, alpha=1., weights=None, solver=None):
+    def __init__(self, alpha=1., fit_intercept=True, warm_start=False, weights=None,
+                 solver=None):
         super().__init__()
         self.alpha = alpha
+        self.warm_start = warm_start
+        self.fit_intercept = fit_intercept
         self.weights = weights
         self.solver = solver if solver else AcceleratedCD()
 

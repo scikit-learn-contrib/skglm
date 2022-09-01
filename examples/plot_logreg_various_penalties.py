@@ -41,7 +41,7 @@ y_pred_enet = clf_enet.fit(X_train, y_train).predict(X_test)
 f1_score_enet = f1_score(y_test, y_pred_enet)
 
 clf_mcp = GeneralizedLinearEstimator(
-    Logistic(), MCPenalty(alpha, gamma), is_classif=True, verbose=0)
+    Logistic(), MCPenalty(alpha, gamma), is_classif=True)
 y_pred_mcp = clf_mcp.fit(X_train, y_train).predict(X_test)
 f1_score_mcp = f1_score(y_test, y_pred_mcp)
 

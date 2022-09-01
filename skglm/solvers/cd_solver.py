@@ -1,3 +1,4 @@
+# TODO this should be name accelerated_cd.py
 import numpy as np
 from numba import njit
 from scipy import sparse
@@ -44,9 +45,8 @@ class AcceleratedCD:
            code: https://github.com/mathurinm/andersoncd
     """
 
-    def __init__(self, fit_intercept=True, max_iter=50, max_epochs=50_000, p0=10,
+    def __init__(self, max_iter=50, max_epochs=50_000, p0=10,
                  tol=1e-4, ws_strategy="subdiff", verbose=0):
-        self.fit_intercept = fit_intercept
         self.max_iter = max_iter
         self.max_epochs = max_epochs
         self.p0 = p0
@@ -54,7 +54,7 @@ class AcceleratedCD:
         self.ws_strategy = ws_strategy
         self.verbose = verbose
 
-    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+    def solve(self, X, y, model, datafit, penalty, w_init=None, Xw_init=None):
         if self.ws_strategy not in ("subdiff", "fixpoint"):
             raise ValueError(
                 'Unsupported value for self.ws_strategy:', self.ws_strategy)
@@ -68,7 +68,7 @@ class AcceleratedCD:
         obj_out = []
         all_feats = np.arange(n_features)
         stop_crit = np.inf  # initialize for case n_iter=0
-        w_acc, Xw_acc = np.zeros(n_features + self.fit_intercept), np.zeros(n_samples)
+        w_acc, Xw_acc = np.zeros(n_features + model.fit_intercept), np.zeros(n_samples)
 
         is_sparse = sparse.issparse(X)
         if is_sparse:
@@ -76,8 +76,8 @@ class AcceleratedCD:
         else:
             datafit.initialize(X, y)
 
-        if len(w) != n_features + self.fit_intercept:
-            if self.fit_intercept:
+        if len(w) != n_features + model.fit_intercept:
+            if model.fit_intercept:
                 val_error_message = (
                     "Inconsistent size of coefficients with n_features + 1\n"
                     f"expected {n_features + 1}, got {len(w)}")
@@ -102,7 +102,7 @@ class AcceleratedCD:
             elif self.ws_strategy == "fixpoint":
                 opt = dist_fix_point(w[:n_features], grad, datafit, penalty, all_feats)
 
-            if self.fit_intercept:
+            if model.fit_intercept:
                 intercept_opt = np.abs(datafit.intercept_update_step(y, Xw))
             else:
                 intercept_opt = 0.
@@ -128,7 +128,7 @@ class AcceleratedCD:
             accelerator = AndersonAcceleration(K=5)
             w_acc[:] = 0.
             # ws to be used in AndersonAcceleration
-            ws_intercept = np.append(ws, -1) if self.fit_intercept else ws
+            ws_intercept = np.append(ws, -1) if model.fit_intercept else ws
 
             if self.verbose:
                 print(f'Iteration {t + 1}, {ws_size} feats in subpb.')
@@ -144,7 +144,7 @@ class AcceleratedCD:
                     _cd_epoch(X, y, w[:n_features], Xw, datafit, penalty, ws)
 
                 # update intercept
-                if self.fit_intercept:
+                if model.fit_intercept:
                     intercept_old = w[-1]
                     w[-1] -= datafit.intercept_update_step(y, Xw)
                     Xw += (w[-1] - intercept_old)
@@ -194,7 +194,7 @@ class AcceleratedCD:
             obj_out.append(p_obj)
         return w, np.array(obj_out), stop_crit
 
-    def path(self, X, y, datafit, penalty, alphas=None, w_init=None,
+    def path(self, X, y, model, datafit, penalty, alphas=None, w_init=None,
              return_n_iter=False):
         X = check_array(X, 'csc', dtype=[np.float64, np.float32],
                         order='F', copy=False, accept_large_sparse=False)
@@ -225,7 +225,7 @@ class AcceleratedCD:
             # alphas = np.sort(alphas)[::-1]
 
         n_alphas = len(alphas)
-        coefs = np.zeros((n_features + self.fit_intercept, n_alphas), order='F',
+        coefs = np.zeros((n_features + model.fit_intercept, n_alphas), order='F',
                          dtype=X.dtype)
         stop_crits = np.zeros(n_alphas)
         p0 = self.p0
@@ -251,12 +251,12 @@ class AcceleratedCD:
                     supp_size = penalty.generalized_support(w[:n_features]).sum()
                     p0 = max(supp_size, p0)
                     if supp_size:
-                        Xw = X @ w[:n_features] + self.fit_intercept * w[-1]
+                        Xw = X @ w[:n_features] + model.fit_intercept * w[-1]
                     # TODO explain/clean this hack
                     else:
                         Xw = np.zeros_like(y)
                 else:
-                    w = np.zeros(n_features + self.fit_intercept, dtype=X.dtype)
+                    w = np.zeros(n_features + model.fit_intercept, dtype=X.dtype)
                     Xw = np.zeros(X.shape[0], dtype=X.dtype)
 
             sol = self.solve(X, y, datafit, penalty, w, Xw)

@@ -222,12 +222,12 @@ def multitask_bcd_solver(
     if W.shape[0] != n_features + fit_intercept:
         if fit_intercept:
             val_error_message = (
-                "Inconsistent size of coefficients with n_features + 1\n"
-                f"expected {n_features + 1}, got {W.shape[0]}")
+                "W.shape[0] should be n_features + 1 when using fit_intercept=True: "
+                f"expected {n_features + 1}, got {len(w)}.")
         else:
             val_error_message = (
-                "Inconsistent size of coefficients with n_features\n"
-                f"expected {n_features}, got {W.shape[0]}")
+                "W.shape[0] should be of size n_features: "
+                f"expected {n_features}, got {len(w)}.")
         raise ValueError(val_error_message)
 
     is_sparse = sparse.issparse(X)

@@ -313,6 +313,16 @@ class Lasso(LinearModel, RegressorMixin):
     alpha : float, optional
         Penalty strength.
 
+    tol : float, optional
+        Stopping criterion for the optimization.
+
+    fit_intercept : bool, optional (default=True)
+        Whether or not to fit an intercept.
+
+    warm_start : bool, optional (default=False)
+        When set to True, reuse the solution of the previous call to fit as
+        initialization, otherwise, just erase the previous solution.
+
     solver : instance of BaseSolver, optional
         Solver. If None, `solver` is initialized as an `AcceleratedCD` solver.
 
@@ -336,8 +346,8 @@ class Lasso(LinearModel, RegressorMixin):
     MCPRegression : Sparser regularization than L1 norm.
     """
 
-    def __init__(self, alpha=1., solver=None, tol=1e-4, fit_intercept=True,
-                 warm_start=False):
+    def __init__(self, alpha=1., tol=1e-4, fit_intercept=True,
+                 warm_start=False, solver=None):
         super().__init__()
         self.alpha = alpha
         self.solver = solver
@@ -426,6 +436,16 @@ class WeightedLasso(LinearModel, RegressorMixin):
         Positive weights used in the L1 penalty part of the Lasso
         objective. If None, weights equal to 1 are used.
 
+    tol : float, optional
+        Stopping criterion for the optimization.
+
+    fit_intercept : bool, optional (default=True)
+        Whether or not to fit an intercept.
+
+    warm_start : bool, optional (default=False)
+        When set to True, reuse the solution of the previous call to fit as
+        initialization, otherwise, just erase the previous solution.
+
     solver : instance of BaseSolver, optional
         Solver. If None, `solver` is initialized as a `AcceleratedCD` solver.
 
@@ -459,9 +479,9 @@ class WeightedLasso(LinearModel, RegressorMixin):
         self.alpha = alpha
         self.weights = weights
         self.tol = tol
-        self.solver = solver
         self.fit_intercept = fit_intercept
         self.warm_start = warm_start
+        self.solver = solver
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
         """Compute Weighted Lasso path.
@@ -559,6 +579,16 @@ class ElasticNet(LinearModel, RegressorMixin):
         is an L1 penalty.  For ``0 < l1_ratio < 1``, the penalty is a
         combination of L1 and L2.
 
+    tol : float, optional
+        Stopping criterion for the optimization.
+
+    fit_intercept : bool, optional (default=True)
+        Whether or not to fit an intercept.
+
+    warm_start : bool, optional (default=False)
+        When set to True, reuse the solution of the previous call to fit as
+        initialization, otherwise, just erase the previous solution.
+
     solver : instance of BaseSolver
         Solver. If None, `solver` is initialized as a `AcceleratedCD` solver.
 
@@ -581,15 +611,15 @@ class ElasticNet(LinearModel, RegressorMixin):
     Lasso : Lasso regularization.
     """
 
-    def __init__(self, alpha=1., l1_ratio=0.5, tol=1e-4, solver=None,
-                 fit_intercept=True, warm_start=False):
+    def __init__(self, alpha=1., l1_ratio=0.5, tol=1e-4,
+                 fit_intercept=True, warm_start=False, solver=None,):
         super().__init__()
         self.alpha = alpha
         self.l1_ratio = l1_ratio
-        self.solver = solver
         self.tol = tol
         self.fit_intercept = fit_intercept
         self.warm_start = warm_start
+        self.solver = solver
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
         """Compute Elastic Net path.
@@ -681,6 +711,16 @@ class MCPRegression(LinearModel, RegressorMixin):
         If gamma = np.inf it is a soft thresholding.
         Should be larger than (or equal to) 1.
 
+    tol : float, optional
+        Stopping criterion for the optimization.
+
+    fit_intercept : bool, optional (default=True)
+        Whether or not to fit an intercept.
+
+    warm_start : bool, optional (default=False)
+        When set to True, reuse the solution of the previous call to fit as
+        initialization, otherwise, just erase the previous solution.
+
     solver : instance of BaseSolver
         Solver. If None, `solver` is initialized as a `AcceleratedCD` solver.
 
@@ -703,8 +743,8 @@ class MCPRegression(LinearModel, RegressorMixin):
     Lasso : Lasso regularization.
     """
 
-    def __init__(self, alpha=1., gamma=3, solver=None, fit_intercept=True, tol=1e-4,
-                 warm_start=False):
+    def __init__(self, alpha=1., gamma=3, tol=1e-4, fit_intercept=True,
+                 warm_start=False, solver=None, ):
         super().__init__()
         self.alpha = alpha
         self.gamma = gamma
@@ -791,6 +831,16 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
     alpha : float, default=1.0
         Regularization strength; must be a positive float.
 
+    tol : float, optional
+        Stopping criterion for the optimization.
+
+    fit_intercept : bool, optional (default=True)
+        Whether or not to fit an intercept.
+
+    warm_start : bool, optional (default=False)
+        When set to True, reuse the solution of the previous call to fit as
+        initialization, otherwise, just erase the previous solution.
+
     solver : instance of BaseSolver
         Solver. If None, `solver` is initialized as a `AcceleratedCD` solver.
 
@@ -811,14 +861,14 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         Number of subproblems solved to reach the specified tolerance.
     """
 
-    def __init__(self, alpha=1.0, solver=None, tol=1e-4, fit_intercept=True,
-                 warm_start=False):
+    def __init__(self, alpha=1.0, tol=1e-4, fit_intercept=True,
+                 warm_start=False, solver=None):
         super().__init__()
         self.alpha = alpha
-        self.solver = solver
         self.tol = tol
         self.fit_intercept = fit_intercept
         self.warm_start = warm_start
+        self.solver = solver
 
     def fit(self, X, y):
         """Fit the model according to the given training data.
@@ -964,6 +1014,16 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
         Regularization parameter. The strength of the regularization is
         inversely proportional to C. Must be strictly positive.
 
+    tol : float, optional
+        Stopping criterion for the optimization.
+
+    fit_intercept : bool, optional (default=True)
+        Whether or not to fit an intercept.
+
+    warm_start : bool, optional (default=False)
+        When set to True, reuse the solution of the previous call to fit as
+        initialization, otherwise, just erase the previous solution.
+
     solver : instance of BaseSolver
         Solver. If None, `solver` is initialized as a `AcceleratedCD` solver.
 
@@ -985,8 +1045,8 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
         Number of subproblems solved to reach the specified tolerance.
     """
 
-    def __init__(self, C=1., solver=None, tol=1e-4, fit_intercept=True,
-                 warm_start=False):
+    def __init__(self, C=1., tol=1e-4, fit_intercept=True,
+                 warm_start=False, solver=None,):
         super().__init__()
         self.C = C
         self.solver = solver
@@ -1029,15 +1089,6 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
     ----------
     alpha : float, optional
         Regularization strength (constant that multiplies the L21 penalty).
-
-    max_iter : int, optional
-        Maximum number of iterations (subproblem definitions).
-
-    max_epochs : int
-        Maximum number of CD epochs on each subproblem.
-
-    p0 : int
-        First working set size.
 
     verbose : bool or int
         Amount of verbosity.

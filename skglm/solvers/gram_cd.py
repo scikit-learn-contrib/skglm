@@ -6,9 +6,8 @@ from scipy.sparse import issparse
 from skglm.utils import AndersonAcceleration
 
 
-def gram_cd_solver(X, y, penalty, max_iter=100, w_init=None,
-                   use_acc=True, greedy_cd=True, tol=1e-4, verbose=False):
-    r"""Run coordinate descent while keeping the gradients up-to-date with Gram updates.
+class GramCD:
+    r"""Coordinate descent solver keeping the gradients up-to-date with Gram updates.
 
     This solver should be used when n_features < n_samples, and computes the
     (n_features, n_features) Gram matrix which comes with an overhead. It is  only
@@ -23,17 +22,8 @@ def gram_cd_solver(X, y, penalty, max_iter=100, w_init=None,
     where::
         Q = X.T @ X (gram matrix), and q = X.T @ y
 
-    Parameters
+    Attributes
     ----------
-    X : array or sparse CSC matrix, shape (n_samples, n_features)
-        Design matrix.
-
-    y : array, shape (n_samples,)
-        Target vector.
-
-    penalty : instance of BasePenalty
-        Penalty object.
-
     max_iter : int, default 100
         Maximum number of iterations.
 
@@ -53,85 +43,85 @@ def gram_cd_solver(X, y, penalty, max_iter=100, w_init=None,
 
     verbose : bool, default False
         Amount of verbosity. 0/False is silent.
-
-    Returns
-    -------
-    w : array, shape (n_features,)
-        Solution that minimizes the problem defined by datafit and penalty.
-
-    objs_out : array, shape (n_iter,)
-        The objective values at every outer iteration.
-
-    stop_crit : float
-        The value of the stopping criterion when the solver stops.
     """
-    n_samples, n_features = X.shape
 
-    if issparse(X):
-        scaled_gram = X.T.dot(X)
-        scaled_gram = scaled_gram.toarray() / n_samples
-        scaled_Xty = X.T.dot(y) / n_samples
-    else:
-        scaled_gram = X.T @ X / n_samples
-        scaled_Xty = X.T @ y / n_samples
-    # TODO potential improvement: allow to pass scaled_gram (e.g. for path computation)
+    def __init__(self, max_iter=100, use_acc=True, greedy_cd=True, tol=1e-4, verbose=0):
+        self.max_iter = max_iter
+        self.use_acc = use_acc
+        self.greedy_cd = greedy_cd
+        self.tol = tol
+        self.verbose = verbose
 
-    scaled_y_norm2 = np.linalg.norm(y)**2 / (2*n_samples)
+    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+        n_samples, n_features = X.shape
 
-    all_features = np.arange(n_features)
-    stop_crit = np.inf  # prevent ref before assign
-    p_objs_out = []
+        if issparse(X):
+            scaled_gram = X.T.dot(X)
+            scaled_gram = scaled_gram.toarray() / n_samples
+            scaled_Xty = X.T.dot(y) / n_samples
+        else:
+            scaled_gram = X.T @ X / n_samples
+            scaled_Xty = X.T @ y / n_samples
 
-    w = np.zeros(n_features) if w_init is None else w_init
-    grad = - scaled_Xty if w_init is None else scaled_gram @ w_init - scaled_Xty
-    opt = penalty.subdiff_distance(w, grad, all_features)
+        # TODO potential improvement: allow to pass scaled_gram
+        # (e.g. for path computation)
+        scaled_y_norm2 = np.linalg.norm(y) ** 2 / (2 * n_samples)
 
-    if use_acc:
-        if greedy_cd:
-            warnings.warn(
-                "Anderson acceleration does not work with greedy_cd, set use_acc=False",
-                UserWarning)
-        accelerator = AndersonAcceleration(K=5)
-        w_acc = np.zeros(n_features)
-        grad_acc = np.zeros(n_features)
+        all_features = np.arange(n_features)
+        stop_crit = np.inf  # prevent ref before assign
+        p_objs_out = []
 
-    for t in range(max_iter):
-        # check convergences
-        stop_crit = np.max(opt)
-        if verbose:
-            p_obj = (0.5 * w @ (scaled_gram @ w) - scaled_Xty @ w +
-                     scaled_y_norm2 + penalty.value(w))
-            print(
-                f"Iteration {t+1}: {p_obj:.10f}, "
-                f"stopping crit: {stop_crit:.2e}"
-            )
+        w = np.zeros(n_features) if w_init is None else w_init
+        grad = - scaled_Xty if w_init is None else scaled_gram @ w_init - scaled_Xty
+        opt = penalty.subdiff_distance(w, grad, all_features)
 
-        if stop_crit <= tol:
-            if verbose:
-                print(f"Stopping criterion max violation: {stop_crit:.2e}")
-            break
+        if self.use_acc:
+            if self.greedy_cd:
+                warnings.warn(
+                    "Anderson acceleration does not work with greedy_cd, " + \
+                    "set use_acc=False", UserWarning)
+            accelerator = AndersonAcceleration(K=5)
+            w_acc = np.zeros(n_features)
+            grad_acc = np.zeros(n_features)
 
-        # inplace update of w, grad
-        opt = _gram_cd_epoch(scaled_gram, w, grad, penalty, greedy_cd)
+        for t in range(self.max_iter):
+            # check convergences
+            stop_crit = np.max(opt)
+            if self.verbose:
+                p_obj = (0.5 * w @ (scaled_gram @ w) - scaled_Xty @ w +
+                         scaled_y_norm2 + penalty.value(w))
+                print(
+                    f"Iteration {t+1}: {p_obj:.10f}, "
+                    f"stopping crit: {stop_crit:.2e}"
+                )
 
-        # perform Anderson extrapolation
-        if use_acc:
-            w_acc, grad_acc, is_extrapolated = accelerator.extrapolate(w, grad)
+            if stop_crit <= self.tol:
+                if self.verbose:
+                    print(f"Stopping criterion max violation: {stop_crit:.2e}")
+                break
 
-            if is_extrapolated:
-                # omit constant term for comparison
-                p_obj_acc = (0.5 * w_acc @ (scaled_gram @ w_acc) - scaled_Xty @ w_acc +
-                             penalty.value(w_acc))
-                p_obj = 0.5 * w @ (scaled_gram @ w) - scaled_Xty @ w + penalty.value(w)
-                if p_obj_acc < p_obj:
-                    w[:] = w_acc
-                    grad[:] = grad_acc
+            # inplace update of w, grad
+            opt = _gram_cd_epoch(scaled_gram, w, grad, penalty, self.greedy_cd)
 
-        # store p_obj
-        p_obj = (0.5 * w @ (scaled_gram @ w) - scaled_Xty @ w + scaled_y_norm2 +
-                 penalty.value(w))
-        p_objs_out.append(p_obj)
-    return w, np.array(p_objs_out), stop_crit
+            # perform Anderson extrapolation
+            if self.use_acc:
+                w_acc, grad_acc, is_extrapolated = accelerator.extrapolate(w, grad)
+
+                if is_extrapolated:
+                    # omit constant term for comparison
+                    p_obj_acc = (0.5 * w_acc @ (scaled_gram @ w_acc) -
+                                 scaled_Xty @ w_acc + penalty.value(w_acc))
+                    p_obj = (0.5 * w @ (scaled_gram @ w) - scaled_Xty @ w
+                             + penalty.value(w))
+                    if p_obj_acc < p_obj:
+                        w[:] = w_acc
+                        grad[:] = grad_acc
+
+            # store p_obj
+            p_obj = (0.5 * w @ (scaled_gram @ w) - scaled_Xty @ w + scaled_y_norm2 +
+                     penalty.value(w))
+            p_objs_out.append(p_obj)
+        return w, np.array(p_objs_out), stop_crit
 
 
 @njit

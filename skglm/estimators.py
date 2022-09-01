@@ -635,7 +635,7 @@ class ElasticNet(LinearModel, RegressorMixin):
         self :
             Fitted estimator.
         """
-        return self.solver.solve(X, y, Quadratic(), 
+        return self.solver.solve(X, y, Quadratic(),
                                  L1_plus_L2(self.alpha, self.l1_ratio))
 
 
@@ -663,30 +663,8 @@ class MCPRegression(LinearModel, RegressorMixin):
         If gamma = np.inf it is a soft thresholding.
         Should be larger than (or equal to) 1.
 
-    max_iter : int, optional
-        Maximum number of iterations (subproblem definitions).
-
-    max_epochs : int
-        Maximum number of CD epochs on each subproblem.
-
-    p0 : int
-        First working set size.
-
-    verbose : bool or int
-        Amount of verbosity.
-
-    tol : float, optional
-        Stopping criterion for the optimization.
-
-    fit_intercept : bool, optional (default=True)
-        Whether or not to fit an intercept.
-
-    warm_start : bool, optional (default=False)
-        When set to True, reuse the solution of the previous call to fit as
-        initialization, otherwise, just erase the previous solution.
-
-    ws_strategy : str
-        The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
+    solver : instance of BaseSolver
+        Solver. If None, `solver` is initialized as a `AcceleratedCD` solver.
 
     Attributes
     ----------
@@ -707,20 +685,11 @@ class MCPRegression(LinearModel, RegressorMixin):
     Lasso : Lasso regularization.
     """
 
-    def __init__(self, alpha=1., gamma=3, max_iter=100, max_epochs=50_000, p0=10,
-                 verbose=0, tol=1e-4, fit_intercept=True, warm_start=False,
-                 ws_strategy="subdiff"):
+    def __init__(self, alpha=1., gamma=3, solver=None):
         super().__init__()
-        self.tol = tol
-        self.max_iter = max_iter
-        self.fit_intercept = fit_intercept
-        self.warm_start = warm_start
-        self.verbose = verbose
-        self.max_epochs = max_epochs
-        self.p0 = p0
-        self.ws_strategy = ws_strategy
         self.alpha = alpha
         self.gamma = gamma
+        self.solver = solver
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
         """Compute MCPRegression path.
@@ -784,12 +753,8 @@ class MCPRegression(LinearModel, RegressorMixin):
         self :
             Fitted estimator.
         """
-        solver = AcceleratedCD(
-            fit_intercept=self.fit_intercept, max_iter=self.max_iter,
-            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
-            ws_strategy=self.ws_strategy, verbose=self.verbose)
-        return _glm_fit(
-            X, y, self, Quadratic(), MCPenalty(self.alpha, self.gamma), solver)
+        self.solver = self.solver if self.solver else AcceleratedCD()
+        return self.solver.solve(X, y, Quadratic(), MCPenalty(self.alpha, self.gamma))
 
 
 class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
@@ -804,33 +769,8 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
     alpha : float, default=1.0
         Regularization strength; must be a positive float.
 
-    tol : float, optional
-        Stopping criterion for the optimization: the solver runs until the
-        duality gap is smaller than ``tol * len(y) * log(2)`` or the
-        maximum number of iteration is reached.
-
-    fit_intercept : bool, optional (default=False)
-        Whether or not to fit an intercept. Currently True is not supported.
-
-    max_iter : int, optional
-        The maximum number of iterations (subproblem definitions).
-
-    verbose : bool or int
-        Amount of verbosity.
-
-    max_epochs : int
-        Maximum number of CD epochs on each subproblem.
-
-    p0 : int
-        First working set size.
-
-    warm_start : bool, optional (default=False)
-        When set to True, reuse the solution of the previous call to fit as
-        initialization, otherwise, just erase the previous solution.
-        Only False is supported so far.
-
-    ws_strategy : str
-        The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
+    solver : instance of BaseSolver
+        Solver. If None, `solver` is initialized as a `AcceleratedCD` solver.
 
     Attributes
     ----------
@@ -849,20 +789,10 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         Number of subproblems solved to reach the specified tolerance.
     """
 
-    def __init__(
-            self, alpha=1.0, tol=1e-4,
-            fit_intercept=False, max_iter=50, verbose=0,
-            max_epochs=50000, p0=10, warm_start=False, ws_strategy="subdiff"):
+    def __init__(self, alpha=1.0, solver=None):
         super().__init__()
-        self.tol = tol
-        self.max_iter = max_iter
-        self.fit_intercept = fit_intercept
-        self.warm_start = warm_start
-        self.verbose = verbose
-        self.max_epochs = max_epochs
-        self.p0 = p0
-        self.ws_strategy = ws_strategy
         self.alpha = alpha
+        self.solver = solver
 
     def fit(self, X, y):
         """Fit the model according to the given training data.
@@ -881,11 +811,8 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         self :
             Fitted estimator.
         """
-        solver = ProxNewton(
-            p0=self.p0, tol=self.tol, fit_intercept=self.fit_intercept,
-            max_iter=self.max_iter, max_epochs=self.max_epochs,
-            verbose=self.verbose)
-        return _glm_fit(X, y, self, Logistic(), L1(self.alpha), solver)
+        self.solver = self.solver if self.solver else ProxNewton()
+        return self.solver.solve(X, y, Logistic(), L1(self.alpha))
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
         """Compute sparse Logistic Regression path.
@@ -1013,30 +940,8 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
         Regularization parameter. The strength of the regularization is
         inversely proportional to C. Must be strictly positive.
 
-    max_iter : int, optional
-        The maximum number of iterations (subproblem definitions).
-
-    max_epochs : int
-        Maximum number of CD epochs on each subproblem.
-
-    p0 : int
-        First working set size.
-
-    tol : float, optional
-        Stopping criterion for the optimization.
-
-    fit_intercept : bool, optional
-        Whether or not to fit an intercept. Currently True is not supported.
-
-    warm_start : bool, optional (default=False)
-        When set to True, reuse the solution of the previous call to fit as
-        initialization, otherwise, just erase the previous solution.
-
-    verbose : bool or int
-        Amount of verbosity.
-
-    ws_strategy : str
-        The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
+    solver : instance of BaseSolver
+        Solver. If None, `solver` is initialized as a `AcceleratedCD` solver.
 
     Attributes
     ----------
@@ -1056,20 +961,10 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
         Number of subproblems solved to reach the specified tolerance.
     """
 
-    def __init__(
-            self, C=1., max_iter=100, max_epochs=50_000, p0=10, tol=1e-4,
-            fit_intercept=False, warm_start=False, verbose=0, ws_strategy="subdiff"):
-
+    def __init__(self, C=1., solver=None):
         super().__init__()
-        self.tol = tol
-        self.max_iter = max_iter
-        self.fit_intercept = fit_intercept
-        self.warm_start = warm_start
-        self.verbose = verbose
-        self.max_epochs = max_epochs
-        self.p0 = p0
-        self.ws_strategy = ws_strategy
         self.C = C
+        self.solver = solver
 
     def fit(self, X, y):
         """Fit LinearSVC classifier.
@@ -1087,7 +982,8 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
         self
             Fitted estimator.
         """
-        return _glm_fit(X, y, self, QuadraticSVC(), IndicatorBox(self.C))
+        self.solver = self.solver if self.solver else AcceleratedCD()
+        return self.solver.solve(X, y, QuadraticSVC(), IndicatorBox(self.C))
 
     # TODO add predict_proba for LinearSVC
 

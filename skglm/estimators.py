@@ -27,7 +27,7 @@ def _glm_fit(X, y, model, datafit, penalty, solver):
     is_classif = False
     if isinstance(datafit, Logistic) or isinstance(datafit, QuadraticSVC):
         is_classif = True
-
+    
     if is_classif:
         check_classification_targets(y)
         enc = LabelEncoder()

@@ -50,10 +50,10 @@ class ProxNewton:
         self.warm_start = warm_start
         self.verbose = verbose
 
-    def solve(self, X, y, datafit, penalty, w_init=None):
+    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
         n_samples, n_features = X.shape
         w = np.zeros(n_features) if w_init is None else w_init
-        Xw = np.zeros(n_samples) if w_init is None else X @ w_init
+        Xw = np.zeros(n_samples) if Xw_init is None else X @ w_init
         all_features = np.arange(n_features)
         stop_crit = 0.
         p_objs_out = []

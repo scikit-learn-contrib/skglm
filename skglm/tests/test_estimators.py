@@ -111,6 +111,7 @@ def test_estimator(estimator_name, X, fit_intercept):
 
     estimator_sk.set_params(fit_intercept=fit_intercept)
     estimator_ours.set_params(fit_intercept=fit_intercept)
+    estimator_ours.solver.fit_intercept = fit_intercept
 
     estimator_sk.fit(X, y)
     estimator_ours.fit(X, y)

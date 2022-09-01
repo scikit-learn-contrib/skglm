@@ -22,7 +22,7 @@ class MultiTaskBCD:
         self.warm_start = warm_start
         self.verbose = verbose
 
-    def path(self, X, Y, datafit, penalty, alphas, W_init=None):
+    def path(self, X, Y, datafit, penalty, alphas, W_init=None, return_n_iter=False):
         X = check_array(X, "csc", dtype=[
             np.float64, np.float32], order="F", copy=False)
         Y = check_array(Y, "csc", dtype=[
@@ -41,8 +41,7 @@ class MultiTaskBCD:
                          order="C", dtype=X.dtype)
         stop_crits = np.zeros(n_alphas)
 
-        # if return_n_iter:
-        if True:
+        if return_n_iter:
             n_iters = np.zeros(n_alphas, dtype=int)
 
         Y = np.asfortranarray(Y)
@@ -72,7 +71,7 @@ class MultiTaskBCD:
             sol = self.solve(X, Y, datafit, penalty, W, XW)
             coefs[:, :, t], stop_crits[t] = sol[0], sol[2]
 
-            if True:
+            if return_n_iter:
                 n_iters[t] = len(sol[1])
 
         coefs = np.swapaxes(coefs, 0, 1).copy('F')
@@ -83,8 +82,7 @@ class MultiTaskBCD:
 
         return results
 
-    def solve(self, X, Y, datafit, penalty, W_init=None, XW_init=None,
-              return_n_iter=False):
+    def solve(self, X, Y, datafit, penalty, W_init=None, XW_init=None):
         n_samples, n_features = X.shape
         n_tasks = Y.shape[1]
         pen = penalty.is_penalized(n_features)
@@ -95,8 +93,8 @@ class MultiTaskBCD:
         stop_crit = np.inf  # initialize for case n_iter=0
         K = 5
 
-        W = np.zeros(n_features, n_tasks) if W_init is None else W_init
-        XW = np.zeros(n_samples, n_tasks) if XW_init is None else XW_init
+        W = np.zeros((n_features, n_tasks)) if W_init is None else W_init
+        XW = np.zeros((n_samples, n_tasks)) if XW_init is None else XW_init
 
         if W.shape[0] != n_features + self.fit_intercept:
             if self.fit_intercept:

@@ -6,7 +6,7 @@ from numpy.linalg import norm
 from sklearn.linear_model import Lasso
 
 from skglm.penalties import L1
-from skglm.solvers.gram_cd import gram_cd_solver
+from skglm.solvers import GramCD
 from skglm.utils import make_correlated_data, compiled_clone
 
 
@@ -22,9 +22,8 @@ def test_vs_lasso_sklearn(rho, X_density, greedy_cd):
     sk_lasso.fit(X, y)
 
     l1_penalty = compiled_clone(L1(alpha))
-    w = gram_cd_solver(X, y, l1_penalty, tol=1e-9, verbose=0,
-                       max_iter=1000, greedy_cd=greedy_cd)[0]
-
+    w = GramCD(tol=1e-9, max_iter=1000, greedy_cd=greedy_cd).solve(
+        X, y, None, l1_penalty)[0]
     np.testing.assert_allclose(w, sk_lasso.coef_.flatten(), rtol=1e-7, atol=1e-7)
 
 

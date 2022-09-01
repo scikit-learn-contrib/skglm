@@ -193,12 +193,15 @@ class GeneralizedLinearEstimator(LinearModel):
         Number of subproblems solved to reach the specified tolerance.
     """
 
-    def __init__(self, datafit=None, penalty=None, solver=None, is_classif=False):
+    def __init__(self, datafit=None, penalty=None, solver=None, warm_start=False,
+                 fit_intercept=True, is_classif=False):
         super(GeneralizedLinearEstimator, self).__init__()
         self.is_classif = is_classif
         self.penalty = penalty
         self.datafit = datafit
         self.solver = solver
+        self.warm_start = warm_start
+        self.fit_intercept = fit_intercept
 
     def __repr__(self):
         """Get string representation of the estimator.
@@ -327,9 +330,11 @@ class Lasso(LinearModel, RegressorMixin):
     MCPRegression : Sparser regularization than L1 norm.
     """
 
-    def __init__(self, alpha=1., solver=None):
+    def __init__(self, alpha=1., fit_intercept=True, warm_start=None, solver=None):
         super().__init__()
         self.alpha = alpha
+        self.fit_intercept = fit_intercept
+        self.warm_start = warm_start
         self.solver = solver if solver else AcceleratedCD()
 
     def fit(self, X, y):
@@ -390,6 +395,7 @@ class Lasso(LinearModel, RegressorMixin):
         penalty = compiled_clone(L1(self.alpha))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
 
+        # TODO missing import here
         return cd_solver_path(
             X, y, datafit, penalty, alphas=alphas,
             coef_init=coef_init, max_iter=self.max_iter,

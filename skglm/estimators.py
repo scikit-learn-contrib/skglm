@@ -173,7 +173,7 @@ class GeneralizedLinearEstimator(LinearModel):
         `penalty` is replaced by a JIT-compiled instance when calling fit.
 
     solver : instance of BaseSolver, optional
-        Solver. If None, `solver` is initialized as a `AcceleratedCD` solver.
+        Solver. If None, `solver` is initialized as an `AcceleratedCD` solver.
 
     is_classif : bool, optional
         Whether the task is classification or regression. Used for input target

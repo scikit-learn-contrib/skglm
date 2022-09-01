@@ -193,15 +193,15 @@ class GeneralizedLinearEstimator(LinearModel):
         Number of subproblems solved to reach the specified tolerance.
     """
 
-    def __init__(self, datafit=None, penalty=None, solver=None, warm_start=False,
-                 fit_intercept=True, is_classif=False):
+    def __init__(self, datafit=None, penalty=None, solver=None, is_classif=False,
+                 fit_intercept=True, warm_start=False):
         super(GeneralizedLinearEstimator, self).__init__()
         self.is_classif = is_classif
         self.penalty = penalty
         self.datafit = datafit
         self.solver = solver
-        self.warm_start = warm_start
         self.fit_intercept = fit_intercept
+        self.warm_start = warm_start
 
     def __repr__(self):
         """Get string representation of the estimator.
@@ -243,7 +243,8 @@ class GeneralizedLinearEstimator(LinearModel):
         """
         self.penalty = self.penalty if self.penalty else L1(1.)
         self.datafit = self.datafit if self.datafit else Quadratic()
-        self.solver = self.solver if self.solver else AcceleratedCD()
+        self.solver = self.solver if self.solver else AcceleratedCD(
+            fit_intercept=self.fit_intercept)
         return _glm_fit(X, y, self, self.datafit, self.penalty, self.solver)
 
     def predict(self, X):
@@ -330,12 +331,11 @@ class Lasso(LinearModel, RegressorMixin):
     MCPRegression : Sparser regularization than L1 norm.
     """
 
-    def __init__(self, alpha=1., fit_intercept=True, warm_start=None, solver=None):
+    def __init__(self, alpha=1., solver=None, fit_intercept=True):
         super().__init__()
         self.alpha = alpha
+        self.solver = solver
         self.fit_intercept = fit_intercept
-        self.warm_start = warm_start
-        self.solver = solver if solver else AcceleratedCD()
 
     def fit(self, X, y):
         """Fit the model according to the given training data.
@@ -353,6 +353,8 @@ class Lasso(LinearModel, RegressorMixin):
         self :
             Fitted estimator.
         """
+        self.solver = self.solver if self.solver else AcceleratedCD(
+            fit_intercept=self.fit_intercept)
         return _glm_fit(X, y, self, Quadratic(), L1(self.alpha), self.solver)
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
@@ -447,11 +449,12 @@ class WeightedLasso(LinearModel, RegressorMixin):
     Supports weights equal to 0, i.e. unpenalized features.
     """
 
-    def __init__(self, alpha=1., weights=None, solver=None):
+    def __init__(self, alpha=1., weights=None, solver=None, fit_intercept=True):
         super().__init__()
         self.alpha = alpha
         self.weights = weights
-        self.solver = solver if solver else AcceleratedCD()
+        self.solver = solver
+        self.fit_intercept = fit_intercept
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
         """Compute Weighted Lasso path.
@@ -527,6 +530,8 @@ class WeightedLasso(LinearModel, RegressorMixin):
             penalty = L1(self.alpha)
         else:
             penalty = WeightedL1(self.alpha, self.weights)
+        self.solver = self.solver if self.solver else AcceleratedCD(
+            fit_intercept=self.fit_intercept)
         return _glm_fit(X, y, self, Quadratic(), penalty, self.solver)
 
 
@@ -571,11 +576,12 @@ class ElasticNet(LinearModel, RegressorMixin):
     Lasso : Lasso regularization.
     """
 
-    def __init__(self, alpha=1., l1_ratio=0.5, solver=None):
+    def __init__(self, alpha=1., l1_ratio=0.5, solver=None, fit_intercept=True):
         super().__init__()
         self.alpha = alpha
         self.l1_ratio = l1_ratio
-        self.solver = solver if solver else AcceleratedCD()
+        self.solver = solver
+        self.fit_intercept = fit_intercept
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
         """Compute Elastic Net path.
@@ -639,6 +645,8 @@ class ElasticNet(LinearModel, RegressorMixin):
         self :
             Fitted estimator.
         """
+        self.solver = self.solver if self.solver else AcceleratedCD(
+            fit_intercept=self.fit_intercept)
         return _glm_fit(X, y, self, Quadratic(),
                         L1_plus_L2(self.alpha, self.l1_ratio), self.solver)
 
@@ -796,7 +804,7 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
     def __init__(self, alpha=1.0, solver=None):
         super().__init__()
         self.alpha = alpha
-        self.solver = self.solver if self.solver else ProxNewton()
+        self.solver = solver if solver else ProxNewton()
 
     def fit(self, X, y):
         """Fit the model according to the given training data.

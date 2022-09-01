@@ -1114,11 +1114,6 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
         if not self.warm_start or not hasattr(self, "coef_"):
             self.coef_ = None
 
-        # _, coefs, kkt = self.path(
-        #     X, Y, alphas=[self.alpha],
-        #     coef_init=self.coef_, max_iter=self.max_iter,
-        #     max_epochs=self.max_epochs, p0=self.p0, verbose=self.verbose,
-        #     tol=self.tol)
         self.solver = self.solver if self.solver else MultiTaskBCD(
             fit_intercept=self.fit_intercept, tol=self.tol, warm_start=self.warm_start)
         _, coefs, kkt = self.solver.solve(X, Y, QuadraticMultiTask(), L2_1(self.alpha))

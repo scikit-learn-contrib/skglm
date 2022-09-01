@@ -196,7 +196,7 @@ class AcceleratedCD:
             obj_out.append(p_obj)
         return w, np.array(obj_out), stop_crit
 
-    def path(self, X, y, datafit, penalty, alphas=None, w_init=None, 
+    def path(self, X, y, datafit, penalty, alphas=None, w_init=None,
              return_n_iter=False):
         X = check_array(X, 'csc', dtype=[np.float64, np.float32],
                         order='F', copy=False, accept_large_sparse=False)
@@ -227,7 +227,7 @@ class AcceleratedCD:
             # alphas = np.sort(alphas)[::-1]
 
         n_alphas = len(alphas)
-        coefs = np.zeros((n_features + model.fit_intercept, n_alphas), order='F',
+        coefs = np.zeros((n_features + self.fit_intercept, n_alphas), order='F',
                          dtype=X.dtype)
         stop_crits = np.zeros(n_alphas)
         p0 = self.p0
@@ -253,12 +253,12 @@ class AcceleratedCD:
                     supp_size = penalty.generalized_support(w[:n_features]).sum()
                     p0 = max(supp_size, p0)
                     if supp_size:
-                        Xw = X @ w[:n_features] + model.fit_intercept * w[-1]
+                        Xw = X @ w[:n_features] + self.fit_intercept * w[-1]
                     # TODO explain/clean this hack
                     else:
                         Xw = np.zeros_like(y)
                 else:
-                    w = np.zeros(n_features + model.fit_intercept, dtype=X.dtype)
+                    w = np.zeros(n_features + self.fit_intercept, dtype=X.dtype)
                     Xw = np.zeros(X.shape[0], dtype=X.dtype)
 
             sol = self.solve(X, y, datafit, penalty, w, Xw)

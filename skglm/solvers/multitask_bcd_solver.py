@@ -6,338 +6,217 @@ from numpy.linalg import norm
 from sklearn.utils import check_array
 
 
-def multitask_bcd_solver_path(
-        X, Y, datafit, penalty, alphas=None, fit_intercept=False,
-        coef_init=None, max_iter=100, max_epochs=50_000, p0=10, tol=1e-6,
-        use_acc=True, return_n_iter=False, ws_strategy="subdiff", verbose=0):
-    r"""Compute optimization path for multi-task optimization problem.
+class MultiTaskBCD:
+    """Block coordinate descent solver for multi-task problems."""
+    
+    def __init__(self, max_iter=100, max_epochs=50_000, p0=10, tol=1e-6,
+                 use_acc=True, ws_strategy="subdiff", fit_intercept=True,
+                 warm_start=False, verbose=0):
+        self.max_iter = max_iter
+        self.max_epochs = max_epochs
+        self.p0 = p0
+        self.tol = tol
+        self.use_acc = use_acc
+        self.ws_strategy = ws_strategy
+        self.fit_intercept = fit_intercept
+        self.warm_start = warm_start
+        self.verbose = verbose
 
-    The loss is customized by passing various choices of datafit and penalty:
-    loss = datafit.value() + penalty.value()
-
-    Parameters
-    ----------
-    X : array, shape (n_samples, n_features)
-        Training data.
-
-    Y : array, shape (n_samples, n_tasks)
-        Target matrix.
-
-    datafit : instance of BaseMultiTaskDatafit
-        Datafitting term.
-
-    penalty : instance of BasePenalty
-        Penalty used in the model.
-
-    alphas : ndarray, optional
-        List of alphas where to compute the models.
-        If ``None`` alphas are set automatically.
-
-    fit_intercept : bool
-        Whether or not to fit an intercept.
-
-    coef_init : ndarray, shape (n_features, n_tasks) | None, optional, (default=None)
-        Initial value of coefficients. If None, np.zeros(n_features, n_tasks) is used.
-
-    max_iter : int, optional
-        The maximum number of iterations (definition of working set and
-        resolution of problem restricted to features in working set).
-
-    max_epochs : int, optional
-        Maximum number of (block) CD epochs on each subproblem.
-
-    p0 : int, optional
-        First working set size.
-
-    tol : float, optional
-        The tolerance for the optimization.
-
-    use_acc : bool, optional
-        Usage of Anderson acceleration for faster convergence.
-
-    return_n_iter : bool, optional
-        If True, number of iterations along the path are returned.
-
-    ws_strategy : str, optional
-        The score used to build the working set. Can be 'subdiff' or 'fixpoint'.
-
-    verbose : bool or int, optional
-        Amount of verbosity. 0/False is silent.
-
-    Returns
-    -------
-    alphas : array, shape (n_alphas,)
-        The alphas along the path where models are computed.
-
-    coefs : array, shape (n_features + fit_intercept, n_tasks, n_alphas)
-        Coefficients along the path.
-
-    stop_crit : array, shape (n_alphas,)
-        Value of stopping criterion at convergence along the path.
-
-    n_iters : array, shape (n_alphas,), optional
-        The number of iterations along the path.
-    """
-    X = check_array(X, "csc", dtype=[
-        np.float64, np.float32], order="F", copy=False)
-    Y = check_array(Y, "csc", dtype=[
-        np.float64, np.float32], order="F", copy=False)
-    if sparse.issparse(X):
-        datafit.initialize_sparse(X.data, X.indptr, X.indices, Y)
-    else:
-        datafit.initialize(X, Y)
-    n_features = X.shape[1]
-    n_tasks = Y.shape[1]
-    if alphas is None:
-        raise ValueError("alphas should be provided.")
-        # alpha_max = np.max(norm(X.T @ Y, ord=2, axis=1)) / n_samples
-        # alphas = alpha_max * \
-        # np.geomspace(1, eps, n_alphas, dtype=X.dtype)
-    # else:
-        # alphas = np.sort(alphas)[::-1]
-
-    n_alphas = len(alphas)
-
-    coefs = np.zeros((n_features + fit_intercept, n_tasks, n_alphas), order="C",
-                     dtype=X.dtype)
-    stop_crits = np.zeros(n_alphas)
-
-    if return_n_iter:
-        n_iters = np.zeros(n_alphas, dtype=int)
-
-    Y = np.asfortranarray(Y)
-    XW = np.zeros(Y.shape, order='F')
-    for t in range(n_alphas):
-        alpha = alphas[t]
-        penalty.alpha = alpha  # TODO this feels it will break sklearn compat
-        if verbose:
-            msg = "##### Computing alpha %d/%d" % (t + 1, n_alphas)
-            print("#" * len(msg))
-            print(msg)
-            print("#" * len(msg))
-        if t > 0:
-            W = coefs[:, :, t - 1].copy()
-            p_t = max(len(np.where(W[:, 0] != 0)[0]), p0)
+    def path(self, X, Y, datafit, penalty, alphas, W_init=None):
+        X = check_array(X, "csc", dtype=[
+            np.float64, np.float32], order="F", copy=False)
+        Y = check_array(Y, "csc", dtype=[
+            np.float64, np.float32], order="F", copy=False)
+        if sparse.issparse(X):
+            datafit.initialize_sparse(X.data, X.indptr, X.indices, Y)
         else:
-            if coef_init is not None:
-                W = coef_init.T
-                XW = np.asfortranarray(X @ W)
-                p_t = max(len(np.where(W[:, 0] != 0)[0]), p0)
+            datafit.initialize(X, Y)
+        n_features = X.shape[1]
+        n_tasks = Y.shape[1]
+        if alphas is None:
+            raise ValueError("alphas should be provided.")
+        n_alphas = len(alphas)
+
+        coefs = np.zeros((n_features + self.fit_intercept, n_tasks, n_alphas), 
+                         order="C", dtype=X.dtype)
+        stop_crits = np.zeros(n_alphas)
+
+        # if return_n_iter:
+        if True:
+            n_iters = np.zeros(n_alphas, dtype=int)
+
+        Y = np.asfortranarray(Y)
+        XW = np.zeros(Y.shape, order='F')
+        for t in range(n_alphas):
+            alpha = alphas[t]
+            penalty.alpha = alpha  # TODO this feels it will break sklearn compat
+            if self.verbose:
+                msg = "##### Computing alpha %d/%d" % (t + 1, n_alphas)
+                print("#" * len(msg))
+                print(msg)
+                print("#" * len(msg))
+            if t > 0:
+                W = coefs[:, :, t - 1].copy()
+                p_t = max(len(np.where(W[:, 0] != 0)[0]), self.p0)
             else:
-                W = np.zeros(
-                    (n_features + fit_intercept, n_tasks), dtype=X.dtype, order='C')
-                p_t = 10
-        sol = multitask_bcd_solver(
-            X, Y, datafit, penalty, W, XW, fit_intercept=fit_intercept, p0=p_t,
-            tol=tol, max_iter=max_iter, max_epochs=max_epochs,
-            verbose=verbose, use_acc=use_acc, ws_strategy=ws_strategy)
-        coefs[:, :, t], stop_crits[t] = sol[0], sol[2]
+                if W_init is not None:
+                    W = W_init.T
+                    XW = np.asfortranarray(X @ W)
+                    p_t = max(len(np.where(W[:, 0] != 0)[0]), self.p0)
+                else:
+                    W = np.zeros(
+                        (n_features + self.fit_intercept, n_tasks), dtype=X.dtype, 
+                        order='C')
+                    p_t = 10
+            # TODO: missing p0 = p_t
+            sol = self.solve(X, Y, datafit, penalty, W, XW)
+            coefs[:, :, t], stop_crits[t] = sol[0], sol[2]
 
-        if return_n_iter:
-            n_iters[t] = len(sol[1])
+            if True:
+                n_iters[t] = len(sol[1])
 
-    coefs = np.swapaxes(coefs, 0, 1).copy('F')
+        coefs = np.swapaxes(coefs, 0, 1).copy('F')
 
-    results = alphas, coefs, stop_crits
-    if return_n_iter:
-        results += (n_iters,)
+        results = alphas, coefs, stop_crits
+        if True:
+            results += (n_iters,)
 
-    return results
+        return results
 
+    def solve(self, X, Y, datafit, penalty, W_init=None, XW_init=None):
+        n_samples, n_features = X.shape
+        n_tasks = Y.shape[1]
+        pen = penalty.is_penalized(n_features)
+        unpen = ~pen
+        n_unpen = unpen.sum()
+        obj_out = []
+        all_feats = np.arange(n_features)
+        stop_crit = np.inf  # initialize for case n_iter=0
+        K = 5
 
-def multitask_bcd_solver(
-        X, Y, datafit, penalty, W, XW, fit_intercept=True, max_iter=50,
-        max_epochs=50_000, p0=10, tol=1e-4, use_acc=True, K=5,
-        ws_strategy="subdiff", verbose=0):
-    r"""Run a multitask block coordinate descent solver.
+        W = np.zeros(n_features, n_tasks) if W_init is None else W_init
+        XW = np.zeros(n_samples, n_tasks) if XW_init is None else XW_init
 
-    Parameters
-    ----------
-    X : array, shape (n_samples, n_features)
-        Training data.
+        if W.shape[0] != n_features + self.fit_intercept:
+            if self.fit_intercept:
+                val_error_message = (
+                    "Inconsistent size of coefficients with n_features + 1\n"
+                    f"expected {n_features + 1}, got {W.shape[0]}")
+            else:
+                val_error_message = (
+                    "Inconsistent size of coefficients with n_features\n"
+                    f"expected {n_features}, got {W.shape[0]}")
+            raise ValueError(val_error_message)
 
-    Y : array, shape (n_samples, n_tasks)
-        Target matrix.
-
-    datafit : instance of BaseMultiTaskDatafit
-        Datafitting term.
-
-    penalty : instance of BasePenalty
-        Penalty used in the model.
-
-    W : array, shape (n_features, n_tasks)
-        Coefficient matrix.
-
-    XW : ndarray, shape (n_samples, n_tasks)
-        Model fit.
-
-    fit_intercept : bool
-        Whether or not to fit an intercept.
-
-    max_iter : int, optional
-        The maximum number of iterations (definition of working set and
-        resolution of problem restricted to features in working set).
-
-    max_epochs : int, optional
-        Maximum number of (block) CD epochs on each subproblem.
-
-    p0 : int, optional
-        First working set size.
-
-    tol : float, optional
-        The tolerance for the optimization.
-
-    use_acc : bool, optional
-        Usage of Anderson acceleration for faster convergence.
-
-    K : int, optional
-        The number of past primal iterates used to build an extrapolated point.
-
-    ws_strategy : str, ('subdiff'|'fixpoint'), optional
-        The score used to build the working set.
-
-    verbose : bool or int, optional
-        Amount of verbosity. 0/False is silent.
-
-    Returns
-    -------
-    coefs : array, shape (n_features, n_tasks, n_alphas)
-        Coefficients along the path.
-
-    obj_out : array, shape (n_iter,)
-        The objective values at every outer iteration.
-
-    stop_crit : float
-        Value of stopping criterion at convergence.
-    """
-    n_tasks = Y.shape[1]
-    n_features = X.shape[1]
-    pen = penalty.is_penalized(n_features)
-    unpen = ~pen
-    n_unpen = unpen.sum()
-    obj_out = []
-    all_feats = np.arange(n_features)
-    stop_crit = np.inf  # initialize for case n_iter=0
-
-    if W.shape[0] != n_features + fit_intercept:
-        if fit_intercept:
-            val_error_message = (
-                "Inconsistent size of coefficients with n_features + 1\n"
-                f"expected {n_features + 1}, got {W.shape[0]}")
-        else:
-            val_error_message = (
-                "Inconsistent size of coefficients with n_features\n"
-                f"expected {n_features}, got {W.shape[0]}")
-        raise ValueError(val_error_message)
-
-    is_sparse = sparse.issparse(X)
-    for t in range(max_iter):
-        if is_sparse:
-            grad = datafit.full_grad_sparse(
-                X.data, X.indptr, X.indices, Y, XW)
-        else:
-            grad = construct_grad(X, Y, W, XW, datafit, all_feats)
-
-        if ws_strategy == "subdiff":
-            opt = penalty.subdiff_distance(W, grad, all_feats)
-        elif ws_strategy == "fixpoint":
-            opt = dist_fix_point(W, grad, datafit, penalty, all_feats)
-        stop_crit = np.max(opt)
-        if verbose:
-            print(f"Stopping criterion max violation: {stop_crit:.2e}")
-        if stop_crit <= tol:
-            break
-        # 1) select features : all unpenalized, + 2 * (nnz and penalized)
-        # TODO fix p0 takes the intercept into account
-        ws_size = min(n_features,
-                      max(2 * (norm(W, axis=1) != 0).sum() - n_unpen,
-                          p0 + n_unpen))
-        opt[unpen] = np.inf  # always include unpenalized features
-        opt[norm(W[:n_features], axis=1) != 0] = np.inf  # TODO check
-        ws = np.argpartition(opt, -ws_size)[-ws_size:]
-        # is equivalent to ws = np.argsort(kkt)[-ws_size:]
-
-        if use_acc:
-            last_K_w = np.zeros([K + 1, (ws_size + fit_intercept) * n_tasks])
-            U = np.zeros([K, (ws_size + fit_intercept) * n_tasks])
-
-        if verbose:
-            print(f'Iteration {t + 1}, {ws_size} feats in subpb.')
-
-        # 2) do iterations on smaller problem
         is_sparse = sparse.issparse(X)
-        for epoch in range(max_epochs):
+        for t in range(self.max_iter):
             if is_sparse:
-                _bcd_epoch_sparse(
-                    X.data, X.indptr, X.indices, Y, W, XW, datafit, penalty,
-                    ws)
+                grad = datafit.full_grad_sparse(
+                    X.data, X.indptr, X.indices, Y, XW)
             else:
-                _bcd_epoch(X, Y, W, XW, datafit, penalty, ws)
-            # update intercept
-            if fit_intercept:
-                intercept_old = W[-1, :].copy()
-                W[-1, :] -= datafit.intercept_update_step(Y, XW)
-                XW += (W[-1, :] - intercept_old)
+                grad = construct_grad(X, Y, W, XW, datafit, all_feats)
 
-            if use_acc:
-                if fit_intercept:
-                    ws_ = np.append(ws, -1)
-                else:
-                    ws_ = ws.copy()
-                last_K_w[epoch % (K + 1)] = W[ws_, :].ravel()
+            if self.ws_strategy == "subdiff":
+                opt = penalty.subdiff_distance(W, grad, all_feats)
+            elif self.ws_strategy == "fixpoint":
+                opt = dist_fix_point(W, grad, datafit, penalty, all_feats)
+            stop_crit = np.max(opt)
+            if self.verbose:
+                print(f"Stopping criterion max violation: {stop_crit:.2e}")
+            if stop_crit <= self.tol:
+                break
+            # 1) select features : all unpenalized, + 2 * (nnz and penalized)
+            # TODO fix p0 takes the intercept into account
+            ws_size = min(n_features, max(2 * (norm(W, axis=1) != 0).sum() - n_unpen,
+                                          self.p0 + n_unpen))
+            opt[unpen] = np.inf  # always include unpenalized features
+            opt[norm(W[:n_features], axis=1) != 0] = np.inf  # TODO check
+            ws = np.argpartition(opt, -ws_size)[-ws_size:]
+            # is equivalent to ws = np.argsort(kkt)[-ws_size:]
 
-                # 3) do Anderson acceleration on smaller problem
-                if epoch % (K + 1) == K:
-                    for k in range(K):
-                        U[k] = last_K_w[k + 1] - last_K_w[k]
-                    C = np.dot(U, U.T)
+            if self.use_acc:
+                last_K_w = np.zeros([K + 1, 
+                                     (ws_size + self.fit_intercept) * n_tasks])
+                U = np.zeros([K, (ws_size + self.fit_intercept) * n_tasks])
 
-                    try:
-                        z = np.linalg.solve(C, np.ones(K))
-                        c = z / z.sum()
-                        W_acc = np.zeros((n_features + fit_intercept, n_tasks))
-                        W_acc[ws_, :] = np.sum(
-                            last_K_w[:-1] * c[:, None], axis=0).reshape(
-                                (ws_size + fit_intercept, n_tasks))
-                        p_obj = datafit.value(Y, W, XW) + penalty.value(W)
-                        Xw_acc = X[:, ws] @ W_acc[ws] + fit_intercept * W_acc[-1]
-                        p_obj_acc = datafit.value(
-                            Y, W_acc, Xw_acc) + penalty.value(W_acc)
-                        if p_obj_acc < p_obj:
-                            W[:] = W_acc
-                            XW[:] = Xw_acc
-                    except np.linalg.LinAlgError:
-                        if max(verbose - 1, 0):
-                            print("----------Linalg error")
+            if self.verbose:
+                print(f'Iteration {t + 1}, {ws_size} feats in subpb.')
 
-            if epoch > 0 and epoch % 10 == 0:
-                p_obj = datafit.value(Y, W[ws, :], XW) + penalty.value(W)
-
+            # 2) do iterations on smaller problem
+            is_sparse = sparse.issparse(X)
+            for epoch in range(self.max_epochs):
                 if is_sparse:
-                    grad_ws = construct_grad_sparse(
-                        X.data, X.indptr, X.indices, Y, XW, datafit, ws)
+                    _bcd_epoch_sparse(
+                        X.data, X.indptr, X.indices, Y, W, XW, datafit, penalty,
+                        ws)
                 else:
-                    grad_ws = construct_grad(X, Y, W, XW, datafit, ws)
+                    _bcd_epoch(X, Y, W, XW, datafit, penalty, ws)
+                # update intercept
+                if self.fit_intercept:
+                    intercept_old = W[-1, :].copy()
+                    W[-1, :] -= datafit.intercept_update_step(Y, XW)
+                    XW += (W[-1, :] - intercept_old)
 
-                if ws_strategy == "subdiff":
-                    opt_ws = penalty.subdiff_distance(W, grad_ws, ws)
-                elif ws_strategy == "fixpoint":
-                    opt_ws = dist_fix_point(W, grad_ws, datafit, penalty, ws)
+                if self.use_acc:
+                    if self.fit_intercept:
+                        ws_ = np.append(ws, -1)
+                    else:
+                        ws_ = ws.copy()
+                    last_K_w[epoch % (K + 1)] = W[ws_, :].ravel()
 
-                stop_crit_in = np.max(opt_ws)
-                if max(verbose - 1, 0):
-                    print(f"Epoch {epoch + 1}, objective {p_obj:.10f}, "
-                          f"stopping crit {stop_crit_in:.2e}")
-                if ws_size == n_features:
-                    if stop_crit_in <= tol:
-                        break
-                else:
-                    if stop_crit_in < 0.3 * stop_crit:
-                        if max(verbose - 1, 0):
-                            print("Early exit")
-                        break
-        obj_out.append(p_obj)
-    return W, np.array(obj_out), stop_crit
+                    # 3) do Anderson acceleration on smaller problem
+                    if epoch % (K + 1) == K:
+                        for k in range(K):
+                            U[k] = last_K_w[k + 1] - last_K_w[k]
+                        C = np.dot(U, U.T)
+
+                        try:
+                            z = np.linalg.solve(C, np.ones(K))
+                            c = z / z.sum()
+                            W_acc = np.zeros((n_features + self.fit_intercept, n_tasks))
+                            W_acc[ws_, :] = np.sum(
+                                last_K_w[:-1] * c[:, None], axis=0).reshape(
+                                    (ws_size + self.fit_intercept, n_tasks))
+                            p_obj = datafit.value(Y, W, XW) + penalty.value(W)
+                            Xw_acc = (X[:, ws] @ W_acc[ws] 
+                                      + self.fit_intercept * W_acc[-1])
+                            p_obj_acc = datafit.value(
+                                Y, W_acc, Xw_acc) + penalty.value(W_acc)
+                            if p_obj_acc < p_obj:
+                                W[:] = W_acc
+                                XW[:] = Xw_acc
+                        except np.linalg.LinAlgError:
+                            if max(self.verbose - 1, 0):
+                                print("----------Linalg error")
+
+                if epoch > 0 and epoch % 10 == 0:
+                    p_obj = datafit.value(Y, W[ws, :], XW) + penalty.value(W)
+
+                    if is_sparse:
+                        grad_ws = construct_grad_sparse(
+                            X.data, X.indptr, X.indices, Y, XW, datafit, ws)
+                    else:
+                        grad_ws = construct_grad(X, Y, W, XW, datafit, ws)
+
+                    if self.ws_strategy == "subdiff":
+                        opt_ws = penalty.subdiff_distance(W, grad_ws, ws)
+                    elif self.ws_strategy == "fixpoint":
+                        opt_ws = dist_fix_point(W, grad_ws, datafit, penalty, ws)
+
+                    stop_crit_in = np.max(opt_ws)
+                    if max(self.verbose - 1, 0):
+                        print(f"Epoch {epoch + 1}, objective {p_obj:.10f}, "
+                            f"stopping crit {stop_crit_in:.2e}")
+                    if ws_size == n_features:
+                        if stop_crit_in <= self.tol:
+                            break
+                    else:
+                        if stop_crit_in < 0.3 * stop_crit:
+                            if max(self.verbose - 1, 0):
+                                print("Early exit")
+                            break
+            obj_out.append(p_obj)
+        return W, np.array(obj_out), stop_crit
 
 
 @njit

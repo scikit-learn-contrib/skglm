@@ -18,8 +18,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.multiclass import OneVsRestClassifier, check_classification_targets
 
 from skglm.utils import compiled_clone
-from skglm.solvers import AcceleratedCD, multitask_bcd_solver_path
-from skglm.solvers.multitask_bcd_solver import multitask_bcd_solver
+from skglm.solvers import AcceleratedCD, MultiTaskBCD 
 from skglm.datafits import Quadratic, Logistic, QuadraticSVC, QuadraticMultiTask
 from skglm.penalties import L1, WeightedL1, L1_plus_L2, MCPenalty, IndicatorBox, L2_1
 

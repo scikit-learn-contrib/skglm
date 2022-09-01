@@ -244,7 +244,6 @@ class GeneralizedLinearEstimator(LinearModel):
         self.solver = self.solver if self.solver else AcceleratedCD()
         return self.solver.solve(X, y, self.datafit, self.penalty)
 
-
     def predict(self, X):
         """Predict target values for samples in X.
 

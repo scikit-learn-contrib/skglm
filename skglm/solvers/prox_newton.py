@@ -48,26 +48,7 @@ class ProxNewton:
         self.tol = tol
         self.verbose = verbose
 
-    # def get_spec(self):
-    #     spec = (
-    #         ('p0', int64),
-    #         ('max_iter', int64),
-    #         ('max_pn_iter', int64),
-    #         ('tol', float64),
-    #         ('verbose', bool_),
-    #     )
-    #     return spec
-
-    # def params_to_dict(self):
-    #     return {
-    #         'p0': self.p0,
-    #         'max_iter': self.max_iter,
-    #         'max_pn_iter': self.max_pn_iter,
-    #         'tol': self.tol,
-    #         'verbose': self.verbose,
-    #     }
-
-    def solve(self, X, y, datafit, penalty, w_init=None):
+    def solve(self, X, y, model, datafit, penalty, w_init=None):
         n_samples, n_features = X.shape
         w = np.zeros(n_features) if w_init is None else w_init
         Xw = np.zeros(n_samples) if w_init is None else X @ w_init

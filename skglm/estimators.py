@@ -17,7 +17,6 @@ from sklearn.utils.extmath import softmax
 from sklearn.preprocessing import LabelEncoder
 from sklearn.multiclass import OneVsRestClassifier, check_classification_targets
 
-
 from skglm.utils import compiled_clone
 from skglm.solvers import AcceleratedCD, multitask_bcd_solver_path
 from skglm.solvers.multitask_bcd_solver import multitask_bcd_solver
@@ -331,7 +330,7 @@ class Lasso(LinearModel, RegressorMixin):
     def __init__(self, alpha=1., solver=None):
         super().__init__()
         self.alpha = alpha
-        self.solver = solver
+        self.solver = solver if solver else AcceleratedCD()
 
     def fit(self, X, y):
         """Fit the model according to the given training data.
@@ -349,7 +348,6 @@ class Lasso(LinearModel, RegressorMixin):
         self :
             Fitted estimator.
         """
-        self.solver = self.solver if self.solver else AcceleratedCD()
         return _glm_fit(X, y, self, Quadratic(), L1(self.alpha), self.solver)
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
@@ -447,7 +445,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
         super().__init__()
         self.alpha = alpha
         self.weights = weights
-        self.solver = solver
+        self.solver = solver if solver else AcceleratedCD()
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
         """Compute Weighted Lasso path.
@@ -523,7 +521,6 @@ class WeightedLasso(LinearModel, RegressorMixin):
             penalty = L1(self.alpha)
         else:
             penalty = WeightedL1(self.alpha, self.weights)
-        self.solver = self.solver if self.solver else AcceleratedCD()
         return _glm_fit(X, y, self, Quadratic(), penalty, self.solver)
 
 
@@ -572,7 +569,7 @@ class ElasticNet(LinearModel, RegressorMixin):
         super().__init__()
         self.alpha = alpha
         self.l1_ratio = l1_ratio
-        self.solver = solver
+        self.solver = solver if solver else AcceleratedCD()
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
         """Compute Elastic Net path.
@@ -636,7 +633,6 @@ class ElasticNet(LinearModel, RegressorMixin):
         self :
             Fitted estimator.
         """
-        self.solver = self.solver if self.solver else AcceleratedCD()
         return _glm_fit(X, y, self, Quadratic(),
                         L1_plus_L2(self.alpha, self.l1_ratio), self.solver)
 
@@ -691,7 +687,7 @@ class MCPRegression(LinearModel, RegressorMixin):
         super().__init__()
         self.alpha = alpha
         self.gamma = gamma
-        self.solver = solver
+        self.solver = solver if solver else AcceleratedCD()
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
         """Compute MCPRegression path.
@@ -755,7 +751,6 @@ class MCPRegression(LinearModel, RegressorMixin):
         self :
             Fitted estimator.
         """
-        self.solver = self.solver if self.solver else AcceleratedCD()
         return _glm_fit(X, y, self, Quadratic(), MCPenalty(self.alpha, self.gamma),
                         self.solver)
 
@@ -795,7 +790,7 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
     def __init__(self, alpha=1.0, solver=None):
         super().__init__()
         self.alpha = alpha
-        self.solver = solver
+        self.solver = self.solver if self.solver else ProxNewton()
 
     def fit(self, X, y):
         """Fit the model according to the given training data.
@@ -814,7 +809,6 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         self :
             Fitted estimator.
         """
-        self.solver = self.solver if self.solver else ProxNewton()
         return _glm_fit(X, y, self, Logistic(), L1(self.alpha), self.solver)
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
@@ -967,7 +961,7 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
     def __init__(self, C=1., solver=None):
         super().__init__()
         self.C = C
-        self.solver = solver
+        self.solver = solver if solver else AcceleratedCD()
 
     def fit(self, X, y):
         """Fit LinearSVC classifier.
@@ -985,7 +979,6 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
         self
             Fitted estimator.
         """
-        self.solver = self.solver if self.solver else AcceleratedCD()
         return _glm_fit(X, y, self, QuadraticSVC(), IndicatorBox(self.C), self.solver)
 
     # TODO add predict_proba for LinearSVC

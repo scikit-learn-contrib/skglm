@@ -306,7 +306,7 @@ class Lasso(LinearModel, RegressorMixin):
         Penalty strength.
 
     solver : instance of BaseSolver, optional
-        Solver. If None, `solver` is initialized as a `AcceleratedCD` solver.
+        Solver. If None, `solver` is initialized as an `AcceleratedCD` solver.
 
     Attributes
     ----------

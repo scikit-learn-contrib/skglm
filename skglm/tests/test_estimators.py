@@ -204,7 +204,7 @@ def test_estimator_predict(Datafit, Penalty, Estimator_sk):
     }
     X_test = np.random.normal(0, 1, (n_samples, n_features))
     clf = GeneralizedLinearEstimator(
-        Datafit(), Penalty(1.), is_classif, fit_intercept=False, tol=tol).fit(X, y)
+        Datafit(), Penalty(1.), solver, is_classif, fit_intercept=False).fit(X, y)
     clf_sk = Estimator_sk(**estim_args[Estimator_sk]).fit(X, y)
     y_pred = clf.predict(X_test)
     y_pred_sk = clf_sk.predict(X_test)
@@ -244,6 +244,7 @@ def test_grid_search(estimator_name):
     estimator_sk = clone(dict_estimators_sk[estimator_name])
     estimator_ours = clone(dict_estimators_ours[estimator_name])
     estimator_sk.tol = 1e-10
+    # XXX: No need for `tol` anymore as it already is in solver
     estimator_ours.tol = 1e-10
     estimator_sk.max_iter = 10_000
     param_grid = {'alpha': np.geomspace(alpha_max, alpha_max * 0.01, 10)}

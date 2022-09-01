@@ -33,25 +33,28 @@ class GroupBCD:
         Amount of verbosity. 0/False is silent.
     """
 
-    def __init__(self, max_iter=1000, max_epochs=100, p0=10, tol=1e-4, verbose=0):
+    def __init__(self, max_iter=1000, max_epochs=100, p0=10, tol=1e-4, 
+                 fit_intercept=False, warm_start=False, verbose=0):
         self.max_iter = max_iter
         self.max_epochs = max_epochs
         self.p0 = p0
         self.tol = tol
+        self.fit_intercept = fit_intercept
+        self.warm_start = warm_start
         self.verbose = verbose
 
-    def solve(self, X, y, model, datafit, penalty, w_init=None, Xw_init=None):
+    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
         check_group_compatible(datafit)
         check_group_compatible(penalty)
 
         n_samples, n_features = X.shape
         n_groups = len(penalty.grp_ptr) - 1
 
-        w = np.zeros(n_features + model.fit_intercept) if w_init is None else w_init
+        w = np.zeros(n_features + self.fit_intercept) if w_init is None else w_init
         Xw = np.zeros(n_samples) if w_init is None else Xw_init
 
-        if len(w) != n_features + model.fit_intercept:
-            if model.fit_intercept:
+        if len(w) != n_features + self.fit_intercept:
+            if self.fit_intercept:
                 val_error_message = (
                     "Inconsistent size of coefficients with n_features + 1\n"
                     f"expected {n_features + 1}, got {len(w)}")
@@ -71,7 +74,7 @@ class GroupBCD:
             grad = _construct_grad(X, y, w, Xw, datafit, all_groups)
             opt = penalty.subdiff_distance(w, grad, all_groups)
 
-            if model.fit_intercept:
+            if self.fit_intercept:
                 intercept_opt = np.abs(datafit.intercept_update_step(y, Xw))
             else:
                 intercept_opt = 0.
@@ -98,7 +101,7 @@ class GroupBCD:
                 _bcd_epoch(X, y, w[:n_features], Xw, datafit, penalty, ws)
 
                 # update intercept
-                if model.fit_intercept:
+                if self.fit_intercept:
                     intercept_old = w[-1]
                     w[-1] -= datafit.intercept_update_step(y, Xw)
                     Xw += (w[-1] - intercept_old)

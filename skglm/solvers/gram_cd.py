@@ -45,14 +45,17 @@ class GramCD:
         Amount of verbosity. 0/False is silent.
     """
 
-    def __init__(self, max_iter=100, use_acc=True, greedy_cd=True, tol=1e-4, verbose=0):
+    def __init__(self, max_iter=100, use_acc=True, greedy_cd=True, tol=1e-4, 
+                 fit_intercept=True, warm_start=False, verbose=0):
         self.max_iter = max_iter
         self.use_acc = use_acc
         self.greedy_cd = greedy_cd
         self.tol = tol
+        self.fit_intercept = fit_intercept
+        self.warm_start = warm_start
         self.verbose = verbose
 
-    def solve(self, X, y, model, datafit, penalty, w_init=None, Xw_init=None):
+    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
         n_samples, n_features = X.shape
 
         if issparse(X):

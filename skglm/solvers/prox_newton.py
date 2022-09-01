@@ -40,15 +40,17 @@ class ProxNewton:
         code: https://github.com/tbjohns/BlitzL1
     """
 
-    def __init__(self, p0=10,
-                 max_iter=20, max_pn_iter=1000, tol=1e-4, verbose=0):
+    def __init__(self, p0=10, max_iter=20, max_pn_iter=1000, tol=1e-4,
+                 fit_intercept=True, warm_start=False, verbose=0):
         self.p0 = p0
         self.max_iter = max_iter
         self.max_pn_iter = max_pn_iter
         self.tol = tol
+        self.fit_intercept = fit_intercept
+        self.warm_start = warm_start
         self.verbose = verbose
 
-    def solve(self, X, y, model, datafit, penalty, w_init=None):
+    def solve(self, X, y, datafit, penalty, w_init=None):
         n_samples, n_features = X.shape
         w = np.zeros(n_features) if w_init is None else w_init
         Xw = np.zeros(n_samples) if w_init is None else X @ w_init

@@ -22,7 +22,7 @@ from skglm.estimators import (
     MCPRegression, SparseLogisticRegression, LinearSVC)
 from skglm.datafits import Logistic, Quadratic, QuadraticSVC, QuadraticMultiTask
 from skglm.penalties import L1, IndicatorBox, L1_plus_L2, MCPenalty, WeightedL1
-from skglm.solvers import AcceleratedCD
+from skglm.solvers import AcceleratedCD, ProxNewton
 
 
 n_samples = 50
@@ -74,7 +74,7 @@ dict_estimators_sk["LogisticRegression"] = LogReg_sklearn(
     C=1/(alpha * n_samples), tol=tol, penalty='l1',
     solver='liblinear')
 dict_estimators_ours["LogisticRegression"] = SparseLogisticRegression(
-    alpha=alpha, solver=solver)
+    alpha=alpha, solver=ProxNewton(tol=tol))
 
 C = 1.
 dict_estimators_sk["SVC"] = LinearSVC_sklearn(
@@ -152,7 +152,7 @@ def test_mtl_path():
             X, Y, l1_ratio=1, tol=1e-14, max_iter=5_000, alphas=alphas
     )[1][:, :X.shape[1]]
     coef_ours = MultiTaskLasso(fit_intercept=fit_intercept, tol=1e-14).path(
-        X, Y, alphas, max_iter=10)[1][:, :X.shape[1]]
+        X, Y, alphas)[1][:, :X.shape[1]]
     np.testing.assert_allclose(coef_ours, coef_sk, rtol=1e-5)
 
 

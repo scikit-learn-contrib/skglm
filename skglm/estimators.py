@@ -372,7 +372,11 @@ class Lasso(LinearModel, RegressorMixin):
             Fitted estimator.
         """
         self.solver = self.solver if self.solver else AcceleratedCD(
-            fit_intercept=self.fit_intercept, tol=self.tol, warm_start=self.warm_start)
+            )
+        # TODO MM this design is slippery
+        self.solver.fit_intercept = self.fit_intercept
+        self.solver.tol = self.tol
+        self.solver.warm_start=self.warm_start
         return _glm_fit(X, y, self, Quadratic(), L1(self.alpha), self.solver)
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):

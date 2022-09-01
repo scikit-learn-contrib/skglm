@@ -27,8 +27,7 @@ def test_huber_datafit(fit_intercept):
     ours = GeneralizedLinearEstimator(
         datafit=Huber(delta),
         penalty=WeightedL1(1, np.zeros(X.shape[1])),
-        solver=AcceleratedCD(tol=1e-14),
-        fit_intercept=fit_intercept
+        solver=AcceleratedCD(tol=1e-14, fit_intercept=fit_intercept),
     ).fit(X, y)
 
     assert_allclose(ours.coef_, their.coef_, rtol=1e-3)

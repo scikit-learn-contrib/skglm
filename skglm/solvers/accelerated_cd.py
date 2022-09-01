@@ -45,12 +45,15 @@ class AcceleratedCD:
     """
 
     def __init__(self, max_iter=50, max_epochs=50_000, p0=10,
-                 tol=1e-4, ws_strategy="subdiff", verbose=0):
+                 tol=1e-4, ws_strategy="subdiff", fit_intercept=True, 
+                 warm_start=False, verbose=0):
         self.max_iter = max_iter
         self.max_epochs = max_epochs
         self.p0 = p0
         self.tol = tol
         self.ws_strategy = ws_strategy
+        self.fit_intercept = fit_intercept
+        self.warm_start = warm_start
         self.verbose = verbose
 
     def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):

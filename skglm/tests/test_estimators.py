@@ -86,6 +86,9 @@ dict_estimators_ours["SVC"] = LinearSVC(C=C, tol=tol)
 def test_check_estimator(estimator_name):
     if estimator_name == "SVC":
         pytest.xfail("SVC check_estimator is too slow due to bug.")
+    elif estimator_name == "LogisticRegression":
+        # TODO: remove xfail when ProxNewton supports intercept fitting
+        pytest.xfail("ProxNewton does not yet support intercept fitting")
     clf = clone(dict_estimators_ours[estimator_name])
     clf.tol = 1e-6  # failure in float32 computation otherwise
     if isinstance(clf, WeightedLasso):
@@ -262,6 +265,9 @@ def test_grid_search(estimator_name):
     "estimator_name",
     ["Lasso", "wLasso", "ElasticNet", "MCP", "LogisticRegression", "SVC"])
 def test_warm_start(estimator_name):
+    if estimator_name == "LogisticRegression":
+        # TODO: remove xfail when ProxNewton supports intercept fitting
+        pytest.xfail("ProxNewton does not yet support intercept fitting")
     model = clone(dict_estimators_ours[estimator_name])
     model.warm_start = True
     model.fit(X, y)

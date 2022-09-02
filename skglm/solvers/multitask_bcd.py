@@ -77,7 +77,7 @@ class MultiTaskBCD:
         coefs = np.swapaxes(coefs, 0, 1).copy('F')
 
         results = alphas, coefs, stop_crits
-        if True:
+        if return_n_iter:
             results += (n_iters,)
 
         return results

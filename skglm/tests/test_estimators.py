@@ -56,7 +56,7 @@ dict_estimators_ours["Lasso"] = Lasso(
 dict_estimators_sk["wLasso"] = Lasso_sklearn(
     alpha=alpha, tol=tol)
 dict_estimators_ours["wLasso"] = WeightedLasso(
-    alpha=alpha, weights=np.ones(n_features), tol=tol)
+    alpha=alpha, tol=tol, weights=np.ones(n_features))
 
 dict_estimators_sk["ElasticNet"] = ElasticNet_sklearn(
     alpha=alpha, l1_ratio=l1_ratio, tol=tol)
@@ -153,7 +153,7 @@ def test_mtl_path():
             X, Y, l1_ratio=1, tol=1e-14, max_iter=5_000, alphas=alphas
     )[1][:, :X.shape[1]]
     coef_ours = MultiTaskLasso(fit_intercept=fit_intercept, tol=1e-14).path(
-        X, Y, alphas)[1][:, :X.shape[1]]
+        X, Y, alphas, max_iter=10)[1][:, :X.shape[1]]
     np.testing.assert_allclose(coef_ours, coef_sk, rtol=1e-5)
 
 

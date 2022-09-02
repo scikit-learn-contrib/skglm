@@ -80,17 +80,17 @@ dict_estimators_sk["SVC"] = LinearSVC_sklearn(
 dict_estimators_ours["SVC"] = LinearSVC(C=C, tol=tol)
 
 
-# @pytest.mark.parametrize(
-#     "estimator_name",
-#     ["Lasso", "wLasso", "ElasticNet", "MCP", "LogisticRegression", "SVC"])
-# def test_check_estimator(estimator_name):
-#     if estimator_name == "SVC":
-#         pytest.xfail("SVC check_estimator is too slow due to bug.")
-#     clf = clone(dict_estimators_ours[estimator_name])
-#     clf.tol = 1e-6  # failure in float32 computation otherwise
-#     if isinstance(clf, WeightedLasso):
-#         clf.weights = None
-#     check_estimator(clf)
+@pytest.mark.parametrize(
+    "estimator_name",
+    ["Lasso", "wLasso", "ElasticNet", "MCP", "LogisticRegression", "SVC"])
+def test_check_estimator(estimator_name):
+    if estimator_name == "SVC":
+        pytest.xfail("SVC check_estimator is too slow due to bug.")
+    clf = clone(dict_estimators_ours[estimator_name])
+    clf.tol = 1e-6  # failure in float32 computation otherwise
+    if isinstance(clf, WeightedLasso):
+        clf.weights = None
+    check_estimator(clf)
 
 
 @pytest.mark.parametrize("estimator_name", dict_estimators_ours.keys())

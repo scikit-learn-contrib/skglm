@@ -93,7 +93,8 @@ class MultiTaskBCD:
         stop_crit = np.inf  # initialize for case n_iter=0
         K = 5
 
-        W = np.zeros((n_features, n_tasks)) if W_init is None else W_init
+        W = (np.zeros((n_features + self.fit_intercept, n_tasks)) if W_init is None 
+             else W_init)
         XW = np.zeros((n_samples, n_tasks)) if XW_init is None else XW_init
 
         if W.shape[0] != n_features + self.fit_intercept:
@@ -108,6 +109,11 @@ class MultiTaskBCD:
             raise ValueError(val_error_message)
 
         is_sparse = sparse.issparse(X)
+        if is_sparse:
+            datafit.initialize_sparse(X.data, X.indptr, X.indices, Y)
+        else:
+            datafit.initialize(X, Y)
+        
         for t in range(self.max_iter):
             if is_sparse:
                 grad = datafit.full_grad_sparse(

@@ -5,6 +5,7 @@ from numpy.linalg import norm
 from sklearn.utils import check_array
 from skglm.solvers.base import BaseSolver
 
+
 class MultiTaskBCD(BaseSolver):
     """Block coordinate descent solver for multi-task problems."""
 

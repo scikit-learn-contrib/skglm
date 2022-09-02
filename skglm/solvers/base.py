@@ -7,6 +7,7 @@ class BaseSolver():
     @abstractmethod
     def solve(self, X, y, datafit, penalty, w_init, Xw_init):
         """Solve an optimization problem.
+
         Parameters
         ----------
         X : array, shape (n_samples, n_features)
@@ -38,4 +39,3 @@ class BaseSolver():
         stop_crit : float
             Value of stopping criterion at convergence.
         """
-

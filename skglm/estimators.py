@@ -121,7 +121,7 @@ def _glm_fit(X, y, model, datafit, penalty, solver):
     else:
         # TODO this should be solver.get_init() do delegate the work
         if y.ndim == 1:
-            w = np.zeros(n_features + solver.fit_intercept, dtype=X_.dtype)
+            w = np.zeros(n_features + fit_intercept, dtype=X_.dtype)
             Xw = np.zeros(n_samples, dtype=X_.dtype)
         else:  # multitask
             w = np.zeros((n_features + solver.fit_intercept,

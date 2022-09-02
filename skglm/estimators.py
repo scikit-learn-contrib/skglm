@@ -904,7 +904,7 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
     ----------
     alpha : float, default=1.0
         Regularization strength; must be a positive float.
-    
+
     tol : float, optional
         Stopping criterion for the optimization.
 

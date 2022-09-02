@@ -309,6 +309,18 @@ class Lasso(LinearModel, RegressorMixin):
     alpha : float, optional
         Penalty strength.
 
+    max_iter : int, optional
+        The maximum number of iterations (subproblem definitions).
+
+    max_epochs : int
+        Maximum number of CD epochs on each subproblem.
+
+    p0 : int
+        First working set size.
+
+    verbose : bool or int
+        Amount of verbosity.
+
     tol : float, optional
         Stopping criterion for the optimization.
 
@@ -318,6 +330,9 @@ class Lasso(LinearModel, RegressorMixin):
     warm_start : bool, optional (default=False)
         When set to True, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
+
+    ws_strategy : str
+        The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
 
     Attributes
     ----------
@@ -339,9 +354,8 @@ class Lasso(LinearModel, RegressorMixin):
     MCPRegression : Sparser regularization than L1 norm.
     """
 
-    def __init__(self, alpha=1., tol=1e-4, max_iter=50, max_epochs=50_000,
-                 p0=10, ws_strategy="subdiff", fit_intercept=True, warm_start=False,
-                 verbose=0):
+    def __init__(self, alpha=1., max_iter=50, max_epochs=50_000, p0=10, verbose=0,
+                 tol=1e-4, fit_intercept=True, warm_start=False, ws_strategy="subdiff"):
         super().__init__()
         self.alpha = alpha
         self.tol = tol
@@ -438,6 +452,18 @@ class WeightedLasso(LinearModel, RegressorMixin):
         Positive weights used in the L1 penalty part of the Lasso
         objective. If None, weights equal to 1 are used.
 
+    max_iter : int, optional
+        The maximum number of iterations (subproblem definitions).
+
+    max_epochs : int
+        Maximum number of CD epochs on each subproblem.
+
+    p0 : int
+        First working set size.
+
+    verbose : bool or int
+        Amount of verbosity.
+
     tol : float, optional
         Stopping criterion for the optimization.
 
@@ -447,6 +473,9 @@ class WeightedLasso(LinearModel, RegressorMixin):
     warm_start : bool, optional (default=False)
         When set to True, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
+
+    ws_strategy : str
+        The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
 
     Attributes
     ----------
@@ -472,9 +501,9 @@ class WeightedLasso(LinearModel, RegressorMixin):
     Supports weights equal to 0, i.e. unpenalized features.
     """
 
-    def __init__(self, alpha=1., weights=None, tol=1e-4, max_iter=50, max_epochs=10_000,
-                 p0=10, ws_strategy="subdiff", fit_intercept=True, warm_start=False,
-                 verbose=0):
+    def __init__(self, alpha=1., weights=None, max_iter=50, max_epochs=50_000, p0=10,
+                 verbose=0, tol=1e-4, fit_intercept=True, warm_start=False,
+                 ws_strategy="subdiff"):
         super().__init__()
         self.alpha = alpha
         self.weights = weights
@@ -584,6 +613,18 @@ class ElasticNet(LinearModel, RegressorMixin):
         is an L1 penalty.  For ``0 < l1_ratio < 1``, the penalty is a
         combination of L1 and L2.
 
+    max_iter : int, optional
+        The maximum number of iterations (subproblem definitions).
+
+    max_epochs : int
+        Maximum number of CD epochs on each subproblem.
+
+    p0 : int
+        First working set size.
+
+    verbose : bool or int
+        Amount of verbosity.
+
     tol : float, optional
         Stopping criterion for the optimization.
 
@@ -593,6 +634,9 @@ class ElasticNet(LinearModel, RegressorMixin):
     warm_start : bool, optional (default=False)
         When set to True, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
+
+    ws_strategy : str
+        The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
 
     Attributes
     ----------
@@ -613,9 +657,9 @@ class ElasticNet(LinearModel, RegressorMixin):
     Lasso : Lasso regularization.
     """
 
-    def __init__(self, alpha=1., l1_ratio=0.5, tol=1e-4, max_iter=50, max_epochs=10_000,
-                 p0=10, ws_strategy="subdiff", fit_intercept=True, warm_start=False,
-                 verbose=0):
+    def __init__(self, alpha=1., l1_ratio=0.5, max_iter=50, max_epochs=50_000, p0=10,
+                 verbose=0, tol=1e-4, fit_intercept=True, warm_start=False,
+                 ws_strategy="subdiff"):
         super().__init__()
         self.alpha = alpha
         self.l1_ratio = l1_ratio
@@ -721,6 +765,18 @@ class MCPRegression(LinearModel, RegressorMixin):
         If gamma = np.inf it is a soft thresholding.
         Should be larger than (or equal to) 1.
 
+    max_iter : int, optional
+        The maximum number of iterations (subproblem definitions).
+
+    max_epochs : int
+        Maximum number of CD epochs on each subproblem.
+
+    p0 : int
+        First working set size.
+
+    verbose : bool or int
+        Amount of verbosity.
+
     tol : float, optional
         Stopping criterion for the optimization.
 
@@ -730,6 +786,9 @@ class MCPRegression(LinearModel, RegressorMixin):
     warm_start : bool, optional (default=False)
         When set to True, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
+
+    ws_strategy : str
+        The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
 
     Attributes
     ----------
@@ -750,9 +809,9 @@ class MCPRegression(LinearModel, RegressorMixin):
     Lasso : Lasso regularization.
     """
 
-    def __init__(self, alpha=1., gamma=3, tol=1e-4, max_iter=50, max_epochs=10_000,
-                 p0=10, ws_strategy="subdiff", fit_intercept=True, warm_start=False,
-                 verbose=0):
+    def __init__(self, alpha=1., gamma=3, max_iter=50, max_epochs=50_000, p0=10,
+                 verbose=0, tol=1e-4, fit_intercept=True, warm_start=False,
+                 ws_strategy="subdiff"):
         super().__init__()
         self.alpha = alpha
         self.gamma = gamma
@@ -845,9 +904,18 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
     ----------
     alpha : float, default=1.0
         Regularization strength; must be a positive float.
-
+    
     tol : float, optional
         Stopping criterion for the optimization.
+
+    max_iter : int, optional
+        The maximum number of outer iterations (subproblem definitions).
+
+    max_epochs : int
+        Maximum number of prox Newton iterations on each subproblem.
+
+    verbose : bool or int
+        Amount of verbosity.
 
     fit_intercept : bool, optional (default=True)
         Whether or not to fit an intercept.
@@ -873,16 +941,16 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         Number of subproblems solved to reach the specified tolerance.
     """
 
-    def __init__(self, alpha=1.0, tol=1e-4, max_iter=20, max_epochs=1_000,
-                 fit_intercept=True, warm_start=False, solver=None):
+    def __init__(self, alpha=1.0, tol=1e-4, max_iter=20, max_epochs=1_000, verbose=0,
+                 fit_intercept=True, warm_start=False):
         super().__init__()
         self.alpha = alpha
         self.tol = tol
         self.max_iter = max_iter
         self.max_epochs = max_epochs
+        self.verbose = verbose
         self.fit_intercept = fit_intercept
         self.warm_start = warm_start
-        self.solver = solver
 
     def fit(self, X, y):
         """Fit the model according to the given training data.
@@ -903,7 +971,8 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         """
         solver = ProxNewton(
             max_iter=self.max_iter, max_pn_iter=self.max_epochs, tol=self.tol,
-            fit_intercept=self.fit_intercept, warm_start=self.warm_start)
+            fit_intercept=self.fit_intercept, warm_start=self.warm_start,
+            verbose=self.verbose)
         return _glm_fit(X, y, self, Logistic(), L1(self.alpha), solver)
 
     def predict_proba(self, X):
@@ -984,6 +1053,18 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
         Regularization parameter. The strength of the regularization is
         inversely proportional to C. Must be strictly positive.
 
+    max_iter : int, optional
+        The maximum number of iterations (subproblem definitions).
+
+    max_epochs : int
+        Maximum number of CD epochs on each subproblem.
+
+    p0 : int
+        First working set size.
+
+    verbose : bool or int
+        Amount of verbosity.
+
     tol : float, optional
         Stopping criterion for the optimization.
 
@@ -993,6 +1074,9 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
     warm_start : bool, optional (default=False)
         When set to True, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
+
+    ws_strategy : str
+        The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
 
     Attributes
     ----------
@@ -1012,9 +1096,9 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
         Number of subproblems solved to reach the specified tolerance.
     """
 
-    def __init__(self, C=1., tol=1e-4, max_iter=50, max_epochs=10_000, p0=10,
-                 ws_strategy="subdiff", fit_intercept=False, warm_start=False,
-                 verbose=0):
+    def __init__(self, C=1., max_iter=50, max_epochs=50_000, p0=10,
+                 verbose=0, tol=1e-4, fit_intercept=True, warm_start=False,
+                 ws_strategy="subdiff"):
         super().__init__()
         self.C = C
         self.tol = tol
@@ -1064,13 +1148,20 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
     alpha : float, optional
         Regularization strength (constant that multiplies the L21 penalty).
 
+    max_iter : int, optional
+        The maximum number of iterations (subproblem definitions).
+
+    max_epochs : int
+        Maximum number of CD epochs on each subproblem.
+
+    p0 : int
+        First working set size.
+
     verbose : bool or int
         Amount of verbosity.
 
     tol : float, optional
-        Stopping criterion for the optimization: the solver runs until the
-        duality gap is smaller than ``tol * norm(y) ** 2 / len(y)`` or the
-        maximum number of iteration is reached.
+        Stopping criterion for the optimization.
 
     fit_intercept : bool, optional (default=True)
         Whether or not to fit an intercept.
@@ -1078,6 +1169,9 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
     warm_start : bool, optional (default=False)
         When set to True, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
+
+    ws_strategy : str
+        The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
 
     Attributes
     ----------
@@ -1094,9 +1188,9 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
         Number of subproblems solved by Celer to reach the specified tolerance.
     """
 
-    def __init__(self, alpha=1., tol=1e-4, max_iter=50, max_epochs=10_000, p0=10,
-                 ws_strategy="subdiff", fit_intercept=True, warm_start=False,
-                 verbose=0):
+    def __init__(self, alpha=1., max_iter=50, max_epochs=50_000, p0=10,
+                 verbose=0, tol=1e-4, fit_intercept=True, warm_start=False,
+                 ws_strategy="subdiff"):
         super().__init__(
             alpha=alpha, tol=tol,
             fit_intercept=fit_intercept, warm_start=warm_start)

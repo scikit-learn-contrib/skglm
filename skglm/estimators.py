@@ -1182,6 +1182,9 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
         coef_init : array, shape (n_features,), optional
             If warm_start is enabled, the optimization problem restarts from coef_init.
 
+        return_n_iter : bool
+            Returns the number of iterations along the path.
+
         **params : kwargs
             All parameters supported by path.
 

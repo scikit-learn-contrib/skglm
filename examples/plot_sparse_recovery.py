@@ -69,7 +69,7 @@ prediction_error = {}
 l0 = {}
 mse_ref = mean_squared_error(np.zeros_like(y_test), y_test)
 
-solver = AcceleratedCD(ws_strategy="fixpoint")
+solver = AcceleratedCD(ws_strategy="fixpoint", fit_intercept=False)
 
 for idx, estimator in enumerate(penalties.keys()):
     print(f'Running {estimator}...')

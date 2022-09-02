@@ -45,41 +45,39 @@ C = 1 / alpha
 tol = 1e-10
 l1_ratio = 0.3
 
-solver = AcceleratedCD(tol=tol)
-
 dict_estimators_sk = {}
 dict_estimators_ours = {}
 
 dict_estimators_sk["Lasso"] = Lasso_sklearn(
     alpha=alpha, tol=tol)
 dict_estimators_ours["Lasso"] = Lasso(
-    alpha=alpha, solver=solver)
+    alpha=alpha, tol=tol)
 
 dict_estimators_sk["wLasso"] = Lasso_sklearn(
     alpha=alpha, tol=tol)
 dict_estimators_ours["wLasso"] = WeightedLasso(
-    alpha=alpha, weights=np.ones(n_features), solver=solver)
+    alpha=alpha, weights=np.ones(n_features), tol=tol)
 
 dict_estimators_sk["ElasticNet"] = ElasticNet_sklearn(
     alpha=alpha, l1_ratio=l1_ratio, tol=tol)
 dict_estimators_ours["ElasticNet"] = ElasticNet(
-    alpha=alpha, l1_ratio=l1_ratio, solver=solver)
+    alpha=alpha, l1_ratio=l1_ratio, tol=tol)
 
 dict_estimators_sk["MCP"] = Lasso_sklearn(
     alpha=alpha, tol=tol)
 dict_estimators_ours["MCP"] = MCPRegression(
-    alpha=alpha, gamma=np.inf, solver=solver)
+    alpha=alpha, gamma=np.inf, tol=tol)
 
 dict_estimators_sk["LogisticRegression"] = LogReg_sklearn(
     C=1/(alpha * n_samples), tol=tol, penalty='l1',
     solver='liblinear')
 dict_estimators_ours["LogisticRegression"] = SparseLogisticRegression(
-    alpha=alpha, solver=ProxNewton(tol=tol))
+    alpha=alpha, tol=tol)
 
 C = 1.
 dict_estimators_sk["SVC"] = LinearSVC_sklearn(
     penalty='l2', loss='hinge', fit_intercept=False, dual=True, C=C, tol=tol)
-dict_estimators_ours["SVC"] = LinearSVC(C=C, solver=solver)
+dict_estimators_ours["SVC"] = LinearSVC(C=C, tol=tol)
 
 
 # @pytest.mark.parametrize(
@@ -111,7 +109,6 @@ def test_estimator(estimator_name, X, fit_intercept):
 
     estimator_sk.set_params(fit_intercept=fit_intercept)
     estimator_ours.set_params(fit_intercept=fit_intercept)
-    estimator_ours.solver.fit_intercept = fit_intercept
 
     estimator_sk.fit(X, y)
     estimator_ours.fit(X, y)

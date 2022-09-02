@@ -882,53 +882,6 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
             fit_intercept=self.fit_intercept, warm_start=self.warm_start)
         return _glm_fit(X, y, self, Logistic(), L1(self.alpha), solver)
 
-    def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
-        """Compute sparse Logistic Regression path.
-
-        Parameters
-        ----------
-        X : array-like, shape (n_samples, n_features)
-            Training data, where n_samples is the number of samples and
-            n_features is the number of features.
-
-        y : array-like, shape (n_samples,)
-            Target vector relative to X.
-
-        alphas : array
-            Values of regularization strengths for which solutions are
-            computed.
-
-        coef_init : array, shape (n_features,), optional
-            Initial value of the coefficients.
-
-        return_n_iter : bool, optional
-            Return number of iterations along the path.
-
-        **params : kwargs
-            All parameters supported by path.
-
-        Returns
-        -------
-        alphas : array, shape (n_alphas,)
-            The alphas along the path where models are computed.
-
-        coefs : array, shape (n_features, n_alphas)
-            Coefficients along the path.
-
-        stop_crit : array, shape (n_alphas,)
-            Value of stopping criterion at convergence along the path.
-
-        n_iters : array, shape (n_alphas,), optional
-            The number of iterations along the path. If return_n_iter is set to `True`.
-        """
-        penalty = compiled_clone(L1(self.alpha))
-        datafit = compiled_clone(Logistic(), to_float32=X.dtype == np.float32)
-        solver = ProxNewton(
-            max_iter=self.max_iter, max_pn_iter=self.max_epochs, tol=self.tol,
-            fit_intercept=self.fit_intercept, warm_start=self.warm_start)
-        # XXX: WARNING NO PATH FOR PROX NEWTON
-        return solver.path(X, y, datafit, penalty, alphas, coef_init)
-
     def predict_proba(self, X):
         """Probability estimates.
 

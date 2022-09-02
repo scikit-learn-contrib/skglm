@@ -93,15 +93,15 @@ class MultiTaskBCD:
         stop_crit = np.inf  # initialize for case n_iter=0
         K = 5
 
-        W = (np.zeros((n_features + self.fit_intercept, n_tasks)) if W_init is None 
+        W = (np.zeros((n_features + self.fit_intercept, n_tasks)) if W_init is None
              else W_init)
         XW = np.zeros((n_samples, n_tasks)) if XW_init is None else XW_init
 
         if W.shape[0] != n_features + self.fit_intercept:
             if self.fit_intercept:
                 val_error_message = (
-                    "W.shape[0] should be n_features + 1 when using fit_intercept=True: "
-                    f"expected {n_features + 1}, got {W.shape[0]}.")
+                    "W.shape[0] should be n_features + 1 when using fit_intercept=True:"
+                    f" expected {n_features + 1}, got {W.shape[0]}.")
             else:
                 val_error_message = (
                     "W.shape[0] should be of size n_features: "
@@ -113,7 +113,7 @@ class MultiTaskBCD:
             datafit.initialize_sparse(X.data, X.indptr, X.indices, Y)
         else:
             datafit.initialize(X, Y)
-        
+
         for t in range(self.max_iter):
             if is_sparse:
                 grad = datafit.full_grad_sparse(

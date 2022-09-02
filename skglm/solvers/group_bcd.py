@@ -1,10 +1,10 @@
 import numpy as np
 from numba import njit
-
+from skglm.solvers.base import BaseSolver
 from skglm.utils import AndersonAcceleration, check_group_compatible
 
 
-class GroupBCD:
+class GroupBCD(BaseSolver):
     """Block coordinate descent solver for group problems.
 
     Attributes

@@ -3,10 +3,11 @@ from numba import njit
 from scipy import sparse
 from sklearn.utils import check_array
 from skglm.solvers.common import construct_grad, construct_grad_sparse, dist_fix_point
+from skglm.solvers.base import BaseSolver
 from skglm.utils import AndersonAcceleration
 
 
-class AcceleratedCD:
+class AcceleratedCD(BaseSolver):
     """Coordinate descent solver with working sets and Anderson acceleration.
 
     fit_intercept : bool

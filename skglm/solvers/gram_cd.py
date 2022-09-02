@@ -2,11 +2,11 @@ import warnings
 import numpy as np
 from numba import njit
 from scipy.sparse import issparse
-
+from skglm.solvers.base import BaseSolver
 from skglm.utils import AndersonAcceleration
 
 
-class GramCD:
+class GramCD(BaseSolver):
     r"""Coordinate descent solver keeping the gradients up-to-date with Gram updates.
 
     This solver should be used when n_features < n_samples, and computes the

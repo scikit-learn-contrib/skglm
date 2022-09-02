@@ -1,12 +1,11 @@
 import numpy as np
-
 from scipy import sparse
 from numba import njit
 from numpy.linalg import norm
 from sklearn.utils import check_array
+from skglm.solvers.base import BaseSolver
 
-
-class MultiTaskBCD:
+class MultiTaskBCD(BaseSolver):
     """Block coordinate descent solver for multi-task problems."""
 
     def __init__(self, max_iter=100, max_epochs=50_000, p0=10, tol=1e-6,

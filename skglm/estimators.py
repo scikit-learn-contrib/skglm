@@ -319,9 +319,6 @@ class Lasso(LinearModel, RegressorMixin):
         When set to True, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
 
-    solver : instance of BaseSolver, optional
-        Solver. If None, `solver` is initialized as an `AcceleratedCD` solver.
-
     Attributes
     ----------
     coef_ : array, shape (n_features,)
@@ -444,9 +441,6 @@ class WeightedLasso(LinearModel, RegressorMixin):
     warm_start : bool, optional (default=False)
         When set to True, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
-
-    solver : instance of BaseSolver, optional
-        Solver. If None, `solver` is initialized as a `AcceleratedCD` solver.
 
     Attributes
     ----------
@@ -588,9 +582,6 @@ class ElasticNet(LinearModel, RegressorMixin):
         When set to True, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
 
-    solver : instance of BaseSolver
-        Solver. If None, `solver` is initialized as a `AcceleratedCD` solver.
-
     Attributes
     ----------
     coef_ : array, shape (n_features,)
@@ -722,9 +713,6 @@ class MCPRegression(LinearModel, RegressorMixin):
         When set to True, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
 
-    solver : instance of BaseSolver
-        Solver. If None, `solver` is initialized as a `AcceleratedCD` solver.
-
     Attributes
     ----------
     coef_ : array, shape (n_features,)
@@ -843,9 +831,6 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
     warm_start : bool, optional (default=False)
         When set to True, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
-
-    solver : instance of BaseSolver
-        Solver. If None, `solver` is initialized as a `AcceleratedCD` solver.
 
     Attributes
     ----------
@@ -1031,9 +1016,6 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
     warm_start : bool, optional (default=False)
         When set to True, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
-
-    solver : instance of BaseSolver
-        Solver. If None, `solver` is initialized as a `AcceleratedCD` solver.
 
     Attributes
     ----------

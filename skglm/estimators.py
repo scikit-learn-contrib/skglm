@@ -1128,7 +1128,7 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
         """
         solver = AcceleratedCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
-            ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
+            ws_strategy=self.ws_strategy, fit_intercept=False,
             warm_start=self.warm_start, verbose=self.verbose)
         return _glm_fit(X, y, self, QuadraticSVC(), IndicatorBox(self.C), solver)
 

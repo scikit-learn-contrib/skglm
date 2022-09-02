@@ -1054,12 +1054,13 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
     """
 
     def __init__(self, C=1., tol=1e-4, max_iter=50, max_epochs=10_000,
-                 warm_start=False):
+                 fit_intercept=False, warm_start=False):
         super().__init__()
         self.C = C
         self.tol = tol
         self.max_iter = max_iter
         self.max_epochs = max_epochs
+        self.fit_intercept = fit_intercept
         self.warm_start = warm_start
 
     def fit(self, X, y):

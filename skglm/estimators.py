@@ -196,16 +196,12 @@ class GeneralizedLinearEstimator(LinearModel):
         Number of subproblems solved to reach the specified tolerance.
     """
 
-    def __init__(self, datafit=None, penalty=None, solver=None, is_classif=False,
-                 #  fit_intercept=True, warm_start=False):
-                 ):
+    def __init__(self, datafit=None, penalty=None, solver=None, is_classif=False):
         super(GeneralizedLinearEstimator, self).__init__()
         self.is_classif = is_classif
         self.penalty = penalty
         self.datafit = datafit
         self.solver = solver
-        # self.fit_intercept = fit_intercept
-        # self.warm_start = warm_start
 
     def __repr__(self):
         """Get string representation of the estimator.

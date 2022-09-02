@@ -177,7 +177,7 @@ def test_generic_estimator(
         gle = GeneralizedLinearEstimator(
             Datafit(), Penalty(*pen_args), solver, is_classif).fit(X, target)
         est = Estimator(
-            *pen_args, solver=solver).fit(X, target)
+            *pen_args, tol=tol, fit_intercept=fit_intercept).fit(X, target)
         np.testing.assert_allclose(gle.coef_, est.coef_, rtol=1e-5)
         np.testing.assert_allclose(gle.intercept_, est.intercept_)
 

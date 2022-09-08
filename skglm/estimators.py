@@ -26,9 +26,7 @@ from skglm.penalties import L1, WeightedL1, L1_plus_L2, MCPenalty, IndicatorBox,
 
 
 def _glm_fit(X, y, model, datafit, penalty):
-    is_classif = False
-    if isinstance(datafit, Logistic) or isinstance(datafit, QuadraticSVC):
-        is_classif = True
+    is_classif = isinstance(datafit, (Logistic, QuadraticSVC))
 
     if is_classif:
         check_classification_targets(y)
@@ -185,10 +183,6 @@ class GeneralizedLinearEstimator(LinearModel):
         Penalty. If None, `penalty` is initialized as a `L1` penalty.
         `penalty` is replaced by a JIT-compiled instance when calling fit.
 
-    is_classif : bool, optional
-        Whether the task is classification or regression. Used for input target
-        validation.
-
     max_iter : int, optional
         The maximum number of iterations (subproblem definitions).
 
@@ -229,11 +223,10 @@ class GeneralizedLinearEstimator(LinearModel):
         Number of subproblems solved to reach the specified tolerance.
     """
 
-    def __init__(self, datafit=None, penalty=None, is_classif=False, max_iter=100,
+    def __init__(self, datafit=None, penalty=None, max_iter=100,
                  max_epochs=50_000, p0=10, tol=1e-4, fit_intercept=True,
                  warm_start=False, ws_strategy="subdiff", verbose=0):
         super(GeneralizedLinearEstimator, self).__init__()
-        self.is_classif = is_classif
         self.tol = tol
         self.max_iter = max_iter
         self.fit_intercept = fit_intercept
@@ -254,9 +247,9 @@ class GeneralizedLinearEstimator(LinearModel):
             String representation.
         """
         return (
-            'GeneralizedLinearEstimator(datafit=%s, penalty=%s, alpha=%s, classif=%s)'
+            'GeneralizedLinearEstimator(datafit=%s, penalty=%s, alpha=%s)'
             % (self.datafit.__class__.__name__, self.penalty.__class__.__name__,
-               self.penalty.alpha, self.is_classif))
+               self.penalty.alpha))
 
     def fit(self, X, y):
         """Fit estimator.
@@ -300,7 +293,7 @@ class GeneralizedLinearEstimator(LinearModel):
         y_pred : array, shape (n_samples)
             Contain the target values for each sample.
         """
-        if self.is_classif:
+        if isinstance(self.datafit, (Logistic, QuadraticSVC)):
             scores = self._decision_function(X).ravel()
             if len(scores.shape) == 1:
                 indices = (scores > 0).astype(int)

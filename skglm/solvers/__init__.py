@@ -1,4 +1,4 @@
-from .accelerated_cd import AndersonCD
+from .anderson_cd import AndersonCD
 from .base import BaseSolver
 from .gram_cd import GramCD
 from .group_bcd import GroupBCD

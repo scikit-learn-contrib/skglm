@@ -9,7 +9,7 @@ from skglm.penalties import (
     L1, L1_plus_L2, WeightedL1, MCPenalty, SCAD, IndicatorBox, L0_5, L2_3,
     L2_1, L2_05, BlockMCPenalty, BlockSCAD)
 from skglm import GeneralizedLinearEstimator
-from skglm.solvers import AcceleratedCD, MultiTaskBCD
+from skglm.solvers import AndersonCD, MultiTaskBCD
 from skglm.utils import make_correlated_data
 
 
@@ -50,7 +50,7 @@ def test_subdiff_diff(penalty):
     est = GeneralizedLinearEstimator(
         datafit=Quadratic(),
         penalty=penalty,
-        solver=AcceleratedCD(tol=tol)
+        solver=AndersonCD(tol=tol)
     ).fit(X, y)
     # assert the stopping criterion is satisfied
     assert_array_less(est.stop_crit_, tol)

@@ -7,7 +7,7 @@ from skglm.solvers.base import BaseSolver
 from skglm.utils import AndersonAcceleration
 
 
-class AcceleratedCD(BaseSolver):
+class AndersonCD(BaseSolver):
     """Coordinate descent solver with working sets and Anderson acceleration.
 
     fit_intercept : bool

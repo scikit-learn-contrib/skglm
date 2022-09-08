@@ -22,7 +22,7 @@ from skglm.estimators import (
     MCPRegression, SparseLogisticRegression, LinearSVC)
 from skglm.datafits import Logistic, Quadratic, QuadraticSVC, QuadraticMultiTask
 from skglm.penalties import L1, IndicatorBox, L1_plus_L2, MCPenalty, WeightedL1
-from skglm.solvers import AcceleratedCD
+from skglm.solvers import AndersonCD
 
 
 n_samples = 50
@@ -174,7 +174,7 @@ def test_generic_estimator(fit_intercept, Datafit, Penalty, Estimator, pen_args)
     elif Datafit == Logistic and fit_intercept:
         pytest.xfail("TODO support intercept in Logistic datafit")
     else:
-        solver = AcceleratedCD(tol=tol, fit_intercept=fit_intercept)
+        solver = AndersonCD(tol=tol, fit_intercept=fit_intercept)
         target = Y if Datafit == QuadraticMultiTask else y
         gle = GeneralizedLinearEstimator(
             Datafit(), Penalty(*pen_args), solver).fit(X, target)
@@ -204,7 +204,7 @@ def test_estimator_predict(Datafit, Penalty, Estimator_sk):
     }
     X_test = np.random.normal(0, 1, (n_samples, n_features))
     clf = GeneralizedLinearEstimator(
-        Datafit(), Penalty(1.), AcceleratedCD(fit_intercept=False)).fit(X, y)
+        Datafit(), Penalty(1.), AndersonCD(fit_intercept=False)).fit(X, y)
     clf_sk = Estimator_sk(**estim_args[Estimator_sk]).fit(X, y)
     y_pred = clf.predict(X_test)
     y_pred_sk = clf_sk.predict(X_test)

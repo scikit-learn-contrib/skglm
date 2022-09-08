@@ -18,7 +18,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.multiclass import OneVsRestClassifier, check_classification_targets
 
 from skglm.utils import compiled_clone
-from skglm.solvers import AcceleratedCD, MultiTaskBCD
+from skglm.solvers import AndersonCD, MultiTaskBCD
 from skglm.datafits import Quadratic, Logistic, QuadraticSVC, QuadraticMultiTask
 from skglm.penalties import L1, WeightedL1, L1_plus_L2, MCPenalty, IndicatorBox, L2_1
 
@@ -122,8 +122,7 @@ def _glm_fit(X, y, model, datafit, penalty, solver):
             w = np.zeros(n_features + fit_intercept, dtype=X_.dtype)
             Xw = np.zeros(n_samples, dtype=X_.dtype)
         else:  # multitask
-            w = np.zeros((n_features + fit_intercept,
-                         y.shape[1]), dtype=X_.dtype)
+            w = np.zeros((n_features + fit_intercept, y.shape[1]), dtype=X_.dtype)
             Xw = np.zeros(y.shape, dtype=X_.dtype)
 
     # check consistency of weights for WeightedL1
@@ -173,7 +172,7 @@ class GeneralizedLinearEstimator(LinearModel):
         `penalty` is replaced by a JIT-compiled instance when calling fit.
 
     solver : instance of BaseSolver, optional
-        Solver. If None, `solver` is initialized as an `AcceleratedCD` solver.
+        Solver. If None, `solver` is initialized as an `AndersonCD` solver.
 
     Attributes
     ----------
@@ -236,9 +235,8 @@ class GeneralizedLinearEstimator(LinearModel):
         """
         self.penalty = self.penalty if self.penalty else L1(1.)
         self.datafit = self.datafit if self.datafit else Quadratic()
-        # self.solver = self.solver if self.solver else AcceleratedCD(
-        # fit_intercept=self.fit_intercept, warm_start=self.warm_start)
-        self.solver = self.solver if self.solver else AcceleratedCD()
+        self.solver = self.solver if self.solver else AndersonCD()
+
         return _glm_fit(X, y, self, self.datafit, self.penalty, self.solver)
 
     def predict(self, X):
@@ -377,7 +375,7 @@ class Lasso(LinearModel, RegressorMixin):
             Fitted estimator.
         """
         # TODO: Add Gram solver
-        solver = AcceleratedCD(
+        solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
             ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
             warm_start=self.warm_start, verbose=self.verbose)
@@ -422,7 +420,7 @@ class Lasso(LinearModel, RegressorMixin):
         """
         penalty = compiled_clone(L1(self.alpha))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
-        solver = AcceleratedCD(
+        solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
             ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
             warm_start=self.warm_start, verbose=self.verbose)
@@ -553,7 +551,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
                 len(weights), X.shape[1]))
         penalty = compiled_clone(WeightedL1(self.alpha, weights))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
-        solver = AcceleratedCD(
+        solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
             ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
             warm_start=self.warm_start, verbose=self.verbose)
@@ -580,7 +578,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
             penalty = L1(self.alpha)
         else:
             penalty = WeightedL1(self.alpha, self.weights)
-        solver = AcceleratedCD(
+        solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
             ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
             warm_start=self.warm_start, verbose=self.verbose)
@@ -704,7 +702,7 @@ class ElasticNet(LinearModel, RegressorMixin):
         """
         penalty = compiled_clone(L1_plus_L2(self.alpha, self.l1_ratio))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
-        solver = AcceleratedCD(
+        solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
             ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
             warm_start=self.warm_start, verbose=self.verbose)
@@ -726,7 +724,7 @@ class ElasticNet(LinearModel, RegressorMixin):
         self :
             Fitted estimator.
         """
-        solver = AcceleratedCD(
+        solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
             ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
             warm_start=self.warm_start, verbose=self.verbose)
@@ -856,7 +854,7 @@ class MCPRegression(LinearModel, RegressorMixin):
         """
         penalty = compiled_clone(MCPenalty(self.alpha, self.gamma))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
-        solver = AcceleratedCD(
+        solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
             ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
             warm_start=self.warm_start, verbose=self.verbose)
@@ -878,7 +876,7 @@ class MCPRegression(LinearModel, RegressorMixin):
         self :
             Fitted estimator.
         """
-        solver = AcceleratedCD(
+        solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
             ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
             warm_start=self.warm_start, verbose=self.verbose)
@@ -1119,7 +1117,7 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
         self
             Fitted estimator.
         """
-        solver = AcceleratedCD(
+        solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
             ws_strategy=self.ws_strategy, fit_intercept=False,
             warm_start=self.warm_start, verbose=self.verbose)

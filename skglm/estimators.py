@@ -26,7 +26,7 @@ from skglm.penalties import L1, WeightedL1, L1_plus_L2, MCPenalty, IndicatorBox,
 
 
 def _glm_fit(X, y, model, datafit, penalty):
-    is_classif = isinstance(datafit, Logistic) or isinstance(datafit, QuadraticSVC)
+    is_classif = isinstance(datafit, (Logistic, QuadraticSVC))
 
     if is_classif:
         check_classification_targets(y)

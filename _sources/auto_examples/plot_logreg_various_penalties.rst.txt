@@ -23,7 +23,7 @@ Logistic regression with Elastic net and minimax concave penalties
 ==================================================================
 Illustrate the modularity of ``skglm`` by using ``GeneralizedLinearEstimator`` with one datafit and one penalty.
 
-.. GENERATED FROM PYTHON SOURCE LINES 7-76
+.. GENERATED FROM PYTHON SOURCE LINES 7-80
 
 
 
@@ -69,13 +69,17 @@ Illustrate the modularity of ``skglm`` by using ``GeneralizedLinearEstimator`` w
     alpha = 0.005
     gamma = 3.0
     l1_ratio = 0.3
-    clf_enet = GeneralizedLinearEstimator(Logistic(), L1_plus_L2(alpha, l1_ratio),
-                                          is_classif=True, verbose=0)
+    clf_enet = GeneralizedLinearEstimator(
+        Logistic(),
+        L1_plus_L2(alpha, l1_ratio),
+        )
     y_pred_enet = clf_enet.fit(X_train, y_train).predict(X_test)
     f1_score_enet = f1_score(y_test, y_pred_enet)
 
-    clf_mcp = GeneralizedLinearEstimator(Logistic(), MCPenalty(alpha, gamma),
-                                         is_classif=True, verbose=0)
+    clf_mcp = GeneralizedLinearEstimator(
+        Logistic(),
+        MCPenalty(alpha, gamma),
+        )
     y_pred_mcp = clf_mcp.fit(X_train, y_train).predict(X_test)
     f1_score_mcp = f1_score(y_test, y_pred_mcp)
 
@@ -111,7 +115,7 @@ Illustrate the modularity of ``skglm`` by using ``GeneralizedLinearEstimator`` w
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  9.139 seconds)
+   **Total running time of the script:** ( 0 minutes  7.924 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_logreg_various_penalties.py:

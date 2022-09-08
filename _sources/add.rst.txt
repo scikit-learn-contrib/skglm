@@ -4,13 +4,14 @@
 
 With skglm, you can solve any custom Generalized Linear Model with arbitrary smooth datafit and arbitrary proximable penalty, by defining two classes: a ``Penalty`` and a ``Datafit``.
 
-They can then be passed to a :class:`~skglm.GeneralizedLinearEstimator`, using ``is_classif`` to specify if the task is classification or regression.
+They can then be passed to a :class:`~skglm.GeneralizedLinearEstimator`.
 
 
 .. code-block:: python
 
    clf = GeneralizedLinearEstimator(
-      MyDatafit(), MyPenalty(), is_classif=True
+      MyDatafit(),
+      MyPenalty(),
    )
 
 

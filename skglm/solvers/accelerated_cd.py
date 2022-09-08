@@ -3,10 +3,11 @@ from numba import njit
 from scipy import sparse
 from sklearn.utils import check_array
 from skglm.solvers.common import construct_grad, construct_grad_sparse, dist_fix_point
+from skglm.solvers.base import BaseSolver
 from skglm.utils import AndersonAcceleration
 
 
-class AcceleratedCD:
+class AcceleratedCD(BaseSolver):
     """Coordinate descent solver with working sets and Anderson acceleration.
 
     fit_intercept : bool
@@ -60,7 +61,6 @@ class AcceleratedCD:
         if self.ws_strategy not in ("subdiff", "fixpoint"):
             raise ValueError(
                 'Unsupported value for self.ws_strategy:', self.ws_strategy)
-
         n_samples, n_features = X.shape
         w = np.zeros(n_features) if w_init is None else w_init
         Xw = np.zeros(n_samples) if Xw_init is None else Xw_init
@@ -202,7 +202,6 @@ class AcceleratedCD:
                         order='F', copy=False, accept_large_sparse=False)
         y = check_array(y, 'csc', dtype=X.dtype.type, order='F', copy=False,
                         ensure_2d=False)
-
         if sparse.issparse(X):
             datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
         else:
@@ -210,21 +209,6 @@ class AcceleratedCD:
         n_features = X.shape[1]
         if alphas is None:
             raise ValueError('alphas should be passed explicitly')
-            # if hasattr(penalty, "alpha_max"):
-            #     if sparse.issparse(X):
-            #         grad0 = construct_grad_sparse(
-            #             X.data,  X.indptr, X.indices, y, np.zeros(n_features), len(y),
-            #             datafit, np.arange(n_features))
-            #     else:
-            #         grad0 = construct_grad(
-            #             X, y, np.zeros(n_features), len(y),
-            #             datafit, np.arange(n_features))
-
-            #     alpha_max = penalty.alpha_max(grad0)
-            #     alphas = alpha_max * np.geomspace(1, eps, n_alphas, dtype=X.dtype)
-            # else:
-        # else:
-            # alphas = np.sort(alphas)[::-1]
 
         n_alphas = len(alphas)
         coefs = np.zeros((n_features + self.fit_intercept, n_alphas), order='F',

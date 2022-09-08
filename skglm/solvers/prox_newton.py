@@ -1,6 +1,7 @@
 import numpy as np
 from numba import njit
 from scipy.sparse import issparse
+from skglm.solvers.base import BaseSolver
 
 
 EPS_TOL = 0.3
@@ -8,7 +9,7 @@ MAX_CD_ITER = 20
 MAX_BACKTRACK_ITER = 20
 
 
-class ProxNewton:
+class ProxNewton(BaseSolver):
     """Prox Newton solver combined with working sets.
 
     p0 : int, default 10

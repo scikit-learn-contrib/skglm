@@ -1,12 +1,12 @@
 import numpy as np
-
 from scipy import sparse
 from numba import njit
 from numpy.linalg import norm
 from sklearn.utils import check_array
+from skglm.solvers.base import BaseSolver
 
 
-class MultiTaskBCD:
+class MultiTaskBCD(BaseSolver):
     """Block coordinate descent solver for multi-task problems."""
 
     def __init__(self, max_iter=100, max_epochs=50_000, p0=10, tol=1e-6,
@@ -40,6 +40,7 @@ class MultiTaskBCD:
         coefs = np.zeros((n_features + self.fit_intercept, n_tasks, n_alphas),
                          order="C", dtype=X.dtype)
         stop_crits = np.zeros(n_alphas)
+        p0 = self.p0
 
         if return_n_iter:
             n_iters = np.zeros(n_alphas, dtype=int)
@@ -56,18 +57,17 @@ class MultiTaskBCD:
                 print("#" * len(msg))
             if t > 0:
                 W = coefs[:, :, t - 1].copy()
-                p_t = max(len(np.where(W[:, 0] != 0)[0]), self.p0)
+                p0 = max(len(np.where(W[:, 0] != 0)[0]), p0)
             else:
                 if W_init is not None:
                     W = W_init.T
                     XW = np.asfortranarray(X @ W)
-                    p_t = max(len(np.where(W[:, 0] != 0)[0]), self.p0)
+                    p0 = max(len(np.where(W[:, 0] != 0)[0]), p0)
                 else:
                     W = np.zeros(
                         (n_features + self.fit_intercept, n_tasks), dtype=X.dtype,
                         order='C')
-                    p_t = 10
-            # TODO: missing p0 = p_t
+                    p0 = 10
             sol = self.solve(X, Y, datafit, penalty, W, XW)
             coefs[:, :, t], stop_crits[t] = sol[0], sol[2]
 
@@ -77,7 +77,7 @@ class MultiTaskBCD:
         coefs = np.swapaxes(coefs, 0, 1).copy('F')
 
         results = alphas, coefs, stop_crits
-        if True:
+        if return_n_iter:
             results += (n_iters,)
 
         return results
@@ -93,14 +93,15 @@ class MultiTaskBCD:
         stop_crit = np.inf  # initialize for case n_iter=0
         K = 5
 
-        W = np.zeros((n_features, n_tasks)) if W_init is None else W_init
+        W = (np.zeros((n_features + self.fit_intercept, n_tasks)) if W_init is None
+             else W_init)
         XW = np.zeros((n_samples, n_tasks)) if XW_init is None else XW_init
 
         if W.shape[0] != n_features + self.fit_intercept:
             if self.fit_intercept:
                 val_error_message = (
-                    "W.shape[0] should be n_features + 1 when using fit_intercept=True: "
-                    f"expected {n_features + 1}, got {W.shape[0]}.")
+                    "W.shape[0] should be n_features + 1 when using fit_intercept=True:"
+                    f" expected {n_features + 1}, got {W.shape[0]}.")
             else:
                 val_error_message = (
                     "W.shape[0] should be of size n_features: "
@@ -108,6 +109,11 @@ class MultiTaskBCD:
             raise ValueError(val_error_message)
 
         is_sparse = sparse.issparse(X)
+        if is_sparse:
+            datafit.initialize_sparse(X.data, X.indptr, X.indices, Y)
+        else:
+            datafit.initialize(X, Y)
+
         for t in range(self.max_iter):
             if is_sparse:
                 grad = datafit.full_grad_sparse(

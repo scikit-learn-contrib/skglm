@@ -22,7 +22,7 @@ from skglm.estimators import (
     MCPRegression, SparseLogisticRegression, LinearSVC)
 from skglm.datafits import Logistic, Quadratic, QuadraticSVC, QuadraticMultiTask
 from skglm.penalties import L1, IndicatorBox, L1_plus_L2, MCPenalty, WeightedL1
-from skglm.solvers import AcceleratedCD, ProxNewton
+from skglm.solvers import AcceleratedCD
 
 
 n_samples = 50
@@ -45,54 +45,55 @@ C = 1 / alpha
 tol = 1e-10
 l1_ratio = 0.3
 
-solver = AcceleratedCD(tol=tol)
-
 dict_estimators_sk = {}
 dict_estimators_ours = {}
 
 dict_estimators_sk["Lasso"] = Lasso_sklearn(
     alpha=alpha, tol=tol)
 dict_estimators_ours["Lasso"] = Lasso(
-    alpha=alpha, solver=solver)
+    alpha=alpha, tol=tol)
 
 dict_estimators_sk["wLasso"] = Lasso_sklearn(
     alpha=alpha, tol=tol)
 dict_estimators_ours["wLasso"] = WeightedLasso(
-    alpha=alpha, weights=np.ones(n_features), solver=solver)
+    alpha=alpha, tol=tol, weights=np.ones(n_features))
 
 dict_estimators_sk["ElasticNet"] = ElasticNet_sklearn(
     alpha=alpha, l1_ratio=l1_ratio, tol=tol)
 dict_estimators_ours["ElasticNet"] = ElasticNet(
-    alpha=alpha, l1_ratio=l1_ratio, solver=solver)
+    alpha=alpha, l1_ratio=l1_ratio, tol=tol)
 
 dict_estimators_sk["MCP"] = Lasso_sklearn(
     alpha=alpha, tol=tol)
 dict_estimators_ours["MCP"] = MCPRegression(
-    alpha=alpha, gamma=np.inf, solver=solver)
+    alpha=alpha, gamma=np.inf, tol=tol)
 
 dict_estimators_sk["LogisticRegression"] = LogReg_sklearn(
     C=1/(alpha * n_samples), tol=tol, penalty='l1',
     solver='liblinear')
 dict_estimators_ours["LogisticRegression"] = SparseLogisticRegression(
-    alpha=alpha, solver=ProxNewton(tol=tol))
+    alpha=alpha, tol=tol)
 
 C = 1.
 dict_estimators_sk["SVC"] = LinearSVC_sklearn(
     penalty='l2', loss='hinge', fit_intercept=False, dual=True, C=C, tol=tol)
-dict_estimators_ours["SVC"] = LinearSVC(C=C, solver=solver)
+dict_estimators_ours["SVC"] = LinearSVC(C=C, tol=tol)
 
 
-# @pytest.mark.parametrize(
-#     "estimator_name",
-#     ["Lasso", "wLasso", "ElasticNet", "MCP", "LogisticRegression", "SVC"])
-# def test_check_estimator(estimator_name):
-#     if estimator_name == "SVC":
-#         pytest.xfail("SVC check_estimator is too slow due to bug.")
-#     clf = clone(dict_estimators_ours[estimator_name])
-#     clf.tol = 1e-6  # failure in float32 computation otherwise
-#     if isinstance(clf, WeightedLasso):
-#         clf.weights = None
-#     check_estimator(clf)
+@pytest.mark.parametrize(
+    "estimator_name",
+    ["Lasso", "wLasso", "ElasticNet", "MCP", "LogisticRegression", "SVC"])
+def test_check_estimator(estimator_name):
+    if estimator_name == "SVC":
+        pytest.xfail("SVC check_estimator is too slow due to bug.")
+    elif estimator_name == "LogisticRegression":
+        # TODO: remove xfail when ProxNewton supports intercept fitting
+        pytest.xfail("ProxNewton does not yet support intercept fitting")
+    clf = clone(dict_estimators_ours[estimator_name])
+    clf.tol = 1e-6  # failure in float32 computation otherwise
+    if isinstance(clf, WeightedLasso):
+        clf.weights = None
+    check_estimator(clf)
 
 
 @pytest.mark.parametrize("estimator_name", dict_estimators_ours.keys())
@@ -111,7 +112,6 @@ def test_estimator(estimator_name, X, fit_intercept):
 
     estimator_sk.set_params(fit_intercept=fit_intercept)
     estimator_ours.set_params(fit_intercept=fit_intercept)
-    estimator_ours.solver.fit_intercept = fit_intercept
 
     estimator_sk.fit(X, y)
     estimator_ours.fit(X, y)
@@ -153,7 +153,7 @@ def test_mtl_path():
             X, Y, l1_ratio=1, tol=1e-14, max_iter=5_000, alphas=alphas
     )[1][:, :X.shape[1]]
     coef_ours = MultiTaskLasso(fit_intercept=fit_intercept, tol=1e-14).path(
-        X, Y, alphas)[1][:, :X.shape[1]]
+        X, Y, alphas, max_iter=10)[1][:, :X.shape[1]]
     np.testing.assert_allclose(coef_ours, coef_sk, rtol=1e-5)
 
 
@@ -180,7 +180,7 @@ def test_generic_estimator(
         gle = GeneralizedLinearEstimator(
             Datafit(), Penalty(*pen_args), solver, is_classif).fit(X, target)
         est = Estimator(
-            *pen_args, solver=solver).fit(X, target)
+            *pen_args, tol=tol, fit_intercept=fit_intercept).fit(X, target)
         np.testing.assert_allclose(gle.coef_, est.coef_, rtol=1e-5)
         np.testing.assert_allclose(gle.intercept_, est.intercept_)
 
@@ -205,7 +205,8 @@ def test_estimator_predict(Datafit, Penalty, Estimator_sk):
     }
     X_test = np.random.normal(0, 1, (n_samples, n_features))
     clf = GeneralizedLinearEstimator(
-        Datafit(), Penalty(1.), AcceleratedCD(fit_intercept=False), is_classif).fit(X, y)
+        Datafit(), Penalty(1.), AcceleratedCD(fit_intercept=False),
+        is_classif).fit(X, y)
     clf_sk = Estimator_sk(**estim_args[Estimator_sk]).fit(X, y)
     y_pred = clf.predict(X_test)
     y_pred_sk = clf_sk.predict(X_test)
@@ -265,6 +266,9 @@ def test_grid_search(estimator_name):
     "estimator_name",
     ["Lasso", "wLasso", "ElasticNet", "MCP", "LogisticRegression", "SVC"])
 def test_warm_start(estimator_name):
+    if estimator_name == "LogisticRegression":
+        # TODO: remove xfail when ProxNewton supports intercept fitting
+        pytest.xfail("ProxNewton does not yet support intercept fitting")
     model = clone(dict_estimators_ours[estimator_name])
     model.warm_start = True
     model.fit(X, y)

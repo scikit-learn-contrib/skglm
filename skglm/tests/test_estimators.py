@@ -158,18 +158,17 @@ def test_mtl_path():
 
 
 # Test if GeneralizedLinearEstimator returns the correct coefficients
-@pytest.mark.parametrize("Datafit, Penalty, is_classif, Estimator, pen_args", [
-    (Quadratic, L1, False, Lasso, [alpha]),
-    (Quadratic, WeightedL1, False, WeightedLasso,
+@pytest.mark.parametrize("Datafit, Penalty, Estimator, pen_args", [
+    (Quadratic, L1, Lasso, [alpha]),
+    (Quadratic, WeightedL1, WeightedLasso,
      [alpha, np.random.choice(3, n_features)]),
-    (Quadratic, L1_plus_L2, False, ElasticNet, [alpha, 0.3]),
-    (Quadratic, MCPenalty, False, MCPRegression, [alpha, 3]),
-    (QuadraticSVC, IndicatorBox, True, LinearSVC, [alpha]),
-    (Logistic, L1, True, SparseLogisticRegression, [alpha]),
+    (Quadratic, L1_plus_L2, ElasticNet, [alpha, 0.3]),
+    (Quadratic, MCPenalty, MCPRegression, [alpha, 3]),
+    (QuadraticSVC, IndicatorBox, LinearSVC, [alpha]),
+    (Logistic, L1, SparseLogisticRegression, [alpha]),
 ])
 @pytest.mark.parametrize('fit_intercept', [True, False])
-def test_generic_estimator(
-        fit_intercept, Datafit, Penalty, is_classif, Estimator, pen_args):
+def test_generic_estimator(fit_intercept, Datafit, Penalty, Estimator, pen_args):
     if isinstance(Datafit(), QuadraticSVC) and fit_intercept:
         pytest.xfail()
     elif Datafit == Logistic and fit_intercept:
@@ -178,7 +177,7 @@ def test_generic_estimator(
         solver = AcceleratedCD(tol=tol, fit_intercept=fit_intercept)
         target = Y if Datafit == QuadraticMultiTask else y
         gle = GeneralizedLinearEstimator(
-            Datafit(), Penalty(*pen_args), solver, is_classif).fit(X, target)
+            Datafit(), Penalty(*pen_args), solver).fit(X, target)
         est = Estimator(
             *pen_args, tol=tol, fit_intercept=fit_intercept).fit(X, target)
         np.testing.assert_allclose(gle.coef_, est.coef_, rtol=1e-5)
@@ -205,8 +204,7 @@ def test_estimator_predict(Datafit, Penalty, Estimator_sk):
     }
     X_test = np.random.normal(0, 1, (n_samples, n_features))
     clf = GeneralizedLinearEstimator(
-        Datafit(), Penalty(1.), AcceleratedCD(fit_intercept=False),
-        is_classif).fit(X, y)
+        Datafit(), Penalty(1.), AcceleratedCD(fit_intercept=False)).fit(X, y)
     clf_sk = Estimator_sk(**estim_args[Estimator_sk]).fit(X, y)
     y_pred = clf.predict(X_test)
     y_pred_sk = clf_sk.predict(X_test)
@@ -226,8 +224,8 @@ def test_generic_get_params():
             else:
                 assert v == v_est
 
-    reg = GeneralizedLinearEstimator(Quadratic(), L1(4.), is_classif=False)
-    clf = GeneralizedLinearEstimator(Logistic(), MCPenalty(2., 3.), is_classif=True)
+    reg = GeneralizedLinearEstimator(Quadratic(), L1(4.))
+    clf = GeneralizedLinearEstimator(Logistic(), MCPenalty(2., 3.))
 
     # Xty and lipschitz attributes are defined for jit compiled classes
     # hence they are not included in the test

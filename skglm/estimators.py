@@ -24,10 +24,8 @@ from skglm.penalties import L1, WeightedL1, L1_plus_L2, MCPenalty, IndicatorBox,
 
 
 def _glm_fit(X, y, model, datafit, penalty, solver):
+    is_classif = isinstance(datafit, (Logistic, QuadraticSVC))
     fit_intercept = solver.fit_intercept
-    is_classif = False
-    if isinstance(datafit, Logistic) or isinstance(datafit, QuadraticSVC):
-        is_classif = True
 
     if is_classif:
         check_classification_targets(y)
@@ -177,10 +175,6 @@ class GeneralizedLinearEstimator(LinearModel):
     solver : instance of BaseSolver, optional
         Solver. If None, `solver` is initialized as an `AcceleratedCD` solver.
 
-    is_classif : bool, optional
-        Whether the task is classification or regression. Used for input target
-        validation.
-
     Attributes
     ----------
     coef_ : array, shape (n_features,) or (n_features, n_tasks)
@@ -196,9 +190,8 @@ class GeneralizedLinearEstimator(LinearModel):
         Number of subproblems solved to reach the specified tolerance.
     """
 
-    def __init__(self, datafit=None, penalty=None, solver=None, is_classif=False):
+    def __init__(self, datafit=None, penalty=None, solver=None):
         super(GeneralizedLinearEstimator, self).__init__()
-        self.is_classif = is_classif
         self.penalty = penalty
         self.datafit = datafit
         self.solver = solver
@@ -212,9 +205,9 @@ class GeneralizedLinearEstimator(LinearModel):
             String representation.
         """
         return (
-            'GeneralizedLinearEstimator(datafit=%s, penalty=%s, alpha=%s, classif=%s)'
+            'GeneralizedLinearEstimator(datafit=%s, penalty=%s, alpha=%s)'
             % (self.datafit.__class__.__name__, self.penalty.__class__.__name__,
-               self.penalty.alpha, self.is_classif))
+               self.penalty.alpha))
 
     def fit(self, X, y):
         """Fit estimator.
@@ -261,7 +254,7 @@ class GeneralizedLinearEstimator(LinearModel):
         y_pred : array, shape (n_samples)
             Contain the target values for each sample.
         """
-        if self.is_classif:
+        if isinstance(self.datafit, (Logistic, QuadraticSVC)):
             scores = self._decision_function(X).ravel()
             if len(scores.shape) == 1:
                 indices = (scores > 0).astype(int)

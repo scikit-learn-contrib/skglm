@@ -4,8 +4,9 @@ from numba import njit
 from skglm.utils import AndersonAcceleration, check_group_compatible
 
 
-def group_bcd_solver(X, y, datafit, penalty, w_init=None, Xw_init=None, p0=10,
-                     max_iter=1000, max_epochs=100, tol=1e-4, verbose=False):
+def group_bcd_solver(
+        X, y, datafit, penalty, fit_intercept=False, w_init=None,
+        Xw_init=None, p0=10, max_iter=1000, max_epochs=100, tol=1e-4, verbose=False):
     """Run a group BCD solver.
 
     Parameters
@@ -21,6 +22,9 @@ def group_bcd_solver(X, y, datafit, penalty, w_init=None, Xw_init=None, p0=10,
 
     penalty : instance of BasePenalty
         Penalty object.
+
+    fit_intercept : bool
+        Whether or not to fit an intercept.
 
     w_init : array, shape (n_features,), default None
         Initial value of coefficients.
@@ -47,7 +51,7 @@ def group_bcd_solver(X, y, datafit, penalty, w_init=None, Xw_init=None, p0=10,
 
     Returns
     -------
-    w : array, shape (n_features,)
+    w : array, shape (n_features + fit_intercept,)
         Solution that minimizes the problem defined by datafit and penalty.
 
     p_objs_out: array (max_iter,)
@@ -62,9 +66,20 @@ def group_bcd_solver(X, y, datafit, penalty, w_init=None, Xw_init=None, p0=10,
     n_samples, n_features = X.shape
     n_groups = len(penalty.grp_ptr) - 1
 
-    w = np.zeros(n_features) if w_init is None else w_init
+    w = np.zeros(n_features + fit_intercept) if w_init is None else w_init
     Xw = np.zeros(n_samples) if w_init is None else Xw_init
-    # Xw = X @ w
+
+    if len(w) != n_features + fit_intercept:
+        if fit_intercept:
+            val_error_message = (
+                "w should be of size n_features + 1 when using fit_intercept=True: "
+                f"expected {n_features + 1}, got {len(w)}.")
+        else:
+            val_error_message = (
+                "w should be of size n_features: "
+                f"expected {n_features}, got {len(w)}.")
+        raise ValueError(val_error_message)
+
     datafit.initialize(X, y)
     all_groups = np.arange(n_groups)
     p_objs_out = np.zeros(max_iter)
@@ -74,7 +89,13 @@ def group_bcd_solver(X, y, datafit, penalty, w_init=None, Xw_init=None, p0=10,
     for t in range(max_iter):
         grad = _construct_grad(X, y, w, Xw, datafit, all_groups)
         opt = penalty.subdiff_distance(w, grad, all_groups)
-        stop_crit = np.max(opt)
+
+        if fit_intercept:
+            intercept_opt = np.abs(datafit.intercept_update_step(y, Xw))
+        else:
+            intercept_opt = 0.
+
+        stop_crit = max(np.max(opt), intercept_opt)
 
         if verbose:
             p_obj = datafit.value(y, w, Xw) + penalty.value(w)
@@ -93,7 +114,13 @@ def group_bcd_solver(X, y, datafit, penalty, w_init=None, Xw_init=None, p0=10,
 
         for epoch in range(max_epochs):
             # inplace update of w and Xw
-            _bcd_epoch(X, y, w, Xw, datafit, penalty, ws)
+            _bcd_epoch(X, y, w[:n_features], Xw, datafit, penalty, ws)
+
+            # update intercept
+            if fit_intercept:
+                intercept_old = w[-1]
+                w[-1] -= datafit.intercept_update_step(y, Xw)
+                Xw += (w[-1] - intercept_old)
 
             w_acc, Xw_acc, is_extrapolated = accelerator.extrapolate(w, Xw)
 

@@ -7,7 +7,7 @@ from skglm.solvers.common import construct_grad, construct_grad_sparse, dist_fix
 from skglm.utils import AndersonAcceleration
 
 
-def cd_solver_path(X, y, datafit, penalty, alphas=None,
+def cd_solver_path(X, y, datafit, penalty, alphas=None, fit_intercept=False,
                    coef_init=None, max_iter=20, max_epochs=50_000,
                    p0=10, tol=1e-4, return_n_iter=False,
                    ws_strategy="subdiff", verbose=0):
@@ -33,7 +33,10 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
     alphas : ndarray
         List of alphas where to compute the models.
 
-    coef_init : ndarray, shape (n_features,) | None, optional, (default=None)
+    fit_intercept : bool
+        Whether or not to fit an intercept.
+
+    coef_init : ndarray, shape (n_features + fit_intercept,) | None, optional
         Initial value of coefficients. If None, np.zeros(n_features) is used.
 
     max_iter : int, optional
@@ -63,7 +66,7 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
     alphas : array, shape (n_alphas,)
         The alphas along the path where models are computed.
 
-    coefs : array, shape (n_features, n_alphas)
+    coefs : array, shape (n_features + fit_intercept, n_alphas)
         Coefficients along the path.
 
     stop_crit : array, shape (n_alphas,)
@@ -82,15 +85,6 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
     else:
         datafit.initialize(X, y)
     n_features = X.shape[1]
-
-    # if X_offset is not None:
-    #     X_sparse_scaling = X_offset / X_scale
-    #     X_sparse_scaling = np.asarray(X_sparse_scaling, dtype=X.dtype)
-    # else:
-    #     X_sparse_scaling = np.zeros(n_features, dtype=X.dtype)
-
-    # X_dense, X_data, X_indices, X_indptr = _sparse_and_dense(X)
-
     if alphas is None:
         raise ValueError('alphas should be passed explicitly')
         # if hasattr(penalty, "alpha_max"):
@@ -110,17 +104,15 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
         # alphas = np.sort(alphas)[::-1]
 
     n_alphas = len(alphas)
-
-    coefs = np.zeros((n_features, n_alphas), order='F', dtype=X.dtype)
+    coefs = np.zeros((n_features + fit_intercept, n_alphas), order='F', dtype=X.dtype)
     stop_crits = np.zeros(n_alphas)
 
     if return_n_iter:
         n_iters = np.zeros(n_alphas, dtype=int)
 
     for t in range(n_alphas):
-
         alpha = alphas[t]
-        penalty.alpha = alpha  # TODO this feels it will break sklearn compat
+        penalty.alpha = alpha
         if verbose:
             to_print = "##### Computing alpha %d/%d" % (t + 1, n_alphas)
             print("#" * len(to_print))
@@ -133,23 +125,23 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
         else:
             if coef_init is not None:
                 w = coef_init.copy()
-                supp_size = penalty.generalized_support(w).sum()
+                supp_size = penalty.generalized_support(w[:n_features]).sum()
                 p0 = max(supp_size, p0)
                 if supp_size:
-                    Xw = X @ w
+                    Xw = X @ w[:n_features] + fit_intercept * w[-1]
                 # TODO explain/clean this hack
                 else:
                     Xw = np.zeros_like(y)
             else:
-                w = np.zeros(n_features, dtype=X.dtype)
+                w = np.zeros(n_features + fit_intercept, dtype=X.dtype)
                 Xw = np.zeros(X.shape[0], dtype=X.dtype)
 
         sol = cd_solver(
-            X, y, datafit, penalty, w, Xw,
+            X, y, datafit, penalty, w, Xw, fit_intercept=fit_intercept,
             max_iter=max_iter, max_epochs=max_epochs, p0=p0, tol=tol,
             verbose=verbose, ws_strategy=ws_strategy)
 
-        coefs[:, t] = w
+        coefs[:, t] = sol[0]
         stop_crits[t] = sol[-1]
 
         if return_n_iter:
@@ -158,13 +150,13 @@ def cd_solver_path(X, y, datafit, penalty, alphas=None,
     results = alphas, coefs, stop_crits
     if return_n_iter:
         results += (n_iters,)
-
     return results
 
 
 def cd_solver(
-        X, y, datafit, penalty, w, Xw, max_iter=50, max_epochs=50_000, p0=10,
-        tol=1e-4, ws_strategy="subdiff", verbose=0):
+        X, y, datafit, penalty, w, Xw, fit_intercept=True, max_iter=50,
+        max_epochs=50_000, p0=10, tol=1e-4, ws_strategy="subdiff",
+        verbose=0):
     r"""Run a coordinate descent solver.
 
     Parameters
@@ -187,6 +179,9 @@ def cd_solver(
     Xw : array, shape (n_samples,)
         Model fit.
 
+    fit_intercept : bool
+        Whether or not to fit an intercept.
+
     max_iter : int, optional
         The maximum number of iterations (definition of working set and
         resolution of problem restricted to features in working set).
@@ -208,7 +203,7 @@ def cd_solver(
 
     Returns
     -------
-    coefs : array, shape (n_features, n_alphas)
+    coefs : array, shape (n_features + fit_intercept, n_alphas)
         Coefficients along the path.
 
     obj_out : array, shape (n_iter,)
@@ -226,32 +221,54 @@ def cd_solver(
     obj_out = []
     all_feats = np.arange(n_features)
     stop_crit = np.inf  # initialize for case n_iter=0
-    w_acc, Xw_acc = np.zeros(n_features), np.zeros(n_samples)
+    w_acc, Xw_acc = np.zeros(n_features + fit_intercept), np.zeros(n_samples)
 
     is_sparse = sparse.issparse(X)
+
+    if len(w) != n_features + fit_intercept:
+        if fit_intercept:
+            val_error_message = (
+                "w should be of size n_features + 1 when using fit_intercept=True: "
+                f"expected {n_features + 1}, got {len(w)}.")
+        else:
+            val_error_message = (
+                "w should be of size n_features: "
+                f"expected {n_features}, got {len(w)}.")
+        raise ValueError(val_error_message)
+
     for t in range(max_iter):
         if is_sparse:
             grad = datafit.full_grad_sparse(
                 X.data, X.indptr, X.indices, y, Xw)
         else:
-            grad = construct_grad(X, y, w, Xw, datafit, all_feats)
+            grad = construct_grad(X, y, w[:n_features], Xw, datafit, all_feats)
 
+        # The intercept is not taken into account in the optimality conditions since
+        # the derivative w.r.t. to the intercept may be very large. It is not likely
+        # to change significantly the optimality conditions.
         if ws_strategy == "subdiff":
-            opt = penalty.subdiff_distance(w, grad, all_feats)
+            opt = penalty.subdiff_distance(w[:n_features], grad, all_feats)
         elif ws_strategy == "fixpoint":
-            opt = dist_fix_point(w, grad, datafit, penalty, all_feats)
-        stop_crit = np.max(opt)
+            opt = dist_fix_point(w[:n_features], grad, datafit, penalty, all_feats)
+
+        if fit_intercept:
+            intercept_opt = np.abs(datafit.intercept_update_step(y, Xw))
+        else:
+            intercept_opt = 0.
+
+        stop_crit = max(np.max(opt), intercept_opt)
+
         if verbose:
             print(f"Stopping criterion max violation: {stop_crit:.2e}")
         if stop_crit <= tol:
             break
         # 1) select features : all unpenalized, + 2 * (nnz and penalized)
         ws_size = max(min(p0 + n_unpen, n_features),
-                      min(2 * penalty.generalized_support(w).sum() -
+                      min(2 * penalty.generalized_support(w[:n_features]).sum() -
                           n_unpen, n_features))
 
         opt[unpen] = np.inf  # always include unpenalized features
-        opt[penalty.generalized_support(w)] = np.inf
+        opt[penalty.generalized_support(w[:n_features])] = np.inf
 
         # here use topk instead of np.argsort(opt)[-ws_size:]
         ws = np.argpartition(opt, -ws_size)[-ws_size:]
@@ -259,6 +276,8 @@ def cd_solver(
         # re init AA at every iter to consider ws
         accelerator = AndersonAcceleration(K=5)
         w_acc[:] = 0.
+        # ws to be used in AndersonAcceleration
+        ws_intercept = np.append(ws, -1) if fit_intercept else ws
 
         if verbose:
             print(f'Iteration {t + 1}, {ws_size} feats in subpb.')
@@ -268,19 +287,27 @@ def cd_solver(
         for epoch in range(max_epochs):
             if is_sparse:
                 _cd_epoch_sparse(
-                    X.data, X.indptr, X.indices, y, w, Xw, datafit, penalty,
-                    ws)
+                    X.data, X.indptr, X.indices, y, w[:n_features], Xw,
+                    datafit, penalty, ws)
             else:
-                _cd_epoch(X, y, w, Xw, datafit, penalty, ws)
+                _cd_epoch(X, y, w[:n_features], Xw, datafit, penalty, ws)
+
+            # update intercept
+            if fit_intercept:
+                intercept_old = w[-1]
+                w[-1] -= datafit.intercept_update_step(y, Xw)
+                Xw += (w[-1] - intercept_old)
 
             # 3) do Anderson acceleration on smaller problem
-            # TODO optimize computation using ws
-            w_acc[ws], Xw_acc[:], is_extrapolated = accelerator.extrapolate(w[ws], Xw)
+            w_acc[ws_intercept], Xw_acc[:], is_extrapolated = accelerator.extrapolate(
+                w[ws_intercept], Xw)
 
             if is_extrapolated:  # avoid computing p_obj for un-extrapolated w, Xw
                 # TODO : manage penalty.value(w, ws) for weighted Lasso
-                p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-                p_obj_acc = datafit.value(y, w_acc, Xw_acc) + penalty.value(w_acc)
+                p_obj = (datafit.value(y, w[:n_features], Xw) +
+                         penalty.value(w[:n_features]))
+                p_obj_acc = (datafit.value(y, w_acc[:n_features], Xw_acc) +
+                             penalty.value(w_acc[:n_features]))
 
                 if p_obj_acc < p_obj:
                     w[:], Xw[:] = w_acc, Xw_acc
@@ -293,13 +320,15 @@ def cd_solver(
                 else:
                     grad_ws = construct_grad(X, y, w, Xw, datafit, ws)
                 if ws_strategy == "subdiff":
-                    opt_ws = penalty.subdiff_distance(w, grad_ws, ws)
+                    opt_ws = penalty.subdiff_distance(w[:n_features], grad_ws, ws)
                 elif ws_strategy == "fixpoint":
-                    opt_ws = dist_fix_point(w, grad_ws, datafit, penalty, ws)
+                    opt_ws = dist_fix_point(
+                        w[:n_features], grad_ws, datafit, penalty, ws)
 
                 stop_crit_in = np.max(opt_ws)
                 if max(verbose - 1, 0):
-                    p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+                    p_obj = (datafit.value(y, w[:n_features], Xw) +
+                             penalty.value(w[:n_features]))
                     print(f"Epoch {epoch + 1}, objective {p_obj:.10f}, "
                           f"stopping crit {stop_crit_in:.2e}")
                 if ws_size == n_features:
@@ -310,7 +339,7 @@ def cd_solver(
                         if max(verbose - 1, 0):
                             print("Early exit")
                         break
-        p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+        p_obj = datafit.value(y, w[:n_features], Xw) + penalty.value(w[:n_features])
         obj_out.append(p_obj)
     return w, np.array(obj_out), stop_crit
 

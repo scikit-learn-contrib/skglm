@@ -22,66 +22,6 @@ class MultiTaskBCD(BaseSolver):
         self.warm_start = warm_start
         self.verbose = verbose
 
-    def path(self, X, Y, datafit, penalty, alphas, W_init=None, return_n_iter=False):
-        X = check_array(X, "csc", dtype=[
-            np.float64, np.float32], order="F", copy=False)
-        Y = check_array(Y, "csc", dtype=[
-            np.float64, np.float32], order="F", copy=False)
-        if sparse.issparse(X):
-            datafit.initialize_sparse(X.data, X.indptr, X.indices, Y)
-        else:
-            datafit.initialize(X, Y)
-        n_features = X.shape[1]
-        n_tasks = Y.shape[1]
-        if alphas is None:
-            raise ValueError("alphas should be provided.")
-        n_alphas = len(alphas)
-
-        coefs = np.zeros((n_features + self.fit_intercept, n_tasks, n_alphas),
-                         order="C", dtype=X.dtype)
-        stop_crits = np.zeros(n_alphas)
-        p0 = self.p0
-
-        if return_n_iter:
-            n_iters = np.zeros(n_alphas, dtype=int)
-
-        Y = np.asfortranarray(Y)
-        XW = np.zeros(Y.shape, order='F')
-        for t in range(n_alphas):
-            alpha = alphas[t]
-            penalty.alpha = alpha  # TODO this feels it will break sklearn compat
-            if self.verbose:
-                msg = "##### Computing alpha %d/%d" % (t + 1, n_alphas)
-                print("#" * len(msg))
-                print(msg)
-                print("#" * len(msg))
-            if t > 0:
-                W = coefs[:, :, t - 1].copy()
-                p0 = max(len(np.where(W[:, 0] != 0)[0]), p0)
-            else:
-                if W_init is not None:
-                    W = W_init.T
-                    XW = np.asfortranarray(X @ W)
-                    p0 = max(len(np.where(W[:, 0] != 0)[0]), p0)
-                else:
-                    W = np.zeros(
-                        (n_features + self.fit_intercept, n_tasks), dtype=X.dtype,
-                        order='C')
-                    p0 = 10
-            sol = self.solve(X, Y, datafit, penalty, W, XW)
-            coefs[:, :, t], stop_crits[t] = sol[0], sol[2]
-
-            if return_n_iter:
-                n_iters[t] = len(sol[1])
-
-        coefs = np.swapaxes(coefs, 0, 1).copy('F')
-
-        results = alphas, coefs, stop_crits
-        if return_n_iter:
-            results += (n_iters,)
-
-        return results
-
     def solve(self, X, Y, datafit, penalty, W_init=None, XW_init=None):
         n_samples, n_features = X.shape
         n_tasks = Y.shape[1]
@@ -222,6 +162,66 @@ class MultiTaskBCD(BaseSolver):
                             break
             obj_out.append(p_obj)
         return W, np.array(obj_out), stop_crit
+
+    def path(self, X, Y, datafit, penalty, alphas, W_init=None, return_n_iter=False):
+        X = check_array(X, "csc", dtype=[
+            np.float64, np.float32], order="F", copy=False)
+        Y = check_array(Y, "csc", dtype=[
+            np.float64, np.float32], order="F", copy=False)
+        if sparse.issparse(X):
+            datafit.initialize_sparse(X.data, X.indptr, X.indices, Y)
+        else:
+            datafit.initialize(X, Y)
+        n_features = X.shape[1]
+        n_tasks = Y.shape[1]
+        if alphas is None:
+            raise ValueError("alphas should be provided.")
+        n_alphas = len(alphas)
+
+        coefs = np.zeros((n_features + self.fit_intercept, n_tasks, n_alphas),
+                         order="C", dtype=X.dtype)
+        stop_crits = np.zeros(n_alphas)
+        p0 = self.p0
+
+        if return_n_iter:
+            n_iters = np.zeros(n_alphas, dtype=int)
+
+        Y = np.asfortranarray(Y)
+        XW = np.zeros(Y.shape, order='F')
+        for t in range(n_alphas):
+            alpha = alphas[t]
+            penalty.alpha = alpha  # TODO this feels it will break sklearn compat
+            if self.verbose:
+                msg = "##### Computing alpha %d/%d" % (t + 1, n_alphas)
+                print("#" * len(msg))
+                print(msg)
+                print("#" * len(msg))
+            if t > 0:
+                W = coefs[:, :, t - 1].copy()
+                p0 = max(len(np.where(W[:, 0] != 0)[0]), p0)
+            else:
+                if W_init is not None:
+                    W = W_init.T
+                    XW = np.asfortranarray(X @ W)
+                    p0 = max(len(np.where(W[:, 0] != 0)[0]), p0)
+                else:
+                    W = np.zeros(
+                        (n_features + self.fit_intercept, n_tasks), dtype=X.dtype,
+                        order='C')
+                    p0 = 10
+            sol = self.solve(X, Y, datafit, penalty, W, XW)
+            coefs[:, :, t], stop_crits[t] = sol[0], sol[2]
+
+            if return_n_iter:
+                n_iters[t] = len(sol[1])
+
+        coefs = np.swapaxes(coefs, 0, 1).copy('F')
+
+        results = alphas, coefs, stop_crits
+        if return_n_iter:
+            results += (n_iters,)
+
+        return results
 
 
 @njit

@@ -56,6 +56,8 @@ class GramCD(BaseSolver):
         self.verbose = verbose
 
     def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+        # we don't pass Xw_init as the solver uses Gram updates 
+        # to keep the gradient up-to-date instead of Xw
         n_samples, n_features = X.shape
 
         if issparse(X):

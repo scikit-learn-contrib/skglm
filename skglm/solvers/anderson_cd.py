@@ -62,7 +62,7 @@ class AndersonCD(BaseSolver):
             raise ValueError(
                 'Unsupported value for self.ws_strategy:', self.ws_strategy)
         n_samples, n_features = X.shape
-        w = np.zeros(n_features) if w_init is None else w_init
+        w = np.zeros(n_features + self.fit_intercept) if w_init is None else w_init
         Xw = np.zeros(n_samples) if Xw_init is None else Xw_init
         pen = penalty.is_penalized(n_features)
         unpen = ~pen

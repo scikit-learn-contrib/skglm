@@ -38,14 +38,14 @@ l1_ratio = 0.3
 clf_enet = GeneralizedLinearEstimator(
     Logistic(),
     L1_plus_L2(alpha, l1_ratio),
-    )
+)
 y_pred_enet = clf_enet.fit(X_train, y_train).predict(X_test)
 f1_score_enet = f1_score(y_test, y_pred_enet)
 
 clf_mcp = GeneralizedLinearEstimator(
     Logistic(),
     MCPenalty(alpha, gamma),
-    )
+)
 y_pred_mcp = clf_mcp.fit(X_train, y_train).predict(X_test)
 f1_score_mcp = f1_score(y_test, y_pred_mcp)
 

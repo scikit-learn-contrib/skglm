@@ -22,6 +22,7 @@ from skglm.estimators import (
     MCPRegression, SparseLogisticRegression, LinearSVC)
 from skglm.datafits import Logistic, Quadratic, QuadraticSVC, QuadraticMultiTask
 from skglm.penalties import L1, IndicatorBox, L1_plus_L2, MCPenalty, WeightedL1
+from skglm.solvers import AndersonCD
 
 
 n_samples = 50
@@ -71,7 +72,7 @@ dict_estimators_sk["LogisticRegression"] = LogReg_sklearn(
     C=1/(alpha * n_samples), tol=tol, penalty='l1',
     solver='liblinear')
 dict_estimators_ours["LogisticRegression"] = SparseLogisticRegression(
-    alpha=alpha, tol=tol, verbose=False)
+    alpha=alpha, tol=tol)
 
 C = 1.
 dict_estimators_sk["SVC"] = LinearSVC_sklearn(
@@ -85,6 +86,9 @@ dict_estimators_ours["SVC"] = LinearSVC(C=C, tol=tol)
 def test_check_estimator(estimator_name):
     if estimator_name == "SVC":
         pytest.xfail("SVC check_estimator is too slow due to bug.")
+    elif estimator_name == "LogisticRegression":
+        # TODO: remove xfail when ProxNewton supports intercept fitting
+        pytest.xfail("ProxNewton does not yet support intercept fitting")
     clf = clone(dict_estimators_ours[estimator_name])
     clf.tol = 1e-6  # failure in float32 computation otherwise
     if isinstance(clf, WeightedLasso):
@@ -170,12 +174,12 @@ def test_generic_estimator(fit_intercept, Datafit, Penalty, Estimator, pen_args)
     elif Datafit == Logistic and fit_intercept:
         pytest.xfail("TODO support intercept in Logistic datafit")
     else:
+        solver = AndersonCD(tol=tol, fit_intercept=fit_intercept)
         target = Y if Datafit == QuadraticMultiTask else y
         gle = GeneralizedLinearEstimator(
-            Datafit(), Penalty(*pen_args), tol=1e-10,
-            fit_intercept=fit_intercept).fit(X, target)
+            Datafit(), Penalty(*pen_args), solver).fit(X, target)
         est = Estimator(
-            *pen_args, tol=1e-10, fit_intercept=fit_intercept).fit(X, target)
+            *pen_args, tol=tol, fit_intercept=fit_intercept).fit(X, target)
         np.testing.assert_allclose(gle.coef_, est.coef_, rtol=1e-5)
         np.testing.assert_allclose(gle.intercept_, est.intercept_)
 
@@ -200,7 +204,7 @@ def test_estimator_predict(Datafit, Penalty, Estimator_sk):
     }
     X_test = np.random.normal(0, 1, (n_samples, n_features))
     clf = GeneralizedLinearEstimator(
-        Datafit(), Penalty(1.), fit_intercept=False, tol=tol).fit(X, y)
+        Datafit(), Penalty(1.), AndersonCD(fit_intercept=False)).fit(X, y)
     clf_sk = Estimator_sk(**estim_args[Estimator_sk]).fit(X, y)
     y_pred = clf.predict(X_test)
     y_pred_sk = clf_sk.predict(X_test)
@@ -240,6 +244,7 @@ def test_grid_search(estimator_name):
     estimator_sk = clone(dict_estimators_sk[estimator_name])
     estimator_ours = clone(dict_estimators_ours[estimator_name])
     estimator_sk.tol = 1e-10
+    # XXX: No need for `tol` anymore as it already is in solver
     estimator_ours.tol = 1e-10
     estimator_sk.max_iter = 10_000
     param_grid = {'alpha': np.geomspace(alpha_max, alpha_max * 0.01, 10)}
@@ -259,6 +264,9 @@ def test_grid_search(estimator_name):
     "estimator_name",
     ["Lasso", "wLasso", "ElasticNet", "MCP", "LogisticRegression", "SVC"])
 def test_warm_start(estimator_name):
+    if estimator_name == "LogisticRegression":
+        # TODO: remove xfail when ProxNewton supports intercept fitting
+        pytest.xfail("ProxNewton does not yet support intercept fitting")
     model = clone(dict_estimators_ours[estimator_name])
     model.warm_start = True
     model.fit(X, y)

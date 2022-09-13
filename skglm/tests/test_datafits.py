@@ -6,6 +6,7 @@ from numpy.testing import assert_allclose, assert_array_less
 
 from skglm.datafits import Huber, Logistic
 from skglm.penalties import WeightedL1
+from skglm.solvers import AndersonCD
 from skglm import GeneralizedLinearEstimator
 from skglm.utils import make_correlated_data
 
@@ -26,12 +27,12 @@ def test_huber_datafit(fit_intercept):
     ours = GeneralizedLinearEstimator(
         datafit=Huber(delta),
         penalty=WeightedL1(1, np.zeros(X.shape[1])),
-        tol=1e-14, fit_intercept=fit_intercept
+        solver=AndersonCD(tol=1e-14, fit_intercept=fit_intercept),
     ).fit(X, y)
 
     assert_allclose(ours.coef_, their.coef_, rtol=1e-3)
     assert_allclose(ours.intercept_, their.intercept_, rtol=1e-4)
-    assert_array_less(ours.stop_crit_, ours.tol)
+    assert_array_less(ours.stop_crit_, ours.solver.tol)
 
 
 def test_log_datafit():

@@ -16,7 +16,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score, mean_squared_error
 
 from skglm.utils import make_correlated_data
-from skglm.solvers import cd_solver_path
+from skglm.solvers import AndersonCD
 from skglm.datafits import Quadratic
 from skglm.utils import compiled_clone
 from skglm.penalties import L1, MCPenalty, L0_5, L2_3, SCAD
@@ -69,11 +69,13 @@ prediction_error = {}
 l0 = {}
 mse_ref = mean_squared_error(np.zeros_like(y_test), y_test)
 
+solver = AndersonCD(ws_strategy="fixpoint", fit_intercept=False)
+
 for idx, estimator in enumerate(penalties.keys()):
     print(f'Running {estimator}...')
-    estimator_path = cd_solver_path(
+    estimator_path = solver.path(
         X, y, compiled_clone(datafit), compiled_clone(penalties[estimator]),
-        alphas=alphas, ws_strategy="fixpoint")
+        alphas=alphas)
 
     f1_temp = np.zeros(n_alphas)
     prediction_error_temp = np.zeros(n_alphas)

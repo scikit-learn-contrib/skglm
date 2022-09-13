@@ -1,6 +1,7 @@
 import numpy as np
 from numba import njit
 from scipy.sparse import issparse
+from skglm.solvers.base import BaseSolver
 
 
 EPS_TOL = 0.3
@@ -8,27 +9,8 @@ MAX_CD_ITER = 20
 MAX_BACKTRACK_ITER = 20
 
 
-def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
-                max_iter=20, max_pn_iter=1000, tol=1e-4, verbose=0):
-    """Run a Prox Newton solver combined with working sets.
-
-    Parameters
-    ----------
-    X : array or sparse CSC matrix, shape (n_samples, n_features)
-        Design matrix.
-
-    y : array, shape (n_samples,)
-        Target vector.
-
-    datafit : instance of BaseDatafit
-        Datafit object.
-
-    penalty : instance of BasePenalty
-        Penalty object.
-
-    w_init : array, shape (n_features,), default None
-        Initial value of coefficients.
-        If set to None, a zero vector is used instead.
+class ProxNewton(BaseSolver):
+    """Prox Newton solver combined with working sets.
 
     p0 : int, default 10
         Minimum number of features to be included in the working set.
@@ -45,17 +27,6 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
     verbose : bool, default False
         Amount of verbosity. 0/False is silent.
 
-    Returns
-    -------
-    w : array, shape (n_features,)
-        Solution that minimizes the problem defined by datafit and penalty.
-
-    objs_out : array, shape (n_iter,)
-        The objective values at every outer iteration.
-
-    stop_crit : float
-        The value of the stopping criterion when the solver stops.
-
     References
     ----------
     .. [1] Massias, M. and Vaiter, S. and Gramfort, A. and Salmon, J.
@@ -69,88 +40,101 @@ def prox_newton(X, y, datafit, penalty, w_init=None, p0=10,
         https://proceedings.mlr.press/v37/johnson15.html
         code: https://github.com/tbjohns/BlitzL1
     """
-    n_samples, n_features = X.shape
-    w = np.zeros(n_features) if w_init is None else w_init
-    Xw = np.zeros(n_samples) if w_init is None else X @ w_init
-    all_features = np.arange(n_features)
-    stop_crit = 0.
-    p_objs_out = []
 
-    is_sparse = issparse(X)
-    if is_sparse:
-        X_bundles = (X.data, X.indptr, X.indices)
+    def __init__(self, p0=10, max_iter=20, max_pn_iter=1000, tol=1e-4,
+                 fit_intercept=True, warm_start=False, verbose=0):
+        self.p0 = p0
+        self.max_iter = max_iter
+        self.max_pn_iter = max_pn_iter
+        self.tol = tol
+        self.fit_intercept = fit_intercept
+        self.warm_start = warm_start
+        self.verbose = verbose
 
-    for t in range(max_iter):
-        # compute scores
+    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+        n_samples, n_features = X.shape
+        w = np.zeros(n_features) if w_init is None else w_init
+        Xw = np.zeros(n_samples) if Xw_init is None else Xw_init
+        all_features = np.arange(n_features)
+        stop_crit = 0.
+        p_objs_out = []
+
+        is_sparse = issparse(X)
         if is_sparse:
-            grad = _construct_grad_sparse(*X_bundles, y, w, Xw, datafit, all_features)
-        else:
-            grad = _construct_grad(X, y, w, Xw, datafit, all_features)
+            X_bundles = (X.data, X.indptr, X.indices)
 
-        opt = penalty.subdiff_distance(w, grad, all_features)
-
-        # check convergences
-        stop_crit = np.max(opt)
-        if verbose:
-            p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-            print(
-                f"Iteration {t+1}: {p_obj:.10f}, "
-                f"stopping crit: {stop_crit:.2e}"
-            )
-
-        if stop_crit <= tol:
-            if verbose:
-                print(f"Stopping criterion max violation: {stop_crit:.2e}")
-            break
-
-        # build working set
-        gsupp_size = penalty.generalized_support(w).sum()
-        ws_size = max(min(p0, n_features),
-                      min(n_features, 2 * gsupp_size))
-        # similar to np.argsort()[-ws_size:] but without sorting
-        ws = np.argpartition(opt, -ws_size)[-ws_size:]
-
-        grad_ws = grad[ws]
-        tol_in = EPS_TOL * stop_crit
-
-        for pn_iter in range(max_pn_iter):
-            # find descent direction
+        for t in range(self.max_iter):
+            # compute scores
             if is_sparse:
-                delta_w_ws, X_delta_w_ws = _descent_direction_s(
-                    *X_bundles, y, w, Xw, grad_ws, datafit,
-                    penalty, ws, tol=EPS_TOL*tol_in)
+                grad = _construct_grad_sparse(
+                    *X_bundles, y, w, Xw, datafit, all_features)
             else:
-                delta_w_ws, X_delta_w_ws = _descent_direction(
-                    X, y, w, Xw, grad_ws, datafit, penalty, ws, tol=EPS_TOL*tol_in)
+                grad = _construct_grad(X, y, w, Xw, datafit, all_features)
 
-            # backtracking line search with inplace update of w, Xw
-            if is_sparse:
-                grad_ws[:] = _backtrack_line_search_s(
-                    *X_bundles, y, w, Xw, datafit, penalty, delta_w_ws,
-                    X_delta_w_ws, ws)
-            else:
-                grad_ws[:] = _backtrack_line_search(
-                    X, y, w, Xw, datafit, penalty, delta_w_ws, X_delta_w_ws, ws)
+            opt = penalty.subdiff_distance(w, grad, all_features)
 
-            # check convergence
-            opt_in = penalty.subdiff_distance(w, grad_ws, ws)
-            stop_crit_in = np.max(opt_in)
-
-            if max(verbose-1, 0):
+            # check convergences
+            stop_crit = np.max(opt)
+            if self.verbose:
                 p_obj = datafit.value(y, w, Xw) + penalty.value(w)
                 print(
-                    f"PN iteration {pn_iter+1}: {p_obj:.10f}, "
-                    f"stopping crit in: {stop_crit_in:.2e}"
+                    "Iteration {}: {:.10f}, ".format(t+1, p_obj) +
+                    "stopping crit: {:.2e}".format(stop_crit)
                 )
 
-            if stop_crit_in <= tol_in:
-                if max(verbose-1, 0):
-                    print("Early exit")
+            if stop_crit <= self.tol:
+                if self.verbose:
+                    print("Stopping criterion max violation: {:.2e}".format(stop_crit))
                 break
 
-        p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-        p_objs_out.append(p_obj)
-    return w, np.asarray(p_objs_out), stop_crit
+            # build working set
+            gsupp_size = penalty.generalized_support(w).sum()
+            ws_size = max(min(self.p0, n_features),
+                          min(n_features, 2 * gsupp_size))
+            # similar to np.argsort()[-ws_size:] but without sorting
+            ws = np.argpartition(opt, -ws_size)[-ws_size:]
+
+            grad_ws = grad[ws]
+            tol_in = EPS_TOL * stop_crit
+
+            for pn_iter in range(self.max_pn_iter):
+                # find descent direction
+                if is_sparse:
+                    delta_w_ws, X_delta_w_ws = _descent_direction_s(
+                        *X_bundles, y, w, Xw, grad_ws, datafit,
+                        penalty, ws, tol=EPS_TOL*tol_in)
+                else:
+                    delta_w_ws, X_delta_w_ws = _descent_direction(
+                        X, y, w, Xw, grad_ws, datafit, penalty, ws, tol=EPS_TOL*tol_in)
+
+                # backtracking line search with inplace update of w, Xw
+                if is_sparse:
+                    grad_ws[:] = _backtrack_line_search_s(
+                        *X_bundles, y, w, Xw, datafit, penalty, delta_w_ws,
+                        X_delta_w_ws, ws)
+                else:
+                    grad_ws[:] = _backtrack_line_search(
+                        X, y, w, Xw, datafit, penalty, delta_w_ws, X_delta_w_ws, ws)
+
+                # check convergence
+                opt_in = penalty.subdiff_distance(w, grad_ws, ws)
+                stop_crit_in = np.max(opt_in)
+
+                if max(self.verbose-1, 0):
+                    p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+                    print(
+                        "PN iteration {}: {:.10f}, ".format(pn_iter+1, p_obj) +
+                        "stopping crit in: {:.2e}".format(stop_crit_in)
+                    )
+
+                if stop_crit_in <= tol_in:
+                    if max(self.verbose-1, 0):
+                        print("Early exit")
+                    break
+
+            p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+            p_objs_out.append(p_obj)
+        return w, np.asarray(p_objs_out), stop_crit
 
 
 @njit

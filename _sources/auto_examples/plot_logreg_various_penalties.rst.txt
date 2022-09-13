@@ -72,14 +72,14 @@ Illustrate the modularity of ``skglm`` by using ``GeneralizedLinearEstimator`` w
     clf_enet = GeneralizedLinearEstimator(
         Logistic(),
         L1_plus_L2(alpha, l1_ratio),
-        )
+    )
     y_pred_enet = clf_enet.fit(X_train, y_train).predict(X_test)
     f1_score_enet = f1_score(y_test, y_pred_enet)
 
     clf_mcp = GeneralizedLinearEstimator(
         Logistic(),
         MCPenalty(alpha, gamma),
-        )
+    )
     y_pred_mcp = clf_mcp.fit(X_train, y_train).predict(X_test)
     f1_score_mcp = f1_score(y_test, y_pred_mcp)
 
@@ -115,7 +115,7 @@ Illustrate the modularity of ``skglm`` by using ``GeneralizedLinearEstimator`` w
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  8.697 seconds)
+   **Total running time of the script:** ( 0 minutes  8.393 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_logreg_various_penalties.py:

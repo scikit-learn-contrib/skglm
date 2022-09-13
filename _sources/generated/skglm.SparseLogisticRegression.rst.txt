@@ -18,7 +18,6 @@
       ~SparseLogisticRegression.densify
       ~SparseLogisticRegression.fit
       ~SparseLogisticRegression.get_params
-      ~SparseLogisticRegression.path
       ~SparseLogisticRegression.predict
       ~SparseLogisticRegression.predict_proba
       ~SparseLogisticRegression.score

@@ -5,14 +5,14 @@ Version 0.2 (2022-09-24)
 
 - Release v0.2
 
-- Accelerated block coordinate descent solver with working sets for problems with group penalties
+- Accelerated block coordinate descent solver with working sets for problems with group penalties (:gh:`29`, :gh:`28`, :gh:`26`)
 
-- Prox-Newton solver with working sets for problems with non-quadratic datafits
+- Prox-Newton solver with working sets for problems with non-quadratic datafits (:gh:`51`)
 
 - Huber datafit
 
 - Fitting intercept for Quadratic, Logistic, Huber datafits
 
-- Gram coordinate descent solver
+- Gram coordinate descent solver (:gh:`59`)
 
-- Transform solvers from functions to classes
+- Transform solvers from functions to classes (:gh:`63`)

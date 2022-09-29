@@ -9,8 +9,8 @@ Version 0.1 (2022-04-25)
 
 - Accelerated block coordinate descent solver with working sets for multi-task problems
 
-- L1, L1 + L2, MCP, SCAD and box penalties supported
+- :math:`\ell_1`, :math:`\ell_1+\ell_2`, MCP, SCAD and box penalties supported
 
-- Quadratic, Logistic, LogisticSVM datafits supported
+- ``Quadratic``, ``Logistic``, ``LogisticSVM`` datafits supported
 
-- Introduced `GeneralizedLinearEstimator`
+- Introduced ``GeneralizedLinearEstimator``

@@ -56,3 +56,4 @@ API
     :maxdepth: 1
 
     api.rst
+    whats_new.rst

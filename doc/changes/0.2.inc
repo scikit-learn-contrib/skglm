@@ -5,10 +5,14 @@ Version 0.2 (2022-09-24)
 
 - Release v0.2
 
-- Prox-Newton solver for sparse Logistic Regression
+- Accelerated block coordinate descent solver with working sets for problems with group penalties
+
+- Prox-Newton solver with working sets for problems with non-quadratic datafits
 
 - Huber datafit
 
 - Fitting intercept for Quadratic, Logistic, Huber datafits
 
 - Gram coordinate descent solver
+
+- Transform solvers from functions to classes

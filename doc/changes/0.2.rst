@@ -9,9 +9,9 @@ Version 0.2 (2022-09-24)
 
 - Prox-Newton solver with working sets for problems with non-quadratic datafits (:gh:`51`)
 
-- Huber datafit
+- Huber datafit (:gh:`14`)
 
-- Fitting intercept for Quadratic, Logistic, Huber datafits
+- Fitting intercept for ``Quadratic``, ``Logistic``, ``Huber`` datafits (:gh:`55`)
 
 - Gram coordinate descent solver (:gh:`59`)
 

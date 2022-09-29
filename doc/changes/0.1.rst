@@ -13,4 +13,4 @@ Version 0.1 (2022-04-25)
 
 - ``Quadratic``, ``Logistic``, ``LogisticSVM`` datafits supported
 
-- Introduced ``GeneralizedLinearEstimator``
+- Introduced ``GeneralizedLinearEstimator`` (:gh:`63`)

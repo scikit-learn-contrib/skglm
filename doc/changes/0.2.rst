@@ -11,6 +11,8 @@ Version 0.2 (2022-09-24)
 
 - Huber datafit (:gh:`14`)
 
+- SCAD and Block SCAD penalties supported (:gh:`12`)
+
 - Fitting intercept for ``Quadratic``, ``Logistic``, ``Huber`` datafits (:gh:`55`)
 
 - Gram coordinate descent solver (:gh:`59`)

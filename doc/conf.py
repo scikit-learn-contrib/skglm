@@ -55,10 +55,10 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.mathjax',
     'sphinx_gallery.gen_gallery',
+    'sphinx.ext.autosectionlabel',
     'numpydoc',
     'sphinx.ext.linkcode',
     'gh_substitutions',  # custom ext, see ./sphinxext/gh_substitutions.py
-
 ]
 
 # generate autosummary even if no references

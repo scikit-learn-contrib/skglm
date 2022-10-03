@@ -7,12 +7,12 @@ Version 0.2 (in progress)
 
 - Proximal Newton solver ``ProxNewton`` with working sets for problems with non-quadratic datafits (PR :gh:`51`)
 
-- ``Huber`` datafit :ref:`[↗] <skglm.datafits.Huber>` (PR :gh:`14`)
+- :ref:`Huber <skglm.datafits.Huber>` datafit (PR :gh:`14`)
 
-- ``SCAD`` and ``BlockSCAD`` penalties supported (PR :gh:`12`)
+- Added :ref:`SCAD <skglm.penalties.SCAD>` and :ref:`BlockSCAD <skglm.penalties.BlockSCAD>` penalties (PR :gh:`12`)
 
-- Fitting intercept for ``Quadratic`` :ref:`[↗] <skglm.datafits.Quadratic>`, ``Logistic`` :ref:`[↗] <skglm.datafits.Logistic>`, ``Huber`` :ref:`[↗] <skglm.datafits.Huber>` datafits (PR :gh:`55`)
+- Fitting intercept for :ref:`Quadratic <skglm.datafits.Quadratic>`, :ref:`Logistic <skglm.datafits.Logistic>` and :ref:`Huber <skglm.datafits.Huber>` datafits (PR :gh:`55`)
 
-- Gram coordinate descent solver ``GramCD`` for problems with ``n_features`` :math:`\ll` ``n_samples`` (PR :gh:`59`)
+- Added :ref:`GramCD <skglm.solvers.GramCD>`, a Gram-based coordinate descent solver for problems with ``n_features`` :math:`\ll` ``n_samples`` (PR :gh:`59`)
 
 - Transform solvers from functions to classes (PR :gh:`63`)

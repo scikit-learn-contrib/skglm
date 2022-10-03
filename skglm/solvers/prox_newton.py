@@ -24,6 +24,9 @@ class ProxNewton(BaseSolver):
     tol : float, default 1e-4
         Tolerance for convergence.
 
+    fit_intercept : bool, default True
+        If ``True``, fits an unpenalized intercept.
+
     verbose : bool, default False
         Amount of verbosity. 0/False is silent.
 
@@ -63,6 +66,17 @@ class ProxNewton(BaseSolver):
         is_sparse = issparse(X)
         if is_sparse:
             X_bundles = (X.data, X.indptr, X.indices)
+
+        if len(w) != n_features + self.fit_intercept:
+            if self.fit_intercept:
+                val_error_message = (
+                    "w should be of size n_features + 1 when using fit_intercept=True: "
+                    f"expected {n_features + 1}, got {len(w)}.")
+            else:
+                val_error_message = (
+                    "w should be of size n_features: "
+                    f"expected {n_features}, got {len(w)}.")
+            raise ValueError(val_error_message)
 
         for t in range(self.max_iter):
             # compute scores

@@ -152,8 +152,8 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
     for idx, j in enumerate(ws):
         lipschitz[idx] = raw_hess @ X[:, j] ** 2
 
-    # for a less costly stopping criterion, we do no compute the exact gradient,
-    # but store each coordinate-wise gradient every time we upate one coordinate:
+    # for a less costly stopping criterion, we do not compute the exact gradient,
+    # but store each coordinate-wise gradient every time we update one coordinate:
     past_grads = np.zeros(len(ws))
     X_delta_w_ws = np.zeros(X.shape[0])
     w_ws = w_epoch[ws]

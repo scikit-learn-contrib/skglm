@@ -42,7 +42,7 @@ class ProxNewton(BaseSolver):
     """
 
     def __init__(self, p0=10, max_iter=20, max_pn_iter=1000, tol=1e-4,
-                 fit_intercept=False, warm_start=False, verbose=0):
+                 fit_intercept=True, warm_start=False, verbose=0):
         self.p0 = p0
         self.max_iter = max_iter
         self.max_pn_iter = max_pn_iter

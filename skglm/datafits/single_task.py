@@ -360,3 +360,52 @@ class Huber(BaseDatafit):
             else:
                 update -= np.sign(residual) * self.delta
         return update / n_samples
+
+
+class Poisson(BaseDatafit):
+    def __init__(self):
+        pass
+
+    def get_spec(self):
+        pass
+
+    def params_to_dict(self):
+        return dict()
+
+    def initialize(self, X, y):
+        pass
+
+    def initialize_sparse(
+        self, X_data, X_indptr, X_indices, y):
+        n_features = len(X_indptr) - 1
+        self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
+        for j in range(n_features):
+            Xj = X_data[X_indptr[j]:X_indptr[j+1]]
+            self.lipschitz[j] = (Xj ** 2).sum() / (len(y) * 4)
+
+    def value(self, y, w, Xw):
+        return np.sum(np.exp(Xw) - y * Xw) / len(y)
+
+    def gradient_scalar(self, X, y, w, Xw, j):
+        return (X[:, j] @ (np.exp(Xw) - y)) / len(y)
+
+    def full_grad_sparse(
+        self, X_data, X_indptr, X_indices, y, Xw):
+        n_features = X_indptr.shape[0] - 1
+        grad = np.zeros(n_features, dtype=X_data.dtype)
+        for j in range(n_features):
+            grad[j] = 0.
+            for i in range(X_indptr[j], X_indptr[j + 1]):
+                grad[j] += X_data[i] * (np.exp(Xw[X_indices[i]]
+                    - y[X_indices[i]])) / len(y)
+        return grad
+
+    def gradient_scalar_sparse(self, X_data, X_indptr, X_indices, y, Xw, j):
+        grad = 0.
+        for i in range(X_indptr[j], X_indptr[j + 1]):
+            idx_i = X_indices[i]
+            grad += X_data[i] * (np.exp(Xw[idx_i]) - y[idx_i])
+        return grad / len(y)
+
+    def intercept_update_self(self, y, Xw):
+        pass

@@ -9,8 +9,8 @@ from skglm.solvers.prox_newton import ProxNewton
 from skglm.utils import make_correlated_data, compiled_clone
 
 
-@pytest.mark.parametrize('X_density', [1, 0.5])
-def test_alpha_max(X_density):
+@pytest.mark.parametrize('X_density, fit_intercept', product([1, 0.5], [True, False]))
+def test_alpha_max(X_density, fit_intercept):
     n_samples, n_features = 10, 20
     X, y, _ = make_correlated_data(
         n_samples, n_features, X_density=X_density, random_state=2)
@@ -20,13 +20,13 @@ def test_alpha_max(X_density):
 
     log_datafit = compiled_clone(Logistic())
     l1_penalty = compiled_clone(L1(alpha_max))
-    w = ProxNewton().solve(X, y, log_datafit, l1_penalty)[0]
+    w = ProxNewton(fit_intercept=fit_intercept).solve(X, y, log_datafit, l1_penalty)[0]
 
-    np.testing.assert_equal(w, 0)
+    np.testing.assert_equal(w[:n_features], 0)
 
 
-@pytest.mark.parametrize("rho, X_density", product([1e-1, 1e-2], [1., 0.5]))
-def test_pn_vs_sklearn(rho, X_density):
+@pytest.mark.parametrize("rho, X_density, fit_intercept", product([1e-1, 1e-2], [1., 0.5], [True, False]))
+def test_pn_vs_sklearn(rho, X_density, fit_intercept):
     n_samples, n_features = 11, 19
 
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=0,
@@ -37,14 +37,17 @@ def test_pn_vs_sklearn(rho, X_density):
     alpha = rho * alpha_max
 
     sk_log_reg = LogisticRegression(penalty='l1', C=1/(n_samples * alpha),
-                                    fit_intercept=False, tol=1e-9, solver='liblinear')
+                                    fit_intercept=fit_intercept,
+                                    tol=1e-9, solver='liblinear')
     sk_log_reg.fit(X, y)
 
     log_datafit = compiled_clone(Logistic())
     l1_penalty = compiled_clone(L1(alpha))
-    w = ProxNewton(tol=1e-9).solve(X, y, log_datafit, l1_penalty)[0]
+    prox_solver = ProxNewton(fit_intercept=fit_intercept, tol=1e-9)
+    w = prox_solver.solve(X, y, log_datafit, l1_penalty)[0]
 
-    np.testing.assert_allclose(w, sk_log_reg.coef_.flatten(), rtol=1e-6, atol=1e-6)
+    np.testing.assert_allclose(w[:n_features], sk_log_reg.coef_.flatten(),
+                               rtol=1e-6, atol=1e-6)
 
 
 if __name__ == '__main__':

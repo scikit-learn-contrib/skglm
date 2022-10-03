@@ -39,8 +39,8 @@ def test_pn_vs_sklearn(rho, X_density, fit_intercept):
     alpha = rho * alpha_max
 
     sk_log_reg = LogisticRegression(penalty='l1', C=1/(n_samples * alpha),
-                                    fit_intercept=fit_intercept,
-                                    tol=1e-9, solver='saga', max_iter=100_000)
+                                    fit_intercept=fit_intercept, random_state=0,
+                                    tol=1e-9, solver='saga', max_iter=1_000_000)
     sk_log_reg.fit(X, y)
 
     log_datafit = compiled_clone(Logistic())
@@ -49,7 +49,9 @@ def test_pn_vs_sklearn(rho, X_density, fit_intercept):
     w = prox_solver.solve(X, y, log_datafit, l1_penalty)[0]
 
     np.testing.assert_allclose(w[:n_features], sk_log_reg.coef_.flatten(),
-                               rtol=1e-6, atol=1e-6)
+                               rtol=1e-4, atol=1e-3)
+    if fit_intercept:
+        np.testing.assert_allclose(w[-1], sk_log_reg.intercept_, rtol=1e-4, atol=1e-3)
 
 
 if __name__ == '__main__':

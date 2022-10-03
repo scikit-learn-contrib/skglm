@@ -22,12 +22,14 @@ def test_alpha_max(X_density, fit_intercept):
     l1_penalty = compiled_clone(L1(alpha_max))
     w = ProxNewton(fit_intercept=fit_intercept).solve(X, y, log_datafit, l1_penalty)[0]
 
+    # all coefficients except intercept must equal 0
     np.testing.assert_equal(w[:n_features], 0)
 
 
-@pytest.mark.parametrize("rho, X_density, fit_intercept", product([1e-1, 1e-2], [1., 0.5], [True, False]))
+@pytest.mark.parametrize("rho, X_density, fit_intercept",
+                         product([1e-1, 1e-2], [1., 0.5], [True, False]))
 def test_pn_vs_sklearn(rho, X_density, fit_intercept):
-    n_samples, n_features = 11, 19
+    n_samples, n_features = 12, 25
 
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=0,
                                    X_density=X_density)
@@ -38,7 +40,7 @@ def test_pn_vs_sklearn(rho, X_density, fit_intercept):
 
     sk_log_reg = LogisticRegression(penalty='l1', C=1/(n_samples * alpha),
                                     fit_intercept=fit_intercept,
-                                    tol=1e-9, solver='liblinear')
+                                    tol=1e-9, solver='saga', max_iter=100_000)
     sk_log_reg.fit(X, y)
 
     log_datafit = compiled_clone(Logistic())

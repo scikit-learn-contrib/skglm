@@ -3,9 +3,9 @@
 Version 0.2 (in progress)
 ------------------------
 
-- Accelerated block coordinate descent solver ``GroupBCD`` with working sets for problems with group penalties (PR :gh:`29`, :gh:`28`, and :gh:`26`)
+- Accelerated block coordinate descent solver :ref:`GroupBCD <skglm.solvers.GroupBCD>` with working sets for problems with group penalties (PR :gh:`29`, :gh:`28`, and :gh:`26`)
 
-- Proximal Newton solver ``ProxNewton`` with working sets for problems with non-quadratic datafits (PR :gh:`51`)
+- Proximal Newton solver :ref:`ProxNewton <skglm.solvers.ProxNewton>` with working sets for problems with non-quadratic datafits (PR :gh:`51`)
 
 - :ref:`Huber <skglm.datafits.Huber>` datafit (PR :gh:`14`)
 

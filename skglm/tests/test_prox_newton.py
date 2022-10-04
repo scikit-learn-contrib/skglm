@@ -9,7 +9,7 @@ from skglm.solvers.prox_newton import ProxNewton
 from skglm.utils import make_correlated_data, compiled_clone
 
 
-@pytest.mark.parametrize('X_density, fit_intercept', product([1, 0.5], [True, False]))
+@pytest.mark.parametrize('X_density, fit_intercept', product([1, 0.5], [False]))
 def test_alpha_max(X_density, fit_intercept):
     n_samples, n_features = 10, 20
     X, y, _ = make_correlated_data(
@@ -22,8 +22,7 @@ def test_alpha_max(X_density, fit_intercept):
     l1_penalty = compiled_clone(L1(alpha_max))
     w = ProxNewton(fit_intercept=fit_intercept).solve(X, y, log_datafit, l1_penalty)[0]
 
-    # all coefficients except intercept must equal 0
-    np.testing.assert_equal(w[:n_features], 0)
+    np.testing.assert_equal(w, 0)
 
 
 @pytest.mark.parametrize("rho, X_density, fit_intercept",

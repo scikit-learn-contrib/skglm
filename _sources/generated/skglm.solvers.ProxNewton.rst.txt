@@ -1,0 +1,23 @@
+﻿skglm.solvers.ProxNewton
+========================
+
+.. currentmodule:: skglm.solvers
+
+.. autoclass:: ProxNewton
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~ProxNewton.__init__
+      ~ProxNewton.solve
+   
+   
+
+   
+   
+   

@@ -1,0 +1,23 @@
+﻿skglm.solvers.GroupBCD
+======================
+
+.. currentmodule:: skglm.solvers
+
+.. autoclass:: GroupBCD
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~GroupBCD.__init__
+      ~GroupBCD.solve
+   
+   
+
+   
+   
+   

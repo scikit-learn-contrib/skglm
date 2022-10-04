@@ -17,6 +17,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
 <meta charset='utf-8'>
@@ -102,7 +103,18 @@ to download the full example code</p>
 <section class="sphx-glr-example-title" id="logistic-regression-with-elastic-net-and-minimax-concave-penalties">
 <span id="sphx-glr-auto-examples-plot-logreg-various-penalties-py"></span><h1>Logistic regression with Elastic net and minimax concave penalties<a class="headerlink" href="#logistic-regression-with-elastic-net-and-minimax-concave-penalties" title="Permalink to this heading">¶</a></h1>
 <p>Illustrate the modularity of <code class="docutils literal notranslate"><span class="pre">skglm</span></code> by using <code class="docutils literal notranslate"><span class="pre">GeneralizedLinearEstimator</span></code> with one datafit and one penalty.</p>
-<img src="../_images/sphx_glr_plot_logreg_various_penalties_001.png" srcset="../_images/sphx_glr_plot_logreg_various_penalties_001.png" alt="MCP F1: 0.600, Elastic Net F1: 0.667" class = "sphx-glr-single-img"/><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Author: Pierre-Antoine Bannier</span>
+<img src="../_images/sphx_glr_plot_logreg_various_penalties_001.png" srcset="../_images/sphx_glr_plot_logreg_various_penalties_001.png" alt="MCP F1: 0.600, Elastic Net F1: 0.667" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/home/circleci/project/examples/plot_logreg_various_penalties.py:53: MatplotlibDeprecationWarning: The &#39;use_line_collection&#39; parameter of stem() was deprecated in Matplotlib 3.6 and will be removed two minor releases later. If any parameter follows &#39;use_line_collection&#39;, they should be passed as keyword, not positionally.
+  m, s, _ = plt.stem(
+/home/circleci/project/examples/plot_logreg_various_penalties.py:61: MatplotlibDeprecationWarning: The &#39;use_line_collection&#39; parameter of stem() was deprecated in Matplotlib 3.6 and will be removed two minor releases later. If any parameter follows &#39;use_line_collection&#39;, they should be passed as keyword, not positionally.
+  m, s, _ = plt.stem(
+/home/circleci/project/examples/plot_logreg_various_penalties.py:69: MatplotlibDeprecationWarning: The &#39;use_line_collection&#39; parameter of stem() was deprecated in Matplotlib 3.6 and will be removed two minor releases later. If any parameter follows &#39;use_line_collection&#39;, they should be passed as keyword, not positionally.
+  plt.stem(
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Author: Pierre-Antoine Bannier</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">numpy.linalg</span> <span class="kn">import</span> <span class="n">norm</span>
@@ -176,7 +188,7 @@ to download the full example code</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  8.393 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  11.819 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-logreg-various-penalties-py">
 <div class="sphx-glr-download sphx-glr-download-python docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/629b3760770835708ae169af550038b9/plot_logreg_various_penalties.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_logreg_various_penalties.py</span></code></a></p>
@@ -201,7 +213,7 @@ to download the full example code</p>
     </p>
     <p>
         &copy; Copyright 2022, skglm developers.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.1.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.2.3.<br/>
     </p>
   </div>
 </footer>

@@ -160,7 +160,7 @@ class ProxNewton(BaseSolver):
         return w, np.asarray(p_objs_out), stop_crit
 
 
-# @njit
+@njit
 def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
                        penalty, ws, tol):
     # Given:
@@ -295,7 +295,7 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
     return w_ws - w_epoch[ws_intercept], X_delta_w_ws
 
 
-# @njit
+@njit
 def _backtrack_line_search(X, y, w, Xw, fit_intercept, datafit, penalty, delta_w_ws,
                            X_delta_w_ws, ws):
     # 1) find step in [0, 1] such that:

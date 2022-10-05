@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>skglm &#8212; skglm 0.2dev documentation</title>
+    <title>What’s new &#8212; skglm 0.2dev documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/bootstrap-sphinx.css" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery.css" />
@@ -18,9 +18,10 @@
     <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/sphinx_highlight.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="What’s new" href="whats_new.html" />
+    <link rel="prev" title="skglm" href="index.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -41,7 +42,7 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="#">
+        <a class="navbar-brand" href="index.html">
           skglm</a>
         <span class="navbar-text navbar-version pull-left"><b>0.2dev</b></span>
       </div>
@@ -60,11 +61,11 @@
      id="dLabelGlobalToc"
      data-toggle="dropdown"
      data-target="#"
-     href="#">Site <b class="caret"></b></a>
+     href="index.html">Site <b class="caret"></b></a>
   <ul class="dropdown-menu globaltoc"
       role="menu"
-      aria-labelledby="dLabelGlobalToc"><ul>
-<li class="toctree-l1"><a class="reference internal" href="whats_new.html">What’s new</a></li>
+      aria-labelledby="dLabelGlobalToc"><ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">What’s new</a></li>
 </ul>
 </ul>
 </li>
@@ -96,53 +97,25 @@
   <div class="row">
     <div class="body col-md-12 content" role="main">
       
-  <section id="skglm">
-<h1>skglm<a class="headerlink" href="#skglm" title="Permalink to this heading">¶</a></h1>
-<p>skglm is a library that provide better sparse generalized linear model for scikit-learn.
-Its main features are:</p>
+  <section id="what-s-new">
+<span id="whats-new"></span><h1>What’s new<a class="headerlink" href="#what-s-new" title="Permalink to this heading">¶</a></h1>
+<section id="version-0-2-in-progress">
+<span id="changes-0-2"></span><h2>Version 0.2 (in progress)<a class="headerlink" href="#version-0-2-in-progress" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
-<li><p><strong>speed</strong>: problems with millions of features can be solved in seconds. Default solvers rely on efficient coordinate descent with numba just in time compilation.</p></li>
-<li><p><strong>flexibility</strong>: virtually any combination of datafit and penalty can be implemented in a few lines of code.</p></li>
-<li><p><strong>sklearn API</strong>: all estimators are drop-in replacements for scikit-learn.</p></li>
-<li><p><strong>scope</strong>: support for many missing models in scikit-learn - weighted Lasso, arbitrary group penalties, non convex sparse penalties, etc.</p></li>
+<li><p>Accelerated block coordinate descent solver <a class="reference internal" href="generated/skglm.solvers.GroupBCD.html#skglm-solvers-groupbcd"><span class="std std-ref">GroupBCD</span></a> with working sets for problems with group penalties (PR <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/29">#29</a>, <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/28">#28</a>, and <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/26">#26</a>)</p></li>
+<li><p>Proximal Newton solver <a class="reference internal" href="generated/skglm.solvers.ProxNewton.html#skglm-solvers-proxnewton"><span class="std std-ref">ProxNewton</span></a> with working sets for problems with non-quadratic datafits (PR <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/51">#51</a>)</p></li>
+<li><p><a class="reference internal" href="generated/skglm.datafits.Huber.html#skglm-datafits-huber"><span class="std std-ref">Huber</span></a> datafit (PR <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/14">#14</a>)</p></li>
+<li><p>Added <a class="reference internal" href="generated/skglm.penalties.SCAD.html#skglm-penalties-scad"><span class="std std-ref">SCAD</span></a> and <a class="reference internal" href="generated/skglm.penalties.BlockSCAD.html#skglm-penalties-blockscad"><span class="std std-ref">BlockSCAD</span></a> penalties (PR <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/12">#12</a>)</p></li>
+<li><p>Fitting intercept for <a class="reference internal" href="generated/skglm.datafits.Quadratic.html#skglm-datafits-quadratic"><span class="std std-ref">Quadratic</span></a>, <a class="reference internal" href="generated/skglm.datafits.Logistic.html#skglm-datafits-logistic"><span class="std std-ref">Logistic</span></a> and <a class="reference internal" href="generated/skglm.datafits.Huber.html#skglm-datafits-huber"><span class="std std-ref">Huber</span></a> datafits (PR <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/55">#55</a>)</p></li>
+<li><p>Added <a class="reference internal" href="generated/skglm.solvers.GramCD.html#skglm-solvers-gramcd"><span class="std std-ref">GramCD</span></a>, a Gram-based coordinate descent solver for problems with <code class="docutils literal notranslate"><span class="pre">n_features</span></code> <span class="math notranslate nohighlight">\(\ll\)</span> <code class="docutils literal notranslate"><span class="pre">n_samples</span></code> (PR <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/59">#59</a>)</p></li>
+<li><p>Transform solvers from functions to classes (PR <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/63">#63</a>)</p></li>
 </ul>
-<section id="cite">
-<h2>Cite<a class="headerlink" href="#cite" title="Permalink to this heading">¶</a></h2>
-<p>If you use this code, please cite</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@online{skglm,
-    title={Beyond L1 norm with skglm},
-    author={Q. Bertrand and Q. Klopfenstein and P.-A. Bannier and G. Gidel and M. Massias},
-    journal = {arXiv preprint arXiv:2204.07826},
-    url={https://arxiv.org/pdf/2204.07826.pdf}
-    year={2022},
-}
-</pre></div>
-</div>
 </section>
-<section id="installing-the-development-version">
-<h2>Installing the development version<a class="headerlink" href="#installing-the-development-version" title="Permalink to this heading">¶</a></h2>
-<p>First clone the repository available at <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm">https://github.com/scikit-learn-contrib/skglm</a>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/scikit-learn-contrib/skglm.git
-$ cd skglm/
-</pre></div>
-</div>
-<p>Then, install the package with:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ pip install -e .
-</pre></div>
-</div>
-<p>To check if everything worked fine, you can do:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python -c &#39;import skglm&#39;
-</pre></div>
-</div>
-<p>and it should not give any error message.</p>
-</section>
-<section id="release-history">
-<h2>Release history<a class="headerlink" href="#release-history" title="Permalink to this heading">¶</a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="whats_new.html">What’s new</a></li>
+<section id="version-0-1-2022-04-25">
+<span id="changes-0-1"></span><h2>Version 0.1 (2022-04-25)<a class="headerlink" href="#version-0-1-2022-04-25" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Initial release (initial commit: 2022-04-20)</p></li>
 </ul>
-</div>
 </section>
 </section>
 

@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>skglm.datafits.Quadratic &#8212; skglm 0.2dev documentation</title>
+    <title>skglm.penalties.SCAD &#8212; skglm 0.2dev documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css" />
@@ -95,64 +95,50 @@
   <div class="row">
     <div class="body col-md-12 content" role="main">
       
-  <section id="skglm-datafits-quadratic">
-<h1>skglm.datafits.Quadratic<a class="headerlink" href="#skglm-datafits-quadratic" title="Permalink to this heading">¶</a></h1>
+  <section id="skglm-penalties-scad">
+<h1>skglm.penalties.SCAD<a class="headerlink" href="#skglm-penalties-scad" title="Permalink to this heading">¶</a></h1>
 <dl class="py class">
-<dt class="sig sig-object py" id="skglm.datafits.Quadratic">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">Quadratic</span></span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/6ea09b2/skglm/datafits/single_task.py#L9"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.Quadratic" title="Permalink to this definition">¶</a></dt>
-<dd><p>Quadratic datafit.</p>
-<p>The datafit reads:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n_samples</span><span class="p">))</span> <span class="o">*</span> <span class="o">||</span><span class="n">y</span> <span class="o">-</span> <span class="n">X</span> <span class="n">w</span><span class="o">||^</span><span class="mi">2_2</span>
-</pre></div>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>Xty</strong><span class="classifier">array, shape (n_features,)</span></dt><dd><p>Pre-computed quantity used during the gradient evaluation. Equal to X.T &#64; y.</p>
-</dd>
-<dt><strong>lipschitz</strong><span class="classifier">array, shape (n_features,)</span></dt><dd><p>The coordinatewise gradient Lipschitz constants. Equal to
-norm(X, axis=0) ** 2 / n_samples.</p>
-</dd>
-</dl>
-</dd>
-</dl>
+<dt class="sig sig-object py" id="skglm.penalties.SCAD">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.penalties.</span></span><span class="sig-name descname"><span class="pre">SCAD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/6ea09b2/skglm/penalties/separable.py#L236"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.penalties.SCAD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Smoothly Clipped Absolute Deviation.</p>
+<p class="rubric">Notes</p>
+<p>With x &gt;= 0
+pen(x) =
+alpha * x                         if x =&lt; alpha
+2 * gamma * alpha * x - x^2 - alpha^2         / 2 * (gamma - 1))            if alpha &lt; x &lt; alpha * gamma
+alpha^2 * (gamma + 1) / 2      if x &gt; gamma * alpha
+value = sum_{j=1}^{n_features} pen(abs(w_j))</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="skglm.datafits.Quadratic.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/6ea09b2/skglm/datafits/single_task.py#L31"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.Quadratic.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="skglm.penalties.SCAD.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/6ea09b2/skglm/penalties/separable.py#L250"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.penalties.SCAD.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#skglm.datafits.Quadratic.__init__" title="skglm.datafits.Quadratic.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#skglm.penalties.SCAD.__init__" title="skglm.penalties.SCAD.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(alpha, gamma)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">full_grad_sparse</span></code>(X_data, X_indptr, ...)</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">generalized_support</span></code>(w)</p></td>
+<td><p>Return a mask with non-zero coefficients.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_spec</span></code>()</p></td>
 <td><p>Specify the numba types of the class attributes.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient_scalar</span></code>(X, y, w, Xw, j)</p></td>
-<td><p>Gradient with respect to j-th coordinate of w.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient_scalar_sparse</span></code>(X_data, X_indptr, ...)</p></td>
-<td><p>Gradient with respect to j-th coordinate of w when X is sparse.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize</span></code>(X, y)</p></td>
-<td><p>Pre-computations before fitting on X and y.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_sparse</span></code>(X_data, X_indptr, X_indices, y)</p></td>
-<td><p>Pre-computations before fitting on X and y when X is a sparse matrix.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">intercept_update_step</span></code>(y, Xw)</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_penalized</span></code>(n_features)</p></td>
+<td><p>Return a binary mask with the penalized features.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
 <td><p>Get the parameters to initialize an instance of the class.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(y, w, Xw)</p></td>
-<td><p>Value of datafit at vector w.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">prox_1d</span></code>(value, stepsize, j)</p></td>
+<td><p>Compute the proximal operator of SCAD penalty.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">subdiff_distance</span></code>(w, grad, ws)</p></td>
+<td><p>Compute distance of negative gradient to the subdifferential at w.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(w)</p></td>
+<td><p>Compute the value of the SCAD penalty at w.</p></td>
 </tr>
 </tbody>
 </table>

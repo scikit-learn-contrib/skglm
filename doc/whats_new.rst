@@ -1,5 +1,3 @@
-.. include:: links.inc
-
 .. _whats_new:
 
 What's new

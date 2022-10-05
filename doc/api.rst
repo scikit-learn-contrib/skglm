@@ -41,6 +41,8 @@ Penalties
    MCPenalty
    WeightedL1
    WeightedGroupL2
+   SCAD
+   BlockSCAD
 
 
 Datafits

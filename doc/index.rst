@@ -49,11 +49,10 @@ To check if everything worked fine, you can do::
 and it should not give any error message.
 
 
-API
----
+Release history
+---------------
 
 .. toctree::
     :maxdepth: 1
 
-    api.rst
     whats_new.rst

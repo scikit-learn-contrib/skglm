@@ -12,7 +12,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-from skglm import __version__ as version
+import os
 import sys
 import warnings
 # import os
@@ -20,6 +20,11 @@ import sphinx_gallery  # noqa
 import sphinx_bootstrap_theme
 from numpydoc import numpydoc, docscrape  # noqa
 from doc.github_link import make_linkcode_resolve
+
+from skglm import __version__ as version
+
+curdir = os.path.dirname(__file__)
+sys.path.append(os.path.abspath(os.path.join(curdir, 'sphinxext')))
 
 
 # Mathurin: disable agg warnings in doc
@@ -50,8 +55,10 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.mathjax',
     'sphinx_gallery.gen_gallery',
+    'sphinx.ext.autosectionlabel',
     'numpydoc',
-    "sphinx.ext.linkcode",
+    'sphinx.ext.linkcode',
+    'gh_substitutions',  # custom ext, see ./sphinxext/gh_substitutions.py
 ]
 
 # generate autosummary even if no references

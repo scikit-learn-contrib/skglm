@@ -1,0 +1,18 @@
+.. _changes_0_2:
+
+Version 0.2 (in progress)
+------------------------
+
+- Accelerated block coordinate descent solver :ref:`GroupBCD <skglm.solvers.GroupBCD>` with working sets for problems with group penalties (PR :gh:`29`, :gh:`28`, and :gh:`26`)
+
+- Proximal Newton solver :ref:`ProxNewton <skglm.solvers.ProxNewton>` with working sets for problems with non-quadratic datafits (PR :gh:`51`)
+
+- :ref:`Huber <skglm.datafits.Huber>` datafit (PR :gh:`14`)
+
+- Added :ref:`SCAD <skglm.penalties.SCAD>` and :ref:`BlockSCAD <skglm.penalties.BlockSCAD>` penalties (PR :gh:`12`)
+
+- Fitting intercept for :ref:`Quadratic <skglm.datafits.Quadratic>`, :ref:`Logistic <skglm.datafits.Logistic>` and :ref:`Huber <skglm.datafits.Huber>` datafits (PR :gh:`55`)
+
+- Added :ref:`GramCD <skglm.solvers.GramCD>`, a Gram-based coordinate descent solver for problems with ``n_features`` :math:`\ll` ``n_samples`` (PR :gh:`59`)
+
+- Transform solvers from functions to classes (PR :gh:`63`)

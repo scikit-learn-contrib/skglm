@@ -8,7 +8,6 @@ from skglm.solvers.prox_newton import ProxNewton
 
 from sklearn.utils.validation import check_is_fitted
 from sklearn.utils import check_array, check_consistent_length
-from sklearn.linear_model import MultiTaskLasso as MultiTaskLasso_sklearn
 from sklearn.linear_model._base import (
     LinearModel, RegressorMixin,
     LinearClassifierMixin, SparseCoefMixin, BaseEstimator
@@ -1126,8 +1125,7 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
     # TODO add predict_proba for LinearSVC
 
 
-# TODO we should no longer inherit from sklearn
-class MultiTaskLasso(MultiTaskLasso_sklearn):
+class MultiTaskLasso(LinearModel, RegressorMixin):
     r"""MultiTaskLasso estimator.
 
     The optimization objective for MultiTaskLasso is::
@@ -1138,6 +1136,9 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
     ----------
     alpha : float, optional
         Regularization strength (constant that multiplies the L21 penalty).
+
+    copy_X : bool, optional (default=True)
+        If True, X will be copied; else, it may be overwritten.
 
     max_iter : int, optional
         The maximum number of iterations (subproblem definitions).
@@ -1179,12 +1180,14 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
         Number of subproblems solved by Celer to reach the specified tolerance.
     """
 
-    def __init__(self, alpha=1., max_iter=50, max_epochs=50_000, p0=10,
+    def __init__(self, alpha=1., copy_X=True, max_iter=50, max_epochs=50_000, p0=10,
                  verbose=0, tol=1e-4, fit_intercept=True, warm_start=False,
                  ws_strategy="subdiff"):
-        super().__init__(
-            alpha=alpha, tol=tol,
-            fit_intercept=fit_intercept, warm_start=warm_start)
+        self.tol = tol
+        self.alpha = alpha
+        self.copy_X = copy_X
+        self.warm_start = warm_start
+        self.fit_intercept = fit_intercept
         self.max_iter = max_iter
         self.p0 = p0
         self.ws_strategy = ws_strategy

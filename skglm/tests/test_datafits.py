@@ -81,7 +81,7 @@ def test_poisson():
         method="l1", size_trim_tol=tol, alpha=alpha * n_samples, trim_mode="size")
     w_true = res.params
 
-    assert_allclose(w, w_true, rtol=1e-4) 
+    assert_allclose(w, w_true, rtol=1e-4)
 
 
 if __name__ == '__main__':

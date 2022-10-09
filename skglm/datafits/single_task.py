@@ -363,7 +363,7 @@ class Huber(BaseDatafit):
 
 
 class Poisson(BaseDatafit):
-    """Poisson datafit.
+    r"""Poisson datafit.
 
     The datafit reads::
 
@@ -409,8 +409,8 @@ class Poisson(BaseDatafit):
         for j in range(n_features):
             grad[j] = 0.
             for i in range(X_indptr[j], X_indptr[j + 1]):
-                grad[j] += X_data[i] * (np.exp(Xw[X_indices[i]] 
-                    - y[X_indices[i]])) / len(y)
+                grad[j] += X_data[i] * (
+                    np.exp(Xw[X_indices[i]] - y[X_indices[i]])) / len(y)
         return grad
 
     def gradient_scalar_sparse(self, X_data, X_indptr, X_indices, y, Xw, j):

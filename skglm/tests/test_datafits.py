@@ -3,12 +3,13 @@ import pytest
 
 from sklearn.linear_model import HuberRegressor
 from numpy.testing import assert_allclose, assert_array_less
+from statsmodels.discrete.discrete_model import Poisson as PoissonRegressor
 
-from skglm.datafits import Huber, Logistic
-from skglm.penalties import WeightedL1
-from skglm.solvers import AndersonCD
+from skglm.datafits import Huber, Logistic, Poisson
+from skglm.penalties import L1, WeightedL1
+from skglm.solvers import AndersonCD, ProxNewton
 from skglm import GeneralizedLinearEstimator
-from skglm.utils import make_correlated_data
+from skglm.utils import compiled_clone, make_correlated_data
 
 
 @pytest.mark.parametrize('fit_intercept', [False, True])
@@ -54,6 +55,33 @@ def test_log_datafit():
     np.testing.assert_almost_equal(
         exp_minus_yXw / (1 + exp_minus_yXw) ** 2 / len(y), hess)
     np.testing.assert_almost_equal(-grad * (y + n_samples * grad), hess)
+
+
+def test_poisson():
+    n_samples, n_features = 10, 20
+    tol = 1e-12
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
+    y = np.abs(y)
+
+    alpha_max = np.linalg.norm(X.T @ (np.ones(n_samples) - y), ord=np.inf) / n_samples
+    alpha = alpha_max * 0.1
+
+    df = compiled_clone(Poisson())
+    pen = compiled_clone(L1(alpha))
+
+    df.initialize(X, y)
+
+    solver = ProxNewton(tol=tol, fit_intercept=False)
+    w = np.zeros(n_features)
+    Xw = X @ w
+    solver.solve(X, y, df, pen, w, Xw)
+
+    poisson_regressor = PoissonRegressor(y, X, offset=None)
+    res = poisson_regressor.fit_regularized(
+        method="l1", size_trim_tol=tol, alpha=alpha * n_samples, trim_mode="size")
+    w_true = res.params
+
+    assert_allclose(w, w_true, rtol=1e-4) 
 
 
 if __name__ == '__main__':

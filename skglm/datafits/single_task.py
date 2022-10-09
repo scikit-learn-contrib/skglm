@@ -375,9 +375,8 @@ class Poisson(BaseDatafit):
     def initialize(self, X, y):
         pass
 
-    def initialize_sparse(
-        self, X_data, X_indptr, X_indices, y):
-        pass 
+    def initialize_sparse(self, X_data, X_indptr, X_indices, y):
+        pass
 
     def raw_grad(self, y, Xw):
         """Compute gradient of datafit w.r.t ``Xw``."""
@@ -393,14 +392,13 @@ class Poisson(BaseDatafit):
     def gradient_scalar(self, X, y, w, Xw, j):
         return (X[:, j] @ (np.exp(Xw) - y)) / len(y)
 
-    def full_grad_sparse(
-        self, X_data, X_indptr, X_indices, y, Xw):
+    def full_grad_sparse(self, X_data, X_indptr, X_indices, y, Xw):
         n_features = X_indptr.shape[0] - 1
         grad = np.zeros(n_features, dtype=X_data.dtype)
         for j in range(n_features):
             grad[j] = 0.
             for i in range(X_indptr[j], X_indptr[j + 1]):
-                grad[j] += X_data[i] * (np.exp(Xw[X_indices[i]]
+                grad[j] += X_data[i] * (np.exp(Xw[X_indices[i]] 
                     - y[X_indices[i]])) / len(y)
         return grad
 

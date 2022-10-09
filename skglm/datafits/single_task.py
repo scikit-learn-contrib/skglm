@@ -377,11 +377,15 @@ class Poisson(BaseDatafit):
 
     def initialize_sparse(
         self, X_data, X_indptr, X_indices, y):
-        n_features = len(X_indptr) - 1
-        self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
-        for j in range(n_features):
-            Xj = X_data[X_indptr[j]:X_indptr[j+1]]
-            self.lipschitz[j] = (Xj ** 2).sum() / (len(y) * 4)
+        pass 
+
+    def raw_grad(self, y, Xw):
+        """Compute gradient of datafit w.r.t ``Xw``."""
+        return (np.exp(Xw) - y) / len(y)
+
+    def raw_hessian(self, y, Xw):
+        """Compute Hessian of datafit w.r.t ``Xw``."""
+        return np.exp(Xw) / len(y)
 
     def value(self, y, w, Xw):
         return np.sum(np.exp(Xw) - y * Xw) / len(y)

@@ -369,11 +369,12 @@ class Poisson(BaseDatafit):
 
     (1 / n_samples) * \sum_i (exp(Xw_i) - y_i * Xw_i)
 
-    Note
+    Note:
     ----
     The class is jit compiled at fit time using Numba compiler.
     This allows for faster computations.
     """
+
     def __init__(self):
         pass
 

@@ -2,7 +2,7 @@
 import numpy as np
 from numpy.linalg import norm
 import matplotlib.pyplot as plt
-from benchopt.datasets.simulated import make_correlated_data
+from skglm.utils import make_correlated_data
 from skglm.experimental.sqrt_lasso import SqrtLasso, chambolle_pock_sqrt
 
 X, y, _ = make_correlated_data(n_samples=200, n_features=100, random_state=24)

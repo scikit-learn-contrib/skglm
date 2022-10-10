@@ -5,7 +5,7 @@ from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model._base import LinearModel, RegressorMixin
 
 from skglm.penalties import L1
-from skglm.utils import compiled_clone, ST_vec
+from skglm.utils import compiled_clone, ST_vec, proj_L2ball
 from skglm.datafits.base import BaseDatafit
 from skglm.solvers.prox_newton import ProxNewton
 
@@ -199,14 +199,6 @@ class SqrtLasso(LinearModel, RegressorMixin):
         return alphas, coefs
 
 
-def proj_l2ball(u):
-    """Project input on L2 unit ball."""
-    norm_u = norm(u)
-    if norm_u <= 1:
-        return u
-    return u / norm_u
-
-
 def _chambolle_pock_sqrt(X, y, alpha, max_iter=1000, obj_freq=10):
     """Apply Chambolle-Pock algorithm to solve square-root Lasso.
 
@@ -229,7 +221,7 @@ def _chambolle_pock_sqrt(X, y, alpha, max_iter=1000, obj_freq=10):
     for t in range(max_iter):
         w = ST_vec(w - tau * X.T @ (2 * z - z_old), alpha * np.sqrt(n_samples) * tau)
         z_old = z.copy()
-        z[:] = proj_l2ball(z + sigma * (X @ w - y))
+        z[:] = proj_L2ball(z + sigma * (X @ w - y))
 
         if t % obj_freq == 0:
             objs.append(norm(X @ w - y) / np.sqrt(n_samples) + alpha * norm(w, ord=1))

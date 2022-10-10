@@ -60,7 +60,7 @@ def test_poisson():
     try:
         from statsmodels.discrete.discrete_model import Poisson as PoissonRegressor  # noqa
     except ImportError:
-        pytest.xfail()
+        pytest.xfail("`statsmodels` not found. `Poisson` datafit can't be tested.")
 
     n_samples, n_features = 10, 20
     tol = 1e-12

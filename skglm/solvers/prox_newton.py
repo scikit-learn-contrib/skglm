@@ -90,7 +90,7 @@ class ProxNewton(BaseSolver):
 
             # optimality of intercept
             if fit_intercept:
-                intercept_opt = np.absolute(np.sum(datafit.raw_grad(y, Xw)))
+                intercept_opt = np.abs(np.sum(datafit.raw_grad(y, Xw)))
             else:
                 intercept_opt = 0.
 

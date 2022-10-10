@@ -1,0 +1,201 @@
+\documentclass{article}
+\usepackage[round]{natbib}
+\usepackage[margin=1.5cm]{geometry}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+\usepackage[inline, shortlabels]{enumitem}
+
+\usepackage{makecell}
+\usepackage{colortbl}
+
+\definecolor{linkcolor}{RGB}{83,83,182}
+\definecolor{citecolor}{RGB}{128,0,128}
+\hypersetup{
+    colorlinks=true,
+    citecolor=citecolor,
+    linkcolor=linkcolor,
+    urlcolor=linkcolor
+}
+
+\usepackage{graphicx}
+\graphicspath{{../icml2022/}}
+\usepackage{subfigure}
+\usepackage{amsfonts}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{siunitx}
+% Attempt to make hyperref and algorithmic work together better:
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+
+%%%%%%%%%%%%%%%% ALGORITHMS  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage[titlenumbered,linesnumbered,ruled,noend,algo2e]{algorithm2e}
+\newcommand\mycommfont[1]{\footnotesize\ttfamily\textcolor{blue}{#1}}
+\SetCommentSty{mycommfont}
+\SetEndCharOfAlgoLine{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\usepackage[accepted]{icml2020}
+% \usepackage{caption,subcaption}
+\usepackage{enumitem}
+\usepackage{stfloats}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%  COMMENTS %%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\newcommand{\mathurin}[1]{\textcolor{purple}{#1}}
+\newcommand{\mm}[1]{\todo[color=purple!20]{{\bf Mathurin:} #1}}
+\newcommand{\qbe}[1]{\todo[color=blue!20]{{\bf qbe:} #1}}
+\newcommand{\quentin}[1]{\textcolor{blue}{#1}}
+\newcommand{\klopfe}[1]{\todo[color=orange]{{\bf Klopfe:} #1}}
+\newcommand{\qk}[1]{\textcolor{orange}{#1}}
+\newcommand{\pierreantoine}[1]{\textcolor{brown}{#1}}
+\newcommand{\pab}[1]{\todo[color=brown!20]{{\bf Pierre-Antoine:} #1}}
+% for checkmark
+\usepackage{pifont}% http://ctan.org/pkg/pifont
+\newcommand{\cmark}{\textcolor{olive}{\ding{51}}}%
+\newcommand{\xmark}{\textcolor{red}{\ding{55}}}%
+
+\newcommand{\cP}{\mathcal{P}}
+\newcommand{\cS}{\mathcal{S}}
+\newcommand{\cJ}{\mathcal{J}}
+\newcommand{\cC}{\mathcal{C}}
+\newcommand{\bigo}{\mathcal{O}}
+\newcommand{\bbR}{\mathbb{R}}
+\newcommand{\bbN}{\mathbb{N}}
+\newcommand{\normin}[1]{ \lVert {#1} \rVert}
+\newcommand{\norm}[1]{ \left\lVert {#1} \right\rVert}
+\newcommand{\abs}[1]{ \lvert {#1} \rvert}
+\newcommand{\eqdef}{\triangleq}
+\newcommand{\prox}{\mathrm{prox}}
+\newcommand{\pluseq}{\mathrel{+}=}
+\newcommand{\minuseq}{\mathrel{-}=}
+\newcommand{\timeseq}{\mathrel{*}=}
+\newcommand{\diveq}{\mathrel{/}=}
+\newcommand{\ones}[1]{\boldsymbol{1}_#1}
+\DeclareMathOperator{\dist}{dist}
+\DeclareMathOperator{\sign}{sign}
+\DeclareMathOperator{\gsupp}{gsupp}
+\DeclareMathOperator{\ri}{ri}
+\DeclareMathOperator{\Id}{Id}
+\def\diag{\mathop{\rm diag}}
+
+
+\DeclareMathOperator{\Span}{Span}
+
+\usepackage[nameinlink]{cleveref}
+\DeclareMathOperator*{\argmin}{argmin\,}
+\DeclareMathOperator*{\argmax}{argmax\,}
+\DeclareMathOperator{\MCP}{MCP}
+\usepackage{aliascnt}
+\usepackage{thmtools,thm-restate}
+\newtheorem{theorem}{Theorem}
+\newtheorem{assumption}[theorem]{Assumption}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{example}{Example}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\ie}{{\em i.e.,~}}
+
+\newaliascnt{problem}{equation}
+\aliascntresetthe{problem}
+\creflabelformat{problem}{#2\textup{(#1)}#3}
+\makeatletter
+\def\problem{$$\refstepcounter{problem}}
+\def\endproblem{\eqno \hbox{\@eqnnum}$$\@ignoretrue}
+\makeatother
+\crefname{model}{Model}{Models}
+\Crefname{problem}{Problem}{Problems}
+\crefname{problem}{Pb.}{Pbs.}
+\crefname{algorithm}{Algorithm}{Algorithms}
+\crefname{figure}{Figure}{Figures}
+\crefname{proposition}{Proposition}{Propositions}
+\crefname{appendix}{Appendix}{Appendix}
+\crefname{assumption}{Assumption}{Assumptions}
+
+
+
+
+\usepackage{enumitem}
+\newlist{lemmaenum}{enumerate}{1} % also creates a counter called 'lemmaenum'
+\setlist[lemmaenum]{label=\emph{\roman*)}, ref=\thetheorem~\emph{\roman*)}}
+\crefalias{lemmaenumi}{lemma}
+
+\newlist{thmenum}{enumerate}{1} % also creates a counter called 'lemmaenum'
+\setlist[thmenum]{label=\emph{\roman*)}, ref=\thetheorem~\emph{\roman*)}}
+\crefalias{thmenumi}{theorem}
+
+
+
+\begin{document}
+\title{Computation of the intercept in \texttt{skglm}}
+\author{Quentin Klopfenstein}
+%
+\maketitle
+
+This short document intends to give insights and guidance for the computation of the intercept coefficient within the \texttt{skglm} solvers.
+
+Let the desgin matrix be $X\in \mathbb{R}^{n\times p}$ where $n$ is the number of samples and $p$ the number of features. 
+We denote $\beta\in\bbR^p$ the coefficients of the Generalized Linear Model and $\beta_0$ its intercept. 
+In the way \texttt{skglm} is designed, computing the intercept coefficients does not only imply adding an extra column of ones in the design matrix as the intercept $\beta_0$ is unpenalized, meaning that only the datafitting term $F$ depends on the intercept. The given optimization problem can then be written as:
+
+\begin{align}
+    \beta^\star, \beta_0^\star
+    \in
+    \argmin_{\beta \in \bbR^p, \beta_0 \in \bbR}
+    \Phi(\beta)
+    \eqdef
+    \underbrace{F(X\beta + \beta_0\ones{n})}_{\eqdef f(\beta)}
+    + \sum_{j=1}^p g_j(\beta_j)
+    \enspace ,
+\end{align}
+where $\ones{n}$ is the vector of size $n$ composed with only ones.
+
+The solvers of \texttt{skglm} update the intercept after each epoch of coordinate descent by doing a gradient descent update.
+\begin{align}\label{eq:cd_update_intercept}
+    \beta^{(k+1)}_0 = \beta^{(k)}_0 - \frac{1}{L_0}\nabla_{\beta_0}F(X\beta^{(k)} + \beta_0^{(k)}\ones{n}) 
+    \enspace ,
+\end{align}
+where $L_0$ is the lispchitz constant associated to the intercept.
+
+The convergence criterion computed for the gradient is then only the absolute value of the gradient with respect to $\beta_0$ since the intercept optimality condition, for a solution $\beta^\star$, $\beta_0^\star$ is just:
+\begin{align}
+    \nabla_{\beta_0}F(X\beta^\star + \beta_0^\star\ones{n}) = 0
+    \enspace .
+\end{align}
+Moreover, we have that 
+\begin{align}\label{eq:grad_intercept}
+    \nabla_{\beta_0}F(X\beta^\star + \beta_0^\star\ones{n}) = \ones{n}^\top \nabla F(X\beta^\star + \beta_0^\star\ones{n})
+    \enspace .
+\end{align}
+
+We will now derive the update used in \Cref{eq:cd_update_intercept} for three different datafitting functions. 
+
+\section{The quadratic datafit}
+We define 
+\begin{align}
+    F(X\beta + \beta_0\ones{n})) = \frac{1}{2n}\norm{y - X\beta + \beta_0\ones{n}}^2_2
+    \enspace .
+\end{align}
+In this case $\nabla F(z) = \frac{1}{n}(z - y)$ hence \Cref{eq:grad_intercept} is equal to:
+\begin{align}
+    \nabla_{\beta_0}F(X\beta + \beta_0\ones{n}) = \frac{1}{n}\sum_{i=1}^n(X\beta + \beta_0\ones{n} - y)
+    \enspace .
+\end{align}
+
+Finally, the Lispchitz constant $L_0 = \frac{1}{n}\sum_{i=1}^n 1^2 = 1$.
+
+The quantity $\frac{1}{L_0}\nabla_{\beta_0}F(X\beta^{(k)} + \beta_0^{(k)}\ones{n})$ is called \texttt{intercept\_update\_step} in the class \texttt{Quadratic} of \texttt{skglm}.
+\end{document}

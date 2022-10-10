@@ -1,9 +1,9 @@
+import pytest
 import numpy as np
 from numpy.linalg import norm
-from statsmodels.regression import linear_model
 
 from skglm.utils import make_correlated_data
-from skglm.experimental.sqrt_lasso import SqrtLasso
+from skglm.experimental.sqrt_lasso import SqrtLasso, _chambolle_pock_sqrt
 
 
 def test_alpha_max():
@@ -18,23 +18,11 @@ def test_alpha_max():
     np.testing.assert_equal(sqrt_lasso.coef_.flatten(), 0)
 
 
-def test_path():
-    n_samples, n_features = 50, 10
-    X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
-
-    alpha_max = norm(X.T @ y, ord=np.inf) / (np.sqrt(n_samples) * norm(y))
-    n_alphas, eps = 10, 1e-3
-    alphas = alpha_max * np.geomspace(1, eps, n_alphas)
-
-    sqrt_lasso = SqrtLasso(tol=1e-9)
-    coefs_skglm = sqrt_lasso.path(X, y, alphas)[1]
-    coefs_skglm_2 = sqrt_lasso.path(X, y)[1]
-
-    np.testing.assert_almost_equal(coefs_skglm, coefs_skglm_2)
-    pass
-
-
 def test_vs_statsmodels():
+    try:
+        from statsmodels.regression import linear_model  # noqa
+    except ImportError:
+        pytest.xfail("This test requires statsmodels to run.")
     n_samples, n_features = 50, 10
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
 
@@ -58,6 +46,16 @@ def test_vs_statsmodels():
     np.testing.assert_almost_equal(coefs_skglm, coefs_statsmodels, decimal=4)
 
 
+def test_prox_newton_cp():
+    n_samples, n_features = 50, 10
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
+
+    alpha_max = norm(X.T @ y, ord=np.inf) / (np.sqrt(n_samples) * norm(y))
+    alpha = alpha_max / 10
+    clf = SqrtLasso(alpha=alpha, tol=1e-12).fit(X, y)
+    w, _, _ = _chambolle_pock_sqrt(X, y, alpha, max_iter=1000)
+    np.testing.assert_allclose(clf.coef_, w)
+
+
 if __name__ == '__main__':
-    test_vs_statsmodels()
     pass

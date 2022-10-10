@@ -196,3 +196,43 @@ class SqrtLasso(LinearModel, RegressorMixin):
                 break
 
         return alphas, coefs
+
+
+def ST_vec(u, level):
+    return np.sign(u) * np.maximum(np.abs(u) - level, 0)
+
+
+def proj_l2ball(u):
+    norm_u = norm(u)
+    if norm_u <= 1:
+        return u
+    return u / norm_u
+
+
+def chambolle_pock_sqrt(X, y, alpha, max_iter=1000, obj_freq=10):
+    """Chambolle-Pock algorithm to solve SqrtLasso problem:
+        min_w ||Xw - y||_2/sqrt(n_samples) + alpha * ||w||_1
+    """
+    n_samples, n_features = X.shape
+    # dual variable is z, primal is w
+    z_old = np.zeros(n_samples)
+    z = z_old.copy()
+    w = np.zeros(n_features)
+
+    objs = []
+
+    L = norm(X, ord=2)
+    # take primal and dual stepsizes equal
+    tau = 0.99 / L
+    sigma = 0.99 / L
+
+    for t in range(max_iter):
+        w = ST_vec(w - tau * X.T @ (2 * z - z_old), alpha * np.sqrt(n_samples) * tau)
+        z_old = z.copy()
+        z[:] = proj_l2ball(z + sigma * (X @ w - y))
+
+        if t % obj_freq == 0:
+            objs.append(norm(X @ w - y) / np.sqrt(n_samples) + alpha * norm(w, ord=1))
+            print(f"Iter {t}, obj {objs[-1]: .10f}")
+
+    return w, z, objs

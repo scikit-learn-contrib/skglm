@@ -3,7 +3,6 @@ import pytest
 
 from sklearn.linear_model import HuberRegressor
 from numpy.testing import assert_allclose, assert_array_less
-from statsmodels.discrete.discrete_model import Poisson as PoissonRegressor
 
 from skglm.datafits import Huber, Logistic, Poisson
 from skglm.penalties import L1, WeightedL1
@@ -58,6 +57,11 @@ def test_log_datafit():
 
 
 def test_poisson():
+    try:
+        from statsmodels.discrete.discrete_model import Poisson as PoissonRegressor  # noqa
+    except ImportError:
+        pytest.xfail()
+
     n_samples, n_features = 10, 20
     tol = 1e-12
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)

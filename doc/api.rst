@@ -41,6 +41,8 @@ Penalties
    MCPenalty
    WeightedL1
    WeightedGroupL2
+   SCAD
+   BlockSCAD
 
 
 Datafits
@@ -58,4 +60,17 @@ Datafits
    QuadraticSVC
 
 
+Solvers
+=======
 
+.. currentmodule:: skglm.solvers
+
+.. autosummary::
+   :toctree: generated/
+
+   AndersonCD
+   GramCD
+   GroupBCD
+   MultiTaskBCD
+   ProxNewton
+   

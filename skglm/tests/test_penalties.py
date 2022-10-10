@@ -9,6 +9,7 @@ from skglm.penalties import (
     L1, L1_plus_L2, WeightedL1, MCPenalty, SCAD, IndicatorBox, L0_5, L2_3,
     L2_1, L2_05, BlockMCPenalty, BlockSCAD)
 from skglm import GeneralizedLinearEstimator
+from skglm.solvers import AndersonCD, MultiTaskBCD
 from skglm.utils import make_correlated_data
 
 
@@ -16,7 +17,7 @@ n_samples = 20
 n_features = 10
 n_tasks = 10
 X, Y, _ = make_correlated_data(
-    n_samples=n_samples, n_features=n_features, n_tasks=n_tasks, density=0.1,
+    n_samples=n_samples, n_features=n_features, n_tasks=n_tasks, density=0.5,
     random_state=0)
 y = Y[:, 0]
 
@@ -38,26 +39,34 @@ block_penalties = [
     L2_1(alpha=alpha), L2_05(alpha=alpha),
     BlockMCPenalty(alpha=alpha, gamma=4),
     BlockSCAD(alpha=alpha, gamma=4)
-    ]
+]
 
 
 @pytest.mark.parametrize('penalty', penalties)
 def test_subdiff_diff(penalty):
+    tol = 1e-10
+    # tol=1e-14 is too low when coefs are of order 1. square roots are computed in
+    # some penalties and precision is lost
     est = GeneralizedLinearEstimator(
         datafit=Quadratic(),
         penalty=penalty,
-        tol=1e-14,
+        solver=AndersonCD(tol=tol)
     ).fit(X, y)
     # assert the stopping criterion is satisfied
-    assert_array_less(est.stop_crit_, est.tol)
+    assert_array_less(est.stop_crit_, tol)
 
 
 @pytest.mark.parametrize('block_penalty', block_penalties)
 def test_subdiff_diff_block(block_penalty):
+    tol = 1e-10  # see test_subdiff_dist
     est = GeneralizedLinearEstimator(
         datafit=QuadraticMultiTask(),
         penalty=block_penalty,
-        tol=1e-14,
+        solver=MultiTaskBCD(tol=tol)
     ).fit(X, Y)
     # assert the stopping criterion is satisfied
-    assert_array_less(est.stop_crit_, est.tol)
+    assert_array_less(est.stop_crit_, est.solver.tol)
+
+
+if __name__ == "__main__":
+    pass

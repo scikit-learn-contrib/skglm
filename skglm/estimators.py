@@ -4,31 +4,28 @@ import warnings
 import numpy as np
 from scipy.sparse import issparse
 from scipy.special import expit
+from skglm.solvers.prox_newton import ProxNewton
 
 from sklearn.utils.validation import check_is_fitted
 from sklearn.utils import check_array, check_consistent_length
 from sklearn.linear_model import MultiTaskLasso as MultiTaskLasso_sklearn
 from sklearn.linear_model._base import (
-    _preprocess_data, LinearModel, RegressorMixin,
+    LinearModel, RegressorMixin,
     LinearClassifierMixin, SparseCoefMixin, BaseEstimator
 )
 from sklearn.utils.extmath import softmax
 from sklearn.preprocessing import LabelEncoder
 from sklearn.multiclass import OneVsRestClassifier, check_classification_targets
 
-
 from skglm.utils import compiled_clone
-from skglm.solvers import cd_solver_path, multitask_bcd_solver_path
-from skglm.solvers.cd_solver import cd_solver
-from skglm.solvers.multitask_bcd_solver import multitask_bcd_solver
+from skglm.solvers import AndersonCD, MultiTaskBCD
 from skglm.datafits import Quadratic, Logistic, QuadraticSVC, QuadraticMultiTask
 from skglm.penalties import L1, WeightedL1, L1_plus_L2, MCPenalty, IndicatorBox, L2_1
 
 
-def _glm_fit(X, y, model, datafit, penalty):
-    is_classif = False
-    if isinstance(datafit, Logistic) or isinstance(datafit, QuadraticSVC):
-        is_classif = True
+def _glm_fit(X, y, model, datafit, penalty, solver):
+    is_classif = isinstance(datafit, (Logistic, QuadraticSVC))
+    fit_intercept = solver.fit_intercept
 
     if is_classif:
         check_classification_targets(y)
@@ -47,7 +44,7 @@ def _glm_fit(X, y, model, datafit, penalty):
     else:
         check_X_params = dict(
             dtype=[np.float64, np.float32], order='F',
-            accept_sparse='csc', copy=model.fit_intercept)
+            accept_sparse='csc', copy=fit_intercept)
         check_y_params = dict(ensure_2d=False, order='F')
 
         X, y = model._validate_data(
@@ -70,7 +67,8 @@ def _glm_fit(X, y, model, datafit, penalty):
         raise ValueError("X and y have inconsistent dimensions (%d != %d)"
                          % (n_samples, y.shape[0]))
 
-    if not model.warm_start or not hasattr(model, "coef_"):
+    # if not model.warm_start or not hasattr(model, "coef_"):
+    if not solver.warm_start or not hasattr(model, "coef_"):
         model.coef_ = None
 
     if is_classif and n_classes_ > 2:
@@ -98,6 +96,8 @@ def _glm_fit(X, y, model, datafit, penalty):
     else:
         X_ = X
 
+    n_samples, n_features = X_.shape
+
     penalty_jit = compiled_clone(penalty)
     datafit_jit = compiled_clone(datafit, to_float32=X.dtype == np.float32)
     if issparse(X):
@@ -105,51 +105,45 @@ def _glm_fit(X, y, model, datafit, penalty):
     else:
         datafit_jit.initialize(X_, y)
 
-    if model.warm_start and hasattr(model, 'coef_') and model.coef_ is not None:
+    # if model.warm_start and hasattr(model, 'coef_') and model.coef_ is not None:
+    if solver.warm_start and hasattr(model, 'coef_') and model.coef_ is not None:
         if isinstance(datafit, QuadraticSVC):
             w = model.dual_coef_[0, :].copy()
         elif is_classif:
             w = model.coef_[0, :].copy()
         else:
             w = model.coef_.copy()
-        Xw = X_ @ w
+        if fit_intercept:
+            w = np.hstack([w, model.intercept_])
+        Xw = X_ @ w[:w.shape[0] - fit_intercept] + fit_intercept * w[-1]
     else:
         # TODO this should be solver.get_init() do delegate the work
         if y.ndim == 1:
-            w = np.zeros(X_.shape[1], dtype=X_.dtype)
-            Xw = np.zeros(X_.shape[0], dtype=X_.dtype)
+            w = np.zeros(n_features + fit_intercept, dtype=X_.dtype)
+            Xw = np.zeros(n_samples, dtype=X_.dtype)
         else:  # multitask
-            w = np.zeros((X_.shape[1], y.shape[1]), dtype=X_.dtype)
+            w = np.zeros((n_features + fit_intercept, y.shape[1]), dtype=X_.dtype)
             Xw = np.zeros(y.shape, dtype=X_.dtype)
 
     # check consistency of weights for WeightedL1
     if isinstance(penalty, WeightedL1):
-        if len(penalty.weights) != X.shape[1]:
+        if len(penalty.weights) != n_features:
             raise ValueError(
-                "The size of the WeightedL1 penalty weights should be n_features, \
-                expected %i, got %i" % (X_.shape[1], len(penalty.weights)))
+                "The size of the WeightedL1 penalty weights should be n_features, "
+                "expected %i, got %i." % (X_.shape[1], len(penalty.weights)))
 
-    if is_classif:
-        solver = cd_solver  # TODO to be be replaced by an instance of BaseSolver
+    coefs, p_obj, kkt = solver.solve(X_, y, datafit_jit, penalty_jit, w, Xw)
+    model.coef_, model.stop_crit_ = coefs[:n_features], kkt
+    if y.ndim == 1:
+        model.intercept_ = coefs[-1] if fit_intercept else 0.
     else:
-        solver = cd_solver if y.ndim == 1 else multitask_bcd_solver
-    # TODO this must be replaced by an instance of BaseSolver being passed
-    # so that arguments are attributes of the `solver` object and arguments
-    # do not need to match across solvers
-    # TODO QUESTIONS
-    # What about ws_strategy?
-    coefs, p_obj, kkt = solver(
-        X_, y, datafit_jit, penalty_jit, w, Xw, max_iter=model.max_iter,
-        max_epochs=model.max_epochs, p0=model.p0,
-        tol=model.tol,  # ws_strategy=model.ws_strategy,
-        verbose=model.verbose)
+        model.intercept_ = coefs[-1, :] if fit_intercept else np.zeros(
+            y.shape[1])
 
-    model.coef_, model.stop_crit_ = coefs, kkt
     model.n_iter_ = len(p_obj)
-    model.intercept_ = 0.
 
     if is_classif and n_classes_ <= 2:
-        model.coef_ = coefs[np.newaxis, :]
+        model.coef_ = coefs[np.newaxis, :n_features]
         if isinstance(datafit, QuadraticSVC):
             if is_sparse:
                 primal_coef = ((yXT).multiply(model.coef_[0, :])).T
@@ -177,34 +171,8 @@ class GeneralizedLinearEstimator(LinearModel):
         Penalty. If None, `penalty` is initialized as a `L1` penalty.
         `penalty` is replaced by a JIT-compiled instance when calling fit.
 
-    is_classif : bool, optional
-        Whether the task is classification or regression. Used for input target
-        validation.
-
-    max_iter : int, optional
-        The maximum number of iterations (subproblem definitions).
-
-    max_epochs : int
-        Maximum number of CD epochs on each subproblem.
-
-    p0 : int
-        First working set size.
-
-    tol : float, optional
-        Stopping criterion for the optimization.
-
-    fit_intercept : bool, optional (default=True)
-        Whether or not to fit an intercept.
-
-    warm_start : bool, optional (default=False)
-        When set to True, reuse the solution of the previous call to fit as
-        initialization, otherwise, just erase the previous solution.
-
-    ws_strategy : str
-        The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
-
-    verbose : bool or int
-        Amount of verbosity.
+    solver : instance of BaseSolver, optional
+        Solver. If None, `solver` is initialized as an `AndersonCD` solver.
 
     Attributes
     ----------
@@ -221,21 +189,11 @@ class GeneralizedLinearEstimator(LinearModel):
         Number of subproblems solved to reach the specified tolerance.
     """
 
-    def __init__(self, datafit=None, penalty=None, is_classif=False, max_iter=100,
-                 max_epochs=50_000, p0=10, tol=1e-4, fit_intercept=True,
-                 warm_start=False, ws_strategy="subdiff", verbose=0):
+    def __init__(self, datafit=None, penalty=None, solver=None):
         super(GeneralizedLinearEstimator, self).__init__()
-        self.is_classif = is_classif
-        self.tol = tol
-        self.max_iter = max_iter
-        self.fit_intercept = fit_intercept
-        self.warm_start = warm_start
-        self.verbose = verbose
-        self.max_epochs = max_epochs
-        self.p0 = p0
-        self.ws_strategy = ws_strategy
         self.penalty = penalty
         self.datafit = datafit
+        self.solver = solver
 
     def __repr__(self):
         """Get string representation of the estimator.
@@ -246,9 +204,9 @@ class GeneralizedLinearEstimator(LinearModel):
             String representation.
         """
         return (
-            'GeneralizedLinearEstimator(datafit=%s, penalty=%s, alpha=%s, classif=%s)'
+            'GeneralizedLinearEstimator(datafit=%s, penalty=%s, alpha=%s)'
             % (self.datafit.__class__.__name__, self.penalty.__class__.__name__,
-               self.penalty.alpha, self.is_classif))
+               self.penalty.alpha))
 
     def fit(self, X, y):
         """Fit estimator.
@@ -277,7 +235,9 @@ class GeneralizedLinearEstimator(LinearModel):
         """
         self.penalty = self.penalty if self.penalty else L1(1.)
         self.datafit = self.datafit if self.datafit else Quadratic()
-        return _glm_fit(X, y, self, self.datafit, self.penalty)
+        self.solver = self.solver if self.solver else AndersonCD()
+
+        return _glm_fit(X, y, self, self.datafit, self.penalty, self.solver)
 
     def predict(self, X):
         """Predict target values for samples in X.
@@ -292,7 +252,7 @@ class GeneralizedLinearEstimator(LinearModel):
         y_pred : array, shape (n_samples)
             Contain the target values for each sample.
         """
-        if self.is_classif:
+        if isinstance(self.datafit, (Logistic, QuadraticSVC)):
             scores = self._decision_function(X).ravel()
             if len(scores.shape) == 1:
                 indices = (scores > 0).astype(int)
@@ -385,19 +345,18 @@ class Lasso(LinearModel, RegressorMixin):
     MCPRegression : Sparser regularization than L1 norm.
     """
 
-    def __init__(self, alpha=1., max_iter=100, max_epochs=50_000, p0=10,
-                 verbose=0, tol=1e-4, fit_intercept=True,
-                 warm_start=False, ws_strategy="subdiff"):
+    def __init__(self, alpha=1., max_iter=50, max_epochs=50_000, p0=10, verbose=0,
+                 tol=1e-4, fit_intercept=True, warm_start=False, ws_strategy="subdiff"):
         super().__init__()
+        self.alpha = alpha
         self.tol = tol
         self.max_iter = max_iter
-        self.fit_intercept = fit_intercept
-        self.warm_start = warm_start
-        self.verbose = verbose
         self.max_epochs = max_epochs
         self.p0 = p0
         self.ws_strategy = ws_strategy
-        self.alpha = alpha
+        self.fit_intercept = fit_intercept
+        self.warm_start = warm_start
+        self.verbose = verbose
 
     def fit(self, X, y):
         """Fit the model according to the given training data.
@@ -415,7 +374,12 @@ class Lasso(LinearModel, RegressorMixin):
         self :
             Fitted estimator.
         """
-        return _glm_fit(X, y, self, Quadratic(), L1(self.alpha))
+        # TODO: Add Gram solver
+        solver = AndersonCD(
+            self.max_iter, self.max_epochs, self.p0, tol=self.tol,
+            ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
+            warm_start=self.warm_start, verbose=self.verbose)
+        return _glm_fit(X, y, self, Quadratic(), L1(self.alpha), solver)
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
         """Compute Lasso path.
@@ -456,13 +420,11 @@ class Lasso(LinearModel, RegressorMixin):
         """
         penalty = compiled_clone(L1(self.alpha))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
-
-        return cd_solver_path(
-            X, y, datafit, penalty, alphas=alphas,
-            coef_init=coef_init, max_iter=self.max_iter,
-            return_n_iter=return_n_iter, max_epochs=self.max_epochs,
-            p0=self.p0, tol=self.tol, verbose=self.verbose,
-            ws_strategy=self.ws_strategy)
+        solver = AndersonCD(
+            self.max_iter, self.max_epochs, self.p0, tol=self.tol,
+            ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
+            warm_start=self.warm_start, verbose=self.verbose)
+        return solver.path(X, y, datafit, penalty, alphas, coef_init, return_n_iter)
 
 
 class WeightedLasso(LinearModel, RegressorMixin):
@@ -530,20 +492,20 @@ class WeightedLasso(LinearModel, RegressorMixin):
     Supports weights equal to 0, i.e. unpenalized features.
     """
 
-    def __init__(self, alpha=1., weights=None, max_iter=100, max_epochs=50_000, p0=10,
+    def __init__(self, alpha=1., weights=None, max_iter=50, max_epochs=50_000, p0=10,
                  verbose=0, tol=1e-4, fit_intercept=True, warm_start=False,
                  ws_strategy="subdiff"):
         super().__init__()
+        self.alpha = alpha
+        self.weights = weights
         self.tol = tol
         self.max_iter = max_iter
-        self.fit_intercept = fit_intercept
-        self.warm_start = warm_start
-        self.verbose = verbose
         self.max_epochs = max_epochs
         self.p0 = p0
         self.ws_strategy = ws_strategy
-        self.alpha = alpha
-        self.weights = weights
+        self.fit_intercept = fit_intercept
+        self.warm_start = warm_start
+        self.verbose = verbose
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
         """Compute Weighted Lasso path.
@@ -587,15 +549,13 @@ class WeightedLasso(LinearModel, RegressorMixin):
             raise ValueError("The number of weights must match the number of \
                               features. Got %s, expected %s." % (
                 len(weights), X.shape[1]))
-
         penalty = compiled_clone(WeightedL1(self.alpha, weights))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
-
-        return cd_solver_path(
-            X, y, datafit, penalty, alphas=alphas, coef_init=coef_init,
-            max_iter=self.max_iter, return_n_iter=return_n_iter,
-            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
-            verbose=self.verbose)
+        solver = AndersonCD(
+            self.max_iter, self.max_epochs, self.p0, tol=self.tol,
+            ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
+            warm_start=self.warm_start, verbose=self.verbose)
+        return solver.path(X, y, datafit, penalty, alphas, coef_init, return_n_iter)
 
     def fit(self, X, y):
         """Fit the model according to the given training data.
@@ -614,12 +574,15 @@ class WeightedLasso(LinearModel, RegressorMixin):
             Fitted estimator.
         """
         if self.weights is None:
-            warnings.warn(
-                'Weights are not provided, fitting with Lasso penalty')
+            warnings.warn('Weights are not provided, fitting with Lasso penalty')
             penalty = L1(self.alpha)
         else:
             penalty = WeightedL1(self.alpha, self.weights)
-        return _glm_fit(X, y, self, Quadratic(), penalty)
+        solver = AndersonCD(
+            self.max_iter, self.max_epochs, self.p0, tol=self.tol,
+            ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
+            warm_start=self.warm_start, verbose=self.verbose)
+        return _glm_fit(X, y, self, Quadratic(), penalty, solver)
 
 
 class ElasticNet(LinearModel, RegressorMixin):
@@ -642,13 +605,16 @@ class ElasticNet(LinearModel, RegressorMixin):
         combination of L1 and L2.
 
     max_iter : int, optional
-        Maximum number of iterations (subproblem definitions).
+        The maximum number of iterations (subproblem definitions).
 
     max_epochs : int
         Maximum number of CD epochs on each subproblem.
 
     p0 : int
         First working set size.
+
+    verbose : bool or int
+        Amount of verbosity.
 
     tol : float, optional
         Stopping criterion for the optimization.
@@ -660,12 +626,8 @@ class ElasticNet(LinearModel, RegressorMixin):
         When set to True, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
 
-    verbose : bool or int
-        Amount of verbosity.
-
     ws_strategy : str
-        The score used to build the working set.
-        Can be ``fixpoint`` or ``subdiff``.
+        The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
 
     Attributes
     ----------
@@ -686,20 +648,20 @@ class ElasticNet(LinearModel, RegressorMixin):
     Lasso : Lasso regularization.
     """
 
-    def __init__(self, alpha=1., l1_ratio=0.5, max_iter=100,
-                 max_epochs=50_000, p0=10, tol=1e-4, fit_intercept=True,
-                 warm_start=False, verbose=0, ws_strategy="subdiff"):
+    def __init__(self, alpha=1., l1_ratio=0.5, max_iter=50, max_epochs=50_000, p0=10,
+                 verbose=0, tol=1e-4, fit_intercept=True, warm_start=False,
+                 ws_strategy="subdiff"):
         super().__init__()
+        self.alpha = alpha
+        self.l1_ratio = l1_ratio
         self.tol = tol
         self.max_iter = max_iter
-        self.fit_intercept = fit_intercept
-        self.warm_start = warm_start
-        self.verbose = verbose
         self.max_epochs = max_epochs
         self.p0 = p0
         self.ws_strategy = ws_strategy
-        self.alpha = alpha
-        self.l1_ratio = l1_ratio
+        self.fit_intercept = fit_intercept
+        self.warm_start = warm_start
+        self.verbose = verbose
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
         """Compute Elastic Net path.
@@ -740,12 +702,11 @@ class ElasticNet(LinearModel, RegressorMixin):
         """
         penalty = compiled_clone(L1_plus_L2(self.alpha, self.l1_ratio))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
-
-        return cd_solver_path(
-            X, y, datafit, penalty, alphas=alphas, coef_init=coef_init,
-            max_iter=self.max_iter, return_n_iter=return_n_iter,
-            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
-            verbose=self.verbose)
+        solver = AndersonCD(
+            self.max_iter, self.max_epochs, self.p0, tol=self.tol,
+            ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
+            warm_start=self.warm_start, verbose=self.verbose)
+        return solver.path(X, y, datafit, penalty, alphas, coef_init, return_n_iter)
 
     def fit(self, X, y):
         """Fit the model according to the given training data.
@@ -763,8 +724,12 @@ class ElasticNet(LinearModel, RegressorMixin):
         self :
             Fitted estimator.
         """
-        return _glm_fit(
-            X, y, self, Quadratic(), L1_plus_L2(self.alpha, self.l1_ratio))
+        solver = AndersonCD(
+            self.max_iter, self.max_epochs, self.p0, tol=self.tol,
+            ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
+            warm_start=self.warm_start, verbose=self.verbose)
+        return _glm_fit(X, y, self, Quadratic(),
+                        L1_plus_L2(self.alpha, self.l1_ratio), solver)
 
 
 class MCPRegression(LinearModel, RegressorMixin):
@@ -792,7 +757,7 @@ class MCPRegression(LinearModel, RegressorMixin):
         Should be larger than (or equal to) 1.
 
     max_iter : int, optional
-        Maximum number of iterations (subproblem definitions).
+        The maximum number of iterations (subproblem definitions).
 
     max_epochs : int
         Maximum number of CD epochs on each subproblem.
@@ -835,20 +800,20 @@ class MCPRegression(LinearModel, RegressorMixin):
     Lasso : Lasso regularization.
     """
 
-    def __init__(self, alpha=1., gamma=3, max_iter=100, max_epochs=50_000, p0=10,
+    def __init__(self, alpha=1., gamma=3, max_iter=50, max_epochs=50_000, p0=10,
                  verbose=0, tol=1e-4, fit_intercept=True, warm_start=False,
                  ws_strategy="subdiff"):
         super().__init__()
+        self.alpha = alpha
+        self.gamma = gamma
         self.tol = tol
         self.max_iter = max_iter
-        self.fit_intercept = fit_intercept
-        self.warm_start = warm_start
-        self.verbose = verbose
         self.max_epochs = max_epochs
         self.p0 = p0
         self.ws_strategy = ws_strategy
-        self.alpha = alpha
-        self.gamma = gamma
+        self.fit_intercept = fit_intercept
+        self.warm_start = warm_start
+        self.verbose = verbose
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
         """Compute MCPRegression path.
@@ -889,12 +854,11 @@ class MCPRegression(LinearModel, RegressorMixin):
         """
         penalty = compiled_clone(MCPenalty(self.alpha, self.gamma))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
-
-        return cd_solver_path(
-            X, y, datafit, penalty, alphas=alphas, coef_init=coef_init,
-            max_iter=self.max_iter, return_n_iter=return_n_iter,
-            max_epochs=self.max_epochs, p0=self.p0, tol=self.tol,
-            verbose=self.verbose)
+        solver = AndersonCD(
+            self.max_iter, self.max_epochs, self.p0, tol=self.tol,
+            ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
+            warm_start=self.warm_start, verbose=self.verbose)
+        return solver.path(X, y, datafit, penalty, alphas, coef_init, return_n_iter)
 
     def fit(self, X, y):
         """Fit the model according to the given training data.
@@ -912,8 +876,12 @@ class MCPRegression(LinearModel, RegressorMixin):
         self :
             Fitted estimator.
         """
-        return _glm_fit(
-            X, y, self, Quadratic(), MCPenalty(self.alpha, self.gamma))
+        solver = AndersonCD(
+            self.max_iter, self.max_epochs, self.p0, tol=self.tol,
+            ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
+            warm_start=self.warm_start, verbose=self.verbose)
+        return _glm_fit(X, y, self, Quadratic(), MCPenalty(self.alpha, self.gamma),
+                        solver)
 
 
 class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
@@ -929,32 +897,23 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         Regularization strength; must be a positive float.
 
     tol : float, optional
-        Stopping criterion for the optimization: the solver runs until the
-        duality gap is smaller than ``tol * len(y) * log(2)`` or the
-        maximum number of iteration is reached.
-
-    fit_intercept : bool, optional (default=False)
-        Whether or not to fit an intercept. Currently True is not supported.
+        Stopping criterion for the optimization.
 
     max_iter : int, optional
-        The maximum number of iterations (subproblem definitions).
+        The maximum number of outer iterations (subproblem definitions).
+
+    max_epochs : int
+        Maximum number of prox Newton iterations on each subproblem.
 
     verbose : bool or int
         Amount of verbosity.
 
-    max_epochs : int
-        Maximum number of CD epochs on each subproblem.
-
-    p0 : int
-        First working set size.
+    fit_intercept : bool, optional (default=True)
+        Whether or not to fit an intercept.
 
     warm_start : bool, optional (default=False)
         When set to True, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
-        Only False is supported so far.
-
-    ws_strategy : str
-        The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
 
     Attributes
     ----------
@@ -973,20 +932,16 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         Number of subproblems solved to reach the specified tolerance.
     """
 
-    def __init__(
-            self, alpha=1.0, tol=1e-4,
-            fit_intercept=False, max_iter=50, verbose=0,
-            max_epochs=50000, p0=10, warm_start=False, ws_strategy="subdiff"):
+    def __init__(self, alpha=1.0, tol=1e-4, max_iter=20, max_epochs=1_000, verbose=0,
+                 fit_intercept=True, warm_start=False):
         super().__init__()
+        self.alpha = alpha
         self.tol = tol
         self.max_iter = max_iter
+        self.max_epochs = max_epochs
+        self.verbose = verbose
         self.fit_intercept = fit_intercept
         self.warm_start = warm_start
-        self.verbose = verbose
-        self.max_epochs = max_epochs
-        self.p0 = p0
-        self.ws_strategy = ws_strategy
-        self.alpha = alpha
 
     def fit(self, X, y):
         """Fit the model according to the given training data.
@@ -1005,55 +960,11 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         self :
             Fitted estimator.
         """
-        return _glm_fit(X, y, self, Logistic(), L1(self.alpha))
-
-    def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
-        """Compute sparse Logistic Regression path.
-
-        Parameters
-        ----------
-        X : array-like, shape (n_samples, n_features)
-            Training data, where n_samples is the number of samples and
-            n_features is the number of features.
-
-        y : array-like, shape (n_samples,)
-            Target vector relative to X.
-
-        alphas : array
-            Values of regularization strengths for which solutions are
-            computed.
-
-        coef_init : array, shape (n_features,), optional
-            Initial value of the coefficients.
-
-        return_n_iter : bool, optional
-            Return number of iterations along the path.
-
-        **params : kwargs
-            All parameters supported by path.
-
-        Returns
-        -------
-        alphas : array, shape (n_alphas,)
-            The alphas along the path where models are computed.
-
-        coefs : array, shape (n_features, n_alphas)
-            Coefficients along the path.
-
-        stop_crit : array, shape (n_alphas,)
-            Value of stopping criterion at convergence along the path.
-
-        n_iters : array, shape (n_alphas,), optional
-            The number of iterations along the path. If return_n_iter is set to `True`.
-        """
-        penalty = compiled_clone(L1(self.alpha))
-        datafit = compiled_clone(Logistic(), to_float32=X.dtype == np.float32)
-
-        return cd_solver_path(
-            X, y, datafit, penalty, alphas=alphas,
-            coef_init=coef_init, max_iter=self.max_iter,
-            return_n_iter=return_n_iter, max_epochs=self.max_epochs,
-            p0=self.p0, tol=self.tol, verbose=self.verbose)
+        solver = ProxNewton(
+            max_iter=self.max_iter, max_pn_iter=self.max_epochs, tol=self.tol,
+            fit_intercept=self.fit_intercept, warm_start=self.warm_start,
+            verbose=self.verbose)
+        return _glm_fit(X, y, self, Logistic(), L1(self.alpha), solver)
 
     def predict_proba(self, X):
         """Probability estimates.
@@ -1142,18 +1053,18 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
     p0 : int
         First working set size.
 
+    verbose : bool or int
+        Amount of verbosity.
+
     tol : float, optional
         Stopping criterion for the optimization.
 
-    fit_intercept : bool, optional
-        Whether or not to fit an intercept. Currently True is not supported.
+    fit_intercept : bool, optional (default=True)
+        Whether or not to fit an intercept.
 
     warm_start : bool, optional (default=False)
         When set to True, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
-
-    verbose : bool or int
-        Amount of verbosity.
 
     ws_strategy : str
         The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
@@ -1176,20 +1087,19 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
         Number of subproblems solved to reach the specified tolerance.
     """
 
-    def __init__(
-            self, C=1., max_iter=100, max_epochs=50_000, p0=10, tol=1e-4,
-            fit_intercept=False, warm_start=False, verbose=0, ws_strategy="subdiff"):
-
+    def __init__(self, C=1., max_iter=50, max_epochs=50_000, p0=10,
+                 verbose=0, tol=1e-4, fit_intercept=True, warm_start=False,
+                 ws_strategy="subdiff"):
         super().__init__()
+        self.C = C
         self.tol = tol
         self.max_iter = max_iter
-        self.fit_intercept = fit_intercept
-        self.warm_start = warm_start
-        self.verbose = verbose
         self.max_epochs = max_epochs
         self.p0 = p0
         self.ws_strategy = ws_strategy
-        self.C = C
+        self.fit_intercept = fit_intercept
+        self.warm_start = warm_start
+        self.verbose = verbose
 
     def fit(self, X, y):
         """Fit LinearSVC classifier.
@@ -1207,11 +1117,16 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
         self
             Fitted estimator.
         """
-        return _glm_fit(X, y, self, QuadraticSVC(), IndicatorBox(self.C))
+        solver = AndersonCD(
+            self.max_iter, self.max_epochs, self.p0, tol=self.tol,
+            ws_strategy=self.ws_strategy, fit_intercept=False,
+            warm_start=self.warm_start, verbose=self.verbose)
+        return _glm_fit(X, y, self, QuadraticSVC(), IndicatorBox(self.C), solver)
 
     # TODO add predict_proba for LinearSVC
 
 
+# TODO we should no longer inherit from sklearn
 class MultiTaskLasso(MultiTaskLasso_sklearn):
     r"""MultiTaskLasso estimator.
 
@@ -1225,7 +1140,7 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
         Regularization strength (constant that multiplies the L21 penalty).
 
     max_iter : int, optional
-        Maximum number of iterations (subproblem definitions).
+        The maximum number of iterations (subproblem definitions).
 
     max_epochs : int
         Maximum number of CD epochs on each subproblem.
@@ -1237,9 +1152,7 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
         Amount of verbosity.
 
     tol : float, optional
-        Stopping criterion for the optimization: the solver runs until the
-        duality gap is smaller than ``tol * norm(y) ** 2 / len(y)`` or the
-        maximum number of iteration is reached.
+        Stopping criterion for the optimization.
 
     fit_intercept : bool, optional (default=True)
         Whether or not to fit an intercept.
@@ -1247,6 +1160,9 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
     warm_start : bool, optional (default=False)
         When set to True, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
+
+    ws_strategy : str
+        The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
 
     Attributes
     ----------
@@ -1263,17 +1179,17 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
         Number of subproblems solved by Celer to reach the specified tolerance.
     """
 
-    def __init__(self, alpha=1., max_iter=100,
-                 max_epochs=50000, p0=10, verbose=0, tol=1e-4,
-                 fit_intercept=True, warm_start=False):
+    def __init__(self, alpha=1., max_iter=50, max_epochs=50_000, p0=10,
+                 verbose=0, tol=1e-4, fit_intercept=True, warm_start=False,
+                 ws_strategy="subdiff"):
         super().__init__(
-            alpha=alpha, tol=tol, max_iter=max_iter,
+            alpha=alpha, tol=tol,
             fit_intercept=fit_intercept, warm_start=warm_start)
-        self.verbose = verbose
-        self.max_epochs = max_epochs
+        self.max_iter = max_iter
         self.p0 = p0
-        self.datafit = QuadraticMultiTask()
-        self.penalty = L2_1(alpha)
+        self.ws_strategy = ws_strategy
+        self.max_epochs = max_epochs
+        self.verbose = verbose
 
     def fit(self, X, Y):
         """Fit MultiTaskLasso model.
@@ -1291,7 +1207,6 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
         self :
             The fitted estimator.
         """
-        # TODO check if we could just patch `bcd_solver_path` as we do in Lasso case.
         # Below is copied from sklearn, with path replaced by our path.
         # Need to validate separately here.
         # We can't pass multi_output=True because that would allow y to be csr.
@@ -1312,25 +1227,30 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
             raise ValueError("X and Y have inconsistent dimensions (%d != %d)"
                              % (n_samples, Y.shape[0]))
 
-        X, Y, X_offset, Y_offset, X_scale = _preprocess_data(
-            X, Y, self.fit_intercept, copy=False)
+        # X, Y, X_offset, Y_offset, X_scale = _preprocess_data(
+        #     X, Y, self.fit_intercept, copy=False)
 
+        # TODO handle and test warm start for MTL
         if not self.warm_start or not hasattr(self, "coef_"):
             self.coef_ = None
 
-        _, coefs, kkt = self.path(
-            X, Y, alphas=[self.alpha],
-            coef_init=self.coef_, max_iter=self.max_iter,
-            max_epochs=self.max_epochs, p0=self.p0, verbose=self.verbose,
-            tol=self.tol)
+        datafit_jit = compiled_clone(QuadraticMultiTask(), X.dtype == np.float32)
+        penalty_jit = compiled_clone(L2_1(self.alpha), X.dtype == np.float32)
 
-        self.coef_, self.dual_gap_ = coefs[..., 0], kkt[-1]
-        self.n_iter_ = len(kkt)
-        self._set_intercept(X_offset, Y_offset, X_scale)
+        solver = MultiTaskBCD(
+            self.max_iter, self.max_epochs, self.p0, tol=self.tol,
+            ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
+            warm_start=self.warm_start, verbose=self.verbose)
+        W, obj_out, kkt = solver.solve(X, Y, datafit_jit, penalty_jit)
+
+        self.coef_ = W[:X.shape[1], :].T
+        self.intercept_ = self.fit_intercept * W[-1, :]
+        self.stopping_crit = kkt
+        self.n_iter_ = len(obj_out)
 
         return self
 
-    def path(self, X, Y, alphas, coef_init=None, **params):
+    def path(self, X, Y, alphas, coef_init=None, return_n_iter=False, **params):
         """Compute MultitaskLasso path.
 
         Parameters
@@ -1346,6 +1266,9 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
 
         coef_init : array, shape (n_features,), optional
             If warm_start is enabled, the optimization problem restarts from coef_init.
+
+        return_n_iter : bool
+            Returns the number of iterations along the path.
 
         **params : kwargs
             All parameters supported by path.
@@ -1364,8 +1287,10 @@ class MultiTaskLasso(MultiTaskLasso_sklearn):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
-        datafit = compiled_clone(self.datafit, to_float32=X.dtype == np.float32)
-        penalty = compiled_clone(self.penalty)
-
-        return multitask_bcd_solver_path(X, Y, datafit, penalty, alphas=alphas,
-                                         coef_init=coef_init, **params)
+        datafit = compiled_clone(QuadraticMultiTask(), to_float32=X.dtype == np.float32)
+        penalty = compiled_clone(L2_1(self.alpha))
+        solver = MultiTaskBCD(
+            self.max_iter, self.max_epochs, self.p0, tol=self.tol,
+            ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
+            warm_start=self.warm_start, verbose=self.verbose)
+        return solver.path(X, Y, datafit, penalty, alphas, coef_init, return_n_iter)

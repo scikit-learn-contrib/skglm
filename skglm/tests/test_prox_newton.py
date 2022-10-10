@@ -5,7 +5,7 @@ from sklearn.linear_model import LogisticRegression
 
 from skglm.penalties import L1
 from skglm.datafits import Logistic
-from skglm.solvers.prox_newton import prox_newton
+from skglm.solvers.prox_newton import ProxNewton
 from skglm.utils import make_correlated_data, compiled_clone
 
 
@@ -20,7 +20,7 @@ def test_alpha_max(X_density):
 
     log_datafit = compiled_clone(Logistic())
     l1_penalty = compiled_clone(L1(alpha_max))
-    w = prox_newton(X, y, log_datafit, l1_penalty)[0]
+    w = ProxNewton().solve(X, y, log_datafit, l1_penalty)[0]
 
     np.testing.assert_equal(w, 0)
 
@@ -42,7 +42,7 @@ def test_pn_vs_sklearn(rho, X_density):
 
     log_datafit = compiled_clone(Logistic())
     l1_penalty = compiled_clone(L1(alpha))
-    w = prox_newton(X, y, log_datafit, l1_penalty, tol=1e-9)[0]
+    w = ProxNewton(tol=1e-9).solve(X, y, log_datafit, l1_penalty)[0]
 
     np.testing.assert_allclose(w, sk_log_reg.coef_.flatten(), rtol=1e-6, atol=1e-6)
 

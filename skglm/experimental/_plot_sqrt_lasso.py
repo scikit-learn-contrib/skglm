@@ -3,7 +3,7 @@ import numpy as np
 from numpy.linalg import norm
 import matplotlib.pyplot as plt
 from skglm.utils import make_correlated_data
-from skglm.experimental.sqrt_lasso import SqrtLasso, chambolle_pock_sqrt
+from skglm.experimental.sqrt_lasso import SqrtLasso, _chambolle_pock_sqrt
 
 X, y, _ = make_correlated_data(n_samples=200, n_features=100, random_state=24)
 
@@ -15,7 +15,7 @@ alpha = alpha_max / 10
 
 max_iter = 1000
 obj_freq = 10
-w, _, objs = chambolle_pock_sqrt(X, y, alpha, max_iter=max_iter, obj_freq=obj_freq)
+w, _, objs = _chambolle_pock_sqrt(X, y, alpha, max_iter=max_iter, obj_freq=obj_freq)
 
 
 # no convergence issue if n_features < n_samples, can use ProxNewton

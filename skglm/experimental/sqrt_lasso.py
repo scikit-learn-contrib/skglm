@@ -210,7 +210,7 @@ def _chambolle_pock_sqrt(X, y, alpha, max_iter=1000, obj_freq=10):
     """Apply Chambolle-Pock algorithm to solve square-root Lasso.
 
     The objective function is:
-        min_w ||Xw - y||_2/sqrt(n_samples) + alpha * ||w||_1
+        min_w ||Xw - y||_2/sqrt(n_samples) + alpha * ||w||_1.
     """
     n_samples, n_features = X.shape
     # dual variable is z, primal is w

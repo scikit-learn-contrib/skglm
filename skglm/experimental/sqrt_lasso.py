@@ -7,7 +7,7 @@ from sklearn.linear_model._base import LinearModel, RegressorMixin
 from skglm.penalties import L1
 from skglm.utils import compiled_clone, ST_vec
 from skglm.datafits.base import BaseDatafit
-from skglm.solvers.prox_newton import prox_newton
+from skglm.solvers.prox_newton import ProxNewton
 
 
 class SqrtQuadratic(BaseDatafit):
@@ -144,6 +144,9 @@ class SqrtLasso(LinearModel, RegressorMixin):
         coefs : array, shape (n_features, n_alphas)
             Coefficients along the path.
         """
+        if not hasattr(self, "solver_"):
+            self.solver_ = ProxNewton(
+                tol=self.tol, max_iter=self.max_iter, verbose=self.verbose)
         # build path
         if alphas is None:
             alpha_max = norm(X.T @ y, ord=np.inf) / (np.sqrt(len(y)) * norm(y))
@@ -170,11 +173,9 @@ class SqrtLasso(LinearModel, RegressorMixin):
             coef_init = coefs[i].copy() if i else np.zeros(n_features)
 
             try:
-                coef, _, _ = prox_newton(
+                coef, _, _ = self.solver_.solve(
                     X, y, sqrt_quadratic, l1_penalty,
-                    w_init=coef_init, max_iter=self.max_iter,
-                    max_pn_iter=self.max_pn_iter,
-                    tol=self.tol, verbose=self.verbose)
+                    w_init=coef_init, Xw_init=X @ coef_init)
                 coefs[i] = coef
             except ValueError as val_exception:
                 # make sure to catch residual error

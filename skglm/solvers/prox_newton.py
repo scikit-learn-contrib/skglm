@@ -90,6 +90,7 @@ class ProxNewton(BaseSolver):
 
             # optimality of intercept
             if fit_intercept:
+                # gradient w.r.t. intercept (constant features of ones)
                 intercept_opt = np.abs(np.sum(datafit.raw_grad(y, Xw)))
             else:
                 intercept_opt = 0.
@@ -227,7 +228,7 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
     return w_ws - w_epoch[ws_intercept], X_delta_w_ws
 
 
-# sparse version of _compute_descent_direction
+# sparse version of _descent_direction
 @njit
 def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
                          Xw_epoch, fit_intercept, grad_ws, datafit, penalty, ws, tol):

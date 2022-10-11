@@ -13,7 +13,7 @@ alpha = alpha_max / 10
 clf = ReweightedLasso(alpha=alpha, verbose=2, tol=1e-10)
 clf.fit(X, y)
 
-# reweighting can't increase the L2,0.5 objective, we check that
+# reweighting can't increase the L0.5 objective
 assert clf.loss_history[0] > clf.loss_history[-1]
 diffs = np.diff(clf.loss_history)
 np.testing.assert_array_less(diffs, 1e-5)

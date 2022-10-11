@@ -18,7 +18,7 @@ class ReweightedLasso(Lasso):
     alpha : float, optional
         Penalty strength.
 
-    n_reweight : int, optional
+    n_reweights : int, optional
         Number of reweighting iterations.
 
     reweight_penalty: Callable, optional
@@ -46,9 +46,9 @@ class ReweightedLasso(Lasso):
            https://web.stanford.edu/~boyd/papers/pdf/rwl1.pdf
     """
 
-    def __init__(self, alpha=1., n_reweight=5, reweight_penalty=None, *args, **kwargs):
+    def __init__(self, alpha=1., n_reweights=5, reweight_penalty=None, *args, **kwargs):
         super().__init__(alpha=alpha, *args, **kwargs)
-        self.n_reweight = n_reweight
+        self.n_reweights = n_reweights
         self.reweight_penalty = reweight_penalty or self._reweight_penalty
         self.loss_history_ = None
 
@@ -80,7 +80,7 @@ class ReweightedLasso(Lasso):
         objective = (lambda w: np.sum((y - X @ w) ** 2) / (2 * n_samples)
                      + self.alpha * np.sqrt(norm(w)))
 
-        for l in range(self.n_reweight):
+        for l in range(self.n_reweights):
             # trick: rescaling the weights (XXX: sparse X would become dense?)
             scaled_X = X / weights
             super().fit(scaled_X, y)

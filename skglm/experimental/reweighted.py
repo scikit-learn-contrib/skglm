@@ -1,7 +1,5 @@
 import numpy as np
 from numpy.linalg import norm
-from sklearn.linear_model._base import LinearModel, RegressorMixin
-
 from skglm.estimators import Lasso
 
 
@@ -10,10 +8,10 @@ class ReweightedLasso(Lasso):
         super().__init__(alpha=alpha, *args, **kwargs)
         self.n_reweight = n_reweight
         self.reweight_penalty = reweight_penalty or self._reweight_penalty
-        self.loss_history = None
+        self.loss_history_ = None
 
     def fit(self, X, y):
-        self.loss_history = []
+        self.loss_history_ = []
         n_samples, n_features = X.shape
         weights = np.ones(n_features)
         # XXX: dot product X @ w is slow in high-dimension, to be improved
@@ -24,20 +22,20 @@ class ReweightedLasso(Lasso):
             # trick: rescaling the weights (XXX: sparse X would become dense?)
             scaled_X = X / weights
             super().fit(scaled_X, y)
-            _coef = self.coef_ / weights
+            scaled_coef = self.coef_ / weights
 
             # updating the weights
-            weights = self.reweight_penalty(_coef)
+            weights = self.reweight_penalty(scaled_coef)
 
-            loss = objective(_coef)
-            self.loss_history.append(loss)
+            loss = objective(scaled_coef)
+            self.loss_history_.append(loss)
 
             if self.verbose:
                 print("#" * 10)
                 print(f"[REWEIGHT] iteration {l} :: loss {loss}")
                 print("#" * 10)
 
-        self.coef_ = _coef
+        self.coef_ = scaled_coef
 
     @staticmethod
     def _reweight_penalty(coef):

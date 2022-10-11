@@ -3,6 +3,11 @@ from numpy.linalg import norm
 from skglm.estimators import Lasso
 
 
+def _reweight_by_coefficient_norm(coef):
+    nrm = np.sqrt(norm(coef))
+    return 1 / (2 * nrm + np.finfo(float).eps)
+
+
 class ReweightedLasso(Lasso):
     r"""Reweighted Lasso estimator.
 
@@ -20,10 +25,6 @@ class ReweightedLasso(Lasso):
 
     n_reweights : int, optional
         Number of reweighting iterations.
-
-    reweight_penalty: Callable, optional
-        Callable to compute the weights from the coefficients.
-        By default, it is the \ell_0.5 norm of the coefficients
 
     args: list
         Parameters for the inner Lasso estimator.
@@ -46,18 +47,14 @@ class ReweightedLasso(Lasso):
            https://web.stanford.edu/~boyd/papers/pdf/rwl1.pdf
     """
 
-    def __init__(self, alpha=1., n_reweights=5, reweight_penalty=None, *args, **kwargs):
-        super().__init__(alpha=alpha, *args, **kwargs)
-        self.n_reweights = n_reweights
-        self.reweight_penalty = reweight_penalty or self._reweight_penalty
-        self.loss_history_ = None
-
+    def __init__(self, alpha=1., n_reweights=5, *args, **kwargs):
         # Warm start is crucial to ensure the solution of surrogate problem i
         # is used as the starting coefficient to solve surrogate i+1, hence enabling
         # speed gains
-        self.warm_start = True
+        super().__init__(alpha=alpha, warm_start=True, *args, **kwargs)
+        self.n_reweights = n_reweights
 
-    def fit(self, X, y):
+    def fit(self, X, y, reweight_penalty=_reweight_by_coefficient_norm):
         """Fit the model according to the given training data.
 
         Parameters
@@ -65,8 +62,13 @@ class ReweightedLasso(Lasso):
         X : array-like, shape (n_samples, n_features)
             Training data, where n_samples is the number of samples and
             n_features is the number of features.
+
         y : array-like, shape (n_samples,)
             Target vector relative to X.
+
+        reweight_penalty: Callable, optional
+            Callable to compute the weights from the coefficients.
+            By default, it is the \ell_0.5 norm of the coefficients
 
         Returns
         -------
@@ -87,7 +89,7 @@ class ReweightedLasso(Lasso):
             scaled_coef = self.coef_ / weights
 
             # updating the weights
-            weights = self.reweight_penalty(scaled_coef)
+            weights = reweight_penalty(scaled_coef)
 
             loss = objective(scaled_coef)
             self.loss_history_.append(loss)
@@ -101,8 +103,5 @@ class ReweightedLasso(Lasso):
 
         return self
 
-    @staticmethod
-    def _reweight_penalty(coef):
-        nrm = np.sqrt(norm(coef))
-        return 1 / (2 * nrm + np.finfo(float).eps)
+
 

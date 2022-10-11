@@ -25,10 +25,4 @@
 
    
    
-   .. rubric:: Attributes
-
-   .. autosummary::
-   
-      ~MultiTaskLasso.sparse_coef_
-   
    

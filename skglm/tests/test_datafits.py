@@ -62,30 +62,26 @@ def test_poisson():
     except ImportError:
         pytest.xfail("`statsmodels` not found. `Poisson` datafit can't be tested.")
 
-    n_samples, n_features = 10, 20
-    tol = 1e-12
+    n_samples, n_features = 10, 22
+    tol = 1e-14
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
     y = np.abs(y)
 
     alpha_max = np.linalg.norm(X.T @ (np.ones(n_samples) - y), ord=np.inf) / n_samples
     alpha = alpha_max * 0.1
 
-    df = compiled_clone(Poisson())
-    pen = compiled_clone(L1(alpha))
-
-    df.initialize(X, y)
+    df = Poisson()
+    pen = L1(alpha)
 
     solver = ProxNewton(tol=tol, fit_intercept=False)
-    w = np.zeros(n_features)
-    Xw = X @ w
-    solver.solve(X, y, df, pen, w, Xw)
+    model = GeneralizedLinearEstimator(df, pen, solver).fit(X, y)
 
     poisson_regressor = PoissonRegressor(y, X, offset=None)
     res = poisson_regressor.fit_regularized(
         method="l1", size_trim_tol=tol, alpha=alpha * n_samples, trim_mode="size")
-    w_true = res.params
+    w_statsmodels = res.params
 
-    assert_allclose(w, w_true, rtol=1e-4)
+    assert_allclose(model.coef_, w_statsmodels, rtol=1e-4)
 
 
 if __name__ == '__main__':

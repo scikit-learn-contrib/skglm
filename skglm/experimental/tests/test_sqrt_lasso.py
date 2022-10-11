@@ -9,13 +9,11 @@ from skglm.experimental.sqrt_lasso import SqrtLasso, _chambolle_pock_sqrt
 def test_alpha_max():
     n_samples, n_features = 50, 10
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
-
     alpha_max = norm(X.T @ y, ord=np.inf) / (np.sqrt(n_samples) * norm(y))
 
-    sqrt_lasso = SqrtLasso(alpha=alpha_max)
-    sqrt_lasso.fit(X, y)
+    sqrt_lasso = SqrtLasso(alpha=alpha_max).fit(X, y)
 
-    np.testing.assert_equal(sqrt_lasso.coef_.flatten(), 0)
+    np.testing.assert_equal(sqrt_lasso.coef_, 0)
 
 
 def test_vs_statsmodels():

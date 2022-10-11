@@ -36,7 +36,7 @@ class SqrtQuadratic(BaseDatafit):
         Raises
         ------
             Exception
-                if value of residuals is too small (less than ``1e-10``).
+                if value of residuals is less than ``1e-2 * ||y||``.
         """
         minus_residual = Xw - y
         norm_residuals = norm(minus_residual)
@@ -47,7 +47,7 @@ class SqrtQuadratic(BaseDatafit):
         return minus_residual / (norm_residuals * np.sqrt(len(y)))
 
     def raw_hessian(self, y, Xw):
-        """Upper bound of the hessian w.r.t eigenvalues."""
+        """Diagonal matrix upper bounding the Hessian."""
         n_samples = len(y)
         fill_value = 1 / (np.sqrt(n_samples) * norm(y - Xw))
         return np.full(n_samples, fill_value)

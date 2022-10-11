@@ -106,6 +106,15 @@ def ST_vec(x, u):
 
 
 @njit
+def proj_L2ball(u):
+    """Project input on L2 unit ball."""
+    norm_u = norm(u)
+    if norm_u <= 1:
+        return u
+    return u / norm_u
+
+
+@njit
 def BST(x, u):
     """Block soft-thresholding of vector x at level u."""
     norm_x = norm(x)

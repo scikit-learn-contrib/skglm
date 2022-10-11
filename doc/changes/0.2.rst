@@ -1,7 +1,9 @@
 .. _changes_0_2:
 
 Version 0.2 (in progress)
-------------------------
+-------------------------
+
+- Experimental :ref:`Square root Lasso <skglm.experimental.SqrtLasso>` class with ProxNewton or Chambolle-Pock solver (PR :gh:`57`)
 
 - Accelerated block coordinate descent solver :ref:`GroupBCD <skglm.solvers.GroupBCD>` with working sets for problems with group penalties (PR :gh:`29`, :gh:`28`, and :gh:`26`)
 

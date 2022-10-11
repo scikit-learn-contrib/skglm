@@ -73,4 +73,14 @@ Solvers
    GroupBCD
    MultiTaskBCD
    ProxNewton
-   
+
+
+Experimental
+============
+
+.. currentmodule:: skglm.experimental
+
+.. autosummary::
+   :toctree: generated/
+
+   SqrtLasso

@@ -199,7 +199,7 @@ class SqrtLasso(LinearModel, RegressorMixin):
         return alphas, coefs
 
 
-def _chambolle_pock_sqrt(X, y, alpha, max_iter=1000, obj_freq=10):
+def _chambolle_pock_sqrt(X, y, alpha, max_iter=1000, obj_freq=10, verbose=False):
     """Apply Chambolle-Pock algorithm to solve square-root Lasso.
 
     The objective function is:
@@ -225,6 +225,7 @@ def _chambolle_pock_sqrt(X, y, alpha, max_iter=1000, obj_freq=10):
 
         if t % obj_freq == 0:
             objs.append(norm(X @ w - y) / np.sqrt(n_samples) + alpha * norm(w, ord=1))
-            print(f"Iter {t}, obj {objs[-1]: .10f}")
+            if verbose:
+                print(f"Iter {t}, obj {objs[-1]: .10f}")
 
     return w, z, objs

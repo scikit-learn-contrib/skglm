@@ -4,9 +4,8 @@ import matplotlib.pyplot as plt
 from skglm.utils import make_correlated_data
 from skglm.experimental import ReweightedLasso
 
-X, y, _ = make_correlated_data(n_samples=200, n_features=500, random_state=24)
-
-n_samples, n_features = X.shape
+n_samples, n_features = 200, 500
+X, y, _ = make_correlated_data(n_samples=n_samples, n_features=n_features, random_state=24)
 alpha_max = norm(X.T @ y, ord=np.inf) / n_samples
 
 alpha = alpha_max / 10
@@ -14,14 +13,10 @@ alpha = alpha_max / 10
 clf = ReweightedLasso(alpha=alpha, verbose=2, tol=1e-10)
 clf.fit(X, y)
 
-# consider that our solver has converged
-w_star = clf.coef_
-p_star = (norm(X @ w_star - y) ** 2) / (2 * n_samples) + alpha * np.sqrt(norm(w_star))
+# reweighting can't increase the L2,0.5 objective, we check that
+assert clf.loss_history[0] > clf.loss_history[-1]
+diffs = np.diff(clf.loss_history)
+np.testing.assert_array_less(diffs, 1e-5)
 
 print(clf.loss_history)
 
-# plt.close("all")
-# plt.semilogy(np.arange(1, max_iter+1, obj_freq), np.array(objs) - p_star)
-# plt.xlabel("CP iteration")
-# plt.ylabel("$F(x) - F(x^*)$")
-# plt.show(block=False)

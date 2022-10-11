@@ -14,9 +14,9 @@ clf = ReweightedLasso(alpha=alpha, verbose=2, tol=1e-10)
 clf.fit(X, y)
 
 # reweighting can't increase the L0.5 objective
-assert clf.loss_history[0] > clf.loss_history[-1]
-diffs = np.diff(clf.loss_history)
+assert clf.loss_history_[0] > clf.loss_history_[-1]
+diffs = np.diff(clf.loss_history_)
 np.testing.assert_array_less(diffs, 1e-5)
 
-print(clf.loss_history)
+print(clf.loss_history_)
 

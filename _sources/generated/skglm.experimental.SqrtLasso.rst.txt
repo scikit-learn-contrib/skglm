@@ -1,0 +1,28 @@
+﻿skglm.experimental.SqrtLasso
+============================
+
+.. currentmodule:: skglm.experimental
+
+.. autoclass:: SqrtLasso
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~SqrtLasso.__init__
+      ~SqrtLasso.fit
+      ~SqrtLasso.get_params
+      ~SqrtLasso.path
+      ~SqrtLasso.predict
+      ~SqrtLasso.score
+      ~SqrtLasso.set_params
+   
+   
+
+   
+   
+   

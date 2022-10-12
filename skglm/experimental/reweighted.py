@@ -4,9 +4,12 @@ from skglm.estimators import GeneralizedLinearEstimator
 from skglm.penalties import WeightedL1
 
 
+# def _L05_weights(coef):
+#     nrm = np.sqrt(norm(coef))
+#     return 1 / (2 * nrm + np.finfo(float).eps)
+
 def _L05_weights(coef):
-    nrm = np.sqrt(norm(coef))
-    return 1 / (2 * nrm + np.finfo(float).eps)
+    return 1 / (np.abs(coef) + np.finfo(float).eps)
 
 
 class ReweightedEstimator(GeneralizedLinearEstimator):
@@ -77,7 +80,7 @@ class ReweightedEstimator(GeneralizedLinearEstimator):
 
         for l in range(self.n_reweights):
             super().fit(X, y)
-            self.penalty.weights = reweight_penalty(self.coef_) 
+            self.penalty.weights /= reweight_penalty(self.coef_) 
 
             loss = self.objective(X, y, self.coef_)
             self.loss_history_.append(loss)

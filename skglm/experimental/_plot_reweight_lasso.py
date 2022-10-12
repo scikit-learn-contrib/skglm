@@ -15,15 +15,18 @@ X, y, w_true = make_correlated_data(
     n_samples=n_samples, n_features=n_features, random_state=24)
 
 alpha_max = norm(X.T @ y, ord=np.inf) / n_samples
-alpha = alpha_max / 10
+alpha = alpha_max / 1000
+tol = 1e-10
 
 def obj(w):
     return (np.sum((y - X @ w) ** 2) / (2 * n_samples)
             + alpha * np.sum(np.sqrt(np.abs(w))))
 
-solver = AndersonCD(tol=1e-10, fit_intercept=False, warm_start=True, verbose=0)
-iterative_l05 = IterativeReweightedL1(alpha, solver=solver)
-direct_l05 = GeneralizedLinearEstimator(penalty=L0_5(alpha), solver=solver)
+iterative_l05 = IterativeReweightedL1(
+    alpha, solver=AndersonCD(tol=tol, fit_intercept=False))
+
+direct_l05 = GeneralizedLinearEstimator(
+    penalty=L0_5(alpha), solver=AndersonCD(tol=tol, fit_intercept=False, verbose=2))
 
 # TODO: cache compilation
 

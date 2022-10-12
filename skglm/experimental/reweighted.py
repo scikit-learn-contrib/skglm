@@ -1,12 +1,22 @@
 import numpy as np
-from numpy.linalg import norm
 from skglm.estimators import GeneralizedLinearEstimator
 from skglm.penalties import WeightedL1
 
 
+def _L05_objective(coef):
+    return np.sqrt(np.abs(coef))
+
 
 def _L05_weights(coef):
     return 1. / (2. * np.sqrt(np.abs(coef)) + np.finfo(float).eps)
+
+
+def _log_sum_objective(coef, eps=0.01):
+    return np.log(eps + np.abs(coef))
+
+
+def _log_sum_weights(coef, eps=0.01):
+    return 1. / (eps + np.abs(coef))
 
 
 class ReweightedEstimator(GeneralizedLinearEstimator):
@@ -50,7 +60,7 @@ class ReweightedEstimator(GeneralizedLinearEstimator):
             datafit=datafit, penalty=WeightedL1(alpha, np.ones(1)), solver=solver)
         self.n_reweights = n_reweights
 
-    def fit(self, X, y, reweight_penalty=_L05_weights):
+    def fit(self, X, y, pen_obj=_L05_objective, pen_weight=_L05_weights):
         """Fit the model according to the given training data.
 
         Parameters
@@ -62,9 +72,11 @@ class ReweightedEstimator(GeneralizedLinearEstimator):
         y : array-like, shape (n_samples,)
             Target vector relative to X.
 
-        reweight_penalty: Callable, optional
-            Callable to compute the weights from the coefficients.
-            By default, it is the \ell_0.5 norm of the coefficients
+        pen_obj : Callable, optional
+            Compute the concave objective.
+
+        pen_weight: Callable, optional
+            Compute the penalty weights from the coefficients.
 
         Returns
         -------
@@ -77,9 +89,11 @@ class ReweightedEstimator(GeneralizedLinearEstimator):
 
         for l in range(self.n_reweights):
             super().fit(X, y)
-            self.penalty.weights = reweight_penalty(self.coef_)
+            self.penalty.weights = pen_weight(self.coef_)
 
-            loss = self.objective(X, y, self.coef_)
+            # XXX: dot product X @ w is slow in high-dimension, to be improved
+            loss = (self.datafit.value(y, self.coef_, X @ self.coef_)
+                   + self.penalty.alpha * np.sum(pen_obj(self.coef_)))
             self.loss_history_.append(loss)
 
             if self.solver.verbose:
@@ -88,7 +102,3 @@ class ReweightedEstimator(GeneralizedLinearEstimator):
                 print("#" * 10)
 
         return self
-
-    def objective(self, X, y, w):
-        # XXX: dot product X @ w is slow in high-dimension, to be improved
-        return self.datafit.value(y, w, X @ w) + self.penalty.alpha * np.sum(np.sqrt(np.abs(w)))

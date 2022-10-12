@@ -87,18 +87,18 @@ class ReweightedEstimator(GeneralizedLinearEstimator):
         n_features = X.shape[1]
         self.penalty.weights = np.ones(n_features)
 
-        for l in range(self.n_reweights):
+        for iter_reweight in range(self.n_reweights):
             super().fit(X, y)
             self.penalty.weights = pen_weight(self.coef_)
 
             # XXX: dot product X @ w is slow in high-dimension, to be improved
             loss = (self.datafit.value(y, self.coef_, X @ self.coef_)
-                   + self.penalty.alpha * np.sum(pen_obj(self.coef_)))
+                    + self.penalty.alpha * np.sum(pen_obj(self.coef_)))
             self.loss_history_.append(loss)
 
             if self.solver.verbose:
                 print("#" * 10)
-                print(f"[REWEIGHT] iteration {l} :: loss {loss}")
+                print(f"[REWEIGHT] iteration {iter_reweight} :: loss {loss}")
                 print("#" * 10)
 
         return self

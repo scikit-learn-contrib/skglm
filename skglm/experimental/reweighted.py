@@ -1,18 +1,16 @@
 import numpy as np
 from numpy.linalg import norm
-from skglm.estimators import Lasso
+from skglm.estimators import GeneralizedLinearEstimator
+from skglm.penalties import WeightedL1
 
 
-def _reweight_by_coefficient_norm(coef):
+def _L05_weights(coef):
     nrm = np.sqrt(norm(coef))
     return 1 / (2 * nrm + np.finfo(float).eps)
 
 
-class ReweightedLasso(Lasso):
-    r"""Reweighted Lasso estimator.
-
-    The objective reads::
-        ||y-Xw||_2^2 / (2 * n_samples) + \lambda \sqrt{||w||}
+class ReweightedEstimator(GeneralizedLinearEstimator):
+    r"""Reweighted L1-norm estimator.
 
     This estimator iteratively solves a non-convex objective by iteratively solving
     convex surrogates. They are obtained by iteratively re-weighting the \ell_1-norm
@@ -23,15 +21,15 @@ class ReweightedLasso(Lasso):
     alpha : float, optional
         Penalty strength.
 
+    datafit : instance of BaseDatafit, optional
+        Datafit. If None, `datafit` is initialized as a `Quadratic` datafit.
+        `datafit` is replaced by a JIT-compiled instance when calling fit.
+
+    solver : instance of BaseSolver, optional
+        Solver. If None, `solver` is initialized as an `AndersonCD` solver.
+
     n_reweights : int, optional
         Number of reweighting iterations.
-
-    args: list
-        Parameters for the inner Lasso estimator.
-        Note that `warm_start` is consistently set to `True` for performance reasons.
-
-    kwargs: dict
-        Keyword parameters for the inner Lasso estimator.
 
     Attributes
     ----------
@@ -47,14 +45,12 @@ class ReweightedLasso(Lasso):
            https://web.stanford.edu/~boyd/papers/pdf/rwl1.pdf
     """
 
-    def __init__(self, alpha=1., n_reweights=5, *args, **kwargs):
-        # Warm start is crucial to ensure the solution of surrogate problem i
-        # is used as the starting coefficient to solve surrogate i+1, hence enabling
-        # speed gains
-        super().__init__(alpha=alpha, warm_start=True, *args, **kwargs)
+    def __init__(self, alpha, datafit=None, solver=None, n_reweights=5):
+        super().__init__(
+            datafit=datafit, penalty=WeightedL1(alpha, np.ones(1)), solver=solver)
         self.n_reweights = n_reweights
 
-    def fit(self, X, y, reweight_penalty=_reweight_by_coefficient_norm):
+    def fit(self, X, y, reweight_penalty=_L05_weights):
         """Fit the model according to the given training data.
 
         Parameters
@@ -76,32 +72,25 @@ class ReweightedLasso(Lasso):
             Fitted estimator.
         """
         self.loss_history_ = []
-        n_samples, n_features = X.shape
-        weights = np.ones(n_features)
-        # XXX: dot product X @ w is slow in high-dimension, to be improved
-        objective = (lambda w: np.sum((y - X @ w) ** 2) / (2 * n_samples)
-                     + self.alpha * np.sqrt(norm(w)))
+        n_features = X.shape[1]
+        self.penalty.weights = np.ones(n_features)
 
         for l in range(self.n_reweights):
-            # trick: rescaling the weights (XXX: sparse X would become dense?)
-            scaled_X = X / weights
-            super().fit(scaled_X, y)
-            scaled_coef = self.coef_ / weights
+            super().fit(X, y)
+            self.penalty.weights = reweight_penalty(self.coef_) 
 
-            # updating the weights
-            weights = reweight_penalty(scaled_coef)
-
-            loss = objective(scaled_coef)
+            loss = self.objective(X, y, self.coef_)
             self.loss_history_.append(loss)
 
-            if self.verbose:
+            if self.solver.verbose:
                 print("#" * 10)
                 print(f"[REWEIGHT] iteration {l} :: loss {loss}")
                 print("#" * 10)
 
-        self.coef_ = scaled_coef
-
         return self
 
+    def objective(self, X, y, w):
+        # XXX: dot product X @ w is slow in high-dimension, to be improved
+        return self.datafit.value(y, w, X @ w) + self.penalty.alpha * np.sqrt(norm(w))
 
 

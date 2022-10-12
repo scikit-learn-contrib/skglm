@@ -6,10 +6,11 @@ from skglm.utils import make_correlated_data
 from skglm.experimental.sqrt_lasso import SqrtLasso, _chambolle_pock_sqrt, _fercoq_bianchi_sqrt
 
 
-fig, axarr = plt.subplots(1, 2, sharey=True, figsize=[8., 3])
+fig, axarr = plt.subplots(1, 2, sharey=True, figsize=[8., 3],
+                          constrained_layout=True)
 # for normalize, ax in zip([False, True], axarr):
 for normalize, ax in zip([True, False], axarr):
-    X, y, _ = make_correlated_data(n_samples=200, n_features=100, random_state=24)
+    X, y, _ = make_correlated_data(n_samples=1000, n_features=500, random_state=24)
     if normalize:
         X /= norm(X, axis=0) ** 2
 
@@ -18,7 +19,7 @@ for normalize, ax in zip([True, False], axarr):
 
     alpha = alpha_max / 10
 
-    max_iter = 500
+    max_iter = 1000
     obj_freq = 10
     verbose = False
     w_cd, _, objs_cd = _fercoq_bianchi_sqrt(
@@ -37,10 +38,13 @@ for normalize, ax in zip([True, False], axarr):
 
     # p_star = min(np.min(objs), np.min(objs_cd))
     # plt.close('all')
-    ax.semilogy(objs - p_star, label="CP")
-    ax.semilogy(objs_cd - p_star, label="Fercoq Bianchi ")
+    ax.semilogy(np.arange(1, max_iter+1, obj_freq), objs - p_star, label="CP")
+    ax.semilogy(np.arange(1, max_iter+1, obj_freq),
+                objs_cd - p_star, label="Fercoq Bianchi ")
     ax.legend()
+    ax.set_xlabel("iteration")
     ax.set_title(f"Normalize={normalize}")
+axarr[0].set_ylabel("primal suboptimality")
 plt.show(block=False)
 
 

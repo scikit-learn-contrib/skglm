@@ -244,15 +244,15 @@ def _fercoq_bianchi_sqrt(X, y, alpha, max_iter=1000, obj_freq=10, verbose=False)
     objs = []
 
     for it in range(max_iter):
-        # roughly equal cost? rather 2 n_samples * n_features
+        # roughly equal cost to CP? rather 3 n_samples * n_features
         for j in range(n_features):
-            z_bar[:] = proj_L2ball(z + sigma * (Xw - y))
+            z_bar[:] = proj_L2ball(z + sigma * (Xw - y))  # n_samples
             w_j = w[j]
             w[j] = ST(w[j] - taus[j] * X[:, j] @ (2 * z_bar - z),
-                      alpha * np.sqrt(n_samples) * taus[j])
+                      alpha * np.sqrt(n_samples) * taus[j])  # n_samples
             update = w[j] - w_j
             if update != 0:
-                Xw += X[:, j] * update
+                Xw += X[:, j] * update  # n_samples
             z *= (1 - 1 / n_features)
             z += z_bar / n_features
 

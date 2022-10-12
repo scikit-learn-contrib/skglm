@@ -1,11 +1,12 @@
 import warnings
 import numpy as np
+from numba import njit
 from numpy.linalg import norm
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model._base import LinearModel, RegressorMixin
 
 from skglm.penalties import L1
-from skglm.utils import compiled_clone, ST_vec, proj_L2ball
+from skglm.utils import compiled_clone, ST, ST_vec, proj_L2ball
 from skglm.datafits.base import BaseDatafit
 from skglm.solvers.prox_newton import ProxNewton
 
@@ -226,6 +227,39 @@ def _chambolle_pock_sqrt(X, y, alpha, max_iter=1000, obj_freq=10, verbose=False)
         if t % obj_freq == 0:
             objs.append(norm(X @ w - y) / np.sqrt(n_samples) + alpha * norm(w, ord=1))
             if verbose:
-                print(f"Iter {t}, obj {objs[-1]: .10f}")
+                print("Iter {0}, obj {1:.10f}".format(t, objs[-1]))
+
+    return w, z, objs
+
+
+@njit
+def _fercoq_bianchi_sqrt(X, y, alpha, max_iter=1000, obj_freq=10, verbose=False):
+    n_samples, n_features = X.shape
+    w = np.zeros(n_features)
+    z = np.zeros(n_samples)
+    z_bar = np.zeros(n_samples)
+    Xw = np.zeros(n_samples)
+    sigma = 1 / n_features
+    taus = 1 / (2 * np.sum(X ** 2, axis=0))
+    objs = []
+
+    for it in range(max_iter):
+        # roughly equal cost? rather 2 n_samples * n_features
+        for j in range(n_features):
+            z_bar[:] = proj_L2ball(z + sigma * (Xw - y))
+            w_j = w[j]
+            w[j] = ST(w[j] - taus[j] * X[:, j] @ (2 * z_bar - z),
+                      alpha * np.sqrt(n_samples) * taus[j])
+            update = w[j] - w_j
+            if update != 0:
+                Xw += X[:, j] * update
+            z *= (1 - 1 / n_features)
+            z += z_bar / n_features
+
+        if it % obj_freq == 0:
+            objs.append(norm(Xw - y) / np.sqrt(n_samples) + alpha * norm(w, ord=1))
+            if verbose:
+                # print("Iter %d, obj %f" % (it, objs[-1]))
+                print("Iter ", it, objs[-1])
 
     return w, z, objs

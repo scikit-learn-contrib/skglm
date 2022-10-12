@@ -3,9 +3,10 @@ import numpy as np
 from numpy.linalg import norm
 import matplotlib.pyplot as plt
 from skglm.utils import make_correlated_data
-from skglm.experimental.sqrt_lasso import SqrtLasso, _chambolle_pock_sqrt
+from skglm.experimental.sqrt_lasso import SqrtLasso, _chambolle_pock_sqrt, _fercoq_bianchi_sqrt
 
 X, y, _ = make_correlated_data(n_samples=200, n_features=100, random_state=24)
+# X /= norm(X, axis=0) ** 2
 
 n_samples, n_features = X.shape
 alpha_max = norm(X.T @ y, ord=np.inf) / (norm(y) * np.sqrt(n_samples))
@@ -13,9 +14,13 @@ alpha_max = norm(X.T @ y, ord=np.inf) / (norm(y) * np.sqrt(n_samples))
 alpha = alpha_max / 10
 
 
-max_iter = 1000
+max_iter = 500
 obj_freq = 10
-w, _, objs = _chambolle_pock_sqrt(X, y, alpha, max_iter=max_iter, obj_freq=obj_freq)
+verbose = False
+w_cd, _, objs_cd = _fercoq_bianchi_sqrt(
+    X, y, alpha, max_iter=max_iter, obj_freq=obj_freq, verbose=verbose)
+w, _, objs = _chambolle_pock_sqrt(
+    X, y, alpha, max_iter=max_iter, obj_freq=obj_freq, verbose=verbose)
 
 
 # no convergence issue if n_features < n_samples, can use ProxNewton
@@ -27,8 +32,17 @@ clf.fit(X, y)
 w_star = clf.coef_
 p_star = norm(X @ w_star - y) / np.sqrt(n_samples) + alpha * norm(w_star, ord=1)
 
-plt.close("all")
-plt.semilogy(np.arange(1, max_iter+1, obj_freq), np.array(objs) - p_star)
-plt.xlabel("CP iteration")
-plt.ylabel("$F(x) - F(x^*)$")
+# p_star = min(np.min(objs), np.min(objs_cd))
+# plt.close('all')
+plt.figure()
+plt.semilogy(objs - p_star, label="CP")
+plt.semilogy(objs_cd - p_star, label="Fercoq Bianchi ")
+plt.legend()
 plt.show(block=False)
+
+
+# plt.close("all")
+# plt.semilogy(np.arange(1, max_iter+1, obj_freq), np.array(objs) - p_star)
+# plt.xlabel("CP iteration")
+# plt.ylabel("$F(x) - F(x^*)$")
+# plt.show(block=False)

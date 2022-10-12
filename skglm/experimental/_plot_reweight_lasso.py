@@ -19,7 +19,7 @@ alpha = alpha_max / 100
 tol = 1e-10
 
 
-def obj(w):
+def _obj(w):
     return (np.sum((y - X @ w) ** 2) / (2 * n_samples)
             + alpha * np.sum(np.sqrt(np.abs(w))))
 
@@ -59,8 +59,8 @@ print("Direct:", norm(direct_l05.coef_))
 
 print("#" * 20)
 print("Objective value")
-print("Reweighting:", obj(iterative_l05.coef_))
-print("Direct:", obj(direct_l05.coef_))
+print("Reweighting:", _obj(iterative_l05.coef_))
+print("Direct:", _obj(direct_l05.coef_))
 
 print("#" * 20)
 

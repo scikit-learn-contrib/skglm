@@ -18,16 +18,18 @@ alpha_max = norm(X.T @ y, ord=np.inf) / n_samples
 alpha = alpha_max / 100
 tol = 1e-10
 
+
 def obj(w):
     return (np.sum((y - X @ w) ** 2) / (2 * n_samples)
             + alpha * np.sum(np.sqrt(np.abs(w))))
+
 
 iterative_l05 = IterativeReweightedL1(
     alpha, solver=AndersonCD(tol=tol, fit_intercept=False))
 
 # `subdiff` strategy for WS is uninformative for L0_5
 direct_l05 = GeneralizedLinearEstimator(
-    penalty=L0_5(alpha), 
+    penalty=L0_5(alpha),
     solver=AndersonCD(tol=tol, fit_intercept=False, ws_strategy="fixpoint"))
 
 # TODO: cache compilation
@@ -65,4 +67,3 @@ print("#" * 20)
 print("Support recovery (F1 score)")
 print("Reweighting:", f1_score(w_true != 0, iterative_l05.coef_ != 0))
 print("Direct:", f1_score(w_true != 0, direct_l05.coef_ != 0))
-

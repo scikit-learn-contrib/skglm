@@ -15,7 +15,7 @@ X, y, w_true = make_correlated_data(
     n_samples=n_samples, n_features=n_features, random_state=24)
 
 alpha_max = norm(X.T @ y, ord=np.inf) / n_samples
-alpha = alpha_max / 1000
+alpha = alpha_max / 100
 tol = 1e-10
 
 def obj(w):
@@ -25,8 +25,10 @@ def obj(w):
 iterative_l05 = IterativeReweightedL1(
     alpha, solver=AndersonCD(tol=tol, fit_intercept=False))
 
+# `subdiff` strategy for WS is uninformative for L0_5
 direct_l05 = GeneralizedLinearEstimator(
-    penalty=L0_5(alpha), solver=AndersonCD(tol=tol, fit_intercept=False, verbose=2))
+    penalty=L0_5(alpha), 
+    solver=AndersonCD(tol=tol, fit_intercept=False, ws_strategy="fixpoint"))
 
 # TODO: cache compilation
 

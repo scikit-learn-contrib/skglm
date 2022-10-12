@@ -1,7 +1,7 @@
-from .reweighted import ReweightedEstimator
+from .reweighted import IterativeReweightedL1
 from .sqrt_lasso import SqrtLasso
 
 __all__ = [
     SqrtLasso,
-    ReweightedEstimator
+    IterativeReweightedL1
 ]

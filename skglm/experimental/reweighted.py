@@ -7,19 +7,19 @@ def _L05_objective(coef):
     return np.sqrt(np.abs(coef))
 
 
-def _L05_weights(coef):
+def _L05_derivative(coef):
     return 1. / (2. * np.sqrt(np.abs(coef)) + np.finfo(float).eps)
 
 
-def _log_sum_objective(coef, eps=0.01):
-    return np.log(eps + np.abs(coef))
+def _log_sum_objective(coef):
+    return np.log(np.abs(coef))
 
 
-def _log_sum_weights(coef, eps=0.01):
-    return 1. / (eps + np.abs(coef))
+def _log_sum_derivative(coef):
+    return 1. / (np.abs(coef))
 
 
-class ReweightedEstimator(GeneralizedLinearEstimator):
+class IterativeReweightedL1(GeneralizedLinearEstimator):
     r"""Reweighted L1-norm estimator.
 
     This estimator iteratively solves a non-convex objective by iteratively solving
@@ -41,6 +41,12 @@ class ReweightedEstimator(GeneralizedLinearEstimator):
     n_reweights : int, optional
         Number of reweighting iterations.
 
+    pen_obj : Callable, optional
+        Compute the concave objective.
+
+    pen_weight: Callable, optional
+        Compute the penalty weights from the coefficients.
+
     Attributes
     ----------
     coef_ : array, shape (n_features,)
@@ -55,12 +61,15 @@ class ReweightedEstimator(GeneralizedLinearEstimator):
            https://web.stanford.edu/~boyd/papers/pdf/rwl1.pdf
     """
 
-    def __init__(self, alpha, datafit=None, solver=None, n_reweights=5):
+    def __init__(self, alpha, datafit=None, solver=None, n_reweights=5,
+                 pen_obj=_L05_objective, pen_weight=_L05_derivative):
         super().__init__(
             datafit=datafit, penalty=WeightedL1(alpha, np.ones(1)), solver=solver)
         self.n_reweights = n_reweights
+        self.pen_obj = pen_obj
+        self.pen_weight = pen_weight
 
-    def fit(self, X, y, pen_obj=_L05_objective, pen_weight=_L05_weights):
+    def fit(self, X, y):
         """Fit the model according to the given training data.
 
         Parameters
@@ -71,12 +80,6 @@ class ReweightedEstimator(GeneralizedLinearEstimator):
 
         y : array-like, shape (n_samples,)
             Target vector relative to X.
-
-        pen_obj : Callable, optional
-            Compute the concave objective.
-
-        pen_weight: Callable, optional
-            Compute the penalty weights from the coefficients.
 
         Returns
         -------
@@ -89,11 +92,11 @@ class ReweightedEstimator(GeneralizedLinearEstimator):
 
         for iter_reweight in range(self.n_reweights):
             super().fit(X, y)
-            self.penalty.weights = pen_weight(self.coef_)
+            self.penalty.weights = self.pen_weight(self.coef_)
 
-            # XXX: dot product X @ w is slow in high-dimension, to be improved
+            # TODO: dot product X @ w is slow in high-dimension, to be improved
             loss = (self.datafit.value(y, self.coef_, X @ self.coef_)
-                    + self.penalty.alpha * np.sum(pen_obj(self.coef_)))
+                    + self.penalty.alpha * np.sum(self.pen_obj(self.coef_)))
             self.loss_history_.append(loss)
 
             if self.solver.verbose:

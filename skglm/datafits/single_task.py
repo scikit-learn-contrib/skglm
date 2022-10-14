@@ -63,15 +63,13 @@ class Quadratic(BaseDatafit):
         for j in range(n_features):
             nrm2 = 0.
             xty = 0
-            x2 = 0.
             for idx in range(X_indptr[j], X_indptr[j + 1]):
                 nrm2 += X_data[idx] ** 2
                 xty += X_data[idx] * y[X_indices[idx]]
-                x2 += X_data[idx] ** 2 / len(y)
 
             self.lipschitz[j] = nrm2 / len(y)
             self.Xty[j] = xty
-            self.global_lipschitz += x2
+            self.global_lipschitz += nrm2 / len(y)
 
     def value(self, y, w, Xw):
         return np.sum((y - Xw) ** 2) / (2 * len(Xw))
@@ -233,10 +231,9 @@ class QuadraticSVC(BaseDatafit):
     def initialize(self, yXT, y):
         n_features = yXT.shape[1]
         self.lipschitz = np.zeros(n_features, dtype=yXT.dtype)
-        self.global_lipschitz = 0.
+        self.global_lipschitz = norm(yXT, ord=2) ** 2 / len(y)
         for j in range(n_features):
             self.lipschitz[j] = norm(yXT[:, j]) ** 2
-            self.global_lipschitz += norm(yXT[:, j]) ** 2
 
     def initialize_sparse(
             self, yXT_data, yXT_indptr, yXT_indices, y):

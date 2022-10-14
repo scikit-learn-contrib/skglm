@@ -13,14 +13,35 @@ def _prox_vec(w, z, penalty, lipschitz):
 
 
 class FISTA(BaseSolver):
-    r"""ISTA solver with Nesterov acceleration (FISTA)."""
+    r"""ISTA solver with Nesterov acceleration (FISTA).
 
-    def __init__(self, max_iter=100, tol=1e-4, fit_intercept=False, warm_start=False,
-                 opt_freq=10, verbose=0):
+    This solver implements accelerated proximal gradient descent for linear problems.
+
+    Attributes
+    ----------
+    max_iter : int, default 100
+        Maximum number of iterations.
+
+    tol : float, default 1e-4
+        Tolerance for convergence.
+
+    opt_freq : int, default 10
+        Frequency for optimality condition check.
+
+    verbose : bool, default False
+        Amount of verbosity. 0/False is silent.
+
+    References
+    ----------
+    .. [1] Beck, A. and Teboulle M.
+           "A Fast Iterative Shrinkage-Thresholding Algorithm for Linear Inverse
+           problems", 2009, SIAM J. Imaging Sci.
+           https://epubs.siam.org/doi/10.1137/080716542
+    """
+
+    def __init__(self, max_iter=100, tol=1e-4, opt_freq=10, verbose=0):
         self.max_iter = max_iter
         self.tol = tol
-        self.fit_intercept = fit_intercept
-        self.warm_start = warm_start
         self.opt_freq = opt_freq
         self.verbose = verbose
 
@@ -33,8 +54,11 @@ class FISTA(BaseSolver):
         z = w_init.copy() if w_init is not None else np.zeros(n_features)
         Xw = Xw_init.copy() if Xw_init is not None else np.zeros(n_samples)
 
-        # TODO: OR line search
-        lipschitz = datafit.global_lipschitz
+        if hasattr(datafit, "global_lipschitz"):
+            lipschitz = datafit.global_lipschitz
+        else:
+            # TODO: OR line search
+            raise Exception("Line search is not yet implemented for FISTA solver.")
 
         for n_iter in range(self.max_iter):
             t_old = t_new

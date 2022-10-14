@@ -1,5 +1,6 @@
 import numpy as np
 from numpy.linalg import norm
+from skglm.datafits.single_task import Quadratic
 from skglm.solvers import FISTA
 from skglm.penalties import L1
 from skglm.estimators import Lasso
@@ -18,8 +19,10 @@ obj_freq = 100
 tol = 1e-10
 
 solver = FISTA(max_iter=max_iter, tol=tol, opt_freq=obj_freq, verbose=1)
+datafit = compiled_clone(Quadratic())
+datafit.initialize(X, y)
 penalty = compiled_clone(L1(alpha))
-w = solver.solve(X, y, penalty)
+w = solver.solve(X, y, datafit, penalty)
 
 clf = Lasso(alpha=alpha, tol=tol, fit_intercept=False)
 clf.fit(X, y)

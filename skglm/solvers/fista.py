@@ -1,6 +1,7 @@
 import numpy as np
 from numba import njit
 from skglm.solvers.base import BaseSolver
+from skglm.solvers.common import construct_grad
 
 
 @njit
@@ -23,28 +24,27 @@ class FISTA(BaseSolver):
         self.opt_freq = opt_freq
         self.verbose = verbose
 
-    def solve(self, X, y, penalty, w_init=None, weights=None):
-        # needs a quadratic datafit, but works with L1, WeightedL1, SLOPE
+    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
         n_samples, n_features = X.shape
         all_features = np.arange(n_features)
         t_new = 1
 
         w = w_init.copy() if w_init is not None else np.zeros(n_features)
         z = w_init.copy() if w_init is not None else np.zeros(n_features)
-        weights = weights if weights is not None else np.ones(n_features)
+        Xw = Xw_init.copy() if Xw_init is not None else np.zeros(n_samples)
 
-        # FISTA with Gram update
-        G = X.T @ X
-        Xty = X.T @ y
+        # line search?
+        # lipschitz = np.max(datafit.lipschitz)
         lipschitz = np.linalg.norm(X, ord=2) ** 2 / n_samples
 
         for n_iter in range(self.max_iter):
             t_old = t_new
             t_new = (1 + np.sqrt(1 + 4 * t_old ** 2)) / 2
             w_old = w.copy()
-            grad = (G @ z - Xty) / n_samples
+            grad = construct_grad(X, y, z, X @ z, datafit, all_features)
             z -= grad / lipschitz
             w = _prox_vec(w, z, penalty, lipschitz)
+            Xw = X @ w
             z = w + (t_old - 1.) / t_new * (w - w_old)
 
             if n_iter % self.opt_freq == 0:
@@ -52,8 +52,7 @@ class FISTA(BaseSolver):
                 stop_crit = np.max(opt)
 
                 if self.verbose:
-                    p_obj = (np.sum((y - X @ w) ** 2) / (2 * n_samples)
-                             + penalty.value(w))
+                    p_obj = datafit.value(y, w, Xw) + penalty.value(w)
                     print(
                         f"Iteration {n_iter+1}: {p_obj:.10f}, "
                         f"stopping crit: {stop_crit:.2e}"

@@ -33,9 +33,8 @@ class FISTA(BaseSolver):
         z = w_init.copy() if w_init is not None else np.zeros(n_features)
         Xw = Xw_init.copy() if Xw_init is not None else np.zeros(n_samples)
 
-        # line search?
-        # lipschitz = np.max(datafit.lipschitz)
-        lipschitz = np.linalg.norm(X, ord=2) ** 2 / n_samples
+        # TODO: OR line search
+        lipschitz = datafit.global_lipschitz
 
         for n_iter in range(self.max_iter):
             t_old = t_new

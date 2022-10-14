@@ -1,6 +1,13 @@
 import numpy as np
 from numba import njit
+from skglm.solvers.common import dist_fix_point
 from skglm.solvers.base import BaseSolver
+
+
+def dist_fix_point(w, grad_ws, lipschitz, penalty, ws):
+    dist_fix_point = np.zeros(ws.shape[0])
+    dist_fix_point = np.abs(w - penalty.prox_vec(w - grad_ws / lipschitz, 1 / lipschitz))
+    return dist_fix_point
 
 
 class FISTA(BaseSolver):
@@ -12,7 +19,7 @@ class FISTA(BaseSolver):
         self.tol = tol
         self.fit_intercept = fit_intercept
         self.warm_start = warm_start
-        self.opt_freq = opt_freq 
+        self.opt_freq = opt_freq
         self.verbose = verbose
 
     def solve(self, X, y, penalty, w_init=None, weights=None):
@@ -38,17 +45,19 @@ class FISTA(BaseSolver):
             z -= grad / lipschitz
             # TODO: TO DISCUSS!
             # XXX: should add a full prox update
-            for j in range(n_features):
-                w[j] = penalty.prox_1d(z[j], 1 / lipschitz, j)
+            # for j in range(n_features):
+            #     w[j] = penalty.prox_1d(z[j], 1 / lipschitz, j)
+            w = penalty.prox_vec(z, 1 / lipschitz)
             z = w + (t_old - 1.) / t_new * (w - w_old)
 
             if n_iter % self.opt_freq == 0:
-                opt = penalty.subdiff_distance(w, grad, all_features)
+                # opt = penalty.subdiff_distance(w, grad, all_features)
+                opt = dist_fix_point(w, grad, lipschitz, penalty, all_features) 
                 stop_crit = np.max(opt)
 
                 if self.verbose:
                     p_obj = (np.sum((y - X @ w) ** 2) / (2 * n_samples)
-                             + penalty.alpha * penalty.value(w))
+                             + penalty.value(w))
                     print(
                         f"Iteration {n_iter+1}: {p_obj:.10f}, "
                         f"stopping crit: {stop_crit:.2e}"

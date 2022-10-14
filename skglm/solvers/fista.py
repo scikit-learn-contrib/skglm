@@ -5,7 +5,6 @@ from skglm.solvers.base import BaseSolver
 
 @njit
 def _prox_vec(w, z, penalty, lipschitz):
-    # XXX: TO DISCUSS: should add a vectorized prox update
     n_features = w.shape[0]
     for j in range(n_features):
         w[j] = penalty.prox_1d(z[j], 1 / lipschitz, j)
@@ -16,7 +15,7 @@ class FISTA(BaseSolver):
     r"""ISTA solver with Nesterov acceleration (FISTA)."""
 
     def __init__(self, max_iter=100, tol=1e-4, fit_intercept=False, warm_start=False,
-                 opt_freq=100, verbose=0):
+                 opt_freq=10, verbose=0):
         self.max_iter = max_iter
         self.tol = tol
         self.fit_intercept = fit_intercept

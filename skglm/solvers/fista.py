@@ -67,7 +67,7 @@ class FISTA(BaseSolver):
             w_old = w.copy()
             if issparse(X):
                 grad = construct_grad_sparse(
-                    X.data, X.indptr, X.indices, y, z, X @ z, datafit, all_features) 
+                    X.data, X.indptr, X.indices, y, z, X @ z, datafit, all_features)
             else:
                 grad = construct_grad(X, y, z, X @ z, datafit, all_features)
             z -= grad / lipschitz

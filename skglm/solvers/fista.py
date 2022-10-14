@@ -1,8 +1,9 @@
 import numpy as np
+from scipy.sparse import issparse
 from numba import njit
 from skglm.solvers.common import dist_fix_point
 from skglm.solvers.base import BaseSolver
-from skglm.solvers.common import construct_grad
+from skglm.solvers.common import construct_grad, construct_grad_sparse
 
 
 @njit
@@ -71,7 +72,11 @@ class FISTA(BaseSolver):
             t_old = t_new
             t_new = (1 + np.sqrt(1 + 4 * t_old ** 2)) / 2
             w_old = w.copy()
-            grad = construct_grad(X, y, z, X @ z, datafit, all_features)
+            if issparse(X):
+                grad = construct_grad_sparse(
+                    X.data, X.indptr, X.indices, y, z, X @ z, datafit, all_features) 
+            else:
+                grad = construct_grad(X, y, z, X @ z, datafit, all_features)
             z -= grad / lipschitz
             w = _prox_vec(w, z, penalty, lipschitz)
             Xw = X @ w

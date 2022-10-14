@@ -231,7 +231,7 @@ class QuadraticSVC(BaseDatafit):
     def initialize(self, yXT, y):
         n_features = yXT.shape[1]
         self.lipschitz = np.zeros(n_features, dtype=yXT.dtype)
-        self.global_lipschitz = norm(yXT, ord=2) ** 2 / len(y)
+        self.global_lipschitz = norm(yXT, ord=2) ** 2
         for j in range(n_features):
             self.lipschitz[j] = norm(yXT[:, j]) ** 2
 

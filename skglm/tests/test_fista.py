@@ -2,45 +2,50 @@ import pytest
 
 import numpy as np
 from numpy.linalg import norm
+from scipy.sparse import csc_matrix, issparse
 
 from skglm.datafits import Quadratic, Logistic, QuadraticSVC
-from skglm.estimators import Lasso, LinearSVC, SparseLogisticRegression
 from skglm.penalties import L1, IndicatorBox
-from skglm.solvers import FISTA
+from skglm.solvers import FISTA, AndersonCD
 from skglm.utils import make_correlated_data, compiled_clone
 
 
-n_samples, n_features = 10, 20
+np.random.seed(0)
+n_samples, n_features = 50, 60
 X, y, _ = make_correlated_data(
     n_samples=n_samples, n_features=n_features, random_state=0)
+X_sparse = csc_matrix(X * np.random.binomial(1, 0.1, X.shape))
 y_classif = np.sign(y)
 
 alpha_max = norm(X.T @ y, ord=np.inf) / len(y)
 alpha = alpha_max / 100
 
-tol = 1e-8
+tol = 1e-10
 
-# TODO: use GeneralizedLinearEstimator (to test global lipschtiz constants of every datafit)
-# TODO: test sparse matrices (global lipschitz constants)
-@pytest.mark.parametrize("Datafit, Penalty, Estimator", [
-    (Quadratic, L1, Lasso),
-    (Logistic, L1, SparseLogisticRegression),
-    (QuadraticSVC, IndicatorBox, LinearSVC),
+
+@pytest.mark.parametrize("X", [X, X_sparse])
+@pytest.mark.parametrize("Datafit, Penalty", [
+    (Quadratic, L1),
+    (Logistic, L1),
+    (QuadraticSVC, IndicatorBox),
 ])
-def test_fista_solver(Datafit, Penalty, Estimator):
+def test_fista_solver(X, Datafit, Penalty):
     _y = y if isinstance(Datafit, Quadratic) else y_classif
     datafit = compiled_clone(Datafit())
     _init = y @ X.T if isinstance(Datafit, QuadraticSVC) else X
-    datafit.initialize(_init, _y)
+    if issparse(X):
+        datafit.initialize_sparse(_init.data, _init.indptr, _init.indices, _y)
+    else:
+        datafit.initialize(_init, _y)
     penalty = compiled_clone(Penalty(alpha))
 
-    solver = FISTA(max_iter=1000, tol=tol)
+    solver = FISTA(max_iter=1000, tol=tol, opt_freq=1)
     w = solver.solve(X, _y, datafit, penalty)
 
-    estimator = Estimator(alpha, tol=tol, fit_intercept=False)
-    estimator.fit(X, _y)
+    solver_cd = AndersonCD(tol=tol, fit_intercept=False)
+    w_cd = solver_cd.solve(X, _y, datafit, penalty)[0]
 
-    np.testing.assert_allclose(w, estimator.coef_.flatten(), rtol=1e-3)
+    np.testing.assert_allclose(w, w_cd, rtol=1e-3)
 
 
 if __name__ == '__main__':

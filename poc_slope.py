@@ -1,9 +1,11 @@
+from numba import njit, float64
 import numpy as np
 from numpy.linalg import norm
 from skglm.solvers import FISTA
-from skglm.penalties import BasePenalty, L1
+from skglm.datafits import Quadratic
+from skglm.penalties import BasePenalty
 from skglm.estimators import Lasso
-from skglm.utils import make_correlated_data
+from skglm.utils import make_correlated_data, compiled_clone
 
 
 X, y, _ = make_correlated_data(n_samples=200, n_features=100, random_state=24)
@@ -21,6 +23,15 @@ tol = 1e-10
 class SLOPE(BasePenalty):
     def __init__(self, alphas):
         self.alphas = alphas
+    
+    def get_spec(self):
+        spec = (
+            ('alphas', float64[:]),
+        )
+        return spec
+    
+    def params_to_dict(self):
+        return dict(alphas=self.alphas)
 
     def value(self, w):
         sorted_indices = np.argsort(w)[::-1]  # descending order
@@ -37,6 +48,7 @@ class SLOPE(BasePenalty):
         return _prox(x, self.alphas * stepsize)
 
 
+@njit
 def fast_prox_SL1(y, alphas):
     # w, alphas: nonnegative and nonincreasing sequences
     n_features = y.shape[0]
@@ -72,9 +84,15 @@ def fast_prox_SL1(y, alphas):
 
 
 
-# TODO: optimality conditions via violation to the fixed point
 solver = FISTA(max_iter=max_iter, tol=tol, opt_freq=obj_freq, verbose=1)
-# penalty = compiled_clone(L1(alpha))
-penalty = SLOPE(alpha)
-w = solver.solve(X, y, penalty)
+penalty = compiled_clone(SLOPE(alpha))
+datafit = compiled_clone(Quadratic())
+datafit.initialize(X, y)
+w = solver.solve(X, y, datafit, penalty)
 
+
+# check that solution is equal to Lasso's
+estimator = Lasso(alpha[0], fit_intercept=False, tol=tol)
+estimator.fit(X, y)
+
+np.testing.assert_allclose(w, estimator.coef_, rtol=1e-5)

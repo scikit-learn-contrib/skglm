@@ -7,9 +7,9 @@ from skglm.solvers.common import construct_grad
 
 @njit
 def _prox_vec(w, z, penalty, lipschitz):
-    n_features = w.shape[0]
-    for j in range(n_features):
-        w[j] = penalty.prox_1d(z[j], 1 / lipschitz, j)
+    w = penalty.prox_vec(z, 1 / lipschitz)
+    # for j in range(n_features):
+    #     w[j] = penalty.prox_1d(z[j], 1 / lipschitz, j)
     return w
 
 

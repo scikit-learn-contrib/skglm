@@ -2,6 +2,15 @@ import numpy as np
 from numba import njit
 from skglm.solvers.common import dist_fix_point
 from skglm.solvers.base import BaseSolver
+from skglm.solvers.common import construct_grad
+
+
+@njit
+def _prox_vec(w, z, penalty, lipschitz):
+    n_features = w.shape[0]
+    for j in range(n_features):
+        w[j] = penalty.prox_1d(z[j], 1 / lipschitz, j)
+    return w
 
 
 def dist_fix_point(w, grad_ws, lipschitz, penalty, ws):
@@ -11,43 +20,61 @@ def dist_fix_point(w, grad_ws, lipschitz, penalty, ws):
 
 
 class FISTA(BaseSolver):
-    r"""ISTA solver with Nesterov acceleration (FISTA)."""
+    r"""ISTA solver with Nesterov acceleration (FISTA).
 
-    def __init__(self, max_iter=100, tol=1e-4, fit_intercept=False, warm_start=False,
-                 opt_freq=50, verbose=0):
+    This solver implements accelerated proximal gradient descent for linear problems.
+
+    Attributes
+    ----------
+    max_iter : int, default 100
+        Maximum number of iterations.
+
+    tol : float, default 1e-4
+        Tolerance for convergence.
+
+    opt_freq : int, default 10
+        Frequency for optimality condition check.
+
+    verbose : bool, default False
+        Amount of verbosity. 0/False is silent.
+
+    References
+    ----------
+    .. [1] Beck, A. and Teboulle M.
+           "A Fast Iterative Shrinkage-Thresholding Algorithm for Linear Inverse
+           problems", 2009, SIAM J. Imaging Sci.
+           https://epubs.siam.org/doi/10.1137/080716542
+    """
+
+    def __init__(self, max_iter=100, tol=1e-4, opt_freq=10, verbose=0):
         self.max_iter = max_iter
         self.tol = tol
-        self.fit_intercept = fit_intercept
-        self.warm_start = warm_start
         self.opt_freq = opt_freq
         self.verbose = verbose
 
-    def solve(self, X, y, penalty, w_init=None, weights=None):
-        # needs a quadratic datafit, but works with L1, WeightedL1, SLOPE
+    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
         n_samples, n_features = X.shape
         all_features = np.arange(n_features)
         t_new = 1
 
         w = w_init.copy() if w_init is not None else np.zeros(n_features)
         z = w_init.copy() if w_init is not None else np.zeros(n_features)
-        weights = weights if weights is not None else np.ones(n_features)
+        Xw = Xw_init.copy() if Xw_init is not None else np.zeros(n_samples)
 
-        # FISTA with Gram update
-        G = X.T @ X
-        Xty = X.T @ y
-        lipschitz = np.linalg.norm(X, ord=2) ** 2 / n_samples
+        if hasattr(datafit, "global_lipschitz"):
+            lipschitz = datafit.global_lipschitz
+        else:
+            # TODO: OR line search
+            raise Exception("Line search is not yet implemented for FISTA solver.")
 
         for n_iter in range(self.max_iter):
             t_old = t_new
             t_new = (1 + np.sqrt(1 + 4 * t_old ** 2)) / 2
             w_old = w.copy()
-            grad = (G @ z - Xty) / n_samples
+            grad = construct_grad(X, y, z, X @ z, datafit, all_features)
             z -= grad / lipschitz
-            # TODO: TO DISCUSS!
-            # XXX: should add a full prox update
-            # for j in range(n_features):
-            #     w[j] = penalty.prox_1d(z[j], 1 / lipschitz, j)
-            w = penalty.prox_vec(z, 1 / lipschitz)
+            w = _prox_vec(w, z, penalty, lipschitz)
+            Xw = X @ w
             z = w + (t_old - 1.) / t_new * (w - w_old)
 
             if n_iter % self.opt_freq == 0:
@@ -56,8 +83,7 @@ class FISTA(BaseSolver):
                 stop_crit = np.max(opt)
 
                 if self.verbose:
-                    p_obj = (np.sum((y - X @ w) ** 2) / (2 * n_samples)
-                             + penalty.value(w))
+                    p_obj = datafit.value(y, w, Xw) + penalty.value(w)
                     print(
                         f"Iteration {n_iter+1}: {p_obj:.10f}, "
                         f"stopping crit: {stop_crit:.2e}"

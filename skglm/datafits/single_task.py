@@ -22,6 +22,10 @@ class Quadratic(BaseDatafit):
         The coordinatewise gradient Lipschitz constants. Equal to
         norm(X, axis=0) ** 2 / n_samples.
 
+    global_lipschitz : float
+        Global Lipschitz constant. Equal to
+        norm(X, ord=2) ** 2 / n_samples.
+
     Note
     ----
     The class is jit compiled at fit time using Numba compiler.
@@ -35,6 +39,7 @@ class Quadratic(BaseDatafit):
         spec = (
             ('Xty', float64[:]),
             ('lipschitz', float64[:]),
+            ('global_lipschitz', float64),
         )
         return spec
 
@@ -44,6 +49,7 @@ class Quadratic(BaseDatafit):
     def initialize(self, X, y):
         self.Xty = X.T @ y
         n_features = X.shape[1]
+        self.global_lipschitz = norm(X, ord=2) ** 2 / len(y)
         self.lipschitz = np.zeros(n_features, dtype=X.dtype)
         for j in range(n_features):
             self.lipschitz[j] = (X[:, j] ** 2).sum() / len(y)
@@ -53,15 +59,19 @@ class Quadratic(BaseDatafit):
         n_features = len(X_indptr) - 1
         self.Xty = np.zeros(n_features, dtype=X_data.dtype)
         self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
+        self.global_lipschitz = 0.
         for j in range(n_features):
             nrm2 = 0.
             xty = 0
+            x2 = 0.
             for idx in range(X_indptr[j], X_indptr[j + 1]):
                 nrm2 += X_data[idx] ** 2
                 xty += X_data[idx] * y[X_indices[idx]]
+                x2 += X_data[idx] ** 2 / len(y)
 
             self.lipschitz[j] = nrm2 / len(y)
             self.Xty[j] = xty
+            self.global_lipschitz += x2
 
     def value(self, y, w, Xw):
         return np.sum((y - Xw) ** 2) / (2 * len(Xw))
@@ -111,6 +121,10 @@ class Logistic(BaseDatafit):
         The coordinatewise gradient Lipschitz constants. Equal to
         norm(X, axis=0) ** 2 / (4 * n_samples).
 
+    global_lipschitz : float
+        Global Lipschitz constant. Equal to
+        norm(X, ord=2) ** 2 / (4 * n_samples).
+
     Note
     ----
     The class is jit compiled at fit time using Numba compiler.
@@ -123,6 +137,7 @@ class Logistic(BaseDatafit):
     def get_spec(self):
         spec = (
             ('lipschitz', float64[:]),
+            ('global_lipschitz', float64),
         )
         return spec
 
@@ -140,13 +155,16 @@ class Logistic(BaseDatafit):
 
     def initialize(self, X, y):
         self.lipschitz = (X ** 2).sum(axis=0) / (len(y) * 4)
+        self.global_lipschitz = norm(X, ord=2) ** 2 / (len(y) * 4)
 
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
         n_features = len(X_indptr) - 1
         self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
+        self.global_lipschitz = 0.
         for j in range(n_features):
             Xj = X_data[X_indptr[j]:X_indptr[j+1]]
             self.lipschitz[j] = (Xj ** 2).sum() / (len(y) * 4)
+            self.global_lipschitz += (Xj ** 2).sum() / (len(y) * 4)
 
     def value(self, y, w, Xw):
         return np.log(1. + np.exp(- y * Xw)).sum() / len(y)
@@ -187,6 +205,11 @@ class QuadraticSVC(BaseDatafit):
     ----------
     lipschitz : array, shape (n_features,)
         The coordinatewise gradient Lipschitz constants.
+        Equal to norm(yXT, axis=0) ** 2.
+
+    global_lipschitz : float
+        Global Lipschitz constant. Equal to
+        norm(yXT, ord=2) ** 2.
 
     Note
     ----
@@ -200,6 +223,7 @@ class QuadraticSVC(BaseDatafit):
     def get_spec(self):
         spec = (
             ('lipschitz', float64[:]),
+            ('global_lipschitz', float64),
         )
         return spec
 
@@ -209,18 +233,22 @@ class QuadraticSVC(BaseDatafit):
     def initialize(self, yXT, y):
         n_features = yXT.shape[1]
         self.lipschitz = np.zeros(n_features, dtype=yXT.dtype)
+        self.global_lipschitz = 0.
         for j in range(n_features):
             self.lipschitz[j] = norm(yXT[:, j]) ** 2
+            self.global_lipschitz += norm(yXT[:, j]) ** 2
 
     def initialize_sparse(
             self, yXT_data, yXT_indptr, yXT_indices, y):
         n_features = len(yXT_indptr) - 1
         self.lipschitz = np.zeros(n_features, dtype=yXT_data.dtype)
+        self.global_lipschitz = 0.
         for j in range(n_features):
             nrm2 = 0.
             for idx in range(yXT_indptr[j], yXT_indptr[j + 1]):
                 nrm2 += yXT_data[idx] ** 2
             self.lipschitz[j] = nrm2
+            self.global_lipschitz += nrm2
 
     def value(self, y, w, yXTw):
         return (yXTw ** 2).sum() / 2 - np.sum(w)
@@ -264,8 +292,16 @@ class Huber(BaseDatafit):
 
     Attributes
     ----------
+    delta : float
+        Shape hyperparameter.
+
     lipschitz : array, shape (n_features,)
-        The coordinatewise gradient Lipschitz constants.
+        The coordinatewise gradient Lipschitz constants. Equal to
+        norm(X, axis=0) ** 2 / n_samples.
+
+    global_lipschitz : float
+        Global Lipschitz constant. Equal to
+        norm(X, ord=2) ** 2 / n_samples.
 
     Note
     ----
@@ -279,7 +315,8 @@ class Huber(BaseDatafit):
     def get_spec(self):
         spec = (
             ('delta', float64),
-            ('lipschitz', float64[:])
+            ('lipschitz', float64[:]),
+            ('global_lipschitz', float64),
         )
         return spec
 
@@ -289,18 +326,22 @@ class Huber(BaseDatafit):
     def initialize(self, X, y):
         n_features = X.shape[1]
         self.lipschitz = np.zeros(n_features, dtype=X.dtype)
+        self.global_lipschitz = 0.
         for j in range(n_features):
             self.lipschitz[j] = (X[:, j] ** 2).sum() / len(y)
+            self.global_lipschitz += (X[:, j] ** 2).sum() / len(y)
 
     def initialize_sparse(
             self, X_data, X_indptr, X_indices, y):
         n_features = len(X_indptr) - 1
         self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
+        self.global_lipschitz = 0.
         for j in range(n_features):
             nrm2 = 0.
             for idx in range(X_indptr[j], X_indptr[j + 1]):
                 nrm2 += X_data[idx] ** 2
             self.lipschitz[j] = nrm2 / len(y)
+            self.global_lipschitz += nrm2 / len(y)
 
     def value(self, y, w, Xw):
         n_samples = len(y)

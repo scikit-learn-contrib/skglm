@@ -168,7 +168,7 @@ def test_equivalence_logreg(rho):
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=rnd)
     y = np.sign(y)
 
-    grp_indices, grp_ptr = grp_converter(1, n_features, shuffle=False)
+    grp_indices, grp_ptr = grp_converter(1, n_features)
     weights = np.ones(n_features)
     alpha_max = norm(X.T @ y, ord=np.inf) / (2 * n_samples)
     alpha = rho * alpha_max / 10.
@@ -186,12 +186,12 @@ def test_equivalence_logreg(rho):
                                    fit_intercept=False, tol=1e-12, solver='liblinear')
     sk_logreg.fit(X, y)
 
-    np.testing.assert_allclose(sk_logreg.coef_.flatten(), w)
+    np.testing.assert_allclose(sk_logreg.coef_.flatten(), w, atol=1e-6, rtol=1e-5)
 
 
 @pytest.mark.parametrize("n_groups, rho", [[15, 1e-1], [25, 1e-2]])
 def test_group_logreg(n_groups, rho):
-    n_samples, n_features, shuffle = 30, 100, True
+    n_samples, n_features, shuffle = 30, 60, True
     random_state = 123
 
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=random_state)

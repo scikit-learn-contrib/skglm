@@ -262,5 +262,4 @@ def test_anderson_acceleration():
 
 
 if __name__ == "__main__":
-    test_group_logreg(20, 1e-1)
     pass

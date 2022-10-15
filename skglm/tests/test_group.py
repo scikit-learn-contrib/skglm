@@ -5,12 +5,13 @@ from numpy.linalg import norm
 from skglm.penalties import L1
 from skglm.datafits import Quadratic
 from skglm.penalties.block_separable import WeightedGroupL2
-from skglm.datafits.group import QuadraticGroup
+from skglm.datafits.group import QuadraticGroup, LogisticGroup
 from skglm.solvers import GroupBCD
 from skglm.utils import (
     _alpha_max_group_lasso, grp_converter, make_correlated_data, compiled_clone,
     AndersonAcceleration)
 from celer import GroupLasso, Lasso
+from sklearn.linear_model import LogisticRegression
 
 
 def _generate_random_grp(n_groups, n_features, shuffle=True):
@@ -160,6 +161,66 @@ def test_intercept_grouplasso():
     np.testing.assert_allclose(model.intercept_, w[-1], atol=1e-5)
 
 
+@pytest.mark.parametrize("rho", [1e-1, 1e-2])
+def test_equivalence_logreg(rho):
+    n_samples, n_features = 30, 50
+    rnd = np.random.RandomState(1123)
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=rnd)
+    y = np.sign(y)
+
+    grp_indices, grp_ptr = grp_converter(1, n_features, shuffle=False)
+    weights = np.ones(n_features)
+    alpha_max = norm(X.T @ y, ord=np.inf) / (2 * n_samples)
+    alpha = rho * alpha_max / 10.
+
+    log_group = LogisticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
+    group_penalty = WeightedGroupL2(
+        alpha=alpha, grp_ptr=grp_ptr,
+        grp_indices=grp_indices, weights=weights)
+
+    log_group = compiled_clone(log_group, to_float32=X.dtype == np.float32)
+    group_penalty = compiled_clone(group_penalty)
+    w = GroupBCD(tol=1e-12).solve(X, y, log_group, group_penalty)[0]
+
+    sk_logreg = LogisticRegression(penalty='l1', C=1/(n_samples * alpha),
+                                   fit_intercept=False, tol=1e-12, solver='liblinear')
+    sk_logreg.fit(X, y)
+
+    np.testing.assert_allclose(sk_logreg.coef_.flatten(), w)
+
+
+@pytest.mark.parametrize("n_groups, rho", [[15, 1e-1], [25, 1e-2]])
+def test_group_logreg(n_groups, rho):
+    n_samples, n_features, shuffle = 30, 100, True
+    random_state = 123
+
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=random_state)
+    y = np.sign(y)
+
+    np.random.seed(random_state)
+    weights = np.abs(np.random.randn(n_groups))
+    grp_indices, grp_ptr, _ = _generate_random_grp(n_groups, n_features, shuffle)
+
+    alpha_max = 0.
+    for g in range(n_groups):
+        grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
+        alpha_max = max(
+            alpha_max,
+            norm(X[:, grp_g_indices].T @ y) / n_samples / weights[g]
+        )
+    alpha = rho * alpha_max
+
+    # skglm
+    log_group = LogisticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
+    group_penalty = WeightedGroupL2(alpha, weights, grp_ptr, grp_indices)
+
+    log_group = compiled_clone(log_group, to_float32=X.dtype == np.float32)
+    group_penalty = compiled_clone(group_penalty)
+    stop_crit = GroupBCD(tol=1e-12).solve(X, y, log_group, group_penalty)[2]
+
+    np.testing.assert_array_less(stop_crit, 1e-12)
+
+
 def test_anderson_acceleration():
     # VAR: w = rho * w + 1 with |rho| < 1
     # converges to w_star = 1 / (1 - rho)
@@ -201,4 +262,5 @@ def test_anderson_acceleration():
 
 
 if __name__ == "__main__":
+    test_group_logreg(20, 1e-1)
     pass

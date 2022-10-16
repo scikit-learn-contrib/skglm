@@ -39,13 +39,13 @@ def test_fista_solver(X, Datafit, Penalty):
         datafit.initialize(_init, _y)
     penalty = compiled_clone(Penalty(alpha))
 
-    solver = FISTA(max_iter=1000, tol=tol, opt_freq=1)
-    w = solver.solve(X, _y, datafit, penalty)
+    solver = FISTA(max_iter=1000, tol=tol) 
+    res_fista = solver.solve(X, _y, datafit, penalty)
 
     solver_cd = AndersonCD(tol=tol, fit_intercept=False)
-    w_cd = solver_cd.solve(X, _y, datafit, penalty)[0]
+    res_cd = solver_cd.solve(X, _y, datafit, penalty)
 
-    np.testing.assert_allclose(w, w_cd, rtol=1e-3)
+    np.testing.assert_allclose(res_fista[0], res_cd[0], rtol=1e-3)
 
 
 if __name__ == '__main__':

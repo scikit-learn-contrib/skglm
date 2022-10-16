@@ -35,6 +35,7 @@ class FISTA(BaseSolver):
         self.verbose = verbose
 
     def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+        p_objs_out = []
         n_samples, n_features = X.shape
         all_features = np.arange(n_features)
         t_new = 1
@@ -66,8 +67,9 @@ class FISTA(BaseSolver):
             opt = penalty.subdiff_distance(w, grad, all_features)
             stop_crit = np.max(opt)
 
+            p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+            p_objs_out.append(p_obj)
             if self.verbose:
-                p_obj = datafit.value(y, w, Xw) + penalty.value(w)
                 print(
                     f"Iteration {n_iter+1}: {p_obj:.10f}, "
                     f"stopping crit: {stop_crit:.2e}"
@@ -77,4 +79,4 @@ class FISTA(BaseSolver):
                 if self.verbose:
                     print(f"Stopping criterion max violation: {stop_crit:.2e}")
                 break
-        return w
+        return w, np.array(p_objs_out), stop_crit

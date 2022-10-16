@@ -290,7 +290,7 @@ class Huber(BaseDatafit):
     Attributes
     ----------
     delta : float
-        Shape hyperparameter.
+        Threshold hyperparameter.
 
     lipschitz : array, shape (n_features,)
         The coordinatewise gradient Lipschitz constants. Equal to

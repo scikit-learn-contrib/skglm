@@ -1,16 +1,8 @@
 import numpy as np
 from scipy.sparse import issparse
-from numba import njit
 from skglm.solvers.base import BaseSolver
 from skglm.solvers.common import construct_grad, construct_grad_sparse
-
-
-@njit
-def _prox_vec(w, z, penalty, lipschitz):
-    n_features = w.shape[0]
-    for j in range(n_features):
-        w[j] = penalty.prox_1d(z[j], 1 / lipschitz, j)
-    return w
+from skglm.utils import prox_vec
 
 
 class FISTA(BaseSolver):
@@ -71,7 +63,7 @@ class FISTA(BaseSolver):
             else:
                 grad = construct_grad(X, y, z, X @ z, datafit, all_features)
             z -= grad / lipschitz
-            w = _prox_vec(w, z, penalty, lipschitz)
+            w = prox_vec(w, z, penalty, lipschitz)
             Xw = X @ w
             z = w + (t_old - 1.) / t_new * (w - w_old)
 

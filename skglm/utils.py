@@ -457,3 +457,32 @@ class AndersonAcceleration:
         C = inv_UTU_ones / np.sum(inv_UTU_ones)
         # floating point errors may cause w and Xw to disagree
         return self.arr_w_[:, 1:] @ C, self.arr_Xw_[:, 1:] @ C, True
+
+
+@njit
+def prox_vec(w, z, penalty, lipschitz):
+    """Evaluate the vectorized proximal operator for the FISTA solver.
+
+    Parameters
+    ----------
+    w : array, shape (n_features,)
+        Coefficient vector.
+
+    z : array, shape (n_features,)
+        FISTA auxiliary variable.
+
+    penalty : instance of Penalty.
+        Penalty object.
+
+    lipschitz : float
+        Global Lipschitz constant.
+
+    Returns
+    -------
+    w : array; shape (n_features,)
+        Updated coefficient vector.
+    """
+    n_features = w.shape[0]
+    for j in range(n_features):
+        w[j] = penalty.prox_1d(z[j], 1 / lipschitz, j)
+    return w

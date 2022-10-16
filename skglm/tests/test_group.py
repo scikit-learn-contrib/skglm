@@ -222,7 +222,7 @@ def test_group_logreg(n_groups, rho):
 
 
 @pytest.mark.parametrize("n_groups, rho", [[15, 1e-1], [25, 1e-2]])
-def test_group_logreg(n_groups, rho):
+def test_group_prox_newton(n_groups, rho):
     n_samples, n_features, shuffle = 30, 60, True
     random_state = 123
 
@@ -248,10 +248,9 @@ def test_group_logreg(n_groups, rho):
 
     log_group = compiled_clone(log_group, to_float32=X.dtype == np.float32)
     group_penalty = compiled_clone(group_penalty)
-    stop_crit = GroupProxNewton(tol=1e-12, verbose=1).solve(X,
-                                                            y, log_group, group_penalty)[2]
+    stop_crit = GroupProxNewton(tol=1e-12).solve(X, y, log_group, group_penalty)[2]
 
-    # np.testing.assert_array_less(stop_crit, 1e-12)
+    np.testing.assert_array_less(stop_crit, 1e-12)
 
 
 def test_anderson_acceleration():
@@ -295,5 +294,4 @@ def test_anderson_acceleration():
 
 
 if __name__ == "__main__":
-    test_group_logreg(10, 1e-1)
     pass

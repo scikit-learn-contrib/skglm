@@ -1,7 +1,6 @@
 import numpy as np
 from numba import njit
 from numpy.linalg import norm
-from scipy.sparse import issparse
 from skglm.solvers.base import BaseSolver
 
 
@@ -54,7 +53,8 @@ class GroupProxNewton(BaseSolver):
 
     def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
         n_samples, n_features = X.shape
-        n_groups = len(penalty.grp_ptr) - 1
+        grp_ptr, grp_indices = penalty.grp_ptr, penalty.grp_indices
+        n_groups = len(grp_ptr) - 1
 
         w = np.zeros(n_features) if w_init is None else w_init
         Xw = np.zeros(n_samples) if Xw_init is None else Xw_init
@@ -86,8 +86,7 @@ class GroupProxNewton(BaseSolver):
                           min(n_groups, 2 * gsupp_size))
             ws = np.argpartition(opt, -ws_size)[-ws_size:]  # k-largest items (no sort)
 
-            n_features_ws = sum([penalty.grp_ptr[g+1] - penalty.grp_ptr[g] for g in ws])
-            grad_ws = grad[:n_features_ws]
+            grad_ws = _slice_array(grad, ws, grp_ptr, grp_indices)
             tol_in = EPS_TOL * stop_crit
 
             # solve subproblem
@@ -121,7 +120,7 @@ class GroupProxNewton(BaseSolver):
         return w, np.asarray(p_objs_out), stop_crit
 
 
-@njit
+# @njit
 def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
                        penalty, ws, tol):
     # Given:
@@ -130,33 +129,28 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
     # Minimize quadratic approximation for delta_w = w - w_epoch:
     #  b.T @ X @ delta_w + \
     #  1/2 * delta_w.T @ (X.T @ D @ X) @ delta_w + penalty(w)
-    grp_ptr = penalty.grp_ptr
-    grp_indices = penalty.grp_indices
+    grp_ptr, grp_indices = penalty.grp_ptr, penalty.grp_indices
     n_features_ws = sum([penalty.grp_ptr[g+1] - penalty.grp_ptr[g] for g in ws])
-
     raw_hess = datafit.raw_hessian(y, Xw_epoch)
+
     lipchitz = np.zeros(len(ws))
     for idx, g in enumerate(ws):
         grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
-        lipchitz[idx] = norm(np.sqrt(raw_hess) * X[:, grp_g_indices], ord=2) ** 2
+        # TODO: compute without copying the cols of X
+        # equivalent to: norm(X[:, grp_g_indices].T @ D @ X[:, grp_g_indices], ord=2)
+        lipchitz[idx] = norm(np.sqrt(raw_hess) * X[:, grp_g_indices].T, ord=2) ** 2
 
     # for a less costly stopping criterion, we do no compute the exact gradient,
-    # but store each coordinate-wise gradient every time we upate one coordinate:
+    # but store each coordinate-wise gradient every time we update one coordinate:
     past_grads = np.zeros(n_features_ws)
     X_delta_w_ws = np.zeros(X.shape[0])
-
-    w_ws = np.zeros(n_features_ws)
-    w_ptr = 0
-    for g in ws:
-        grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
-        w_ws[w_ptr:w_ptr+len(grp_g_indices)] = w_epoch[grp_g_indices]
-        w_ptr += len(grp_g_indices)
+    w_ws = _slice_array(w_epoch, ws, grp_ptr, grp_indices)
 
     for cd_iter in range(MAX_CD_ITER):
         ptr = 0
         for idx, g in enumerate(ws):
             # skip when X[:, grp_g_indices] == 0
-            if lipchitz[idx] == 0:
+            if lipchitz[idx] == 0.:
                 continue
 
             grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
@@ -164,17 +158,19 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
 
             past_grads[range_grp_g] = grad_ws[range_grp_g]
             # TODO: compute without copying the cols of X
-            past_grads[range_grp_g] += X[:, grp_g_indices] @ (raw_hess * X_delta_w_ws)
+            past_grads[range_grp_g] += X[:, grp_g_indices].T @ (raw_hess * X_delta_w_ws)
 
-            old_w_ws_g = w_ws[range_grp_g]
+            old_w_ws_g = w_ws[range_grp_g].copy()
             stepsize = 1 / lipchitz[idx]
 
             w_ws[range_grp_g] = penalty.prox_1group(
                 old_w_ws_g - stepsize * past_grads[range_grp_g], stepsize, g)
 
+            # equivalent to: X_delta_w_ws += X[:, grp_g_indices] @ (w_ws_g - old_w_ws_g)
+            # but without making a copy of the cols of X
             for idx_j, j in enumerate(grp_g_indices):
                 if w_ws[ptr + idx_j] != old_w_ws_g[idx_j]:
-                    X_delta_w_ws += (w_ws[ptr + idx_j] - old_w_ws_g[j]) * X[:, j]
+                    X_delta_w_ws += (w_ws[ptr + idx_j] - old_w_ws_g[idx_j]) * X[:, j]
 
             ptr += len(grp_g_indices)
 
@@ -182,6 +178,7 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
             # TODO: can be improved by passing in w_ws
             current_w = w_epoch.copy()
 
+            # equivalent to: current_w[ws] = w_ws
             ptr = 0
             for g in ws:
                 grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
@@ -193,17 +190,11 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
                 break
 
     # descent direction
-    delta_w_ws = np.zeros(n_features_ws)
-    ptr = 0
-    for g in ws:
-        grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
-        delta_w_ws[ptr: ptr+len(grp_g_indices)] = w_epoch[grp_g_indices]
-        ptr += len(grp_g_indices)
-
+    delta_w_ws = w_ws - _slice_array(w_epoch, ws, grp_ptr, grp_indices)
     return delta_w_ws, X_delta_w_ws
 
 
-@njit
+# @njit
 def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
                            X_delta_w_ws, ws):
     # 1) find step in [0, 1] such that:
@@ -211,8 +202,7 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
     #   step * \nabla datafit(w + step * delta_w) @ delta_w < 0
     # ref: https://www.di.ens.fr/~aspremon/PDF/ENSAE/Newton.pdf
     # 2) inplace update of w and Xw and return grad_ws of the last w and Xw
-    grp_ptr = penalty.grp_ptr
-    grp_indices = penalty.grp_indices
+    grp_ptr, grp_indices = penalty.grp_ptr, penalty.grp_indices
     step, prev_step = 1., 0.
 
     # TODO: could be improved by passing in w[ws]
@@ -220,6 +210,7 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
 
     # try step = 1, 1/2, 1/4, ...
     for _ in range(MAX_BACKTRACK_ITER):
+        # equivalent to: w[ws] += (step - prev_step) * delta_w_ws
         ptr = 0
         for g in ws:
             grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
@@ -228,8 +219,8 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
             ptr += len(grp_g_indices)
 
         Xw += (step - prev_step) * X_delta_w_ws
-
         grad_ws = -_construct_grad(X, y, w, Xw, datafit, ws)
+
         # TODO: could be improved by passing in w[ws]
         stop_crit = penalty.value(w) - old_penalty_val
         stop_crit += step * grad_ws @ delta_w_ws
@@ -246,7 +237,7 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
     return grad_ws
 
 
-@njit
+# @njit
 def _construct_grad(X, y, w, Xw, datafit, ws):
     # Compute grad of datafit restricted to ws. This function avoids
     # recomputing raw_grad for every j, which is costly for logreg
@@ -256,12 +247,27 @@ def _construct_grad(X, y, w, Xw, datafit, ws):
     raw_grad = datafit.raw_grad(y, Xw)
     minus_grad = np.zeros(n_features_ws)
 
-    grad_ptr = 0
+    ptr = 0
     for g in ws:
         # compute grad_g
         grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
         for j in grp_g_indices:
-            minus_grad[grad_ptr] = -X[:, j] @ raw_grad
-            grad_ptr += 1
+            minus_grad[ptr] = -X[:, j] @ raw_grad
+            ptr += 1
 
     return minus_grad
+
+
+# @njit
+def _slice_array(arr, ws, grp_ptr, grp_indices):
+    # returns [arr[ws_1], arr[ws_2], ...]
+    n_features_ws = sum([grp_ptr[g+1] - grp_ptr[g] for g in ws])
+    sliced_arr = np.zeros(n_features_ws)
+
+    ptr = 0
+    for g in ws:
+        grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
+        sliced_arr[ptr: ptr+len(grp_g_indices)] = arr[grp_g_indices]
+        ptr += len(grp_g_indices)
+
+    return sliced_arr

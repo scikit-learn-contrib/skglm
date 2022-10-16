@@ -68,7 +68,7 @@ class QuadraticMultiTask(BaseMultitaskDatafit):
     def gradient_j(self, X, Y, W, XW, j):
         """Gradient with respect to j-th coordinate of W."""
         n_samples = X.shape[0]
-        return (X[:, j:j+1].T @ XW - self.XtY[j, :]) / n_samples
+        return (X[:, j] @ XW - self.XtY[j, :]) / n_samples
 
     def gradient_j_sparse(self, X_data, X_indptr, X_indices, Y, XW, j):
         """Gradient with respect to j-th coordinate of W when X is sparse."""

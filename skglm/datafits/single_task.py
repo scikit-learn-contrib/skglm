@@ -158,11 +158,10 @@ class Logistic(BaseDatafit):
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
         n_features = len(X_indptr) - 1
         self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
-        self.global_lipschitz = 0.
         for j in range(n_features):
             Xj = X_data[X_indptr[j]:X_indptr[j+1]]
             self.lipschitz[j] = (Xj ** 2).sum() / (len(y) * 4)
-            self.global_lipschitz += (Xj ** 2).sum() / (len(y) * 4)
+        self.global_lipschitz = 0.
 
     def value(self, y, w, Xw):
         return np.log(1. + np.exp(- y * Xw)).sum() / len(y)

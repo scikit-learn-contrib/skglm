@@ -486,3 +486,44 @@ def prox_vec(w, z, penalty, lipschitz):
     for j in range(n_features):
         w[j] = penalty.prox_1d(z[j], 1 / lipschitz, j)
     return w
+
+
+@njit
+def power_method(X_data, X_indptr, X_indices, n_iter):
+    """Power method to compute largest eigenvalue of sparse matrix X.
+    
+    Parameters
+    ----------
+    X_data : array, shape (n_elements,)
+        `data` attribute of the sparse CSC matrix X.
+
+    X_indptr : array, shape (n_features + 1,)
+        `indptr` attribute of the sparse CSC matrix X.
+
+    X_indices : array, shape (n_elements,)
+        `indices` attribute of the sparse CSC matrix X.
+    
+    n_iter : int
+        Number of iterations for the power method.
+    
+    Returns
+    -------
+    rayleigh : float
+        Rayleigh quotient or spectral radius of X^TX
+    """
+    n_features = len(X_indptr) - 1
+    b_k = np.random.rand(n_features)
+    for _ in range(n_iter):
+        b_k1 = np.zeros(n_features)
+        for j in range(n_features):
+            b_k1[j] = 
+        b_k1 = A @ b_k  # write the full loop
+        b_k1_nrm = norm(b_k1)
+        b_k = b_k1 / b_k1_nrm
+    rayleigh = b_k1 @ b_k / (norm(b_k) ** 2)
+    return rayleigh
+
+
+
+
+

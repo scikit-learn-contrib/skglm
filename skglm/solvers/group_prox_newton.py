@@ -1,5 +1,6 @@
 import numpy as np
 from numba import njit
+from numpy.linalg import norm
 from scipy.sparse import issparse
 from skglm.solvers.base import BaseSolver
 
@@ -53,24 +54,71 @@ class GroupProxNewton(BaseSolver):
 
     def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
         n_samples, n_features = X.shape
+        n_groups = len(penalty.grp_ptr) - 1
+
         w = np.zeros(n_features) if w_init is None else w_init
         Xw = np.zeros(n_samples) if Xw_init is None else Xw_init
+        all_groups = np.arange(n_groups)
+        stop_crit = 0.
+        p_objs_out = []
 
         for t in range(self.max_iter):
-
             # compute grad
+            grad = -_construct_grad(X, y, w, Xw, datafit, all_groups)
 
             # check convergence
+            opt = penalty.subdiff_distance(w, -grad, all_groups)
+            stop_crit = np.max(opt)
+
+            if self.verbose:
+                p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+                print(
+                    f"Iteration {t+1}: {p_obj:.10f}, "
+                    f"stopping crit: {stop_crit:.2e}"
+                )
+
+            if stop_crit <= self.tol:
+                break
 
             # construct ws
+            gsupp_size = penalty.generalized_support(w).sum()
+            ws_size = max(min(self.p0, n_groups),
+                          min(n_groups, 2 * gsupp_size))
+            ws = np.argpartition(opt, -ws_size)[-ws_size:]  # k-largest items (no sort)
 
+            n_features_ws = sum([penalty.grp_ptr[g+1] - penalty.grp_ptr[g] for g in ws])
+            grad_ws = grad[:n_features_ws]
+            tol_in = EPS_TOL * stop_crit
+
+            # solve subproblem
             for pn_iter in range(self.max_pn_iter):
                 # find descent direction
+                delta_w_ws, X_delta_w_ws = _descent_direction(
+                    X, y, w, Xw, grad_ws, datafit, penalty, ws, tol=EPS_TOL*tol_in)
 
                 # find a suitable step size
-                pass
-            pass
-        return
+                grad_ws[:] = _backtrack_line_search(
+                    X, y, w, Xw, datafit, penalty, delta_w_ws, X_delta_w_ws, ws)
+
+                # check convergence
+                opt_in = penalty.subdiff_distance(w, -grad_ws, ws)
+                stop_crit_in = np.max(opt_in)
+
+                if max(self.verbose-1, 0):
+                    p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+                    print(
+                        "PN iteration {}: {:.10f}, ".format(pn_iter+1, p_obj) +
+                        "stopping crit in: {:.2e}".format(stop_crit_in)
+                    )
+
+                if stop_crit_in <= tol_in:
+                    if max(self.verbose-1, 0):
+                        print("Early exit")
+                    break
+
+        p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+        p_objs_out.append(p_obj)
+        return w, np.asarray(p_objs_out), stop_crit
 
 
 @njit
@@ -82,94 +130,77 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
     # Minimize quadratic approximation for delta_w = w - w_epoch:
     #  b.T @ X @ delta_w + \
     #  1/2 * delta_w.T @ (X.T @ D @ X) @ delta_w + penalty(w)
-    raw_hess = datafit.raw_hessian(y, Xw_epoch)
+    grp_ptr = penalty.grp_ptr
+    grp_indices = penalty.grp_indices
+    n_features_ws = sum([penalty.grp_ptr[g+1] - penalty.grp_ptr[g] for g in ws])
 
-    lipschitz = np.zeros(len(ws))
-    for idx, j in enumerate(ws):
-        lipschitz[idx] = raw_hess @ X[:, j] ** 2
+    raw_hess = datafit.raw_hessian(y, Xw_epoch)
+    lipchitz = np.zeros(len(ws))
+    for idx, g in enumerate(ws):
+        grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
+        lipchitz[idx] = norm(np.sqrt(raw_hess) * X[:, grp_g_indices], ord=2) ** 2
 
     # for a less costly stopping criterion, we do no compute the exact gradient,
     # but store each coordinate-wise gradient every time we upate one coordinate:
-    past_grads = np.zeros(len(ws))
+    past_grads = np.zeros(n_features_ws)
     X_delta_w_ws = np.zeros(X.shape[0])
-    w_ws = w_epoch[ws]
+
+    w_ws = np.zeros(n_features_ws)
+    w_ptr = 0
+    for g in ws:
+        grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
+        w_ws[w_ptr:w_ptr+len(grp_g_indices)] = w_epoch[grp_g_indices]
+        w_ptr += len(grp_g_indices)
 
     for cd_iter in range(MAX_CD_ITER):
-        for idx, j in enumerate(ws):
-            # skip when X[:, j] == 0
-            if lipschitz[idx] == 0:
+        ptr = 0
+        for idx, g in enumerate(ws):
+            # skip when X[:, grp_g_indices] == 0
+            if lipchitz[idx] == 0:
                 continue
 
-            past_grads[idx] = grad_ws[idx] + X[:, j] @ (raw_hess * X_delta_w_ws)
-            old_w_idx = w_ws[idx]
-            stepsize = 1 / lipschitz[idx]
+            grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
+            range_grp_g = slice(ptr, ptr + len(grp_g_indices))
 
-            w_ws[idx] = penalty.prox_1d(
-                old_w_idx - stepsize * past_grads[idx], stepsize, j)
+            past_grads[range_grp_g] = grad_ws[range_grp_g]
+            # TODO: compute without copying the cols of X
+            past_grads[range_grp_g] += X[:, grp_g_indices] @ (raw_hess * X_delta_w_ws)
 
-            if w_ws[idx] != old_w_idx:
-                X_delta_w_ws += (w_ws[idx] - old_w_idx) * X[:, j]
+            old_w_ws_g = w_ws[range_grp_g]
+            stepsize = 1 / lipchitz[idx]
+
+            w_ws[range_grp_g] = penalty.prox_1group(
+                old_w_ws_g - stepsize * past_grads[range_grp_g], stepsize, g)
+
+            for idx_j, j in enumerate(grp_g_indices):
+                if w_ws[ptr + idx_j] != old_w_ws_g[idx_j]:
+                    X_delta_w_ws += (w_ws[ptr + idx_j] - old_w_ws_g[j]) * X[:, j]
+
+            ptr += len(grp_g_indices)
 
         if cd_iter % 5 == 0:
-            # TODO: can be improved by passing in w_ws but breaks for WeightedL1
+            # TODO: can be improved by passing in w_ws
             current_w = w_epoch.copy()
-            current_w[ws] = w_ws
+
+            ptr = 0
+            for g in ws:
+                grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
+                current_w[grp_g_indices] = w_ws[ptr: ptr+len(grp_g_indices)]
+                ptr += len(grp_g_indices)
+
             opt = penalty.subdiff_distance(current_w, past_grads, ws)
             if np.max(opt) <= tol:
                 break
 
     # descent direction
-    return w_ws - w_epoch[ws], X_delta_w_ws
+    delta_w_ws = np.zeros(n_features_ws)
+    ptr = 0
+    for g in ws:
+        grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
+        delta_w_ws[ptr: ptr+len(grp_g_indices)] = w_epoch[grp_g_indices]
+        ptr += len(grp_g_indices)
 
-
-# sparse version of _compute_descent_direction
-@njit
-def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
-                         Xw_epoch, grad_ws, datafit, penalty, ws, tol):
-    raw_hess = datafit.raw_hessian(y, Xw_epoch)
-
-    lipschitz = np.zeros(len(ws))
-    for idx, j in enumerate(ws):
-        # equivalent to: lipschitz[idx] += raw_hess * X[:, j] ** 2
-        lipschitz[idx] = _sparse_squared_weighted_norm(
-            X_data, X_indptr, X_indices, j, raw_hess)
-
-    # see _descent_direction() comment
-    past_grads = np.zeros(len(ws))
-    X_delta_w_ws = np.zeros(len(y))
-    w_ws = w_epoch[ws]
-
-    for cd_iter in range(MAX_CD_ITER):
-        for idx, j in enumerate(ws):
-            # skip when X[:, j] == 0
-            if lipschitz[idx] == 0:
-                continue
-
-            past_grads[idx] = grad_ws[idx]
-            # equivalent to cached_grads[idx] += X[:, j] @ (raw_hess * X_delta_w_ws)
-            past_grads[idx] += _sparse_weighted_dot(
-                X_data, X_indptr, X_indices, j, X_delta_w_ws, raw_hess)
-
-            old_w_idx = w_ws[idx]
-            stepsize = 1 / lipschitz[idx]
-
-            w_ws[idx] = penalty.prox_1d(
-                old_w_idx - stepsize * past_grads[idx], stepsize, j)
-
-            if w_ws[idx] != old_w_idx:
-                _update_X_delta_w(X_data, X_indptr, X_indices, X_delta_w_ws,
-                                  w_ws[idx] - old_w_idx, j)
-
-        if cd_iter % 5 == 0:
-            # TODO: could be improved by passing in w_ws
-            current_w = w_epoch.copy()
-            current_w[ws] = w_ws
-            opt = penalty.subdiff_distance(current_w, past_grads, ws)
-            if np.max(opt) <= tol:
-                break
-
-    # descent direction
-    return w_ws - w_epoch[ws], X_delta_w_ws
+    return delta_w_ws, X_delta_w_ws
 
 
 @njit
@@ -180,16 +211,25 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
     #   step * \nabla datafit(w + step * delta_w) @ delta_w < 0
     # ref: https://www.di.ens.fr/~aspremon/PDF/ENSAE/Newton.pdf
     # 2) inplace update of w and Xw and return grad_ws of the last w and Xw
+    grp_ptr = penalty.grp_ptr
+    grp_indices = penalty.grp_indices
     step, prev_step = 1., 0.
+
     # TODO: could be improved by passing in w[ws]
     old_penalty_val = penalty.value(w)
 
     # try step = 1, 1/2, 1/4, ...
     for _ in range(MAX_BACKTRACK_ITER):
-        w[ws] += (step - prev_step) * delta_w_ws
+        ptr = 0
+        for g in ws:
+            grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
+            w[grp_g_indices] += ((step - prev_step) *
+                                 delta_w_ws[ptr: ptr + len(grp_g_indices)])
+            ptr += len(grp_g_indices)
+
         Xw += (step - prev_step) * X_delta_w_ws
 
-        grad_ws = _construct_grad(X, y, w, Xw, datafit, ws)
+        grad_ws = -_construct_grad(X, y, w, Xw, datafit, ws)
         # TODO: could be improved by passing in w[ws]
         stop_crit = penalty.value(w) - old_penalty_val
         stop_crit += step * grad_ws @ delta_w_ws
@@ -206,35 +246,6 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
     return grad_ws
 
 
-# sparse version of _backtrack_line_search
-@njit
-def _backtrack_line_search_s(X_data, X_indptr, X_indices, y, w, Xw, datafit,
-                             penalty, delta_w_ws, X_delta_w_ws, ws):
-    step, prev_step = 1., 0.
-    # TODO: could be improved by passing in w[ws]
-    old_penalty_val = penalty.value(w)
-
-    for _ in range(MAX_BACKTRACK_ITER):
-        w[ws] += (step - prev_step) * delta_w_ws
-        Xw += (step - prev_step) * X_delta_w_ws
-
-        grad_ws = _construct_grad_sparse(X_data, X_indptr, X_indices,
-                                         y, w, Xw, datafit, ws)
-        # TODO: could be improved by passing in w[ws]
-        stop_crit = penalty.value(w) - old_penalty_val
-        stop_crit += step * grad_ws.T @ delta_w_ws
-
-        if stop_crit < 0:
-            break
-        else:
-            prev_step = step
-            step /= 2
-    else:
-        pass  # TODO
-
-    return grad_ws
-
-
 @njit
 def _construct_grad(X, y, w, Xw, datafit, ws):
     # Compute grad of datafit restricted to ws. This function avoids
@@ -243,55 +254,14 @@ def _construct_grad(X, y, w, Xw, datafit, ws):
     n_features_ws = sum([grp_ptr[g+1] - grp_ptr[g] for g in ws])
 
     raw_grad = datafit.raw_grad(y, Xw)
-    grad = np.zeros(len(ws))
+    minus_grad = np.zeros(n_features_ws)
 
-    for idx, g in enumerate(ws):
+    grad_ptr = 0
+    for g in ws:
         # compute grad_g
         grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
         for j in grp_g_indices:
-            grad[idx] = X[:, j] @ raw_grad
-    return grad
+            minus_grad[grad_ptr] = -X[:, j] @ raw_grad
+            grad_ptr += 1
 
-
-@njit
-def _construct_grad_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, ws):
-    # Compute grad of datafit restricted to ws in case X sparse
-    raw_grad = datafit.raw_grad(y, Xw)
-    grad = np.zeros(len(ws))
-    for idx, j in enumerate(ws):
-        grad[idx] = _sparse_xj_dot(X_data, X_indptr, X_indices, j, raw_grad)
-    return grad
-
-
-@njit(fastmath=True)
-def _sparse_xj_dot(X_data, X_indptr, X_indices, j, other):
-    # Compute X[:, j] @ other in case X sparse
-    res = 0.
-    for i in range(X_indptr[j], X_indptr[j+1]):
-        res += X_data[i] * other[X_indices[i]]
-    return res
-
-
-@njit(fastmath=True)
-def _sparse_weighted_dot(X_data, X_indptr, X_indices, j, other, weights):
-    # Compute X[:, j] @ (weights * other) in case X sparse
-    res = 0.
-    for i in range(X_indptr[j], X_indptr[j+1]):
-        res += X_data[i] * other[X_indices[i]] * weights[X_indices[i]]
-    return res
-
-
-@njit(fastmath=True)
-def _sparse_squared_weighted_norm(X_data, X_indptr, X_indices, j, weights):
-    # Compute weights @ X[:, j]**2 in case X sparse
-    res = 0.
-    for i in range(X_indptr[j], X_indptr[j+1]):
-        res += weights[X_indices[i]] * X_data[i]**2
-    return res
-
-
-@njit(fastmath=True)
-def _update_X_delta_w(X_data, X_indptr, X_indices, X_delta_w, diff, j):
-    # Compute X_delta_w += diff * X[:, j] in case of X sparse
-    for i in range(X_indptr[j], X_indptr[j+1]):
-        X_delta_w[X_indices[i]] += diff * X_data[i]
+    return minus_grad

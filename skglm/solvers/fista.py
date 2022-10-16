@@ -38,7 +38,7 @@ class FISTA(BaseSolver):
         p_objs_out = []
         n_samples, n_features = X.shape
         all_features = np.arange(n_features)
-        t_new = 1
+        t_new = 1.
 
         w = w_init.copy() if w_init is not None else np.zeros(n_features)
         z = w_init.copy() if w_init is not None else np.zeros(n_features)

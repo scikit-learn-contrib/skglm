@@ -18,9 +18,6 @@ class FISTA(BaseSolver):
     tol : float, default 1e-4
         Tolerance for convergence.
 
-    opt_freq : int, default 10
-        Frequency for optimality condition check.
-
     verbose : bool, default False
         Amount of verbosity. 0/False is silent.
 
@@ -32,10 +29,9 @@ class FISTA(BaseSolver):
            https://epubs.siam.org/doi/10.1137/080716542
     """
 
-    def __init__(self, max_iter=100, tol=1e-4, opt_freq=10, verbose=0):
+    def __init__(self, max_iter=100, tol=1e-4, verbose=0):
         self.max_iter = max_iter
         self.tol = tol
-        self.opt_freq = opt_freq
         self.verbose = verbose
 
     def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
@@ -67,19 +63,18 @@ class FISTA(BaseSolver):
             Xw = X @ w
             z = w + (t_old - 1.) / t_new * (w - w_old)
 
-            if n_iter % self.opt_freq == 0:
-                opt = penalty.subdiff_distance(w, grad, all_features)
-                stop_crit = np.max(opt)
+            opt = penalty.subdiff_distance(w, grad, all_features)
+            stop_crit = np.max(opt)
 
+            if self.verbose:
+                p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+                print(
+                    f"Iteration {n_iter+1}: {p_obj:.10f}, "
+                    f"stopping crit: {stop_crit:.2e}"
+                )
+
+            if stop_crit < self.tol:
                 if self.verbose:
-                    p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-                    print(
-                        f"Iteration {n_iter+1}: {p_obj:.10f}, "
-                        f"stopping crit: {stop_crit:.2e}"
-                    )
-
-                if stop_crit < self.tol:
-                    if self.verbose:
-                        print(f"Stopping criterion max violation: {stop_crit:.2e}")
-                    break
+                    print(f"Stopping criterion max violation: {stop_crit:.2e}")
+                break
         return w

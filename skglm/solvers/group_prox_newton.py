@@ -115,8 +115,8 @@ class GroupProxNewton(BaseSolver):
                         print("Early exit")
                     break
 
-        p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-        p_objs_out.append(p_obj)
+            p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+            p_objs_out.append(p_obj)
         return w, np.asarray(p_objs_out), stop_crit
 
 
@@ -140,7 +140,8 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
     for idx, g in enumerate(ws):
         grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
         # equivalent to: norm(X[:, grp_g_indices].T @ D @ X[:, grp_g_indices], ord=2)
-        lipchitz[idx] = norm(np.sqrt(raw_hess) * X[:, grp_g_indices].T, ord=2) ** 2
+        lipchitz[idx] = norm(
+            _matrix_times_X_g(np.sqrt(raw_hess), X, grp_g_indices), ord=2)**2
 
     # for a less costly stopping criterion, we do no compute the exact gradient,
     # but store each coordinate-wise gradient every time we update one coordinate:
@@ -159,7 +160,8 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
             range_grp_g = slice(ptr, ptr + len(grp_g_indices))
 
             past_grads[range_grp_g] = grad_ws[range_grp_g]
-            past_grads[range_grp_g] += X[:, grp_g_indices].T @ (raw_hess * X_delta_w_ws)
+            past_grads[range_grp_g] += _X_g_dot_vec(
+                X, raw_hess * X_delta_w_ws, grp_g_indices)
 
             old_w_ws_g = w_ws[range_grp_g].copy()
             stepsize = 1 / lipchitz[idx]
@@ -167,11 +169,9 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
             w_ws[range_grp_g] = penalty.prox_1group(
                 old_w_ws_g - stepsize * past_grads[range_grp_g], stepsize, g)
 
-            # equivalent to: X_delta_w_ws += X[:, grp_g_indices] @ (w_ws_g - old_w_ws_g)
-            # but without making a copy of the cols of X
-            for idx_j, j in enumerate(grp_g_indices):
-                if w_ws[ptr + idx_j] != old_w_ws_g[idx_j]:
-                    X_delta_w_ws += (w_ws[ptr + idx_j] - old_w_ws_g[idx_j]) * X[:, j]
+            # X_delta_w_ws += X[:, grp_g_indices] @ (w_ws[range_grp_g] - old_w_ws_g)
+            _update_X_delta_w_ws(X, X_delta_w_ws, w_ws[range_grp_g], old_w_ws_g,
+                                 grp_g_indices)
 
             ptr += len(grp_g_indices)
 
@@ -211,7 +211,7 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
 
     # try step = 1, 1/2, 1/4, ...
     for _ in range(MAX_BACKTRACK_ITER):
-        # equivalent to: w[ws] += (step - prev_step) * delta_w_ws
+        # w[ws] += (step - prev_step) * delta_w_ws
         ptr = 0
         for g in ws:
             grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
@@ -272,3 +272,30 @@ def _slice_array(arr, ws, grp_ptr, grp_indices):
         ptr += len(grp_g_indices)
 
     return sliced_arr
+
+
+@njit
+def _update_X_delta_w_ws(X, X_delta_w_ws, w_ws_g, old_w_ws_g, grp_g_indices):
+    #
+    for idx, j in enumerate(grp_g_indices):
+        delta_w_j = w_ws_g[idx] - old_w_ws_g[idx]
+        if w_ws_g[idx] != old_w_ws_g[idx]:
+            X_delta_w_ws += delta_w_j * X[:, j]
+
+
+@njit
+def _X_g_dot_vec(X, vec, grp_g_indices):
+    #
+    result = np.zeros(len(grp_g_indices))
+    for idx, j in enumerate(grp_g_indices):
+        result[idx] = X[:, j] @ vec
+    return result
+
+
+@njit
+def _matrix_times_X_g(matrix, X, grp_g_indices):
+    #
+    result = np.zeros((len(matrix), len(grp_g_indices)))
+    for idx, j in enumerate(grp_g_indices):
+        result[:, idx] = matrix * X[:, j]
+    return result

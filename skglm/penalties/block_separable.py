@@ -286,8 +286,8 @@ class WeightedGroupL2(BasePenalty):
     def subdiff_distance(self, w, grad_ws, ws):
         """Compute distance to the subdifferential at ``w`` of negative gradient.
 
-        Note: ``grad_ws`` is a stacked array of ``-``gradients.
-        ([-grad_ws_1, -grad_ws_2, ...])
+        Note: ``grad_ws`` is a stacked array of gradients.
+        ([grad_ws_1, grad_ws_2, ...])
         """
         alpha, weights = self.alpha, self.weights
         grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
@@ -307,7 +307,7 @@ class WeightedGroupL2(BasePenalty):
                 scores[idx] = max(0, norm(grad_g) - alpha * weights[g])
             else:
                 subdiff = alpha * weights[g] * w_g / norm_w_g
-                scores[idx] = norm(grad_g - subdiff)
+                scores[idx] = norm(grad_g + subdiff)
 
         return scores
 

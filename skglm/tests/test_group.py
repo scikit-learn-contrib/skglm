@@ -1,3 +1,4 @@
+from turtle import numinput
 import pytest
 import numpy as np
 from numpy.linalg import norm
@@ -164,8 +165,8 @@ def test_intercept_grouplasso():
 @pytest.mark.parametrize("rho", [1e-1, 1e-2])
 def test_equivalence_logreg(rho):
     n_samples, n_features = 30, 50
-    rnd = np.random.RandomState(1123)
-    X, y, _ = make_correlated_data(n_samples, n_features, random_state=rnd)
+    rng = np.random.RandomState(1123)
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=rng)
     y = np.sign(y)
 
     grp_indices, grp_ptr = grp_converter(1, n_features)
@@ -173,14 +174,14 @@ def test_equivalence_logreg(rho):
     alpha_max = norm(X.T @ y, ord=np.inf) / (2 * n_samples)
     alpha = rho * alpha_max / 10.
 
-    log_group = LogisticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
+    group_logistic = LogisticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
     group_penalty = WeightedGroupL2(
         alpha=alpha, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    log_group = compiled_clone(log_group, to_float32=X.dtype == np.float32)
+    group_logistic = compiled_clone(group_logistic, to_float32=X.dtype == np.float32)
     group_penalty = compiled_clone(group_penalty)
-    w = GroupBCD(tol=1e-12).solve(X, y, log_group, group_penalty)[0]
+    w = GroupBCD(tol=1e-12).solve(X, y, group_logistic, group_penalty)[0]
 
     sk_logreg = LogisticRegression(penalty='l1', C=1/(n_samples * alpha),
                                    fit_intercept=False, tol=1e-12, solver='liblinear')
@@ -193,30 +194,25 @@ def test_equivalence_logreg(rho):
 def test_group_logreg(n_groups, rho):
     n_samples, n_features, shuffle = 30, 60, True
     random_state = 123
+    rng = np.random.RandomState(random_state)
 
-    X, y, _ = make_correlated_data(n_samples, n_features, random_state=random_state)
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=rng)
     y = np.sign(y)
 
-    np.random.seed(random_state)
-    weights = np.abs(np.random.randn(n_groups))
+    rng.seed(random_state)
+    weights = np.abs(rng.randn(n_groups))
     grp_indices, grp_ptr, _ = _generate_random_grp(n_groups, n_features, shuffle)
 
-    alpha_max = 0.
-    for g in range(n_groups):
-        grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
-        alpha_max = max(
-            alpha_max,
-            norm(X[:, grp_g_indices].T @ y) / n_samples / weights[g]
-        )
+    alpha_max = _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights)
     alpha = rho * alpha_max
 
     # skglm
-    log_group = LogisticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
+    group_logistic = LogisticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
     group_penalty = WeightedGroupL2(alpha, weights, grp_ptr, grp_indices)
 
-    log_group = compiled_clone(log_group, to_float32=X.dtype == np.float32)
+    group_logistic = compiled_clone(group_logistic, to_float32=X.dtype == np.float32)
     group_penalty = compiled_clone(group_penalty)
-    stop_crit = GroupBCD(tol=1e-12).solve(X, y, log_group, group_penalty)[2]
+    stop_crit = GroupBCD(tol=1e-12).solve(X, y, group_logistic, group_penalty)[2]
 
     np.testing.assert_array_less(stop_crit, 1e-12)
 

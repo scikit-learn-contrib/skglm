@@ -2,7 +2,7 @@ import numpy as np
 from numba import njit
 from numpy.linalg import norm
 from skglm.solvers.base import BaseSolver
-
+from skglm.utils import check_group_compatible
 
 EPS_TOL = 0.3
 MAX_CD_ITER = 20
@@ -52,6 +52,9 @@ class GroupProxNewton(BaseSolver):
         self.verbose = verbose
 
     def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+        check_group_compatible(datafit)
+        check_group_compatible(penalty)
+
         n_samples, n_features = X.shape
         grp_ptr, grp_indices = penalty.grp_ptr, penalty.grp_indices
         n_groups = len(grp_ptr) - 1
@@ -62,8 +65,7 @@ class GroupProxNewton(BaseSolver):
         stop_crit = 0.
         p_objs_out = []
 
-        for t in range(self.max_iter):
-            # compute grad
+        for iter in range(self.max_iter):
             grad = -_construct_grad(X, y, w, Xw, datafit, all_groups)
 
             # check convergence
@@ -73,14 +75,14 @@ class GroupProxNewton(BaseSolver):
             if self.verbose:
                 p_obj = datafit.value(y, w, Xw) + penalty.value(w)
                 print(
-                    f"Iteration {t+1}: {p_obj:.10f}, "
+                    f"Iteration {iter+1}: {p_obj:.10f}, "
                     f"stopping crit: {stop_crit:.2e}"
                 )
 
             if stop_crit <= self.tol:
                 break
 
-            # construct ws
+            # build working set ws
             gsupp_size = penalty.generalized_support(w).sum()
             ws_size = max(min(self.p0, n_groups),
                           min(n_groups, 2 * gsupp_size))
@@ -89,13 +91,13 @@ class GroupProxNewton(BaseSolver):
             grad_ws = _slice_array(grad, ws, grp_ptr, grp_indices)
             tol_in = EPS_TOL * stop_crit
 
-            # solve subproblem
+            # solve subproblem restricted to ws
             for pn_iter in range(self.max_pn_iter):
                 # find descent direction
                 delta_w_ws, X_delta_w_ws = _descent_direction(
                     X, y, w, Xw, grad_ws, datafit, penalty, ws, tol=EPS_TOL*tol_in)
 
-                # find a suitable step size
+                # find a suitable step size and in-place update w, Xw
                 grad_ws[:] = _backtrack_line_search(
                     X, y, w, Xw, datafit, penalty, delta_w_ws, X_delta_w_ws, ws)
 
@@ -106,8 +108,8 @@ class GroupProxNewton(BaseSolver):
                 if max(self.verbose-1, 0):
                     p_obj = datafit.value(y, w, Xw) + penalty.value(w)
                     print(
-                        "PN iteration {}: {:.10f}, ".format(pn_iter+1, p_obj) +
-                        "stopping crit in: {:.2e}".format(stop_crit_in)
+                        f"PN iteration {pn_iter+1,}: {p_obj:.10f}, "
+                        f"stopping crit in: {stop_crit_in:.2e}"
                     )
 
                 if stop_crit_in <= tol_in:
@@ -129,7 +131,7 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
     # minimize quadratic approximation for delta_w = w - w_epoch:
     #  b.T @ X @ delta_w + \
     #  1/2 * delta_w.T @ (X.T @ D @ X) @ delta_w + penalty(w)
-    # In CD leverage inequality:
+    # In BCD, we leverage inequality:
     #  penalty_g(w_g) + 1/2 ||delta_w_g||_H <= \
     #  penalty_g(w_g) + 1/2 * || H || * ||delta_w_g||
     grp_ptr, grp_indices = penalty.grp_ptr, penalty.grp_indices
@@ -140,8 +142,8 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
     for idx, g in enumerate(ws):
         grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
         # equivalent to: norm(X[:, grp_g_indices].T @ D @ X[:, grp_g_indices], ord=2)
-        lipchitz[idx] = norm(
-            _matrix_times_X_g(np.sqrt(raw_hess), X, grp_g_indices), ord=2)**2
+        lipchitz[idx] = norm(_diag_times_X_g(
+            np.sqrt(raw_hess), X, grp_g_indices), ord=2)**2
 
     # for a less costly stopping criterion, we do no compute the exact gradient,
     # but store each coordinate-wise gradient every time we update one coordinate:
@@ -160,7 +162,8 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
             range_grp_g = slice(ptr, ptr + len(grp_g_indices))
 
             past_grads[range_grp_g] = grad_ws[range_grp_g]
-            past_grads[range_grp_g] += _X_g_dot_vec(
+            # += X[:, grp_g_indices].T @ (raw_hess * X_delta_w_ws)
+            past_grads[range_grp_g] += _X_g_T_dot_vec(
                 X, raw_hess * X_delta_w_ws, grp_g_indices)
 
             old_w_ws_g = w_ws[range_grp_g].copy()
@@ -179,7 +182,7 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
             # TODO: can be improved by passing in w_ws
             current_w = w_epoch.copy()
 
-            # equivalent to: current_w[ws] = w_ws
+            # current_w[ws] = w_ws
             ptr = 0
             for g in ws:
                 grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
@@ -284,7 +287,7 @@ def _update_X_delta_w_ws(X, X_delta_w_ws, w_ws_g, old_w_ws_g, grp_g_indices):
 
 
 @njit
-def _X_g_dot_vec(X, vec, grp_g_indices):
+def _X_g_T_dot_vec(X, vec, grp_g_indices):
     #
     result = np.zeros(len(grp_g_indices))
     for idx, j in enumerate(grp_g_indices):
@@ -293,9 +296,9 @@ def _X_g_dot_vec(X, vec, grp_g_indices):
 
 
 @njit
-def _matrix_times_X_g(matrix, X, grp_g_indices):
+def _diag_times_X_g(diag, X, grp_g_indices):
     #
-    result = np.zeros((len(matrix), len(grp_g_indices)))
+    result = np.zeros((len(diag), len(grp_g_indices)))
     for idx, j in enumerate(grp_g_indices):
-        result[:, idx] = matrix * X[:, j]
+        result[:, idx] = diag * X[:, j]
     return result

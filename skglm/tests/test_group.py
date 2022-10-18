@@ -1,4 +1,6 @@
 import pytest
+from itertools import product
+
 import numpy as np
 from numpy.linalg import norm
 
@@ -30,13 +32,14 @@ def _generate_random_grp(n_groups, n_features, shuffle=True):
     return grp_indices, splits, groups
 
 
-def test_check_group_compatible():
+@pytest.mark.parametrize("solver", [GroupBCD, GroupProxNewton])
+def test_check_group_compatible(solver):
     l1_penalty = L1(1e-3)
     quad_datafit = Quadratic()
     X, y = np.random.randn(5, 5), np.random.randn(5)
 
     with np.testing.assert_raises(Exception):
-        GroupBCD().solve(X, y, quad_datafit, l1_penalty)
+        solver().solve(X, y, quad_datafit, l1_penalty)
 
 
 @pytest.mark.parametrize("n_groups, n_features, shuffle",
@@ -161,8 +164,9 @@ def test_intercept_grouplasso():
     np.testing.assert_allclose(model.intercept_, w[-1], atol=1e-5)
 
 
-@pytest.mark.parametrize("rho", [1e-1, 1e-2])
-def test_equivalence_logreg(rho):
+@pytest.mark.parametrize("solver, rho",
+                         product([GroupBCD, GroupProxNewton], [1e-1, 1e-2]))
+def test_equivalence_logreg(solver, rho):
     n_samples, n_features = 30, 50
     rnd = np.random.RandomState(1123)
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=rnd)
@@ -180,7 +184,7 @@ def test_equivalence_logreg(rho):
 
     log_group = compiled_clone(log_group, to_float32=X.dtype == np.float32)
     group_penalty = compiled_clone(group_penalty)
-    w = GroupBCD(tol=1e-12).solve(X, y, log_group, group_penalty)[0]
+    w = solver(tol=1e-12).solve(X, y, log_group, group_penalty)[0]
 
     sk_logreg = LogisticRegression(penalty='l1', C=1/(n_samples * alpha),
                                    fit_intercept=False, tol=1e-12, solver='liblinear')
@@ -189,8 +193,9 @@ def test_equivalence_logreg(rho):
     np.testing.assert_allclose(sk_logreg.coef_.flatten(), w, atol=1e-6, rtol=1e-5)
 
 
-@pytest.mark.parametrize("n_groups, rho", [[15, 1e-1], [25, 1e-2]])
-def test_group_logreg(n_groups, rho):
+@pytest.mark.parametrize("solver, n_groups, rho",
+                         product([GroupBCD, GroupProxNewton], [15, 25], [1e-1, 1e-2]))
+def test_group_logreg(solver, n_groups, rho):
     n_samples, n_features, shuffle = 30, 60, True
     random_state = 123
 
@@ -201,13 +206,7 @@ def test_group_logreg(n_groups, rho):
     weights = np.abs(np.random.randn(n_groups))
     grp_indices, grp_ptr, _ = _generate_random_grp(n_groups, n_features, shuffle)
 
-    alpha_max = 0.
-    for g in range(n_groups):
-        grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
-        alpha_max = max(
-            alpha_max,
-            norm(X[:, grp_g_indices].T @ y) / n_samples / weights[g]
-        )
+    alpha_max = _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights)
     alpha = rho * alpha_max
 
     # skglm
@@ -216,39 +215,7 @@ def test_group_logreg(n_groups, rho):
 
     log_group = compiled_clone(log_group, to_float32=X.dtype == np.float32)
     group_penalty = compiled_clone(group_penalty)
-    stop_crit = GroupBCD(tol=1e-12).solve(X, y, log_group, group_penalty)[2]
-
-    np.testing.assert_array_less(stop_crit, 1e-12)
-
-
-@pytest.mark.parametrize("n_groups, rho", [[15, 1e-1], [25, 1e-2]])
-def test_group_prox_newton(n_groups, rho):
-    n_samples, n_features, shuffle = 30, 60, True
-    random_state = 123
-
-    X, y, _ = make_correlated_data(n_samples, n_features, random_state=random_state)
-    y = np.sign(y)
-
-    np.random.seed(random_state)
-    weights = np.abs(np.random.randn(n_groups))
-    grp_indices, grp_ptr, _ = _generate_random_grp(n_groups, n_features, shuffle)
-
-    alpha_max = 0.
-    for g in range(n_groups):
-        grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
-        alpha_max = max(
-            alpha_max,
-            norm(X[:, grp_g_indices].T @ y) / n_samples / weights[g]
-        )
-    alpha = rho * alpha_max
-
-    # skglm
-    log_group = LogisticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
-    group_penalty = WeightedGroupL2(alpha, weights, grp_ptr, grp_indices)
-
-    log_group = compiled_clone(log_group, to_float32=X.dtype == np.float32)
-    group_penalty = compiled_clone(group_penalty)
-    stop_crit = GroupProxNewton(tol=1e-12).solve(X, y, log_group, group_penalty)[2]
+    stop_crit = solver(tol=1e-12).solve(X, y, log_group, group_penalty)[2]
 
     np.testing.assert_array_less(stop_crit, 1e-12)
 

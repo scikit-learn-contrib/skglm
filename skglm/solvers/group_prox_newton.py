@@ -66,10 +66,10 @@ class GroupProxNewton(BaseSolver):
         p_objs_out = []
 
         for iter in range(self.max_iter):
-            grad = -_construct_grad(X, y, w, Xw, datafit, all_groups)
+            grad = _construct_grad(X, y, w, Xw, datafit, all_groups)
 
             # check convergence
-            opt = penalty.subdiff_distance(w, -grad, all_groups)
+            opt = penalty.subdiff_distance(w, grad, all_groups)
             stop_crit = np.max(opt)
 
             if self.verbose:
@@ -102,7 +102,7 @@ class GroupProxNewton(BaseSolver):
                     X, y, w, Xw, datafit, penalty, delta_w_ws, X_delta_w_ws, ws)
 
                 # check convergence
-                opt_in = penalty.subdiff_distance(w, -grad_ws, ws)
+                opt_in = penalty.subdiff_distance(w, grad_ws, ws)
                 stop_crit_in = np.max(opt_in)
 
                 if max(self.verbose-1, 0):
@@ -223,7 +223,7 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
             ptr += len(grp_g_indices)
 
         Xw += (step - prev_step) * X_delta_w_ws
-        grad_ws = -_construct_grad(X, y, w, Xw, datafit, ws)
+        grad_ws = _construct_grad(X, y, w, Xw, datafit, ws)
 
         # TODO: could be improved by passing in w[ws]
         stop_crit = penalty.value(w) - old_penalty_val
@@ -249,17 +249,17 @@ def _construct_grad(X, y, w, Xw, datafit, ws):
     n_features_ws = sum([grp_ptr[g+1] - grp_ptr[g] for g in ws])
 
     raw_grad = datafit.raw_grad(y, Xw)
-    minus_grad = np.zeros(n_features_ws)
+    grad = np.zeros(n_features_ws)
 
     ptr = 0
     for g in ws:
         # compute grad_g
         grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
         for j in grp_g_indices:
-            minus_grad[ptr] = -X[:, j] @ raw_grad
+            grad[ptr] = X[:, j] @ raw_grad
             ptr += 1
 
-    return minus_grad
+    return grad
 
 
 @njit

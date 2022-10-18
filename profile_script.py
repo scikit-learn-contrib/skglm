@@ -5,7 +5,7 @@ from skglm.solvers import GroupProxNewton
 from skglm.datafits import LogisticGroup
 from skglm.penalties import WeightedGroupL2
 
-from skglm.solvers.group_prox_newton import _descent_direction
+from skglm.solvers.group_prox_newton import _descent_direction, _backtrack_line_search
 
 import line_profiler
 

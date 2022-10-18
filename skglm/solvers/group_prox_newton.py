@@ -141,7 +141,7 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
     lipchitz = np.zeros(len(ws))
     for idx, g in enumerate(ws):
         grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
-        # equivalent to: norm(X[:, grp_g_indices].T @ D @ X[:, grp_g_indices], ord=2)
+        # norm(X[:, grp_g_indices].T @ np.diag(raw_hess) @ X[:, grp_g_indices], ord=2)
         lipchitz[idx] = norm(_diag_times_X_g(
             np.sqrt(raw_hess), X, grp_g_indices), ord=2)**2
 
@@ -182,7 +182,7 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
             # TODO: can be improved by passing in w_ws
             current_w = w_epoch.copy()
 
-            # current_w[ws] = w_ws
+            # for g in ws: current_w[ws_g] = w_ws_g
             ptr = 0
             for g in ws:
                 grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
@@ -214,7 +214,7 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
 
     # try step = 1, 1/2, 1/4, ...
     for _ in range(MAX_BACKTRACK_ITER):
-        # w[ws] += (step - prev_step) * delta_w_ws
+        # for g in ws: w[ws_g] += (step - prev_step) * delta_w_ws_g
         ptr = 0
         for g in ws:
             grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
@@ -279,7 +279,7 @@ def _slice_array(arr, ws, grp_ptr, grp_indices):
 
 @njit
 def _update_X_delta_w_ws(X, X_delta_w_ws, w_ws_g, old_w_ws_g, grp_g_indices):
-    #
+    # X_delta_w_ws += X[:, grp_g_indices] @ (w_ws_g - old_w_ws_g)
     for idx, j in enumerate(grp_g_indices):
         delta_w_j = w_ws_g[idx] - old_w_ws_g[idx]
         if w_ws_g[idx] != old_w_ws_g[idx]:
@@ -288,7 +288,7 @@ def _update_X_delta_w_ws(X, X_delta_w_ws, w_ws_g, old_w_ws_g, grp_g_indices):
 
 @njit
 def _X_g_T_dot_vec(X, vec, grp_g_indices):
-    #
+    # X[:, grp_g_indices].T @ vec
     result = np.zeros(len(grp_g_indices))
     for idx, j in enumerate(grp_g_indices):
         result[idx] = X[:, j] @ vec
@@ -297,7 +297,7 @@ def _X_g_T_dot_vec(X, vec, grp_g_indices):
 
 @njit
 def _diag_times_X_g(diag, X, grp_g_indices):
-    #
+    # np.diag(dig) @ X[:, grp_g_indices]
     result = np.zeros((len(diag), len(grp_g_indices)))
     for idx, j in enumerate(grp_g_indices):
         result[:, idx] = diag * X[:, j]

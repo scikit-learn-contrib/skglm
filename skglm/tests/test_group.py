@@ -1,4 +1,3 @@
-from turtle import numinput
 import pytest
 import numpy as np
 from numpy.linalg import norm

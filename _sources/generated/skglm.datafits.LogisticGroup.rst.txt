@@ -1,0 +1,34 @@
+﻿skglm.datafits.LogisticGroup
+============================
+
+.. currentmodule:: skglm.datafits
+
+.. autoclass:: LogisticGroup
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~LogisticGroup.__init__
+      ~LogisticGroup.full_grad_sparse
+      ~LogisticGroup.get_spec
+      ~LogisticGroup.gradient_g
+      ~LogisticGroup.gradient_scalar
+      ~LogisticGroup.gradient_scalar_sparse
+      ~LogisticGroup.initialize
+      ~LogisticGroup.initialize_sparse
+      ~LogisticGroup.intercept_update_step
+      ~LogisticGroup.params_to_dict
+      ~LogisticGroup.raw_grad
+      ~LogisticGroup.raw_hessian
+      ~LogisticGroup.value
+   
+   
+
+   
+   
+   

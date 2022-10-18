@@ -3,6 +3,7 @@ from numpy.linalg import norm
 from numba import int32, float64
 
 from skglm.datafits.base import BaseDatafit
+from skglm.datafits.single_task import Logistic
 
 
 class QuadraticGroup(BaseDatafit):
@@ -73,7 +74,7 @@ class QuadraticGroup(BaseDatafit):
         return np.mean(Xw - y)
 
 
-class LogisticGroup(BaseDatafit):
+class LogisticGroup(Logistic):
     r"""Logistic datafit used with group penalties.
 
     The datafit reads::
@@ -121,18 +122,6 @@ class LogisticGroup(BaseDatafit):
 
         self.lipschitz = lipschitz
 
-    def value(self, y, w, Xw):
-        return np.log(1 + np.exp(-y * Xw)).sum() / len(y)
-
-    def raw_grad(self, y, Xw):
-        """Compute gradient of datafit w.r.t ``Xw``."""
-        return -y / (1 + np.exp(y * Xw)) / len(y)
-
-    def raw_hessian(self, y, Xw):
-        """Compute Hessian of datafit w.r.t ``Xw``."""
-        exp_minus_yXw = np.exp(-y * Xw)
-        return exp_minus_yXw / (1 + exp_minus_yXw) ** 2 / len(y)
-
     def gradient_g(self, X, y, w, Xw, g):
         grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
         grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
@@ -143,6 +132,3 @@ class LogisticGroup(BaseDatafit):
             grad_g[idx] = X[:, j] @ raw_grad_val
 
         return grad_g
-
-    def intercept_update_step(self, y, Xw):
-        return np.mean(self.raw_grad(y, Xw)) / 4

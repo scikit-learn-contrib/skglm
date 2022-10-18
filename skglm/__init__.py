@@ -1,4 +1,4 @@
-__version__ = '0.2dev'
+__version__ = '0.3.dev'
 
 from skglm.estimators import (  # noqa F401
     Lasso, WeightedLasso, ElasticNet, MCPRegression, MultiTaskLasso, LinearSVC,

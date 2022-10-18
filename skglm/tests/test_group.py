@@ -177,14 +177,14 @@ def test_equivalence_logreg(solver, rho):
     alpha_max = norm(X.T @ y, ord=np.inf) / (2 * n_samples)
     alpha = rho * alpha_max / 10.
 
-    log_group = LogisticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
+    group_logistic = LogisticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
     group_penalty = WeightedGroupL2(
         alpha=alpha, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    log_group = compiled_clone(log_group, to_float32=X.dtype == np.float32)
+    group_logistic = compiled_clone(group_logistic, to_float32=X.dtype == np.float32)
     group_penalty = compiled_clone(group_penalty)
-    w = solver(tol=1e-12).solve(X, y, log_group, group_penalty)[0]
+    w = solver(tol=1e-12).solve(X, y, group_logistic, group_penalty)[0]
 
     sk_logreg = LogisticRegression(penalty='l1', C=1/(n_samples * alpha),
                                    fit_intercept=False, tol=1e-12, solver='liblinear')
@@ -210,12 +210,12 @@ def test_group_logreg(solver, n_groups, rho):
     alpha = rho * alpha_max
 
     # skglm
-    log_group = LogisticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
+    group_logistic = LogisticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
     group_penalty = WeightedGroupL2(alpha, weights, grp_ptr, grp_indices)
 
-    log_group = compiled_clone(log_group, to_float32=X.dtype == np.float32)
+    group_logistic = compiled_clone(group_logistic, to_float32=X.dtype == np.float32)
     group_penalty = compiled_clone(group_penalty)
-    stop_crit = solver(tol=1e-12).solve(X, y, log_group, group_penalty)[2]
+    stop_crit = solver(tol=1e-12).solve(X, y, group_logistic, group_penalty)[2]
 
     np.testing.assert_array_less(stop_crit, 1e-12)
 

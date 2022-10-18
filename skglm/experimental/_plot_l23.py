@@ -65,3 +65,16 @@ def LASSO_skglm(lasso: LASSOProblem) -> np.ndarray:
     return model.coef_
 
 x_skglm = LASSO_skglm(lasso_problem)
+
+
+def objectif_function(A, b, x, lam):
+    return ((A @ x - b) ** 2).sum() / 2 + skglm.penalties.L2_3(lam).value(x)
+
+obj_reparam = objectif_function(
+    lasso_problem.A, lasso_problem.b, x_reparametrized_nonlinear_least_squares, lasso_problem.lam)
+
+obj_skglm = objectif_function(
+    lasso_problem.A, lasso_problem.b, x_skglm, lasso_problem.lam)
+
+print("Value of the objective function for the reparametrized algorithm: %.1f" % obj_reparam)
+print("Value of the objective function for skglm: %.1f" % obj_skglm)

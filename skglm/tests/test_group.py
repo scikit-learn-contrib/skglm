@@ -168,8 +168,8 @@ def test_intercept_grouplasso():
                          product([GroupBCD, GroupProxNewton], [1e-1, 1e-2]))
 def test_equivalence_logreg(solver, rho):
     n_samples, n_features = 30, 50
-    rnd = np.random.RandomState(1123)
-    X, y, _ = make_correlated_data(n_samples, n_features, random_state=rnd)
+    rng = np.random.RandomState(1123)
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=rng)
     y = np.sign(y)
 
     grp_indices, grp_ptr = grp_converter(1, n_features)
@@ -198,12 +198,13 @@ def test_equivalence_logreg(solver, rho):
 def test_group_logreg(solver, n_groups, rho):
     n_samples, n_features, shuffle = 30, 60, True
     random_state = 123
+    rng = np.random.RandomState(random_state)
 
-    X, y, _ = make_correlated_data(n_samples, n_features, random_state=random_state)
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=rng)
     y = np.sign(y)
 
-    np.random.seed(random_state)
-    weights = np.abs(np.random.randn(n_groups))
+    rng.seed(random_state)
+    weights = np.abs(rng.randn(n_groups))
     grp_indices, grp_ptr, _ = _generate_random_grp(n_groups, n_features, shuffle)
 
     alpha_max = _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights)

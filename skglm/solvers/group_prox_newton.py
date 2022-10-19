@@ -108,7 +108,7 @@ class GroupProxNewton(BaseSolver):
                 if max(self.verbose-1, 0):
                     p_obj = datafit.value(y, w, Xw) + penalty.value(w)
                     print(
-                        f"PN iteration {pn_iter+1,}: {p_obj:.10f}, "
+                        f"PN iteration {pn_iter+1}: {p_obj:.10f}, "
                         f"stopping crit in: {stop_crit_in:.2e}"
                     )
 
@@ -186,7 +186,7 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
             ptr = 0
             for g in ws:
                 grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
-                current_w[grp_g_indices] = w_ws[ptr: ptr+len(grp_g_indices)]
+                current_w[grp_g_indices] = w_ws[ptr:ptr+len(grp_g_indices)]
                 ptr += len(grp_g_indices)
 
             opt = penalty.subdiff_distance(current_w, past_grads, ws)
@@ -219,7 +219,7 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
         for g in ws:
             grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
             w[grp_g_indices] += ((step - prev_step) *
-                                 delta_w_ws[ptr: ptr + len(grp_g_indices)])
+                                 delta_w_ws[ptr:ptr+len(grp_g_indices)])
             ptr += len(grp_g_indices)
 
         Xw += (step - prev_step) * X_delta_w_ws
@@ -264,7 +264,7 @@ def _construct_grad(X, y, w, Xw, datafit, ws):
 
 @njit
 def _slice_array(arr, ws, grp_ptr, grp_indices):
-    # returns [arr[ws_1], arr[ws_2], ...]
+    # returns h stacked (arr[ws_1], arr[ws_2], ...)
     n_features_ws = sum([grp_ptr[g+1] - grp_ptr[g] for g in ws])
     sliced_arr = np.zeros(n_features_ws)
 
@@ -280,6 +280,7 @@ def _slice_array(arr, ws, grp_ptr, grp_indices):
 @njit
 def _update_X_delta_w_ws(X, X_delta_w_ws, w_ws_g, old_w_ws_g, grp_g_indices):
     # X_delta_w_ws += X[:, grp_g_indices] @ (w_ws_g - old_w_ws_g)
+    # but without copying the cols of X
     for idx, j in enumerate(grp_g_indices):
         delta_w_j = w_ws_g[idx] - old_w_ws_g[idx]
         if w_ws_g[idx] != old_w_ws_g[idx]:
@@ -289,6 +290,7 @@ def _update_X_delta_w_ws(X, X_delta_w_ws, w_ws_g, old_w_ws_g, grp_g_indices):
 @njit
 def _X_g_T_dot_vec(X, vec, grp_g_indices):
     # X[:, grp_g_indices].T @ vec
+    # but without copying the cols os X
     result = np.zeros(len(grp_g_indices))
     for idx, j in enumerate(grp_g_indices):
         result[idx] = X[:, j] @ vec
@@ -298,6 +300,7 @@ def _X_g_T_dot_vec(X, vec, grp_g_indices):
 @njit
 def _diag_times_X_g(diag, X, grp_g_indices):
     # np.diag(dig) @ X[:, grp_g_indices]
+    # but without copying the cols of X
     result = np.zeros((len(diag), len(grp_g_indices)))
     for idx, j in enumerate(grp_g_indices):
         result[:, idx] = diag * X[:, j]

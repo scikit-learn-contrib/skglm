@@ -7,7 +7,7 @@ from scipy.sparse import csc_matrix, issparse
 from skglm.datafits import Quadratic, Logistic, QuadraticSVC
 from skglm.penalties import L1, IndicatorBox
 from skglm.solvers import FISTA, AndersonCD
-from skglm.utils import make_correlated_data, compiled_clone
+from skglm.utils import make_correlated_data, compiled_clone, spectral_norm2
 
 
 np.random.seed(0)
@@ -39,13 +39,21 @@ def test_fista_solver(X, Datafit, Penalty):
         datafit.initialize(_init, _y)
     penalty = compiled_clone(Penalty(alpha))
 
-    solver = FISTA(max_iter=1000, tol=tol) 
+    solver = FISTA(max_iter=1000, tol=tol)
     res_fista = solver.solve(X, _y, datafit, penalty)
 
     solver_cd = AndersonCD(tol=tol, fit_intercept=False)
     res_cd = solver_cd.solve(X, _y, datafit, penalty)
 
     np.testing.assert_allclose(res_fista[0], res_cd[0], rtol=1e-3)
+
+
+def test_spectral_norm2():
+    X_bundles = (X_sparse.data, X_sparse.indptr, X_sparse.indices)
+    lipschitz_our = spectral_norm2(*X_bundles, n_samples=len(y))
+    lipschitz_np = norm(X_sparse.toarray(), ord=2) ** 2
+
+    np.testing.assert_allclose(lipschitz_our, lipschitz_np, atol=1e-4, rtol=1e-5)
 
 
 if __name__ == '__main__':

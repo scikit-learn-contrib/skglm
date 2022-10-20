@@ -488,42 +488,114 @@ def prox_vec(w, z, penalty, lipschitz):
     return w
 
 
+POWER_MAX_ITER = 20
+TOL = 1e-6 ** 2
+
+
 @njit
-def power_method(X_data, X_indptr, X_indices, n_iter):
-    """Power method to compute largest eigenvalue of sparse matrix X.
-    
+def spectral_norm2(X_data, X_indptr, X_indices, n_samples):
+    """Compute the squared spectral norm of sparse matrix ``X``.
+
+    Find the largest eigenvalue of ``X @ X.T`` using the power method.
+
     Parameters
     ----------
     X_data : array, shape (n_elements,)
-        `data` attribute of the sparse CSC matrix X.
+         `data` attribute of the sparse CSC matrix ``X``.
 
     X_indptr : array, shape (n_features + 1,)
-        `indptr` attribute of the sparse CSC matrix X.
+         `indptr` attribute of the sparse CSC matrix ``X``.
 
     X_indices : array, shape (n_elements,)
-        `indices` attribute of the sparse CSC matrix X.
-    
-    n_iter : int
-        Number of iterations for the power method.
-    
+         `indices` attribute of the sparse CSC matrix ``X``.
+
+    n_samples : int
+        number of rows of ``X``.
+
     Returns
     -------
-    rayleigh : float
-        Rayleigh quotient or spectral radius of X^TX
+    eigenvalue : float
+        The largest eigenvalue value of ``X.T @ X``, aka the squared spectral of ``X``.
+
+    References
+    ----------
+    .. [1] Alfio Quarteroni, Riccardo Sacco, Fausto Saleri "Numerical Mathematics",
+        chapiter 5, page 192-195.
     """
+    # init vec with norm(vec) == 1.
+    eigenvector = np.full(n_samples, 1/np.sqrt(n_samples))
+    eigenvalue = 1.
+
+    for _ in range(POWER_MAX_ITER):
+        vec = _XXT_dot_vec(X_data, X_indptr, X_indices, eigenvector, n_samples)
+        norm_vec = norm(vec)
+        eigenvalue = vec @ eigenvector
+
+        # norm(X @ X.T @ eigenvector - eigenvalue * eigenvector) <= tol
+        if norm_vec ** 2 - eigenvalue ** 2 <= TOL:
+            break
+
+        eigenvector = vec / norm_vec
+
+    return eigenvalue
+
+
+@njit
+def _XXT_dot_vec(X_data, X_indptr, X_indices, vec, n_samples):
+    # computes X @ X.T @ vec, with X csc encoded
+    return _X_dot_vec(X_data, X_indptr, X_indices,
+                      _XT_dot_vec(X_data, X_indptr, X_indices, vec),
+                      n_samples)
+
+
+@njit
+def _X_dot_vec(X_data, X_indptr, X_indices, vec, n_samples):
+    # compute X @ vec, with X csc encoded
+    result = np.zeros(n_samples)
+
+    # loop over features
+    for j in range(len(X_indptr) - 1):
+        if vec[j] == 0:
+            continue
+
+        col_j_rows_idx = slice(X_indptr[j], X_indptr[j+1])
+        result[X_indices[col_j_rows_idx]] += vec[j] * X_data[col_j_rows_idx]
+
+    return result
+
+
+@njit
+def _XT_dot_vec(X_data, X_indptr, X_indices, vec):
+    # compute X.T @ vec, with X csc encoded
     n_features = len(X_indptr) - 1
-    b_k = np.random.rand(n_features)
-    for _ in range(n_iter):
-        b_k1 = np.zeros(n_features)
-        for j in range(n_features):
-            b_k1[j] = 
-        b_k1 = A @ b_k  # write the full loop
-        b_k1_nrm = norm(b_k1)
-        b_k = b_k1 / b_k1_nrm
-    rayleigh = b_k1 @ b_k / (norm(b_k) ** 2)
-    return rayleigh
+    result = np.zeros(n_features)
+
+    for j in range(n_features):
+        for idx in range(X_indptr[j], X_indptr[j+1]):
+            result[j] += X_data[idx] * vec[X_indices[idx]]
+
+    return result
 
 
+if __name__ == '__main__':
+    from scipy.sparse import csc_matrix, random
+    import time
+    n_samples, n_features = 500, 600
+    A = random(n_samples, n_features, density=0.5, format='csc')
 
+    X = csc_matrix(A)
+    X_dense = X.toarray()
 
+    # cache numba compilation
+    M = random(5, 7, density=0.9, format='csc')
+    spectral_norm2(M.data, M.indptr, M.indices, 5)
 
+    start = time.time()
+    spectral_norm2(X.data, X.indptr, X.indices, n_samples)
+    end = time.time()
+    print("our: ", end - start)
+
+    start = time.time()
+    norm(X_dense, ord=2) ** 2
+    end = time.time()
+    print("np: ", end - start)

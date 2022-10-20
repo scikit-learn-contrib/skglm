@@ -25,7 +25,9 @@ def _obj(w):
 
 
 iterative_l05 = IterativeReweightedL1(
-    alpha, solver=AndersonCD(tol=tol, fit_intercept=False))
+    alpha,
+    penalty=L0_5(alpha),
+    solver=AndersonCD(tol=tol, fit_intercept=False))
 
 # `subdiff` strategy for WS is uninformative for L0_5
 direct_l05 = GeneralizedLinearEstimator(

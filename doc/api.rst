@@ -55,6 +55,7 @@ Datafits
 
    Huber
    Logistic
+   LogisticGroup
    Quadratic
    QuadraticGroup
    QuadraticSVC

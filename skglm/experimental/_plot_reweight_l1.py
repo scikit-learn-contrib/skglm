@@ -55,15 +55,15 @@ print("#" * 20)
 # non-convex, not necessary same solution
 print("Coefficient norms")
 print("Reweighting:", norm(iterative_l05.coef_))
-print("Direct:", norm(direct_l05.coef_))
+print("Direct prox:", norm(direct_l05.coef_))
 
 print("#" * 20)
 print("Objective value")
 print("Reweighting:", _obj(iterative_l05.coef_))
-print("Direct:", _obj(direct_l05.coef_))
+print("Direct prox:", _obj(direct_l05.coef_))
 
 print("#" * 20)
 
 print("Support recovery (F1 score)")
 print("Reweighting:", f1_score(w_true != 0, iterative_l05.coef_ != 0))
-print("Direct:", f1_score(w_true != 0, direct_l05.coef_ != 0))
+print("Direct prox:", f1_score(w_true != 0, direct_l05.coef_ != 0))

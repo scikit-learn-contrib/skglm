@@ -11,6 +11,14 @@ def _L05_derivative(coef):
     return 1. / (2. * np.sqrt(np.abs(coef)) + np.finfo(float).eps)
 
 
+def _L23_objective(coef):
+    return np.abs(coef) ** (2/3)
+
+
+def _L23_derivative(coef):
+    return 2 / 3 / (np.abs(coef) ** (1/3) + np.finfo(float).eps)
+
+
 def _log_sum_objective(coef):
     return np.log(np.abs(coef))
 

@@ -1,30 +1,14 @@
 import numpy as np
 from skglm.estimators import GeneralizedLinearEstimator
-from skglm.penalties import WeightedL1
+from skglm.penalties import WeightedL1, L0_5
 
 
-def _L05_objective(coef):
-    return np.sqrt(np.abs(coef))
+# def _log_sum_objective(coef):
+#     return np.log(np.abs(coef))
 
 
-def _L05_derivative(coef):
-    return 1. / (2. * np.sqrt(np.abs(coef)) + np.finfo(float).eps)
-
-
-def _L23_objective(coef):
-    return np.abs(coef) ** (2/3)
-
-
-def _L23_derivative(coef):
-    return 2 / 3 / (np.abs(coef) ** (1/3) + np.finfo(float).eps)
-
-
-def _log_sum_objective(coef):
-    return np.log(np.abs(coef))
-
-
-def _log_sum_derivative(coef):
-    return 1. / (np.abs(coef))
+# def _log_sum_derivative(coef):
+#     return 1. / (np.abs(coef))
 
 
 class IterativeReweightedL1(GeneralizedLinearEstimator):
@@ -49,12 +33,6 @@ class IterativeReweightedL1(GeneralizedLinearEstimator):
     n_reweights : int, optional
         Number of reweighting iterations.
 
-    pen_obj : Callable, optional
-        Compute the concave objective.
-
-    pen_weight: Callable, optional
-        Compute the penalty weights from the coefficients.
-
     Attributes
     ----------
     coef_ : array, shape (n_features,)
@@ -69,13 +47,12 @@ class IterativeReweightedL1(GeneralizedLinearEstimator):
            https://web.stanford.edu/~boyd/papers/pdf/rwl1.pdf
     """
 
-    def __init__(self, alpha, datafit=None, solver=None, n_reweights=5,
-                 pen_obj=_L05_objective, pen_weight=_L05_derivative):
+    def __init__(self, alpha, datafit=None, penalty=L0_5(1.), solver=None,
+                 n_reweights=5):
         super().__init__(
             datafit=datafit, penalty=WeightedL1(alpha, np.ones(1)), solver=solver)
         self.n_reweights = n_reweights
-        self.pen_obj = pen_obj
-        self.pen_weight = pen_weight
+        self.nncvx_penalty = penalty
 
     def fit(self, X, y):
         """Fit the model according to the given training data.
@@ -100,16 +77,14 @@ class IterativeReweightedL1(GeneralizedLinearEstimator):
 
         for iter_reweight in range(self.n_reweights):
             super().fit(X, y)
-            self.penalty.weights = self.pen_weight(self.coef_)
+            self.penalty.weights = self.nncvx_penalty.derivative(self.coef_)
 
             # TODO: dot product X @ w is slow in high-dimension, to be improved
             loss = (self.datafit.value(y, self.coef_, X @ self.coef_)
-                    + self.penalty.alpha * np.sum(self.pen_obj(self.coef_)))
+                    + self.nncvx_penalty.value(self.coef_))
             self.loss_history_.append(loss)
 
             if self.solver.verbose:
-                print("#" * 10)
-                print(f"[REWEIGHT] iteration {iter_reweight} :: loss {loss}")
-                print("#" * 10)
+                print(f"Reweight {iter_reweight}/{self.n_reweights}, objective {loss}")
 
         return self

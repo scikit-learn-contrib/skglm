@@ -460,28 +460,9 @@ class AndersonAcceleration:
 
 
 @njit
-def prox_vec(w, z, penalty, lipschitz):
-    """Evaluate the vectorized proximal operator for the FISTA solver.
-
-    Parameters
-    ----------
-    w : array, shape (n_features,)
-        Coefficient vector.
-
-    z : array, shape (n_features,)
-        FISTA auxiliary variable.
-
-    penalty : instance of Penalty.
-        Penalty object.
-
-    lipschitz : float
-        Global Lipschitz constant.
-
-    Returns
-    -------
-    w : array; shape (n_features,)
-        Updated coefficient vector.
-    """
+def _prox_vec(w, z, penalty, lipschitz):
+    # evaluate the vectorized proximal operator for the FISTA solver
+    # lipschitz stands for global lipschitz constant
     n_features = w.shape[0]
     for j in range(n_features):
         w[j] = penalty.prox_1d(z[j], 1 / lipschitz, j)

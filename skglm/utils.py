@@ -533,8 +533,7 @@ def spectral_norm(X_data, X_indptr, X_indices, n_samples,
 def _XXT_dot_vec(X_data, X_indptr, X_indices, vec, n_samples):
     # computes X @ X.T @ vec, with X csc encoded
     return _X_dot_vec(X_data, X_indptr, X_indices,
-                      _XT_dot_vec(X_data, X_indptr, X_indices, vec),
-                      n_samples)
+                      _XT_dot_vec(X_data, X_indptr, X_indices, vec), n_samples)
 
 
 @njit
@@ -567,26 +566,4 @@ def _XT_dot_vec(X_data, X_indptr, X_indices, vec):
 
 
 if __name__ == '__main__':
-    import time
-    import scipy.sparse.linalg
-    from scipy.sparse import csc_matrix, random
-    n_samples, n_features = 500, 600
-    A = random(n_samples, n_features, density=0.5, format='csc')
-
-    X = csc_matrix(A)
-    X_dense = X.toarray()
-
-    # cache numba compilation
-    M = random(5, 7, density=0.9, format='csc')
-    spectral_norm(M.data, M.indptr, M.indices, 5)
-
-    start = time.time()
-    spectral_norm(X.data, X.indptr, X.indices, n_samples)
-    end = time.time()
-    print("our: ", end - start)
-
-    start = time.time()
-    scipy.sparse.linalg.svds(X, k=1)[1]
-    end = time.time()
-    print("scipy: ", end - start)
     pass

@@ -25,12 +25,8 @@ from skglm.penalties import L1, IndicatorBox, L1_plus_L2, MCPenalty, WeightedL1
 from skglm.solvers import AndersonCD
 
 
-n_samples = 50
-n_tasks = 9
-n_features = 60
-X, Y, _ = make_correlated_data(
-    n_samples=n_samples, n_features=n_features, n_tasks=n_tasks, density=0.1,
-    random_state=0)
+n_samples, n_features, n_tasks = 50, 60, 9
+X, Y, _ = make_correlated_data(n_samples, n_features, n_tasks, random_state=0)
 y = Y[:, 0]
 
 np.random.seed(0)

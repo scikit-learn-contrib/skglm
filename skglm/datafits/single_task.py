@@ -243,7 +243,7 @@ class QuadraticSVC(BaseDatafit):
         n_features = len(yXT_indptr) - 1
 
         self.global_lipschitz = spectral_norm(
-            yXT_data, yXT_indptr, yXT_indices, len(y)) ** 2
+            yXT_data, yXT_indptr, yXT_indices, max(yXT_indices)+1) ** 2
 
         self.lipschitz = np.zeros(n_features, dtype=yXT_data.dtype)
         for j in range(n_features):

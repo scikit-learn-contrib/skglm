@@ -490,6 +490,12 @@ def spectral_norm2(X_data, X_indptr, X_indices, n_samples,
     n_samples : int
         number of rows of ``X``.
 
+    max_iter : int, default 20
+        Maximum number of power method iterations.
+
+    tol : float, default 1e-6
+        Tolerance for convergence.
+
     Returns
     -------
     eigenvalue : float
@@ -561,24 +567,4 @@ def _XT_dot_vec(X_data, X_indptr, X_indices, vec):
 
 
 if __name__ == '__main__':
-    from scipy.sparse import csc_matrix, random
-    import time
-    n_samples, n_features = 500, 600
-    A = random(n_samples, n_features, density=0.5, format='csc')
-
-    X = csc_matrix(A)
-    X_dense = X.toarray()
-
-    # cache numba compilation
-    M = random(5, 7, density=0.9, format='csc')
-    spectral_norm2(M.data, M.indptr, M.indices, 5)
-
-    start = time.time()
-    spectral_norm2(X.data, X.indptr, X.indices, n_samples)
-    end = time.time()
-    print("our: ", end - start)
-
-    start = time.time()
-    norm(X_dense, ord=2) ** 2
-    end = time.time()
-    print("np: ", end - start)
+    pass

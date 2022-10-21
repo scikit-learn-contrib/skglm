@@ -469,12 +469,9 @@ def _prox_vec(w, z, penalty, lipschitz):
     return w
 
 
-POWER_MAX_ITER = 20
-TOL = 1e-6 ** 2
-
-
 @njit
-def spectral_norm2(X_data, X_indptr, X_indices, n_samples):
+def spectral_norm2(X_data, X_indptr, X_indices, n_samples,
+                   max_iter=20, tol=1e-6):
     """Compute the squared spectral norm of sparse matrix ``X``.
 
     Find the largest eigenvalue of ``X @ X.T`` using the power method.
@@ -503,17 +500,22 @@ def spectral_norm2(X_data, X_indptr, X_indices, n_samples):
     .. [1] Alfio Quarteroni, Riccardo Sacco, Fausto Saleri "Numerical Mathematics",
         chapiter 5, page 192-195.
     """
+    # tol is squared as we evaluate the square of inequality (5.25) in ref [1]
+    tol = tol ** 2
+
     # init vec with norm(vec) == 1.
-    eigenvector = np.full(n_samples, 1/np.sqrt(n_samples))
+    eigenvector = np.random.randn(n_samples)
+    eigenvector /= norm(eigenvector)
     eigenvalue = 1.
 
-    for _ in range(POWER_MAX_ITER):
+    for _ in range(max_iter):
         vec = _XXT_dot_vec(X_data, X_indptr, X_indices, eigenvector, n_samples)
         norm_vec = norm(vec)
         eigenvalue = vec @ eigenvector
 
         # norm(X @ X.T @ eigenvector - eigenvalue * eigenvector) <= tol
-        if norm_vec ** 2 - eigenvalue ** 2 <= TOL:
+        # inequality is squared
+        if norm_vec ** 2 - eigenvalue ** 2 <= tol:
             break
 
         eigenvector = vec / norm_vec

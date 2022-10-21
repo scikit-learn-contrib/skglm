@@ -8,8 +8,6 @@ from skglm.utils import _prox_vec
 class FISTA(BaseSolver):
     r"""ISTA solver with Nesterov acceleration (FISTA).
 
-    This solver implements accelerated proximal gradient descent for linear problems.
-
     Attributes
     ----------
     max_iter : int, default 100
@@ -59,8 +57,10 @@ class FISTA(BaseSolver):
                     X.data, X.indptr, X.indices, y, z, X @ z, datafit, all_features)
             else:
                 grad = construct_grad(X, y, z, X @ z, datafit, all_features)
-            z -= grad / lipschitz
-            w = _prox_vec(w, z, penalty, lipschitz)
+
+            step = 1 / lipschitz
+            z -= step * grad
+            w = _prox_vec(w, z, penalty, step)
             Xw = X @ w
             z = w + (t_old - 1.) / t_new * (w - w_old)
 

@@ -460,12 +460,12 @@ class AndersonAcceleration:
 
 
 @njit
-def _prox_vec(w, z, penalty, lipschitz):
-    # evaluate the vectorized proximal operator for the FISTA solver
-    # lipschitz stands for global lipschitz constant
+def _prox_vec(w, z, penalty, step):
+    # evaluate the vectorized proximal operator
+    # lipchitz stands for global lipchitz constant
     n_features = w.shape[0]
     for j in range(n_features):
-        w[j] = penalty.prox_1d(z[j], 1 / lipschitz, j)
+        w[j] = penalty.prox_1d(z[j], step, j)
     return w
 
 
@@ -474,7 +474,7 @@ def spectral_norm(X_data, X_indptr, X_indices, n_samples,
                   max_iter=20, tol=1e-6):
     """Compute the spectral norm of sparse matrix ``X``.
 
-    Find the largest eigenvalue of ``X @ X.T`` using the power method.
+    Apply The power method on ``X @ X.T`` to find its largest eigenvalue.
 
     Parameters
     ----------

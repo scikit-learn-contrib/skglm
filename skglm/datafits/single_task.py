@@ -4,7 +4,7 @@ from numba import njit
 from numba import float64
 
 from skglm.datafits.base import BaseDatafit
-from skglm.utils import spectral_norm2
+from skglm.utils import spectral_norm
 
 
 class Quadratic(BaseDatafit):
@@ -59,7 +59,7 @@ class Quadratic(BaseDatafit):
         n_features = len(X_indptr) - 1
         self.Xty = np.zeros(n_features, dtype=X_data.dtype)
 
-        self.global_lipschitz = spectral_norm2(X_data, X_indptr, X_indices, len(y))
+        self.global_lipschitz = spectral_norm(X_data, X_indptr, X_indices, len(y)) ** 2
         self.global_lipschitz /= len(y)
 
         self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
@@ -160,7 +160,7 @@ class Logistic(BaseDatafit):
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
         n_features = len(X_indptr) - 1
 
-        self.global_lipschitz = spectral_norm2(X_data, X_indptr, X_indices, len(y))
+        self.global_lipschitz = spectral_norm(X_data, X_indptr, X_indices, len(y)) ** 2
         self.global_lipschitz /= (len(y) * 4)
 
         self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
@@ -242,8 +242,8 @@ class QuadraticSVC(BaseDatafit):
     def initialize_sparse(self, yXT_data, yXT_indptr, yXT_indices, y):
         n_features = len(yXT_indptr) - 1
 
-        self.global_lipschitz = spectral_norm2(
-            yXT_data, yXT_indptr, yXT_indices, len(y))
+        self.global_lipschitz = spectral_norm(
+            yXT_data, yXT_indptr, yXT_indices, len(y)) ** 2
 
         self.lipschitz = np.zeros(n_features, dtype=yXT_data.dtype)
         for j in range(n_features):
@@ -336,7 +336,7 @@ class Huber(BaseDatafit):
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
         n_features = len(X_indptr) - 1
 
-        self.global_lipschitz = spectral_norm2(X_data, X_indptr, X_indices, len(y))
+        self.global_lipschitz = spectral_norm(X_data, X_indptr, X_indices, len(y)) ** 2
         self.global_lipschitz /= len(y)
 
         self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)

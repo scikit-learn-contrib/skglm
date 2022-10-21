@@ -470,22 +470,22 @@ def _prox_vec(w, z, penalty, lipschitz):
 
 
 @njit
-def spectral_norm2(X_data, X_indptr, X_indices, n_samples,
-                   max_iter=20, tol=1e-6):
-    """Compute the squared spectral norm of sparse matrix ``X``.
+def spectral_norm(X_data, X_indptr, X_indices, n_samples,
+                  max_iter=20, tol=1e-6):
+    """Compute the spectral norm of sparse matrix ``X``.
 
     Find the largest eigenvalue of ``X @ X.T`` using the power method.
 
     Parameters
     ----------
     X_data : array, shape (n_elements,)
-         `data` attribute of the sparse CSC matrix ``X``.
+         ``data`` attribute of the sparse CSC matrix ``X``.
 
     X_indptr : array, shape (n_features + 1,)
-         `indptr` attribute of the sparse CSC matrix ``X``.
+         ``indptr`` attribute of the sparse CSC matrix ``X``.
 
     X_indices : array, shape (n_elements,)
-         `indices` attribute of the sparse CSC matrix ``X``.
+         ``indices`` attribute of the sparse CSC matrix ``X``.
 
     n_samples : int
         number of rows of ``X``.
@@ -499,7 +499,7 @@ def spectral_norm2(X_data, X_indptr, X_indices, n_samples,
     Returns
     -------
     eigenvalue : float
-        The largest eigenvalue of ``X.T @ X``, aka the squared spectral norm of ``X``.
+        The largest singular value of ``X``.
 
     References
     ----------
@@ -526,7 +526,7 @@ def spectral_norm2(X_data, X_indptr, X_indices, n_samples,
 
         eigenvector = vec / norm_vec
 
-    return eigenvalue
+    return np.sqrt(eigenvalue)
 
 
 @njit
@@ -567,4 +567,26 @@ def _XT_dot_vec(X_data, X_indptr, X_indices, vec):
 
 
 if __name__ == '__main__':
+    import time
+    import scipy.sparse.linalg
+    from scipy.sparse import csc_matrix, random
+    n_samples, n_features = 500, 600
+    A = random(n_samples, n_features, density=0.5, format='csc')
+
+    X = csc_matrix(A)
+    X_dense = X.toarray()
+
+    # cache numba compilation
+    M = random(5, 7, density=0.9, format='csc')
+    spectral_norm(M.data, M.indptr, M.indices, 5)
+
+    start = time.time()
+    spectral_norm(X.data, X.indptr, X.indices, n_samples)
+    end = time.time()
+    print("our: ", end - start)
+
+    start = time.time()
+    scipy.sparse.linalg.svds(X, k=1)[1]
+    end = time.time()
+    print("scipy: ", end - start)
     pass

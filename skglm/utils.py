@@ -493,7 +493,7 @@ def spectral_norm2(X_data, X_indptr, X_indices, n_samples,
     Returns
     -------
     eigenvalue : float
-        The largest eigenvalue value of ``X.T @ X``, aka the squared spectral of ``X``.
+        The largest eigenvalue of ``X.T @ X``, aka the squared spectral norm of ``X``.
 
     References
     ----------

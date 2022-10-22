@@ -6,10 +6,10 @@ from numpy.testing import assert_array_less
 
 from skglm.datafits import Quadratic, QuadraticMultiTask
 from skglm.penalties import (
-    L1, L1_plus_L2, WeightedL1, MCPenalty, SCAD, IndicatorBox, L0_5, L2_3,
+    L1, L1_plus_L2, WeightedL1, MCPenalty, SCAD, IndicatorBox, L0_5, L2_3, SLOPE,
     L2_1, L2_05, BlockMCPenalty, BlockSCAD)
-from skglm import GeneralizedLinearEstimator
-from skglm.solvers import AndersonCD, MultiTaskBCD
+from skglm import GeneralizedLinearEstimator, Lasso
+from skglm.solvers import AndersonCD, MultiTaskBCD, FISTA
 from skglm.utils import make_correlated_data
 
 
@@ -67,6 +67,17 @@ def test_subdiff_diff_block(block_penalty):
     # assert the stopping criterion is satisfied
     assert_array_less(est.stop_crit_, est.solver.tol)
 
+
+def test_slope():
+    # check that when alphas = [alpha, ..., alpha], SLOPE and L1 solutions are equal
+    alphas = np.repeat(alpha, n_features)
+    tol = 1e-10
+    est = GeneralizedLinearEstimator(
+        penalty=SLOPE(alphas),
+        solver=FISTA(max_iter=1000, tol=tol),
+    ).fit(X, y)
+    lasso = Lasso(alpha, fit_intercept=False, tol=tol).fit(X, y)
+    np.testing.assert_allclose(est.coef_, lasso.coef_, rtol=1e-5)
 
 if __name__ == "__main__":
     pass

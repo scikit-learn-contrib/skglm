@@ -69,6 +69,11 @@ class IterativeReweightedL1(GeneralizedLinearEstimator):
         self :
             Fitted estimator.
         """
+        if not hasattr(self.penalty, "derivative"):
+            raise ValueError(
+                f"Missing `derivative` method. Reweighting is not implemented for " +
+                f"penalty {self.penalty.__class__.__name__}")
+
         self.loss_history_ = []
         n_features = X.shape[1]
         _penalty = WeightedL1(self.penalty.alpha, np.ones(n_features))

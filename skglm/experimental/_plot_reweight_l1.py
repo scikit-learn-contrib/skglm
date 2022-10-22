@@ -33,30 +33,14 @@ direct_l05 = GeneralizedLinearEstimator(
     penalty=L0_5(alpha),
     solver=AndersonCD(tol=tol, fit_intercept=False, ws_strategy="fixpoint"))
 
-# TODO: cache compilation
-
-print("#" * 20)
-print("Time")
-
-start = time.time()
 iterative_l05.fit(X, y)
-print("Reweighting:", time.time() - start)
 
 # reweighting can't increase the L0.5 objective
 assert iterative_l05.loss_history_[0] > iterative_l05.loss_history_[-1]
 diffs = np.diff(iterative_l05.loss_history_)
 np.testing.assert_array_less(diffs, 1e-5)
 
-start = time.time()
 direct_l05.fit(X, y)
-print("Direct prox:", time.time() - start)
-
-print("#" * 20)
-
-# non-convex, not necessary same solution
-print("Coefficient norms")
-print("Reweighting:", norm(iterative_l05.coef_))
-print("Direct prox:", norm(direct_l05.coef_))
 
 print("#" * 20)
 print("Objective value")

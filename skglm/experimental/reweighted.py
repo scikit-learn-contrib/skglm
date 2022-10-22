@@ -5,14 +5,6 @@ from skglm.penalties import WeightedL1, L0_5
 from skglm.utils import compiled_clone
 
 
-# def _log_sum_objective(coef):
-#     return np.log(np.abs(coef))
-
-
-# def _log_sum_derivative(coef):
-#     return 1. / (np.abs(coef))
-
-
 class IterativeReweightedL1(GeneralizedLinearEstimator):
     r"""Reweighted L1-norm estimator.
 

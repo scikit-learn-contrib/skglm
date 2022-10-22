@@ -462,7 +462,14 @@ class L2_3(BasePenalty):
 
 
 class SLOPE(BasePenalty):
-    """Sorted L-One Penalized Estimation (SLOPE) penalty."""
+    """Sorted L-One Penalized Estimation (SLOPE) penalty.
+
+    References
+    ----------
+    .. [1] B. Malgorzata, E. van den Berg, C. Sabatti, W. Su, E. Candes
+    "SLOPE - Adaptive Variable Selection via Convex Optimization",
+    The Annals of Applied Statistics 9 (3): 1103–40
+    https://doi.org/10.1214/15-AOAS842"""
 
     def __init__(self, alphas):
         self.alphas = alphas

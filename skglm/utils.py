@@ -569,6 +569,9 @@ def _XT_dot_vec(X_data, X_indptr, X_indices, vec):
 def prox_SLOPE(z, alphas):
     """Fast computation for proximal operator of SLOPE.
 
+    Extracted from:
+    https://github.com/agisga/grpSLOPE/blob/master/src/proxSortedL1.c
+
     Arguments
     ---------
     z : array, shape (n_features)

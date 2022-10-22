@@ -25,7 +25,6 @@ def _obj(w):
 
 
 iterative_l05 = IterativeReweightedL1(
-    alpha,
     penalty=L0_5(alpha),
     solver=AndersonCD(tol=tol, fit_intercept=False))
 

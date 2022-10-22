@@ -1,6 +1,8 @@
 import numpy as np
+from skglm.datafits import Quadratic
 from skglm.estimators import GeneralizedLinearEstimator
 from skglm.penalties import WeightedL1, L0_5
+from skglm.utils import compiled_clone
 
 
 # def _log_sum_objective(coef):
@@ -47,7 +49,7 @@ class IterativeReweightedL1(GeneralizedLinearEstimator):
            https://web.stanford.edu/~boyd/papers/pdf/rwl1.pdf
     """
 
-    def __init__(self, datafit=None, penalty=L0_5(1.), solver=None,
+    def __init__(self, datafit=Quadratic(), penalty=L0_5(1.), solver=None,
                  n_reweights=5):
         super().__init__(datafit=datafit, penalty=penalty, solver=solver)
         self.n_reweights = n_reweights
@@ -74,9 +76,12 @@ class IterativeReweightedL1(GeneralizedLinearEstimator):
                 f"Missing `derivative` method. Reweighting is not implemented for " +
                 f"penalty {self.penalty.__class__.__name__}")
 
-        self.loss_history_ = []
         n_features = X.shape[1]
-        _penalty = WeightedL1(self.penalty.alpha, np.ones(n_features))
+        _penalty = compiled_clone(WeightedL1(self.penalty.alpha, np.ones(n_features)))
+        self.datafit = compiled_clone(self.datafit)
+        self.penalty = compiled_clone(self.penalty)
+
+        self.loss_history_ = []
 
         for iter_reweight in range(self.n_reweights):
             coef_ = self.solver.solve(X, y, self.datafit, _penalty)[0]

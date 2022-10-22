@@ -47,12 +47,10 @@ class IterativeReweightedL1(GeneralizedLinearEstimator):
            https://web.stanford.edu/~boyd/papers/pdf/rwl1.pdf
     """
 
-    def __init__(self, alpha, datafit=None, penalty=L0_5(1.), solver=None,
+    def __init__(self, datafit=None, penalty=L0_5(1.), solver=None,
                  n_reweights=5):
-        super().__init__(
-            datafit=datafit, penalty=WeightedL1(alpha, np.ones(1)), solver=solver)
+        super().__init__(datafit=datafit, penalty=penalty, solver=solver)
         self.n_reweights = n_reweights
-        self.nncvx_penalty = penalty
 
     def fit(self, X, y):
         """Fit the model according to the given training data.
@@ -73,18 +71,19 @@ class IterativeReweightedL1(GeneralizedLinearEstimator):
         """
         self.loss_history_ = []
         n_features = X.shape[1]
-        self.penalty.weights = np.ones(n_features)
+        _penalty = WeightedL1(self.penalty.alpha, np.ones(n_features))
 
         for iter_reweight in range(self.n_reweights):
-            super().fit(X, y)
-            self.penalty.weights = self.nncvx_penalty.derivative(self.coef_)
+            coef_ = self.solver.solve(X, y, self.datafit, _penalty)[0]
+            _penalty.weights = self.penalty.derivative(coef_)
 
-            # TODO: dot product X @ w is slow in high-dimension, to be improved
-            loss = (self.datafit.value(y, self.coef_, X @ self.coef_)
-                    + self.nncvx_penalty.value(self.coef_))
+            loss = (self.datafit.value(y, coef_, X @ coef_)
+                    + self.penalty.value(coef_))
             self.loss_history_.append(loss)
 
             if self.solver.verbose:
                 print(f"Reweight {iter_reweight}/{self.n_reweights}, objective {loss}")
+
+        self.coef_ = coef_
 
         return self

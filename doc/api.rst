@@ -70,6 +70,7 @@ Solvers
    :toctree: generated/
 
    AndersonCD
+   FISTA
    GramCD
    GroupBCD
    MultiTaskBCD

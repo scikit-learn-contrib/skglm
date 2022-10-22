@@ -382,7 +382,6 @@ class L0_5(BasePenalty):
 
     def derivative(self, w):
         """Compute the element-wise derivative."""
-        # XXX: no alpha, not strcitly speaking derivative. WDYT?
         return 1. / (2. * np.sqrt(np.abs(w)) + 1e-12)
 
     def prox_1d(self, value, stepsize, j):
@@ -436,7 +435,6 @@ class L2_3(BasePenalty):
 
     def derivative(self, w):
         """Compute the element-wise derivative."""
-        # XXX: no alpha, not strcitly speaking derivative. WDYT?
         return 2 / 3 / (np.abs(w) ** (1/3) + 1e-12)
 
     def prox_1d(self, value, stepsize, j):

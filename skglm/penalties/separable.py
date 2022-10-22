@@ -4,7 +4,8 @@ from numba.types import bool_
 
 from skglm.penalties.base import BasePenalty
 from skglm.utils import (
-    ST, box_proj, prox_05, prox_2_3, prox_SCAD, value_SCAD, prox_MCP, value_MCP)
+    ST, box_proj, prox_05, prox_2_3, prox_SCAD, value_SCAD, prox_MCP, value_MCP,
+    prox_SLOPE)
 
 
 class L1(BasePenalty):
@@ -458,3 +459,33 @@ class L2_3(BasePenalty):
     def generalized_support(self, w):
         """Return a mask with non-zero coefficients."""
         return w != 0
+
+
+class SLOPE(BasePenalty):
+    """Sorted L-One Penalized Estimation (SLOPE) penalty."""
+
+    def __init__(self, alphas):
+        self.alphas = alphas
+
+    def get_spec(self):
+        spec = (
+            ('alphas', float64[:]),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alphas=self.alphas)
+
+    def value(self, w):
+        """Compute the value of SLOPE at w."""
+        return np.sum(np.sort(np.abs(w)) * self.alphas[::-1])
+
+    def prox_vec(self, x, stepsize):
+        def _prox(_x, _alphas):
+            sign_x = np.sign(_x)
+            _x = np.abs(_x)
+            sorted_indices = np.argsort(_x)[::-1]
+            prox = prox_SLOPE(_x[sorted_indices], _alphas)
+            prox[sorted_indices] = prox
+            return prox * sign_x
+        return _prox(x, self.alphas * stepsize)

@@ -14,7 +14,7 @@ X, y, w_true = make_correlated_data(
     n_samples=n_samples, n_features=n_features, random_state=24)
 
 alpha_max = norm(X.T @ y, ord=np.inf) / n_samples
-alpha = alpha_max / 100
+alphas = [alpha_max / 10, alpha_max / 100, alpha_max / 1000]
 tol = 1e-10
 
 
@@ -23,7 +23,7 @@ def _obj(w):
             + alpha * np.sum(np.sqrt(np.abs(w))))
 
 
-def fit_l05(max_iter):
+def fit_l05(max_iter, alpha):
     start = time.time()
     iterative_l05 = IterativeReweightedL1(
         penalty=L0_5(alpha),
@@ -46,19 +46,26 @@ def fit_l05(max_iter):
 
 
 # caching Numba compilation
-fit_l05(1)
+fit_l05(1, alpha_max)
 
 # actual run
-results = fit_l05(100)
-iterative_l05, iterative_time = results["iterative"]
-direct_l05, direct_time = results["direct"]
+for alpha in alphas:
+    print("#" * 20)
+    print(f"alpha = {alpha}")
+    print("#" * 20)
 
-print("#" * 20)
-print("Time")
-print("Reweighting:", iterative_l05)
-print("Direct prox:", direct_l05)
+    results = fit_l05(max_iter=100, alpha=alpha)
+    iterative_l05, iterative_time = results["iterative"]
+    direct_l05, direct_time = results["direct"]
 
-print("#" * 20)
-print("Objective value")
-print("Reweighting:", _obj(iterative_l05.coef_))
-print("Direct prox:", _obj(direct_l05.coef_))
+    print("#" * 5)
+    print("Time")
+    print("Reweighting:", iterative_time)
+    print("Direct prox:", direct_time)
+
+    print("#" * 5)
+    print("Objective value")
+    print("Reweighting:", _obj(iterative_l05.coef_))
+    print("Direct prox:", _obj(direct_l05.coef_))
+
+    print("\n")

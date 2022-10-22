@@ -461,8 +461,7 @@ class AndersonAcceleration:
 
 @njit
 def _prox_vec(w, z, penalty, step):
-    # evaluate the vectorized proximal operator
-    # lipchitz stands for global lipchitz constant
+    # evaluate the full proximal operator
     n_features = w.shape[0]
     for j in range(n_features):
         w[j] = penalty.prox_1d(z[j], step, j)
@@ -471,10 +470,8 @@ def _prox_vec(w, z, penalty, step):
 
 @njit
 def spectral_norm(X_data, X_indptr, X_indices, n_samples,
-                  max_iter=20, tol=1e-6):
-    """Compute the spectral norm of sparse matrix ``X``.
-
-    Apply The power method on ``X @ X.T`` to find its largest eigenvalue.
+                  max_iter=100, tol=1e-6):
+    """Compute the spectral norm of sparse matrix ``X`` with power method.
 
     Parameters
     ----------
@@ -504,11 +501,8 @@ def spectral_norm(X_data, X_indptr, X_indices, n_samples,
     References
     ----------
     .. [1] Alfio Quarteroni, Riccardo Sacco, Fausto Saleri "Numerical Mathematics",
-        chapiter 5, page 192-195.
+        chapter 5, page 192-195.
     """
-    # tol is squared as we evaluate the square of inequality (5.25) in ref [1]
-    tol = tol ** 2
-
     # init vec with norm(vec) == 1.
     eigenvector = np.random.randn(n_samples)
     eigenvector /= norm(eigenvector)
@@ -520,8 +514,8 @@ def spectral_norm(X_data, X_indptr, X_indices, n_samples,
         eigenvalue = vec @ eigenvector
 
         # norm(X @ X.T @ eigenvector - eigenvalue * eigenvector) <= tol
-        # inequality is squared
-        if norm_vec ** 2 - eigenvalue ** 2 <= tol:
+        # inequality (5.25) in ref [1] is squared
+        if norm_vec ** 2 - eigenvalue ** 2 <= tol ** 2:
             break
 
         eigenvector = vec / norm_vec

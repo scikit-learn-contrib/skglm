@@ -161,7 +161,7 @@ class Logistic(BaseDatafit):
         n_features = len(X_indptr) - 1
 
         self.global_lipschitz = spectral_norm(X_data, X_indptr, X_indices, len(y)) ** 2
-        self.global_lipschitz /= (len(y) * 4)
+        self.global_lipschitz /= 4 * len(y)
 
         self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
         for j in range(n_features):

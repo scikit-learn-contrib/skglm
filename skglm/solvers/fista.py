@@ -66,12 +66,10 @@ class FISTA(BaseSolver):
 
             step = 1 / lipschitz
             z -= step * grad
-            # w = _prox_vec(w, z, penalty, step)
-            w = penalty.prox_vec(z, 1 / lipschitz)
+            w = _prox_vec(w, z, penalty, step)
             Xw = X @ w
             z = w + (t_old - 1.) / t_new * (w - w_old)
 
-            # should support max fixpoint violation
             opt = penalty.subdiff_distance(w, grad, all_features)
             stop_crit = np.max(opt)
 

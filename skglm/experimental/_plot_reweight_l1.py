@@ -1,4 +1,3 @@
-import time
 import numpy as np
 from numpy.linalg import norm
 from sklearn.metrics import f1_score

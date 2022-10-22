@@ -16,9 +16,8 @@ from skglm.utils import compiled_clone
 class IterativeReweightedL1(GeneralizedLinearEstimator):
     r"""Reweighted L1-norm estimator.
 
-    This estimator iteratively solves a non-convex objective by iteratively solving
-    convex surrogates. They are obtained by iteratively re-weighting the \ell_1-norm
-    by a penalty applied to the coefficients.
+    This estimator iteratively solves a non-convex problems by iteratively solving
+    convex surrogates involving weighted L1 norms.
 
     Parameters
     ----------
@@ -33,15 +32,15 @@ class IterativeReweightedL1(GeneralizedLinearEstimator):
         Solver. If None, `solver` is initialized as an `AndersonCD` solver.
 
     n_reweights : int, optional
-        Number of reweighting iterations.
+        Number of reweighting performed (convex surrogates solved).
 
     Attributes
     ----------
     coef_ : array, shape (n_features,)
-        Parameter vector (w in the cost function formula)
+        Parameter vector (w in the cost function formula).
 
     loss_history_ : list
-        Objective history after every reweighting iteration
+        Objective history after every reweighting.
 
     References
     ----------

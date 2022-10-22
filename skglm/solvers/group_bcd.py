@@ -170,6 +170,6 @@ def _construct_grad(X, y, w, Xw, datafit, ws):
     grad_ptr = 0
     for g in ws:
         grad_g = datafit.gradient_g(X, y, w, Xw, g)
-        grads[grad_ptr: grad_ptr+len(grad_g)] = -grad_g
+        grads[grad_ptr: grad_ptr+len(grad_g)] = grad_g
         grad_ptr += len(grad_g)
     return grads

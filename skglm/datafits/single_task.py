@@ -4,6 +4,7 @@ from numba import njit
 from numba import float64
 
 from skglm.datafits.base import BaseDatafit
+from skglm.utils import spectral_norm
 
 
 class Quadratic(BaseDatafit):
@@ -54,12 +55,14 @@ class Quadratic(BaseDatafit):
         for j in range(n_features):
             self.lipschitz[j] = (X[:, j] ** 2).sum() / len(y)
 
-    def initialize_sparse(
-            self, X_data, X_indptr, X_indices, y):
+    def initialize_sparse(self, X_data, X_indptr, X_indices, y):
         n_features = len(X_indptr) - 1
         self.Xty = np.zeros(n_features, dtype=X_data.dtype)
+
+        self.global_lipschitz = spectral_norm(X_data, X_indptr, X_indices, len(y)) ** 2
+        self.global_lipschitz /= len(y)
+
         self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
-        self.global_lipschitz = 0.
         for j in range(n_features):
             nrm2 = 0.
             xty = 0
@@ -69,7 +72,6 @@ class Quadratic(BaseDatafit):
 
             self.lipschitz[j] = nrm2 / len(y)
             self.Xty[j] = xty
-            self.global_lipschitz += nrm2 / len(y)
 
     def value(self, y, w, Xw):
         return np.sum((y - Xw) ** 2) / (2 * len(Xw))
@@ -157,12 +159,14 @@ class Logistic(BaseDatafit):
 
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
         n_features = len(X_indptr) - 1
+
+        self.global_lipschitz = spectral_norm(X_data, X_indptr, X_indices, len(y)) ** 2
+        self.global_lipschitz /= (len(y) * 4)
+
         self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
-        self.global_lipschitz = 0.
         for j in range(n_features):
             Xj = X_data[X_indptr[j]:X_indptr[j+1]]
             self.lipschitz[j] = (Xj ** 2).sum() / (len(y) * 4)
-            self.global_lipschitz += (Xj ** 2).sum() / (len(y) * 4)
 
     def value(self, y, w, Xw):
         return np.log(1. + np.exp(- y * Xw)).sum() / len(y)
@@ -235,17 +239,18 @@ class QuadraticSVC(BaseDatafit):
         for j in range(n_features):
             self.lipschitz[j] = norm(yXT[:, j]) ** 2
 
-    def initialize_sparse(
-            self, yXT_data, yXT_indptr, yXT_indices, y):
+    def initialize_sparse(self, yXT_data, yXT_indptr, yXT_indices, y):
         n_features = len(yXT_indptr) - 1
+
+        self.global_lipschitz = spectral_norm(
+            yXT_data, yXT_indptr, yXT_indices, max(yXT_indices)+1) ** 2
+
         self.lipschitz = np.zeros(n_features, dtype=yXT_data.dtype)
-        self.global_lipschitz = 0.
         for j in range(n_features):
             nrm2 = 0.
             for idx in range(yXT_indptr[j], yXT_indptr[j + 1]):
                 nrm2 += yXT_data[idx] ** 2
             self.lipschitz[j] = nrm2
-            self.global_lipschitz += nrm2
 
     def value(self, y, w, yXTw):
         return (yXTw ** 2).sum() / 2 - np.sum(w)
@@ -290,7 +295,7 @@ class Huber(BaseDatafit):
     Attributes
     ----------
     delta : float
-        Shape hyperparameter.
+        Threshold hyperparameter.
 
     lipschitz : array, shape (n_features,)
         The coordinatewise gradient Lipschitz constants. Equal to
@@ -328,17 +333,18 @@ class Huber(BaseDatafit):
             self.lipschitz[j] = (X[:, j] ** 2).sum() / len(y)
             self.global_lipschitz += (X[:, j] ** 2).sum() / len(y)
 
-    def initialize_sparse(
-            self, X_data, X_indptr, X_indices, y):
+    def initialize_sparse(self, X_data, X_indptr, X_indices, y):
         n_features = len(X_indptr) - 1
+
+        self.global_lipschitz = spectral_norm(X_data, X_indptr, X_indices, len(y)) ** 2
+        self.global_lipschitz /= len(y)
+
         self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
-        self.global_lipschitz = 0.
         for j in range(n_features):
             nrm2 = 0.
             for idx in range(X_indptr[j], X_indptr[j + 1]):
                 nrm2 += X_data[idx] ** 2
             self.lipschitz[j] = nrm2 / len(y)
-            self.global_lipschitz += nrm2 / len(y)
 
     def value(self, y, w, Xw):
         n_samples = len(y)

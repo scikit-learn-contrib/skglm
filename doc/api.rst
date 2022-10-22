@@ -55,6 +55,7 @@ Datafits
 
    Huber
    Logistic
+   LogisticGroup
    Quadratic
    QuadraticGroup
    QuadraticSVC
@@ -69,6 +70,7 @@ Solvers
    :toctree: generated/
 
    AndersonCD
+   FISTA
    GramCD
    GroupBCD
    MultiTaskBCD

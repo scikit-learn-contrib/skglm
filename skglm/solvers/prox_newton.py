@@ -24,6 +24,9 @@ class ProxNewton(BaseSolver):
     tol : float, default 1e-4
         Tolerance for convergence.
 
+    fit_intercept : bool, default True
+        If ``True``, fits an unpenalized intercept.
+
     verbose : bool, default False
         Amount of verbosity. 0/False is silent.
 
@@ -53,7 +56,8 @@ class ProxNewton(BaseSolver):
 
     def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
         n_samples, n_features = X.shape
-        w = np.zeros(n_features) if w_init is None else w_init
+        fit_intercept = self.fit_intercept
+        w = np.zeros(n_features + fit_intercept) if w_init is None else w_init
         Xw = np.zeros(n_samples) if Xw_init is None else Xw_init
         all_features = np.arange(n_features)
         stop_crit = 0.
@@ -63,20 +67,38 @@ class ProxNewton(BaseSolver):
         if is_sparse:
             X_bundles = (X.data, X.indptr, X.indices)
 
+        if len(w) != n_features + self.fit_intercept:
+            if self.fit_intercept:
+                val_error_message = (
+                    "w should be of size n_features + 1 when using fit_intercept=True: "
+                    f"expected {n_features + 1}, got {len(w)}.")
+            else:
+                val_error_message = (
+                    "w should be of size n_features: "
+                    f"expected {n_features}, got {len(w)}.")
+            raise ValueError(val_error_message)
+
         for t in range(self.max_iter):
             # compute scores
             if is_sparse:
                 grad = _construct_grad_sparse(
-                    *X_bundles, y, w, Xw, datafit, all_features)
+                    *X_bundles, y, w[:n_features], Xw, datafit, all_features)
             else:
-                grad = _construct_grad(X, y, w, Xw, datafit, all_features)
+                grad = _construct_grad(X, y, w[:n_features], Xw, datafit, all_features)
 
-            opt = penalty.subdiff_distance(w, grad, all_features)
+            opt = penalty.subdiff_distance(w[:n_features], grad, all_features)
+
+            # optimality of intercept
+            if fit_intercept:
+                # gradient w.r.t. intercept (constant features of ones)
+                intercept_opt = np.abs(np.sum(datafit.raw_grad(y, Xw)))
+            else:
+                intercept_opt = 0.
 
             # check convergences
-            stop_crit = np.max(opt)
+            stop_crit = max(np.max(opt), intercept_opt)
             if self.verbose:
-                p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+                p_obj = datafit.value(y, w, Xw) + penalty.value(w[:n_features])
                 print(
                     "Iteration {}: {:.10f}, ".format(t+1, p_obj) +
                     "stopping crit: {:.2e}".format(stop_crit)
@@ -101,20 +123,22 @@ class ProxNewton(BaseSolver):
                 # find descent direction
                 if is_sparse:
                     delta_w_ws, X_delta_w_ws = _descent_direction_s(
-                        *X_bundles, y, w, Xw, grad_ws, datafit,
+                        *X_bundles, y, w, Xw, fit_intercept, grad_ws, datafit,
                         penalty, ws, tol=EPS_TOL*tol_in)
                 else:
                     delta_w_ws, X_delta_w_ws = _descent_direction(
-                        X, y, w, Xw, grad_ws, datafit, penalty, ws, tol=EPS_TOL*tol_in)
+                        X, y, w, Xw, fit_intercept, grad_ws, datafit,
+                        penalty, ws, tol=EPS_TOL*tol_in)
 
                 # backtracking line search with inplace update of w, Xw
                 if is_sparse:
                     grad_ws[:] = _backtrack_line_search_s(
-                        *X_bundles, y, w, Xw, datafit, penalty, delta_w_ws,
-                        X_delta_w_ws, ws)
+                        *X_bundles, y, w, Xw, fit_intercept, datafit, penalty,
+                        delta_w_ws, X_delta_w_ws, ws)
                 else:
                     grad_ws[:] = _backtrack_line_search(
-                        X, y, w, Xw, datafit, penalty, delta_w_ws, X_delta_w_ws, ws)
+                        X, y, w, Xw, fit_intercept, datafit, penalty,
+                        delta_w_ws, X_delta_w_ws, ws)
 
                 # check convergence
                 opt_in = penalty.subdiff_distance(w, grad_ws, ws)
@@ -138,7 +162,7 @@ class ProxNewton(BaseSolver):
 
 
 @njit
-def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
+def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
                        penalty, ws, tol):
     # Given:
     #   1) b = \nabla F(X w_epoch)
@@ -152,11 +176,16 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
     for idx, j in enumerate(ws):
         lipschitz[idx] = raw_hess @ X[:, j] ** 2
 
-    # for a less costly stopping criterion, we do no compute the exact gradient,
-    # but store each coordinate-wise gradient every time we upate one coordinate:
+    # for a less costly stopping criterion, we do not compute the exact gradient,
+    # but store each coordinate-wise gradient every time we update one coordinate
     past_grads = np.zeros(len(ws))
     X_delta_w_ws = np.zeros(X.shape[0])
-    w_ws = w_epoch[ws]
+    ws_intercept = np.append(ws, -1) if fit_intercept else ws
+    w_ws = w_epoch[ws_intercept]
+
+    if fit_intercept:
+        lipschitz_intercept = np.sum(raw_hess)
+        grad_intercept = np.sum(datafit.raw_grad(y, Xw_epoch))
 
     for cd_iter in range(MAX_CD_ITER):
         for idx, j in enumerate(ws):
@@ -174,22 +203,35 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
             if w_ws[idx] != old_w_idx:
                 X_delta_w_ws += (w_ws[idx] - old_w_idx) * X[:, j]
 
+        if fit_intercept:
+            past_grads_intercept = grad_intercept + raw_hess @ X_delta_w_ws
+            old_intercept = w_ws[-1]
+            w_ws[-1] -= past_grads_intercept / lipschitz_intercept
+
+            if w_ws[-1] != old_intercept:
+                X_delta_w_ws += w_ws[-1] - old_intercept
+
         if cd_iter % 5 == 0:
             # TODO: can be improved by passing in w_ws but breaks for WeightedL1
             current_w = w_epoch.copy()
-            current_w[ws] = w_ws
+            current_w[ws_intercept] = w_ws
             opt = penalty.subdiff_distance(current_w, past_grads, ws)
-            if np.max(opt) <= tol:
+            stop_crit = np.max(opt)
+
+            if fit_intercept:
+                stop_crit = max(stop_crit, np.abs(past_grads_intercept))
+
+            if stop_crit <= tol:
                 break
 
     # descent direction
-    return w_ws - w_epoch[ws], X_delta_w_ws
+    return w_ws - w_epoch[ws_intercept], X_delta_w_ws
 
 
-# sparse version of _compute_descent_direction
+# sparse version of _descent_direction
 @njit
 def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
-                         Xw_epoch, grad_ws, datafit, penalty, ws, tol):
+                         Xw_epoch, fit_intercept, grad_ws, datafit, penalty, ws, tol):
     raw_hess = datafit.raw_hessian(y, Xw_epoch)
 
     lipschitz = np.zeros(len(ws))
@@ -201,7 +243,12 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
     # see _descent_direction() comment
     past_grads = np.zeros(len(ws))
     X_delta_w_ws = np.zeros(len(y))
-    w_ws = w_epoch[ws]
+    ws_intercept = np.append(ws, -1) if fit_intercept else ws
+    w_ws = w_epoch[ws_intercept]
+
+    if fit_intercept:
+        lipschitz_intercept = np.sum(raw_hess)
+        grad_intercept = np.sum(datafit.raw_grad(y, Xw_epoch))
 
     for cd_iter in range(MAX_CD_ITER):
         for idx, j in enumerate(ws):
@@ -224,20 +271,33 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
                 _update_X_delta_w(X_data, X_indptr, X_indices, X_delta_w_ws,
                                   w_ws[idx] - old_w_idx, j)
 
+        if fit_intercept:
+            past_grads_intercept = grad_intercept + raw_hess @ X_delta_w_ws
+            old_intercept = w_ws[-1]
+            w_ws[-1] -= past_grads_intercept / lipschitz_intercept
+
+            if w_ws[-1] != old_intercept:
+                X_delta_w_ws += w_ws[-1] - old_intercept
+
         if cd_iter % 5 == 0:
             # TODO: could be improved by passing in w_ws
             current_w = w_epoch.copy()
-            current_w[ws] = w_ws
+            current_w[ws_intercept] = w_ws
             opt = penalty.subdiff_distance(current_w, past_grads, ws)
-            if np.max(opt) <= tol:
+            stop_crit = np.max(opt)
+
+            if fit_intercept:
+                stop_crit = max(stop_crit, np.abs(past_grads_intercept))
+
+            if stop_crit <= tol:
                 break
 
     # descent direction
-    return w_ws - w_epoch[ws], X_delta_w_ws
+    return w_ws - w_epoch[ws_intercept], X_delta_w_ws
 
 
 @njit
-def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
+def _backtrack_line_search(X, y, w, Xw, fit_intercept, datafit, penalty, delta_w_ws,
                            X_delta_w_ws, ws):
     # 1) find step in [0, 1] such that:
     #   penalty(w + step * delta_w) - penalty(w) +
@@ -245,18 +305,23 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
     # ref: https://www.di.ens.fr/~aspremon/PDF/ENSAE/Newton.pdf
     # 2) inplace update of w and Xw and return grad_ws of the last w and Xw
     step, prev_step = 1., 0.
+    n_features = X.shape[1]
+    ws_intercept = np.append(ws, -1) if fit_intercept else ws
     # TODO: could be improved by passing in w[ws]
-    old_penalty_val = penalty.value(w)
+    old_penalty_val = penalty.value(w[:n_features])
 
     # try step = 1, 1/2, 1/4, ...
     for _ in range(MAX_BACKTRACK_ITER):
-        w[ws] += (step - prev_step) * delta_w_ws
+        w[ws_intercept] += (step - prev_step) * delta_w_ws
         Xw += (step - prev_step) * X_delta_w_ws
 
-        grad_ws = _construct_grad(X, y, w, Xw, datafit, ws)
+        grad_ws = _construct_grad(X, y, w[:n_features], Xw, datafit, ws)
         # TODO: could be improved by passing in w[ws]
-        stop_crit = penalty.value(w) - old_penalty_val
-        stop_crit += step * grad_ws @ delta_w_ws
+        stop_crit = penalty.value(w[:n_features]) - old_penalty_val
+        stop_crit += step * grad_ws @ delta_w_ws[:len(ws)]
+
+        if fit_intercept:
+            stop_crit += step * delta_w_ws[-1] * np.sum(datafit.raw_grad(y, Xw))
 
         if stop_crit < 0:
             break
@@ -272,21 +337,26 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
 
 # sparse version of _backtrack_line_search
 @njit
-def _backtrack_line_search_s(X_data, X_indptr, X_indices, y, w, Xw, datafit,
-                             penalty, delta_w_ws, X_delta_w_ws, ws):
+def _backtrack_line_search_s(X_data, X_indptr, X_indices, y, w, Xw, fit_intercept,
+                             datafit, penalty, delta_w_ws, X_delta_w_ws, ws):
     step, prev_step = 1., 0.
+    n_features = len(X_indptr) - 1
+    ws_intercept = np.append(ws, -1) if fit_intercept else ws
     # TODO: could be improved by passing in w[ws]
-    old_penalty_val = penalty.value(w)
+    old_penalty_val = penalty.value(w[:n_features])
 
     for _ in range(MAX_BACKTRACK_ITER):
-        w[ws] += (step - prev_step) * delta_w_ws
+        w[ws_intercept] += (step - prev_step) * delta_w_ws
         Xw += (step - prev_step) * X_delta_w_ws
 
         grad_ws = _construct_grad_sparse(X_data, X_indptr, X_indices,
-                                         y, w, Xw, datafit, ws)
+                                         y, w[:n_features], Xw, datafit, ws)
         # TODO: could be improved by passing in w[ws]
-        stop_crit = penalty.value(w) - old_penalty_val
-        stop_crit += step * grad_ws.T @ delta_w_ws
+        stop_crit = penalty.value(w[:n_features]) - old_penalty_val
+        stop_crit += step * grad_ws.T @ delta_w_ws[:len(ws)]
+
+        if fit_intercept:
+            stop_crit += step * delta_w_ws[-1] * np.sum(datafit.raw_grad(y, Xw))
 
         if stop_crit < 0:
             break

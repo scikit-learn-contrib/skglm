@@ -1,0 +1,23 @@
+﻿skglm.solvers.FISTA
+===================
+
+.. currentmodule:: skglm.solvers
+
+.. autoclass:: FISTA
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~FISTA.__init__
+      ~FISTA.solve
+   
+   
+
+   
+   
+   

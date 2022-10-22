@@ -375,6 +375,10 @@ See for example the implementation of the <code class="docutils literal notransl
 <span class="sd">        The coordinatewise gradient Lipschitz constants. Equal to</span>
 <span class="sd">        norm(X, axis=0) ** 2 / n_samples.</span>
 
+<span class="sd">    global_lipschitz : float</span>
+<span class="sd">        Global Lipschitz constant. Equal to</span>
+<span class="sd">        norm(X, ord=2) ** 2 / n_samples.</span>
+
 <span class="sd">    Note</span>
 <span class="sd">    ----</span>
 <span class="sd">    The class is jit compiled at fit time using Numba compiler.</span>
@@ -388,6 +392,7 @@ See for example the implementation of the <code class="docutils literal notransl
         <span class="n">spec</span> <span class="o">=</span> <span class="p">(</span>
             <span class="p">(</span><span class="s1">&#39;Xty&#39;</span><span class="p">,</span> <span class="n">float64</span><span class="p">[:]),</span>
             <span class="p">(</span><span class="s1">&#39;lipschitz&#39;</span><span class="p">,</span> <span class="n">float64</span><span class="p">[:]),</span>
+            <span class="p">(</span><span class="s1">&#39;global_lipschitz&#39;</span><span class="p">,</span> <span class="n">float64</span><span class="p">),</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">spec</span>
 
@@ -397,14 +402,18 @@ See for example the implementation of the <code class="docutils literal notransl
     <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Xty</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">y</span>
         <span class="n">n_features</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">global_lipschitz</span> <span class="o">=</span> <span class="n">norm</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="nb">ord</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lipschitz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_features</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">X</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_features</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">lipschitz</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">X</span><span class="p">[:,</span> <span class="n">j</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">initialize_sparse</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span> <span class="n">X_data</span><span class="p">,</span> <span class="n">X_indptr</span><span class="p">,</span> <span class="n">X_indices</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">initialize_sparse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X_data</span><span class="p">,</span> <span class="n">X_indptr</span><span class="p">,</span> <span class="n">X_indices</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
         <span class="n">n_features</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">X_indptr</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Xty</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_features</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">X_data</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">global_lipschitz</span> <span class="o">=</span> <span class="n">spectral_norm</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="n">X_indptr</span><span class="p">,</span> <span class="n">X_indices</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">global_lipschitz</span> <span class="o">/=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">lipschitz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_features</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">X_data</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_features</span><span class="p">):</span>
             <span class="n">nrm2</span> <span class="o">=</span> <span class="mf">0.</span>

@@ -1,3 +1,12 @@
+"""
+=================================================================
+Timing comparison between direct prox computation and reweighting
+=================================================================
+Compare time and objective value of L0_5-regularized problem with
+direct proximal computation and iterative reweighting.
+"""
+# Author: Pierre-Antoine Bannier<pierreantoine.bannier@gmail.com>
+
 import time
 import numpy as np
 from numpy.linalg import norm

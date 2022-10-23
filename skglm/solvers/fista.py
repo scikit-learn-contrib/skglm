@@ -2,13 +2,7 @@ import numpy as np
 from scipy.sparse import issparse
 from skglm.solvers.base import BaseSolver
 from skglm.solvers.common import construct_grad, construct_grad_sparse
-from skglm.utils import _prox_vec
-
-
-def dist_fix_point(w, grad_ws, lipschitz, penalty, ws):
-    dist_fix_point = np.zeros(ws.shape[0])
-    dist_fix_point = np.abs(w - penalty.prox_vec(w - grad_ws / lipschitz, 1 / lipschitz))
-    return dist_fix_point
+from skglm.utils import _dist_fix_point_vec, _prox_vec
 
 
 class FISTA(BaseSolver):
@@ -37,6 +31,8 @@ class FISTA(BaseSolver):
         self.max_iter = max_iter
         self.tol = tol
         self.verbose = verbose
+        self.fit_intercept = False
+        self.warm_start = False
 
     def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
         p_objs_out = []
@@ -66,11 +62,21 @@ class FISTA(BaseSolver):
 
             step = 1 / lipschitz
             z -= step * grad
-            w = _prox_vec(w, z, penalty, step)
+            if hasattr(penalty, "prox_vec"):
+                w = penalty.prox_vec(z, step)
+            else:
+                w = _prox_vec(w, z, penalty, step)
             Xw = X @ w
             z = w + (t_old - 1.) / t_new * (w - w_old)
 
-            opt = penalty.subdiff_distance(w, grad, all_features)
+            if hasattr(penalty, "subdiff_distance"):
+                opt = penalty.subdiff_distance(w, grad, all_features)
+            else:
+                # opt = _dist_fix_point_vec(w, grad, lipschitz, penalty)
+                opt = np.abs(w - penalty.prox_vec(w - grad / lipschitz, 1 / lipschitz))
+                print("w", w)
+                print("opt", opt)
+
             stop_crit = np.max(opt)
 
             p_obj = datafit.value(y, w, Xw) + penalty.value(w)

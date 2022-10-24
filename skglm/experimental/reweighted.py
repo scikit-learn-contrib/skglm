@@ -18,7 +18,7 @@ class IterativeReweightedL1(GeneralizedLinearEstimator):
 
     datafit : instance of BaseDatafit, optional
         Datafit. If None, ``datafit`` is initialized as a ``Quadratic`` datafit.
-        `datafit` is replaced by a JIT-compiled instance when calling fit.
+        ``datafit`` is replaced by a JIT-compiled instance when calling fit.
 
     solver : instance of BaseSolver, optional
         Solver. If None, `solver` is initialized as an `AndersonCD` solver.

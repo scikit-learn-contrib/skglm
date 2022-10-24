@@ -9,7 +9,9 @@ direct proximal computation and iterative reweighting.
 
 import time
 import numpy as np
+import pandas as pd
 from numpy.linalg import norm
+import matplotlib.pyplot as plt
 
 from skglm.penalties.separable import L0_5
 from skglm.utils import make_correlated_data
@@ -57,24 +59,40 @@ def fit_l05(max_iter, alpha):
 # caching Numba compilation
 fit_l05(1, alpha_max)
 
-# actual run
-for alpha in alphas:
-    print("#" * 20)
-    print(f"alpha = {alpha}")
-    print("#" * 20)
+time_results = np.zeros((2, len(alphas)))
+obj_results = np.zeros((2, len(alphas)))
 
+# actual run
+for i, alpha in enumerate(alphas):
     results = fit_l05(max_iter=100, alpha=alpha)
     iterative_l05, iterative_time = results["iterative"]
     direct_l05, direct_time = results["direct"]
 
-    print("#" * 5)
-    print("Time")
-    print("Reweighting:", iterative_time)
-    print("Direct prox:", direct_time)
+    iterative_obj = _obj(iterative_l05.coef_)
+    direct_obj = _obj(direct_l05.coef_)
 
-    print("#" * 5)
-    print("Objective value")
-    print("Reweighting:", _obj(iterative_l05.coef_))
-    print("Direct prox:", _obj(direct_l05.coef_))
+    obj_results[:, i] = np.array([iterative_obj, direct_obj])
+    time_results[:, i] = np.array([iterative_time, direct_time])
 
-    print("\n")
+time_df = pd.DataFrame(time_results.T, columns=["Iterative", "Direct"])
+obj_df = pd.DataFrame(obj_results.T, columns=["Iterative", "Direct"])
+
+time_df.index = [1e-1, 1e-2, 1e-3]
+obj_df.index = [1e-1, 1e-2, 1e-3]
+
+# display time
+time_df.plot.bar(rot=0)
+plt.xlabel(r"alpha")
+plt.xlabel(r"$\lambda/\lambda_{max}$")
+plt.ylabel("time (in s)")
+plt.title("Time - Iterative vs Reweighted")
+plt.tight_layout()
+plt.show()
+
+# display obj value
+obj_df.plot.bar(rot=0)
+plt.xlabel(r"$\lambda/\lambda_{max}$")
+plt.ylabel("obj. value")
+plt.title("Obj. value - Iterative vs Reweighted")
+plt.tight_layout()
+plt.show()

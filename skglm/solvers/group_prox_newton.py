@@ -55,11 +55,12 @@ class GroupProxNewton(BaseSolver):
         check_group_compatible(datafit)
         check_group_compatible(penalty)
 
+        fit_intercept = self.fit_intercept
         n_samples, n_features = X.shape
         grp_ptr, grp_indices = penalty.grp_ptr, penalty.grp_indices
         n_groups = len(grp_ptr) - 1
 
-        w = np.zeros(n_features) if w_init is None else w_init
+        w = np.zeros(n_features + fit_intercept) if w_init is None else w_init
         Xw = np.zeros(n_samples) if Xw_init is None else Xw_init
         all_groups = np.arange(n_groups)
         stop_crit = 0.
@@ -71,6 +72,15 @@ class GroupProxNewton(BaseSolver):
             # check convergence
             opt = penalty.subdiff_distance(w, grad, all_groups)
             stop_crit = np.max(opt)
+
+            # optimality of intercept
+            if fit_intercept:
+                # gradient w.r.t. intercept (constant features of ones)
+                intercept_opt = np.abs(np.sum(datafit.raw_grad(y, Xw)))
+            else:
+                intercept_opt = 0.
+
+            stop_crit = max(stop_crit, intercept_opt)
 
             if self.verbose:
                 p_obj = datafit.value(y, w, Xw) + penalty.value(w)
@@ -95,18 +105,29 @@ class GroupProxNewton(BaseSolver):
             for pn_iter in range(self.max_pn_iter):
                 # find descent direction
                 delta_w_ws, X_delta_w_ws = _descent_direction(
-                    X, y, w, Xw, grad_ws, datafit, penalty, ws, tol=EPS_TOL*tol_in)
+                    X, y, w, Xw, fit_intercept, grad_ws, datafit, penalty,
+                    ws, tol=EPS_TOL*tol_in)
 
                 # find a suitable step size and in-place update w, Xw
                 grad_ws[:] = _backtrack_line_search(
-                    X, y, w, Xw, datafit, penalty, delta_w_ws, X_delta_w_ws, ws)
+                    X, y, w, Xw, fit_intercept, datafit, penalty,
+                    delta_w_ws, X_delta_w_ws, ws)
 
                 # check convergence
                 opt_in = penalty.subdiff_distance(w, grad_ws, ws)
                 stop_crit_in = np.max(opt_in)
 
+                # optimality of intercept
+                if fit_intercept:
+                    # gradient w.r.t. intercept (constant features of ones)
+                    intercept_opt_in = np.abs(np.sum(datafit.raw_grad(y, Xw)))
+                else:
+                    intercept_opt_in = 0.
+
+                stop_crit_in = max(stop_crit_in, intercept_opt_in)
+
                 if max(self.verbose-1, 0):
-                    p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+                    p_obj = datafit.value(y, w, Xw) + penalty.value(w[:n_features])
                     print(
                         f"PN iteration {pn_iter+1}: {p_obj:.10f}, "
                         f"stopping crit in: {stop_crit_in:.2e}"
@@ -117,13 +138,13 @@ class GroupProxNewton(BaseSolver):
                         print("Early exit")
                     break
 
-            p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+            p_obj = datafit.value(y, w, Xw) + penalty.value(w[:n_features])
             p_objs_out.append(p_obj)
         return w, np.asarray(p_objs_out), stop_crit
 
 
 @njit
-def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
+def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
                        penalty, ws, tol):
     # given:
     #   1) b = \nabla F(X w_epoch)
@@ -145,11 +166,15 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
         lipchitz[idx] = norm(_diag_times_X_g(
             np.sqrt(raw_hess), X, grp_g_indices), ord=2)**2
 
+    if fit_intercept:
+        lipchitz_intercept = np.sum(raw_hess)
+        grad_intercept = np.sum(datafit.raw_grad(y, Xw_epoch))
+
     # for a less costly stopping criterion, we do no compute the exact gradient,
     # but store each coordinate-wise gradient every time we update one coordinate:
     past_grads = np.zeros(n_features_ws)
     X_delta_w_ws = np.zeros(X.shape[0])
-    w_ws = _slice_array(w_epoch, ws, grp_ptr, grp_indices)
+    w_ws = _slice_array(w_epoch, ws, grp_ptr, grp_indices, fit_intercept)
 
     for cd_iter in range(MAX_CD_ITER):
         ptr = 0
@@ -178,6 +203,15 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
 
             ptr += len(grp_g_indices)
 
+        # intercept update
+        if fit_intercept:
+            past_grads_intercept = grad_intercept + raw_hess @ X_delta_w_ws
+            old_intercept = w_ws[-1]
+            w_ws[-1] -= past_grads_intercept / lipchitz_intercept
+
+            if w_ws[-1] != old_intercept:
+                X_delta_w_ws += w_ws[-1] - old_intercept
+
         if cd_iter % 5 == 0:
             # TODO: can be improved by passing in w_ws
             current_w = w_epoch.copy()
@@ -190,16 +224,20 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, grad_ws, datafit,
                 ptr += len(grp_g_indices)
 
             opt = penalty.subdiff_distance(current_w, past_grads, ws)
-            if np.max(opt) <= tol:
+            stop_crit = np.max(opt)
+            if fit_intercept:
+                stop_crit = max(stop_crit, np.abs(past_grads_intercept))
+
+            if stop_crit <= tol:
                 break
 
     # descent direction
-    delta_w_ws = w_ws - _slice_array(w_epoch, ws, grp_ptr, grp_indices)
+    delta_w_ws = w_ws - _slice_array(w_epoch, ws, grp_ptr, grp_indices, fit_intercept)
     return delta_w_ws, X_delta_w_ws
 
 
 @njit
-def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
+def _backtrack_line_search(X, y, w, Xw, fit_intercept, datafit, penalty, delta_w_ws,
                            X_delta_w_ws, ws):
     # 1) find step in [0, 1] such that:
     #   penalty(w + step * delta_w) - penalty(w) +
@@ -208,6 +246,8 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
     # 2) inplace update of w and Xw and return grad_ws of the last w and Xw
     grp_ptr, grp_indices = penalty.grp_ptr, penalty.grp_indices
     step, prev_step = 1., 0.
+    n_features = X.shape[1]
+    n_features_ws = sum([grp_ptr[g+1] - grp_ptr[g] for g in ws])
 
     # TODO: could be improved by passing in w[ws]
     old_penalty_val = penalty.value(w)
@@ -222,12 +262,18 @@ def _backtrack_line_search(X, y, w, Xw, datafit, penalty, delta_w_ws,
                                  delta_w_ws[ptr:ptr+len(grp_g_indices)])
             ptr += len(grp_g_indices)
 
+        if fit_intercept:
+            w[-1] += (step - prev_step) * delta_w_ws[-1]
+
         Xw += (step - prev_step) * X_delta_w_ws
-        grad_ws = _construct_grad(X, y, w, Xw, datafit, ws)
+        grad_ws = _construct_grad(X, y, w[:n_features], Xw, datafit, ws)
 
         # TODO: could be improved by passing in w[ws]
-        stop_crit = penalty.value(w) - old_penalty_val
-        stop_crit += step * grad_ws @ delta_w_ws
+        stop_crit = penalty.value(w[:-1]) - old_penalty_val
+        stop_crit += step * grad_ws @ delta_w_ws[:n_features_ws]
+
+        if fit_intercept:
+            stop_crit += step * delta_w_ws[-1] * np.sum(datafit.raw_grad(y, Xw))
 
         if stop_crit < 0:
             break
@@ -263,16 +309,20 @@ def _construct_grad(X, y, w, Xw, datafit, ws):
 
 
 @njit
-def _slice_array(arr, ws, grp_ptr, grp_indices):
+def _slice_array(arr, ws, grp_ptr, grp_indices, fit_intercept=False):
     # returns h stacked (arr[ws_1], arr[ws_2], ...)
+    # include last element when fit_intercept=True
     n_features_ws = sum([grp_ptr[g+1] - grp_ptr[g] for g in ws])
-    sliced_arr = np.zeros(n_features_ws)
+    sliced_arr = np.zeros(n_features_ws + fit_intercept)
 
     ptr = 0
     for g in ws:
         grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
         sliced_arr[ptr: ptr+len(grp_g_indices)] = arr[grp_g_indices]
         ptr += len(grp_g_indices)
+
+    if fit_intercept:
+        sliced_arr[-1] = arr[-1]
 
     return sliced_arr
 

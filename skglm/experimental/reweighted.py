@@ -8,7 +8,7 @@ from skglm.utils import compiled_clone
 class IterativeReweightedL1(GeneralizedLinearEstimator):
     r"""Reweighted L1-norm estimator.
 
-    This estimator iteratively solves a non-convex problems by iteratively solving
+    This estimator solves a non-convex problems by iteratively solving
     convex surrogates involving weighted L1 norms.
 
     Parameters

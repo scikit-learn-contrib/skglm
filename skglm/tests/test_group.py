@@ -193,9 +193,10 @@ def test_equivalence_logreg(solver, rho):
     np.testing.assert_allclose(sk_logreg.coef_.flatten(), w, atol=1e-6, rtol=1e-5)
 
 
-@pytest.mark.parametrize("solver, n_groups, rho",
-                         product([GroupBCD, GroupProxNewton], [15, 25], [1e-1, 1e-2]))
-def test_group_logreg(solver, n_groups, rho):
+@pytest.mark.parametrize("solver, n_groups, rho, fit_intercept",
+                         product([GroupBCD, GroupProxNewton], [15, 25], [1e-1, 1e-2],
+                                 [False, True]))
+def test_group_logreg(solver, n_groups, rho, fit_intercept):
     n_samples, n_features, shuffle = 30, 60, True
     random_state = 123
     rng = np.random.RandomState(random_state)
@@ -216,7 +217,8 @@ def test_group_logreg(solver, n_groups, rho):
 
     group_logistic = compiled_clone(group_logistic, to_float32=X.dtype == np.float32)
     group_penalty = compiled_clone(group_penalty)
-    stop_crit = solver(tol=1e-12).solve(X, y, group_logistic, group_penalty)[2]
+    stop_crit = solver(tol=1e-12, fit_intercept=fit_intercept).solve(
+        X, y, group_logistic, group_penalty)[2]
 
     np.testing.assert_array_less(stop_crit, 1e-12)
 

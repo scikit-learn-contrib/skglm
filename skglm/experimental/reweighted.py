@@ -17,7 +17,7 @@ class IterativeReweightedL1(GeneralizedLinearEstimator):
         Penalty strength.
 
     datafit : instance of BaseDatafit, optional
-        Datafit. If None, `datafit` is initialized as a `Quadratic` datafit.
+        Datafit. If None, ``datafit`` is initialized as a ``Quadratic`` datafit.
         `datafit` is replaced by a JIT-compiled instance when calling fit.
 
     solver : instance of BaseSolver, optional

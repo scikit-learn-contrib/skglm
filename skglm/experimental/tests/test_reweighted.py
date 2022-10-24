@@ -21,6 +21,6 @@ def test_decreasing_loss():
     iterative_l05 = IterativeReweightedL1(
         penalty=L0_5(alpha),
         solver=AndersonCD(tol=tol, fit_intercept=False)).fit(X, y)
-    assert iterative_l05.loss_history_[0] > iterative_l05.loss_history_[-1]
+    np.testing.assert_array_less(iterative_l05.loss_history_[-1] , iterative_l05.loss_history_[-1])
     diffs = np.diff(iterative_l05.loss_history_)
     np.testing.assert_array_less(diffs, 1e-5)

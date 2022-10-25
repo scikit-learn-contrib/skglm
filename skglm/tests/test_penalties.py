@@ -70,7 +70,7 @@ def test_subdiff_diff_block(block_penalty):
 
 def test_slope():
     # check that when alphas = [alpha, ..., alpha], SLOPE and L1 solutions are equal
-    alphas = np.repeat(alpha, n_features)
+    alphas = np.full(n_features, alpha)
     tol = 1e-10
     est = GeneralizedLinearEstimator(
         penalty=SLOPE(alphas),

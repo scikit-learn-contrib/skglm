@@ -57,7 +57,7 @@ def fit_l05(max_iter, alpha):
 
 
 # caching Numba compilation
-fit_l05(1, alpha_max)
+fit_l05(1, alpha_max/10)
 
 time_results = np.zeros((2, len(alphas)))
 obj_results = np.zeros((2, len(alphas)))
@@ -80,19 +80,16 @@ obj_df = pd.DataFrame(obj_results.T, columns=["Iterative", "Direct"])
 time_df.index = [1e-1, 1e-2, 1e-3]
 obj_df.index = [1e-1, 1e-2, 1e-3]
 
-# display time
-time_df.plot.bar(rot=0)
-plt.xlabel(r"alpha")
-plt.xlabel(r"$\lambda/\lambda_{max}$")
-plt.ylabel("time (in s)")
-plt.title("Time - Iterative vs Reweighted")
-plt.tight_layout()
-plt.show()
+fig, axarr = plt.subplots(1, 2, figsize=(8, 3.5), constrained_layout=True)
+ax = axarr[0]
+time_df.plot.bar(rot=0, ax=ax)
+ax.set_xlabel(r"$\lambda/\lambda_{max}$")
+ax.set_ylabel("time (in s)")
+ax.set_title("Time to fit")
 
-# display obj value
-obj_df.plot.bar(rot=0)
-plt.xlabel(r"$\lambda/\lambda_{max}$")
-plt.ylabel("obj. value")
-plt.title("Obj. value - Iterative vs Reweighted")
-plt.tight_layout()
-plt.show()
+ax = axarr[1]
+obj_df.plot.bar(rot=0, ax=ax)
+ax.set_xlabel(r"$\lambda/\lambda_{max}$")
+ax.set_ylabel("obj. value")
+ax.set_title("Objective at solution")
+plt.show(block=False)

@@ -2,7 +2,7 @@ import numpy as np
 from scipy.sparse import issparse
 from skglm.solvers.base import BaseSolver
 from skglm.solvers.common import construct_grad, construct_grad_sparse
-from skglm.utils import _dist_fix_point_vec, _prox_vec
+from skglm.utils import _prox_vec
 
 
 class FISTA(BaseSolver):

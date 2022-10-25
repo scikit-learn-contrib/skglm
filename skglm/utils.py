@@ -606,11 +606,5 @@ def prox_SLOPE(z, alphas):
     return x
 
 
-def _dist_fix_point_vec(w, grad, lipschitz, penalty):
-    dist_fix_point = np.abs(w - penalty.prox_vec(w - grad / lipschitz, 1 / lipschitz))
-    print(dist_fix_point)
-    return dist_fix_point
-
-
 if __name__ == '__main__':
     pass

@@ -73,6 +73,7 @@ Solvers
    FISTA
    GramCD
    GroupBCD
+   GroupProxNewton
    MultiTaskBCD
    ProxNewton
 

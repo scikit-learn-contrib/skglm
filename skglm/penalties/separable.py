@@ -494,7 +494,7 @@ class SLOPE(BasePenalty):
     def value(self, w):
         """Compute the value of SLOPE at w."""
         return np.sum(np.sort(np.abs(w)) * self.alphas[::-1])
-    
+
     def prox_1d(self, value, stepsize, j):
         raise NotImplementedError(
             "No coordinate-wise proximal operator for SLOPE. Use `prox_vec` instead.")

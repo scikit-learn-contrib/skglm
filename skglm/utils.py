@@ -566,7 +566,7 @@ def prox_SLOPE(z, alphas):
     Extracted from:
     https://github.com/agisga/grpSLOPE/blob/master/src/proxSortedL1.c
 
-    Arguments
+    Arguments:
     ---------
     z : array, shape (n_features)
         Non-negative coefficient vector sorted in non-increasing order.

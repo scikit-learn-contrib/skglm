@@ -89,11 +89,11 @@ def compiled_clone(instance, to_float32=False):
 
 
 @njit
-def ST(x, u):
+def ST(x, u, positive):
     """Soft-thresholding of scalar x at level u."""
     if x > u:
         return x - u
-    elif x < - u:
+    elif x < - u and not positive:
         return x + u
     else:
         return 0.

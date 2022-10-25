@@ -34,18 +34,18 @@ def _obj(w):
             + alpha * np.sum(np.sqrt(np.abs(w))))
 
 
-def fit_l05(max_iter, alpha):
+def fit_l05(alpha):
     start = time.time()
     iterative_l05 = IterativeReweightedL1(
         penalty=L0_5(alpha),
-        solver=AndersonCD(tol=tol, max_iter=max_iter, fit_intercept=False)).fit(X, y)
+        solver=AndersonCD(tol=tol, fit_intercept=False)).fit(X, y)
     iterative_time = time.time() - start
 
     # `subdiff` strategy for WS is uninformative for L0_5
     start = time.time()
     direct_l05 = GeneralizedLinearEstimator(
         penalty=L0_5(alpha),
-        solver=AndersonCD(tol=tol, max_iter=max_iter, fit_intercept=False,
+        solver=AndersonCD(tol=tol, fit_intercept=False,
                           ws_strategy="fixpoint")).fit(X, y)
     direct_time = time.time() - start
 
@@ -57,14 +57,14 @@ def fit_l05(max_iter, alpha):
 
 
 # caching Numba compilation
-fit_l05(1, alpha_max/10)
+fit_l05(alpha_max/10)
 
 time_results = np.zeros((2, len(alphas)))
 obj_results = np.zeros((2, len(alphas)))
 
 # actual run
 for i, alpha in enumerate(alphas):
-    results = fit_l05(max_iter=100, alpha=alpha)
+    results = fit_l05(alpha=alpha)
     iterative_l05, iterative_time = results["iterative"]
     direct_l05, direct_time = results["direct"]
 

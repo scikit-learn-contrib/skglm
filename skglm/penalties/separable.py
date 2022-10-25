@@ -380,6 +380,10 @@ class L0_5(BasePenalty):
         """Compute the value of L0_5 at w."""
         return self.alpha * np.sum(np.abs(w) ** 0.5)
 
+    def derivative(self, w):
+        """Compute the element-wise derivative."""
+        return 1. / (2. * np.sqrt(np.abs(w)) + 1e-12)
+
     def prox_1d(self, value, stepsize, j):
         """Compute the proximal operator of L0_5."""
         return prox_05(value, self.alpha * stepsize)
@@ -428,6 +432,10 @@ class L2_3(BasePenalty):
     def value(self, w):
         """Compute the value of the L2_3 norm at w."""
         return self.alpha * np.sum(np.abs(w) ** (2/3))
+
+    def derivative(self, w):
+        """Compute the element-wise derivative."""
+        return 2 / (3 * np.abs(w) ** (1/3) + 1e-12)
 
     def prox_1d(self, value, stepsize, j):
         """Compute the proximal operator of the L2_3 norm."""

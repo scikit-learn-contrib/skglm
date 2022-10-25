@@ -474,7 +474,7 @@ class SLOPE(BasePenalty):
 
     References
     ----------
-    .. [1] B. Malgorzata, E. van den Berg, C. Sabatti, W. Su, E. Candes
+    .. [1] M. Bogdan, E. van den Berg, C. Sabatti, W. Su, E. Candes
     "SLOPE - Adaptive Variable Selection via Convex Optimization",
     The Annals of Applied Statistics 9 (3): 1103–40
     https://doi.org/10.1214/15-AOAS842

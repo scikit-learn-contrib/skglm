@@ -74,7 +74,7 @@ def test_slope():
     tol = 1e-10
     est = GeneralizedLinearEstimator(
         penalty=SLOPE(alphas),
-        solver=FISTA(max_iter=1000, tol=tol),
+        solver=FISTA(max_iter=1000, tol=tol, opt_strategy="fixpoint"),
     ).fit(X, y)
     lasso = Lasso(alpha, fit_intercept=False, tol=tol).fit(X, y)
     np.testing.assert_allclose(est.coef_, lasso.coef_, rtol=1e-5)

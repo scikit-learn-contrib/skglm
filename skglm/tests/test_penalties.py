@@ -79,5 +79,6 @@ def test_slope():
     lasso = Lasso(alpha, fit_intercept=False, tol=tol).fit(X, y)
     np.testing.assert_allclose(est.coef_, lasso.coef_, rtol=1e-5)
 
+
 if __name__ == "__main__":
     pass

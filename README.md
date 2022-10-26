@@ -12,7 +12,7 @@
 ![PyPI version](https://badge.fury.io/py/skglm.svg)
 
 
-``skglm`` is a Python package that offers **fast estimators** for sparse Generalized Linear Models (GLMs) that are **100% compatible with ``scikit-learn``**. It is **highly flexible** and supports a wide range of GLMs. You get to choose from our already made estimators or **customize your own** by combing our available datafits and penalty.
+``skglm`` is a Python package that offers **fast estimators** for sparse Generalized Linear Models (GLMs) that are **100% compatible with ``scikit-learn``**. It is **highly flexible** and supports a wide range of GLMs. You get to choose from ``skglm``'s already-made estimators or **customize your own** by combing the available datafits and penalty.
 
 Excited to have a tour on ``skglm`` [documentation](https://contrib.scikit-learn.org/skglm/) :memo:?
 
@@ -23,7 +23,7 @@ It supports many missing models in ``scikit-learn`` and ensures high performance
 There are several reasons to opt for ``skglm`` among which:
 
 |  |  |
-| --- | -------------- |
+| ----- | -------------- |
 | **Speed** :zap: | Fast solvers able to tackle large datasets, either dense or sparse, with millions of features **up to 100 times faster** than ``scikit-learn``|
 | **Modularity** :hammer_and_pick: | User-friendly API than enables **composing custom estimators** with any combination of its existing datafits and penalties |
 | **Extensibility** :arrow_up_down: | Flexible design that makes it **simple and easy to implement new datafits and penalties**, a matter of few lines of code
@@ -57,7 +57,7 @@ from skglm.estimators import MCPRegression
 # import util to create a toy dataset
 from skglm.utils import make_correlated_data
 
-# generate a top dataset
+# generate a toy dataset
 X, y, _ = make_correlated_data(n_samples=10, n_features=100)
 
 estimator = MCPRegression()

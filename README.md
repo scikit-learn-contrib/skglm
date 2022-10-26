@@ -96,9 +96,9 @@ You can also take our tutorial to learn how to create your own datafit and penal
 
 ``skglm`` is a continuous endeavour that relies on the community efforts to last and evolve. Your contribution is welcome and highly valuable. It can be
 
-- **bug report**: you may encounter a bug while using ``skglm``. Don't hesitate to report it on the issue section.
-- **feature request**: you may want to extend/add new features to ``skglm``. You can use the issue section to make suggestions.
-- **pull request**: you may have fixed a bug, added a features, or even fixed a small typo in the documentation, ... you can submit a pull request and we will reach out to you asap.
+- **bug report**: you may encounter a bug while using ``skglm``. Don't hesitate to report it on the [issue section](https://github.com/scikit-learn-contrib/skglm/issues).
+- **feature request**: you may want to extend/add new features to ``skglm``. You can use [the issue section](https://github.com/scikit-learn-contrib/skglm/issues) to make suggestions.
+- **pull request**: you may have fixed a bug, added a features, or even fixed a small typo in the documentation, ... you can submit a [pull request](https://github.com/scikit-learn-contrib/skglm/pulls) and we will reach out to you asap.
 
 
 # Cite

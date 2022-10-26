@@ -17,14 +17,17 @@
 
 # Why ``skglm``?
 
-``skglm`` is conceived to support many GLMs problems while being performant. There are several reasons to opt for it among which
+``skglm`` is specifically conceived to solve sparse GLMs.
+It supports many missing models in ``scikit-learn`` and ensure high performance.
+There are several reasons to opt for ``skglm`` among which
 
-- **Speed**:
+- **Speed** :zap: :
 Fast solvers able to tackle large datasets, either dense or sparse, with millions of features **up to 100 times faster** than ``scikit-learn``
-- **Modularity**:
+- **Modularity** :hammer_and_pick: :
 User-friendly API than enables **composing custom estimators** with any combination of its existing datafits and penalties
-- **Extensibility**: Flexible design that makes it **simple and easy to implement new datafits and penalties**, a matter of few lines of code.   
-- **Compatibility**:
+- **Extensibility** :arrow_up_down: :
+Flexible design that makes it **simple and easy to implement new datafits and penalties**, a matter of few lines of code.   
+- **Compatibility** :electric_plug: :
 Estimators **fully compatible with the ``scikit-learn`` API** and drop-in replacements of its GLM estimators
 
 
@@ -33,9 +36,13 @@ Estimators **fully compatible with the ``scikit-learn`` API** and drop-in replac
 
 ## Installing ``skglm``
 
+``skglm`` is available on PyPi. Run the following command to get the latest version of the package
+
 ```shell
 pip install -U skglm
 ```
+
+It is also available on Conda _(not yet, but very soon...)_ and can be installed via the command
 
 ```shell
 conda install skglm

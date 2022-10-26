@@ -89,3 +89,33 @@ $$
 $$
 
 Finally, the Lispchitz constant $L_0 = \frac{1}{4n}\sum_{i=1}^n 1^2 = \frac{1}{4}$.
+
+---
+
+## The Huber datafit
+
+In this case, 
+$$
+\begin{align}
+    F(X\beta + \beta_0\boldsymbol{1}_{n}) = \frac{1}{n} \sum_{i=1}^n f_{\delta}(y_i - X_{i:}\beta) \enspace ,
+\end{align}
+$$
+where 
+$$
+\begin{align}
+    f_\delta(x) = \begin{cases}
+            \frac{1}{2}x^2 & \text{if } x \leq \delta \\
+            \delta |x| - \frac{1}{2}\delta^2 & \text{if } x > \delta 
+           \end{cases} \enspace .
+\end{align}
+$$
+
+Let $r_i = y_i - X_{i:}\beta$ We can then write
+$$
+\begin{align}
+ \nabla_{\beta_0}F(X\beta + \beta_0\boldsymbol{1}_{n}) = \frac{1}{n} \sum_{i=1}^n r_i\mathbb{1}_{\{|y_i - X_{i:}\beta|\leq\delta\}} + \text{sign}(r_i)\delta\mathbb{1}_{\{|y_i - X_{i:}\beta|>\delta\}} \enspace ,
+\end{align}
+$$
+where $1_{x > \delta}$ is the classical indicator function.
+
+Finally, the Lispchitz constant $L_0 = \frac{1}{n}\sum_{i=1}^n 1^2 = 1$.

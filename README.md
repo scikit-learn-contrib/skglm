@@ -17,16 +17,13 @@
 
 # Why ``skglm``?
 
-``skglm`` was conceived to solve many GLMs problems while being performant. There are several reasons to opt for it among which
+``skglm`` is conceived to support many GLMs problems while being performant. There are several reasons to opt for it among which
 
 - **Speed**:
 Fast solvers able to tackle large datasets, either dense or sparse, with millions of features **up to 100 times faster** than ``scikit-learn``
-
 - **Modularity**:
 User-friendly API than enables **composing custom estimators** with any combination of its existing datafits and penalties
-
 - **Extensibility**: Flexible design that makes it **simple and easy to implement new datafits and penalties**, a matter of few lines of code.   
-
 - **Compatibility**:
 Estimators **fully compatible with the ``scikit-learn`` API** and drop-in replacements of its GLM estimators
 

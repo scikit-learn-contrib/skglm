@@ -72,3 +72,20 @@ The quantity $\frac{1}{L_0}\nabla_{\beta_0}F(X\beta^{(k)} + \beta_0^{(k)}\boldsy
 
 ---
 
+## The Logistic datafit
+
+In this case, 
+$$
+\begin{align}
+    F(X\beta + \beta_0\boldsymbol{1}_{n}) = \frac{1}{n} \sum_{i=1}^n \log(1 + \exp(-y_i X_{i:}\beta))
+\end{align}
+$$
+
+We can then write
+$$
+\begin{align}
+ \nabla_{\beta_0}F(X\beta + \beta_0\boldsymbol{1}_{n}) = \frac{1}{n} \sum_{i=1}^n  \frac{-y_i}{1 + \exp(- y_iX_{i:}\beta)} \enspace .
+\end{align}
+$$
+
+Finally, the Lispchitz constant $L_0 = \frac{1}{4n}\sum_{i=1}^n 1^2 = \frac{1}{4}$.

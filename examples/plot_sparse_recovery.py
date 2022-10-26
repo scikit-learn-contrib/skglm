@@ -96,7 +96,7 @@ name_estimators['l23'] = r"$\ell_{2/3}$"
 
 plt.close('all')
 fig, axarr = plt.subplots(2, 1, sharex=True, sharey=False, figsize=[
-                          6.3, 3.7], constrained_layout=True)
+                          6.3, 4], constrained_layout=True)
 
 for idx, estimator in enumerate(penalties.keys()):
 
@@ -135,6 +135,6 @@ for idx, estimator in enumerate(penalties.keys()):
     axarr[1].set_ylabel("pred. RMSE left-out")
     axarr[0].legend(
         bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left",
-        mode="expand", borderaxespad=0, ncol=1)
+        mode="expand", borderaxespad=0, ncol=5)
 
 plt.show(block=False)

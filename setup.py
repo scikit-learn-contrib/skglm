@@ -13,7 +13,7 @@ if version is None:
 
 DISTNAME = 'skglm'
 DESCRIPTION = 'A fast and modular scikit-learn replacement for generalized linear models'
-with open('README.rst', 'r') as f:
+with open('README.md', 'r', encoding='utf-8') as f:
     LONG_DESCRIPTION = f.read()
 MAINTAINER = 'Mathurin Massias'
 MAINTAINER_EMAIL = 'mathurin.massias@gmail.com'

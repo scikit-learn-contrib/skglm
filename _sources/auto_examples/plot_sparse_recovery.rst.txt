@@ -144,7 +144,7 @@ Illustrate the superior performance of penalties for sparse recovery.
 
     plt.close('all')
     fig, axarr = plt.subplots(2, 1, sharex=True, sharey=False, figsize=[
-                              6.3, 3.7], constrained_layout=True)
+                              6.3, 4], constrained_layout=True)
 
     for idx, estimator in enumerate(penalties.keys()):
 
@@ -183,14 +183,14 @@ Illustrate the superior performance of penalties for sparse recovery.
         axarr[1].set_ylabel("pred. RMSE left-out")
         axarr[0].legend(
             bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left",
-            mode="expand", borderaxespad=0, ncol=1)
+            mode="expand", borderaxespad=0, ncol=5)
 
     plt.show(block=False)
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  16.740 seconds)
+   **Total running time of the script:** ( 0 minutes  15.454 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_sparse_recovery.py:

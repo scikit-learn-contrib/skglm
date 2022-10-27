@@ -1,4 +1,4 @@
-# Computation of the intercept in $\texttt{skglm}$
+# Computation of the intercept in `skglm`
 
 This note gives insights and guidance for the handling of an intercept coefficient within the $\texttt{skglm}$ solvers.
 

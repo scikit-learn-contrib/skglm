@@ -69,7 +69,7 @@ print(estimator.score(X, y))
 You can refer to the documentation to explore the list of ``skglm``'s already-made estimators.
 
 Didn't find one that suits you :monocle_face:, you can still compose your own.
-Here is a code snippet that fits the previous estimator with a Huber loss instead.
+Here is a code snippet that fits a MCP-regularized problem with Huber loss.
 
 ```python
 # import datafit, penalty and GLM estimator

@@ -66,7 +66,7 @@ estimator.fit(X, y)
 # print R²
 print(estimator.score(X, y))
 ```
-You can refer to the documentation to explore the list of ``skglm``'s already-made estimators. 
+You can refer to the documentation to explore the list of ``skglm``'s already-made estimators.
 
 Didn't find one that suits you :monocle_face:, you can still compose your own.
 Here is a code snippet that fits the previous estimator with a Huber loss instead.
@@ -105,13 +105,12 @@ You can also take our tutorial to learn how to create your own datafit and penal
 
 ``skglm`` is the result of perseverant research. It is licensed under BSD 3-Clause.
 You are free to use it and if you do so, please cite
- 
+
 ```bibtex
 @inproceedings{skglm,
-    title   = {Beyond L1 norm with skglm},
+    title   = {Beyond L1: Faster and better sparse models with skglm},
     author  = {Q. Bertrand and Q. Klopfenstein and P.-A. Bannier and G. Gidel and M. Massias},
-    journal = {arXiv preprint arXiv:2204.07826},
-    url     = {https://arxiv.org/pdf/2204.07826.pdf}
+    booktitle = {NeurIPS},
     year    = {2022},
 }
 ```

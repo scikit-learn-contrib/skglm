@@ -25,7 +25,7 @@ where $\boldsymbol{1}_{n}$ is the vector of size $n$ composed only of ones.
 The solvers of $\texttt{skglm}$ update the intercept after each update of $\beta$ by doing a (1 dimensional) gradient descent update:
 $$
 \begin{align}
-    \beta^{(k+1)}_0 = \beta^{(k)}_0 - \frac{1}{L_0}\nabla_{\beta_0}f(X\beta^{(k)} + \beta_0^{(k)}\boldsymbol{1}_{n})
+    \beta^{(k+1)}_0 = \beta^{(k)}_0 - \frac{1}{L_0}\nabla_{\beta_0}F(X\beta^{(k)} + \beta_0^{(k)}\boldsymbol{1}_{n})
     \enspace ,
 \end{align}
 $$
@@ -35,14 +35,14 @@ This update rule should be implemented in the $\texttt{intercept\_update\_step}$
 The convergence criterion computed for the gradient is then only the absolute value of the gradient with respect to $\beta_0$ since the intercept optimality condition, for a solution $\beta^\star$, $\beta_0^\star$ is:
 $$
 \begin{align}
-    \nabla_{\beta_0}f(X\beta^\star + \beta_0^\star\boldsymbol{1}_{n}) = 0
+    \nabla_{\beta_0}F(X\beta^\star + \beta_0^\star\boldsymbol{1}_{n}) = 0
     \enspace ,
 \end{align}
 $$
 Moreover, we have that
 $$
 \begin{align}
-    \nabla_{\beta_0}f(X\beta + \beta_0\boldsymbol{1}_{n}) = \boldsymbol{1}_{n}^\top \nabla_\beta f(X\beta + \beta_0\boldsymbol{1}_{n})
+    \nabla_{\beta_0}F(X\beta + \beta_0\boldsymbol{1}_{n}) = \boldsymbol{1}_{n}^\top \nabla_\beta F(X\beta + \beta_0\boldsymbol{1}_{n})
     \enspace .
 \end{align}
 $$
@@ -63,7 +63,7 @@ $$
 In this case $\nabla f(z) = \frac{1}{n}(z - y)$ hence Eq. 4 is equal to:
 $$
 \begin{align}
-    \nabla_{\beta_0}f(X\beta + \beta_0\boldsymbol{1}_{n}) = \frac{1}{n}\sum_{i=1}^n(X_{i:}\beta + \beta_0 - y_i)
+    \nabla_{\beta_0}F(X\beta + \beta_0\boldsymbol{1}_{n}) = \frac{1}{n}\sum_{i=1}^n(X_{i:}\beta + \beta_0 - y_i)
     \enspace .
 \end{align}
 $$

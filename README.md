@@ -49,7 +49,7 @@ conda install skglm
 
 ## First steps with ``skglm``
 
-Once you installed ``skglm``, you can run the following code snippet to fit an MCP Regression model on a toy dataset
+Once you installed ``skglm``, you can run the following code snippet to fit a MCP Regression model on a toy dataset
 
 ```python
 # import model to fit
@@ -60,6 +60,7 @@ from skglm.utils import make_correlated_data
 # generate a toy dataset
 X, y, _ = make_correlated_data(n_samples=10, n_features=100)
 
+# init and fit estimator
 estimator = MCPRegression()
 estimator.fit(X, y)
 
@@ -103,15 +104,14 @@ You can also take our tutorial to learn how to create your own datafit and penal
 
 # Cite
 
-``skglm`` is the result of perseverant research. It is licensed under BSD 3-Clause.
-You are free to use it and if you do so, please cite
+``skglm`` is the result of perseverant research. It is licensed under [BSD 3-Clause](https://github.com/scikit-learn-contrib/skglm/blob/main/LICENSE). You are free to use it and if you do so, please cite
 
 ```bibtex
 @inproceedings{skglm,
-    title   = {Beyond L1: Faster and better sparse models with skglm},
-    author  = {Q. Bertrand and Q. Klopfenstein and P.-A. Bannier and G. Gidel and M. Massias},
+    title     = {Beyond L1: Faster and better sparse models with skglm},
+    author    = {Q. Bertrand and Q. Klopfenstein and P.-A. Bannier and G. Gidel and M. Massias},
     booktitle = {NeurIPS},
-    year    = {2022},
+    year      = {2022},
 }
 ```
 

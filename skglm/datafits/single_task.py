@@ -467,3 +467,52 @@ class Poisson(BaseDatafit):
 
     def intercept_update_self(self, y, Xw):
         pass
+
+
+class Gamma(BaseDatafit):
+    r"""Gamma datafit.
+
+    The datafit reads::
+
+    (1 / n_samples) * \sum_i (Xw_i + y_i * exp(-Xw_i))
+
+    Note:
+    ----
+    The class is jit compiled at fit time using Numba compiler.
+    This allows for faster computations.
+    """
+
+    def __init__(self):
+        pass
+
+    def get_spec(self):
+        pass
+
+    def params_to_dict(self):
+        return dict()
+
+    def initialize(self, X, y):
+        pass
+
+    def initialize_sparse(self, X_data, X_indptr, X_indices, y):
+        pass
+
+    def raw_grad(self, y, Xw):
+        """Compute gradient of datafit w.r.t. ``Xw``."""
+        return (Xw - y * np.exp(-Xw)) / len(y)
+
+    def raw_hessian(self, y, Xw):
+        """Compute Hessian of datafit w.r.t. ``Xw``."""
+        return (1 + y * np.exp(-Xw)) / len(y)
+
+    def value(self, y, w, Xw):
+        return np.sum(Xw + y * np.exp(-Xw)) / len(y)
+
+    def gradient_scalar(self, X, y, w, Xw, j):
+        return X[:, j] @ (1 - y * np.exp(-Xw)) / len(y)
+
+    def gradient_scalar_sparse(self, X_data, X_indptr, X_indices, y, Xw, j):
+        pass
+
+    def intercept_update_self(self, y, Xw):
+        pass

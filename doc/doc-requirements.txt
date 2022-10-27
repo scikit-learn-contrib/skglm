@@ -7,3 +7,4 @@ pillow
 sphinx-bootstrap-theme
 sphinx-gallery
 pytest
+furo

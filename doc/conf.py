@@ -148,21 +148,21 @@ todo_include_todos = False
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'bootstrap'
+html_theme = 'furo'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    'navbar_sidebarrel': False,
-    'navbar_pagenav': False,
-    'navbar_links': [
-        ("Examples", "auto_examples/index"),
-        ("API", "api"),
-        ("Add custom penalty and datafit", "add"),
-        ("GitHub", "https://github.com/scikit-learn-contrib/skglm", True)
-    ],
-    'bootswatch_theme': "united"
+    "light_css_variables": {
+        "color-brand-primary": "#b91c1c",
+        "color-brand-content": "#b91c1c",
+        # "font-stack": 'ui-sans-serif, system-ui',
+    },
+    "dark_css_variables": {
+        "color-brand-primary": "#f87171",
+        "color-brand-content": "#f87171",
+    },
 }
 
 # Add any paths that contain custom themes here, relative to this directory.

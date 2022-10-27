@@ -47,7 +47,7 @@ It is also available on Conda _(not yet, but very soon...)_ and can be installed
 conda install skglm
 ```
 
-## Trying ``skglm``
+## First steps with ``skglm``
 
 Once you installed ``skglm``, you can run the following code snippet to fit an MCP Regression model on a toy dataset
 
@@ -69,7 +69,7 @@ print(estimator.score(X, y))
 You can refer to the documentation to explore the list of ``skglm``'s already-made estimators. 
 
 Didn't find one that suits you :monocle_face:, you still can compose your own.
-Here is a code snippet that fits the previous estimator with a Huber loss instead.
+Here is a code snippet that fits a MCP-regularized problem with Huber loss
 
 ```python
 # import datafit, penalty and GLM estimator

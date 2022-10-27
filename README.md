@@ -47,7 +47,7 @@ It is also available on Conda _(not yet, but very soon...)_ and can be installed
 conda install skglm
 ```
 
-## Trying ``skglm``
+## First steps with ``skglm``
 
 Once you installed ``skglm``, you can run the following code snippet to fit an MCP Regression model on a toy dataset
 

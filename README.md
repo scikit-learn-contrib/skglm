@@ -12,7 +12,7 @@
 ![PyPI version](https://badge.fury.io/py/skglm.svg)
 
 
-``skglm`` is a Python package that offers **fast estimators** for sparse Generalized Linear Models (GLMs) that are **100% compatible with ``scikit-learn``**. It is **highly flexible** and supports a wide range of GLMs. You get to choose from ``skglm``'s already-made estimators or **customize your own** by combing the available datafits and penalty.
+``skglm`` is a Python package that offers **fast estimators** for sparse Generalized Linear Models (GLMs) that are **100% compatible with ``scikit-learn``**. It is **highly flexible** and supports a wide range of GLMs. You get to choose from ``skglm``'s already-made estimators or **customize your own** by combining the available datafits and penalty.
 
 Excited to have a tour on ``skglm`` [documentation](https://contrib.scikit-learn.org/skglm/) :memo:?
 
@@ -68,8 +68,8 @@ print(estimator.score(X, y))
 ```
 You can refer to the documentation to explore the list of ``skglm``'s already-made estimators. 
 
-Didn't find one that suits you :monocle_face:, you still can compose your own.
-Here is a code snippet that fits a MCP-regularized problem with Huber loss
+Didn't find one that suits you :monocle_face:, you can still compose your own.
+Here is a code snippet that fits the previous estimator with a Huber loss instead.
 
 ```python
 # import datafit, penalty and GLM estimator

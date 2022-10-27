@@ -566,12 +566,12 @@ def prox_SLOPE(z, alphas):
     Extracted from:
     https://github.com/agisga/grpSLOPE/blob/master/src/proxSortedL1.c
 
-    Arguments:
-    ---------
-    z : array, shape (n_features)
+    Parameters
+    ----------
+    z : array, shape (n_features,)
         Non-negative coefficient vector sorted in non-increasing order.
 
-    alphas : array, shape (n_features)
+    alphas : array, shape (n_features,)
         Regularization hyperparameter sorted in non-increasing order.
     """
     n_features = z.shape[0]

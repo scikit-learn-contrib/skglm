@@ -43,6 +43,7 @@ Penalties
    WeightedGroupL2
    SCAD
    BlockSCAD
+   SLOPE
 
 
 Datafits

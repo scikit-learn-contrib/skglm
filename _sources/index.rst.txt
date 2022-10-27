@@ -56,3 +56,5 @@ Release history
     :maxdepth: 1
 
     whats_new.rst
+    intercept.rst
+

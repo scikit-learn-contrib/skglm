@@ -30,6 +30,10 @@ $$
 \end{align}
 $$
 where $L_0$ is the Lipschitz constant associated to the intercept.
+The local Lipschitz constant $L_0$ statisfies the following inequality
+$$
+\forall x, x_0\in \mathbb{R}^p \times \mathbb{R}, \forall h \in \mathbb{R}, |\nabla_{x_0} f(x, x_0 + h) - \nabla_{x_0} f(x, x_0)| \leq L_0 |h| \enspace .
+$$
 This update rule should be implemented in the $\texttt{intercept\_update\_step}$ method of the datafit class.
 
 The convergence criterion computed for the gradient is then only the absolute value of the gradient with respect to $\beta_0$ since the intercept optimality condition, for a solution $\beta^\star$, $\beta_0^\star$ is:

@@ -160,7 +160,6 @@ html_theme_options = {
         ("Examples", "auto_examples/index"),
         ("API", "api"),
         ("Add custom penalty and datafit", "add"),
-        ("Compute Intercept", "intercept"),
         ("GitHub", "https://github.com/scikit-learn-contrib/skglm", True)
     ],
     'bootswatch_theme': "united"

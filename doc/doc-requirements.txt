@@ -1,6 +1,7 @@
 benchopt
 libsvmdata>=0.2
 matplotlib>=2.0.0
+myst_parser
 numpydoc
 pillow
 sphinx-bootstrap-theme

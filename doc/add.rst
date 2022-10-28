@@ -55,7 +55,6 @@ A ``Datafit`` is a jitclass which must inherit from the ``BaseDatafit`` class:
 
 
 To define a custom datafit, you need to implement the methods declared in the ``BaseDatafit`` class (value, gradient, gradient when the design matrix is sparse).
-
 As an example, we show how to implement the Poisson datafit in skglm.
 
 First, this requires deriving some useful quantities used by the optimizers like the gradient or the Hessian matrix of the datafit.
@@ -63,42 +62,42 @@ First, this requires deriving some useful quantities used by the optimizers like
 The Poisson datafit reads
 
 .. math::
-    F(X\beta) = \sum_{i=1}^n \exp{X_i^{\top}\beta} - y_i X_i^{\top}\beta
+    f(X\beta) = \sum_{i=1}^n \exp(X_i^{\top}\beta) - y_i X_i^{\top}\beta
     \enspace .
 
 
-Let define some useful quantities needed in skglm. For :math: `z in \mathbb{R}^n` and :math:`\beta \in \mathbb{R}^p`
+Let's define some useful quantities needed in skglm. For :math:`z \in \mathbb{R}^n` and :math:`\beta \in \mathbb{R}^p`
 
 .. math::
-   f(z) = \sum_{i=1}^n f_i(z_i)  &  F(\beta) = f(X\beta)
+   f(z) = \sum_{i=1}^n f_i(z_i)  \qquad  F(\beta) = f(X\beta)
    \enspace .
 
 
 Computing the gradient of F and its Hessian matrix yields
 
 .. math::
-   \nabla F(\beta) = X^{\top} \underbrace{\nabla f(X\beta)}_\textrm{raw grad} & \nabla^2 F(\beta) = X^{\top} \underbrace{\nabla^2 f(X\beta)}_\textrm{raw hessian} X
+   \nabla F(\beta) = X^{\top} \underbrace{\nabla f(X\beta)}_\textrm{raw grad} \qquad \nabla^2 F(\beta) = X^{\top} \underbrace{\nabla^2 f(X\beta)}_\textrm{raw hessian} X
    \enspace .
 
 
-Besides, it directly follows that:
+Besides, it directly follows that
 
 .. math::
-   \nabla f(z) = (f_i'(z_i))_{i \in [n]} & \nabla^2 f(z) = \textrm{diag}(f_i''(z_i))_{i \in [n]}
+   \nabla f(z) = (f_i'(z_i))_{i \in [n]} \qquad \nabla^2 f(z) = \textrm{diag}(f_i''(z_i))_{i \in [n]}
    \enspace .
 
 
 Back to the Poisson datafit, following the definition of the datafit, we have
 
 .. math::
-    f_i(z_i) = (\exp{z_i} - y_iz_i)
+    f_i(z_i) = \exp(z_i) - y_iz_i
     \enspace .
 
 
 Therefore,
 
 .. math::
-   f_i'(z_i) = \exp{z_i} - y_i & f_i''(z_i) = \exp{z_i}
+   f_i'(z_i) = \exp(z_i) - y_i \qquad f_i''(z_i) = \exp(z_i)
    \enspace .
 
 
@@ -109,7 +108,7 @@ This implies that a step size is not known in advance and a line search has to b
 Computing ``raw_grad`` and ``raw_hessian`` for the Poisson datafit yields
 
 .. math::
-   \nabla f(X\beta) = (\exp{X_i^{\top}\beta})_{i \in [n]} & \nabla^2 f(X\beta) = \textrm{diag}(\exp{X_i^{\top}\beta})_{i \in [n]}
+   \nabla f(X\beta) = (\exp(X_i^{\top}\beta))_{i \in [n]} \qquad \nabla^2 f(X\beta) = \textrm{diag}(\exp(X_i^{\top}\beta))_{i \in [n]}
    \enspace .
 
 
@@ -122,9 +121,9 @@ The method ``gradient_scalar`` is the derivative of the datafit with respect to 
 For the Poisson datafit, this yields
 
 .. math::
-    \frac{partial F(\beta)}{\beta_j} = \frac{1}{n}
-      \sum_{i=1}^n X_{:j} \left(
-         \exp{Xw} - y 
+    \frac{\partial F(\beta)}{\partial \beta_j} = \frac{1}{n}
+      \sum_{i=1}^n X_{i,j} \left(
+         \exp(X_i^{\top}w) - y 
       \right)
       \enspace .
 

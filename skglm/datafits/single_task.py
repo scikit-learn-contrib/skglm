@@ -499,11 +499,11 @@ class Gamma(BaseDatafit):
 
     def raw_grad(self, y, Xw):
         """Compute gradient of datafit w.r.t. ``Xw``."""
-        return (Xw - y * np.exp(-Xw)) / len(y)
+        return (1 - y * np.exp(-Xw)) / len(y)
 
     def raw_hessian(self, y, Xw):
         """Compute Hessian of datafit w.r.t. ``Xw``."""
-        return (1 + y * np.exp(-Xw)) / len(y)
+        return (y * np.exp(-Xw)) / len(y)
 
     def value(self, y, w, Xw):
         return np.sum(Xw + y * np.exp(-Xw)) / len(y)

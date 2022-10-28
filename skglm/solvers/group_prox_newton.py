@@ -154,7 +154,7 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
     #  1/2 * delta_w.T @ (X.T @ D @ X) @ delta_w + penalty(w)
     # In BCD, we leverage inequality:
     #  penalty_g(w_g) + 1/2 ||delta_w_g||^2_H <= \
-    #  penalty_g(w_g) + 1/2 * || H || * ||delta_w_g||^2
+    #  penalty_g(w_g) + 1/2 * || H ||^2 * ||delta_w_g||^2
     grp_ptr, grp_indices = penalty.grp_ptr, penalty.grp_indices
     n_features_ws = sum([penalty.grp_ptr[g+1] - penalty.grp_ptr[g] for g in ws])
     raw_hess = datafit.raw_hessian(y, Xw_epoch)
@@ -198,6 +198,7 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
             w_ws[range_grp_g] = penalty.prox_1group(
                 old_w_ws_g - stepsize * past_grads[range_grp_g], stepsize, g)
 
+            # update X_delta_w_ws without copying the cols of X
             # X_delta_w_ws += X[:, grp_g_indices] @ (w_ws[range_grp_g] - old_w_ws_g)
             _update_X_delta_w_ws(X, X_delta_w_ws, w_ws[range_grp_g], old_w_ws_g,
                                  grp_g_indices)
@@ -341,7 +342,7 @@ def _update_X_delta_w_ws(X, X_delta_w_ws, w_ws_g, old_w_ws_g, grp_g_indices):
 @njit
 def _X_g_T_dot_vec(X, vec, grp_g_indices):
     # X[:, grp_g_indices].T @ vec
-    # but without copying the cols os X
+    # but without copying the cols of X
     result = np.zeros(len(grp_g_indices))
     for idx, j in enumerate(grp_g_indices):
         result[idx] = X[:, j] @ vec

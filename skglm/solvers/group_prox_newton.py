@@ -153,8 +153,8 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
     #  b.T @ X @ delta_w + \
     #  1/2 * delta_w.T @ (X.T @ D @ X) @ delta_w + penalty(w)
     # In BCD, we leverage inequality:
-    #  penalty_g(w_g) + 1/2 ||delta_w_g||_H <= \
-    #  penalty_g(w_g) + 1/2 * || H || * ||delta_w_g||
+    #  penalty_g(w_g) + 1/2 ||delta_w_g||^2_H <= \
+    #  penalty_g(w_g) + 1/2 * || H || * ||delta_w_g||^2
     grp_ptr, grp_indices = penalty.grp_ptr, penalty.grp_indices
     n_features_ws = sum([penalty.grp_ptr[g+1] - penalty.grp_ptr[g] for g in ws])
     raw_hess = datafit.raw_hessian(y, Xw_epoch)
@@ -162,6 +162,7 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
     lipchitz = np.zeros(len(ws))
     for idx, g in enumerate(ws):
         grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
+        # compute efficiently (few multiplications and avoid copying the cols of X)
         # norm(X[:, grp_g_indices].T @ np.diag(raw_hess) @ X[:, grp_g_indices], ord=2)
         lipchitz[idx] = norm(_diag_times_X_g(
             np.sqrt(raw_hess), X, grp_g_indices), ord=2)**2

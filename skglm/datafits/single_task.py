@@ -492,10 +492,16 @@ class Gamma(BaseDatafit):
         return dict()
 
     def initialize(self, X, y):
-        pass
+        if (y <= 0).sum() > 0:
+            raise ValueError(
+                    "Target vector `y` should only take positive values " +
+                    "when fitting a Gamma model.")
 
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
-        pass
+        if (y <= 0).sum() > 0:
+            raise ValueError(
+                    "Target vector `y` should only take positive values " +
+                    "when fitting a Gamma model.")
 
     def raw_grad(self, y, Xw):
         """Compute gradient of datafit w.r.t. ``Xw``."""

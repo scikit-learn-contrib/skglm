@@ -153,7 +153,8 @@ html_theme_options = {
     'navbar_links': [
         ("Examples", "auto_examples/index"),
         ("API", "api"),
-        ("Add custom penalty and datafit", "add"),
+        ("Add custom datafit", "add_datafit"),
+        ("Add custom penalty", "add_penalty"),
         ("GitHub", "https://github.com/scikit-learn-contrib/skglm", True)
     ],
     'bootswatch_theme': "united"

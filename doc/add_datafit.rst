@@ -1,6 +1,5 @@
 :orphan:
 
-
 How to add a custom datafit
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

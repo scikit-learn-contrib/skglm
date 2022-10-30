@@ -494,7 +494,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
     """
 
     def __init__(self, alpha=1., weights=None, max_iter=50, max_epochs=50_000, p0=10,
-                 verbose=0, tol=1e-4, positive=False, fit_intercept=True, 
+                 verbose=0, tol=1e-4, positive=False, fit_intercept=True,
                  warm_start=False, ws_strategy="subdiff"):
         super().__init__()
         self.alpha = alpha
@@ -651,7 +651,7 @@ class ElasticNet(LinearModel, RegressorMixin):
     """
 
     def __init__(self, alpha=1., l1_ratio=0.5, max_iter=50, max_epochs=50_000, p0=10,
-                 verbose=0, tol=1e-4, positive=False, fit_intercept=True, 
+                 verbose=0, tol=1e-4, positive=False, fit_intercept=True,
                  warm_start=False, ws_strategy="subdiff"):
         super().__init__()
         self.alpha = alpha

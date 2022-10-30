@@ -117,23 +117,15 @@ def proj_L2ball(u):
 @njit
 def BST(x, u, positive):
     """Block soft-thresholding of vector x at level u."""
+    if positive:
+        x = np.maximum(x, 0.)
     norm_x = norm(x)
     if norm_x < u:
         return np.zeros_like(x)
     else:
-        return (1 - u / norm_x) * x
-
-# @njit
-# def BST(x, u, positive):
-#     """Block soft-thresholding of vector x at level u."""
-#     norm_x = norm(x)
-#     if norm_x < u:
-#         return np.zeros_like(x)
-#     else:
-#         out = (1 - u / norm_x) * x
-#         if positive:
-#             out[out < 0] = 0
-#         return out
+        out = (1 - u / norm_x) * x
+        out = np.maximum(out, 0.) if positive else out
+    return out
 
 
 @njit

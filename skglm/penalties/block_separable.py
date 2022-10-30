@@ -38,7 +38,15 @@ class L2_1(BasePenalty):
         subdiff_dist = np.zeros_like(ws, dtype=grad.dtype)
         for idx, j in enumerate(ws):
             if self.positive:
-                raise NotImplementedError("To be done by PAB")
+                if np.any(W[j, :] < 0.):
+                    subdiff_dist[idx] = np.inf
+                elif not np.any(W[j, :]):
+                    # distance of -grad_j to ]-infty, alpha]^p
+                    subdiff_dist[idx] = norm(np.maximum(- grad[idx, :] - self.alpha, 0.))
+                else:
+                    subdiff_dist[idx] = norm(
+                        grad[idx, :]
+                        + self.alpha * W[j, :] / norm(W[j, :]))
             else:
                 if not np.any(W[j, :]):
                     # distance of - grad_j to alpha * the unit l2 ball

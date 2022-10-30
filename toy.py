@@ -15,7 +15,7 @@ alpha = alpha_max * 0.1
 
 clf = MultiTaskLasso(
         alpha, positive=True, fit_intercept=False, tol=1e-8, 
-        ws_strategy="fixpoint", verbose=2).fit(X, Y)
+        ws_strategy="subdiff", verbose=2).fit(X, Y)
 
 print(clf.coef_.T)
 

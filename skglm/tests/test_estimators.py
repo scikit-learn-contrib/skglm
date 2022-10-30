@@ -99,19 +99,26 @@ def test_check_estimator(estimator_name):
 @pytest.mark.parametrize("estimator_name", dict_estimators_ours.keys())
 @pytest.mark.parametrize('X', [X, X_sparse])
 @pytest.mark.parametrize('fit_intercept', [True, False])
-def test_estimator(estimator_name, X, fit_intercept):
+@pytest.mark.parametrize('positive', [True, False])
+def test_estimator(estimator_name, X, fit_intercept, positive):
     if estimator_name == "GeneralizedLinearEstimator":
         pytest.skip()
     if fit_intercept and estimator_name == "LogisticRegression":
         pytest.xfail("sklearn LogisticRegression does not support intercept.")
     if fit_intercept and estimator_name == "SVC":
         pytest.xfail("Intercept is not supported for SVC.")
+    if positive and estimator_name not in ("Lasso", "ElasticNet", "WeightedLasso"):
+        pytest.xfail("`positive` option is only supported by L1, L1_plus_L2 and wL1.")
 
     estimator_sk = clone(dict_estimators_sk[estimator_name])
     estimator_ours = clone(dict_estimators_ours[estimator_name])
 
     estimator_sk.set_params(fit_intercept=fit_intercept)
     estimator_ours.set_params(fit_intercept=fit_intercept)
+
+    if positive:
+        estimator_sk.set_params(positive=positive)
+        estimator_ours.set_params(positive=positive)
 
     estimator_sk.fit(X, y)
     estimator_ours.fit(X, y)

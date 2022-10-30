@@ -8,6 +8,13 @@ from skglm.utils import prox_SLOPE
 class SLOPE(BasePenalty):
     """Sorted L-One Penalized Estimation (SLOPE) penalty.
 
+    Attributes
+    ----------
+    alphas : array, shape (n_features,)
+        Contain regularization levels for every feature.
+        When ``alphas`` contain a single unique value, ``SLOPE``
+        is equivalent to the ``L1``penalty.
+
     References
     ----------
     .. [1] M. Bogdan, E. van den Berg, C. Sabatti, W. Su, E. Candes

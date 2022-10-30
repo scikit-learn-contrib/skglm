@@ -171,14 +171,24 @@ class WeightedL1(BasePenalty):
         """Compute distance of negative gradient to the subdifferential at w."""
         subdiff_dist = np.zeros_like(grad)
         for idx, j in enumerate(ws):
-            if w[j] == 0:
-                # distance of - grad_j to alpha * weights[j] * [-1, 1]
-                subdiff_dist[idx] = max(
-                    0, np.abs(grad[idx]) - self.alpha * self.weights[j])
+            if self.positive:
+                if w[j] < 0:
+                    subdiff_dist[idx] = np.inf
+                elif w[j] == 0:
+                    # distance of - grad_j to ]-infty, alpha * weights[j]]
+                    subdiff_dist[idx] = max(0, - grad[idx] - self.alpha * self.weights[j])
+                else:
+                    # distance of - grad_j to {alpha * weights[j]}
+                    subdiff_dist[idx] = np.abs(- grad[idx] - self.alpha * self.weights[j])
             else:
-                # distance of - grad_j to alpha * weights[j] * sign(w[j])
-                subdiff_dist[idx] = np.abs(
-                    - grad[idx] - self.alpha * self.weights[j] * np.sign(w[j]))
+                if w[j] == 0:
+                    # distance of - grad_j to alpha * weights[j] * [-1, 1]
+                    subdiff_dist[idx] = max(
+                        0, np.abs(grad[idx]) - self.alpha * self.weights[j])
+                else:
+                    # distance of - grad_j to alpha * weights[j] * sign(w[j])
+                    subdiff_dist[idx] = np.abs(
+                        - grad[idx] - self.alpha * self.weights[j] * np.sign(w[j]))
         return subdiff_dist
 
     def is_penalized(self, n_features):

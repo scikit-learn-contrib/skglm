@@ -2,7 +2,7 @@ import numpy as np
 from numpy.linalg import norm
 from sklearn.linear_model import Lasso as Lasso_sk
 from sklearn.linear_model import ElasticNet as ElasticNet_sk
-from skglm.estimators import Lasso, ElasticNet
+from skglm.estimators import Lasso, ElasticNet, WeightedLasso
 from skglm.utils import make_correlated_data
 
 n_samples = 30
@@ -28,7 +28,10 @@ enet = ElasticNet(
 enet_sk = ElasticNet_sk(
     alpha=alpha, l1_ratio=l1_ratio, positive=True, tol=tol, fit_intercept=False).fit(X, y)
 
+wlasso = WeightedLasso(alpha, np.ones(n_features), positive=True, tol=tol, fit_intercept=False).fit(X, y)
+
 
 np.testing.assert_allclose(clf.coef_, clf_sk.coef_, rtol=1e-5)
+np.testing.assert_allclose(clf.coef_, wlasso.coef_, rtol=1e-5)
 np.testing.assert_allclose(enet.coef_, enet_sk.coef_, rtol=1e-5)
 

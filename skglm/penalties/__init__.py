@@ -6,7 +6,7 @@ from .block_separable import (
     L2_05, L2_1, BlockMCPenalty, BlockSCAD, WeightedGroupL2
 )
 
-from .non_seperable import SLOPE
+from .non_separable import SLOPE
 
 
 __all__ = [

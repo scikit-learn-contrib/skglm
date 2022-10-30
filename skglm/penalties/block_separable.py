@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.linalg import norm
 
-from numba import float64, int32
+from numba import float64, int32, bool_
 
 from skglm.penalties.base import BasePenalty
 from skglm.utils import (
@@ -11,17 +11,19 @@ from skglm.utils import (
 class L2_1(BasePenalty):
     """L2/1 row-wise penalty: sum of L2 norms of rows."""
 
-    def __init__(self, alpha):
+    def __init__(self, alpha, positive=False):
         self.alpha = alpha
+        self.positive = positive
 
     def get_spec(self):
         spec = (
             ('alpha', float64),
+            ('positive', bool_)
         )
         return spec
 
     def params_to_dict(self):
-        return dict(alpha=self.alpha)
+        return dict(alpha=self.alpha, positive=self.positive)
 
     def value(self, W):
         """Compute the L2/1 penalty value."""
@@ -29,21 +31,24 @@ class L2_1(BasePenalty):
 
     def prox_1feat(self, value, stepsize, j):
         """Compute proximal operator of the L2/1 penalty (block soft thresholding)."""
-        return BST(value, self.alpha * stepsize)
+        return BST(value, self.alpha * stepsize, self.positive)
 
     def subdiff_distance(self, W, grad, ws):
         """Compute distance of negative gradient to the subdifferential at W."""
         subdiff_dist = np.zeros_like(ws, dtype=grad.dtype)
         for idx, j in enumerate(ws):
-            if not np.any(W[j, :]):
-                # distance of - grad_j to alpha * the unit l2 ball
-                norm_grad_j = norm(grad[idx, :])
-                subdiff_dist[idx] = max(0, norm_grad_j - self.alpha)
+            if self.positive:
+                raise NotImplementedError("To be done by PAB")
             else:
-                # distance of -grad_j to alpha * W[j] / norm(W[j])
-                subdiff_dist[idx] = norm(
-                    grad[idx, :]
-                    + self.alpha * W[j, :] / norm(W[j, :]))
+                if not np.any(W[j, :]):
+                    # distance of - grad_j to alpha * the unit l2 ball
+                    norm_grad_j = norm(grad[idx, :])
+                    subdiff_dist[idx] = max(0, norm_grad_j - self.alpha)
+                else:
+                    # distance of -grad_j to alpha * W[j] / norm(W[j])
+                    subdiff_dist[idx] = norm(
+                        grad[idx, :]
+                        + self.alpha * W[j, :] / norm(W[j, :]))
         return subdiff_dist
 
     def is_penalized(self, n_features):

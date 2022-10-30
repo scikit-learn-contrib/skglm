@@ -1168,6 +1168,9 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
     tol : float, optional
         Stopping criterion for the optimization.
 
+    positive : bool, optional
+        When set to ``True``, forces the coefficient vector to be positive.
+
     fit_intercept : bool, optional (default=True)
         Whether or not to fit an intercept.
 
@@ -1194,14 +1197,15 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
     """
 
     def __init__(self, alpha=1., copy_X=True, max_iter=50, max_epochs=50_000, p0=10,
-                 verbose=0, tol=1e-4, fit_intercept=True, warm_start=False,
-                 ws_strategy="subdiff"):
+                 verbose=0, tol=1e-4, positive=False, fit_intercept=True, 
+                 warm_start=False, ws_strategy="subdiff"):
         self.tol = tol
         self.alpha = alpha
         self.copy_X = copy_X
         self.warm_start = warm_start
         self.fit_intercept = fit_intercept
         self.max_iter = max_iter
+        self.positive = positive
         self.p0 = p0
         self.ws_strategy = ws_strategy
         self.max_epochs = max_epochs
@@ -1251,7 +1255,7 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
             self.coef_ = None
 
         datafit_jit = compiled_clone(QuadraticMultiTask(), X.dtype == np.float32)
-        penalty_jit = compiled_clone(L2_1(self.alpha), X.dtype == np.float32)
+        penalty_jit = compiled_clone(L2_1(self.alpha, self.positive), X.dtype == np.float32)
 
         solver = MultiTaskBCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
@@ -1304,7 +1308,7 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
         datafit = compiled_clone(QuadraticMultiTask(), to_float32=X.dtype == np.float32)
-        penalty = compiled_clone(L2_1(self.alpha))
+        penalty = compiled_clone(L2_1(self.alpha, self.positive))
         solver = MultiTaskBCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
             ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,

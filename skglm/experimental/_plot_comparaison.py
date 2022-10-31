@@ -12,8 +12,8 @@ from skglm.experimental.fercoq_bianchi import fercoq_bianchi
 fig, axarr = plt.subplots(1, 2, sharey=True, figsize=[8., 3],
                           constrained_layout=True)
 # for normalize, ax in zip([False, True], axarr):
-for normalize, ax in zip([True, False], axarr):
-    X, y, _ = make_correlated_data(n_samples=100, n_features=50, random_state=24)
+for normalize, ax in zip([False, True], axarr):
+    X, y, _ = make_correlated_data(n_samples=100, n_features=100, random_state=24)
     if normalize:
         X /= norm(X, axis=0) ** 2
 

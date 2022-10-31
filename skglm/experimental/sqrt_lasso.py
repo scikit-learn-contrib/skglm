@@ -235,8 +235,9 @@ def _chambolle_pock_sqrt(X, y, alpha, max_iter=1000, obj_freq=10, verbose=False)
         z[:] = proj_L2ball(z + sigma * (X @ w - y))
 
         if t % obj_freq == 0:
-            objs.append(norm(X @ w - y) / np.sqrt(n_samples) + alpha * norm(w, ord=1))
+            # objs.append(norm(X @ w - y) / np.sqrt(n_samples) + alpha * norm(w, ord=1))
             if verbose:
                 print(f"Iter {t}, obj {objs[-1]: .10f}")
 
+        objs.append(norm(X @ w - y) / np.sqrt(n_samples) + alpha * norm(w, ord=1))
     return w, z, objs

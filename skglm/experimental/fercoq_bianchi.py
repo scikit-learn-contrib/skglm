@@ -2,8 +2,53 @@ import numpy as np
 from numpy.linalg import norm
 
 
-def fercoq_bianchi(X, y, datafit, penalty, max_iter=100, tol=1e-4,
+def fercoq_bianchi(X, y, datafit, penalty, max_iter=1000, tol=1e-4,
                    verbose=0, random_state=0):
+    """Primal-dual CD algorithm for problems with non-smooth datafits.
+
+    Adaptation of Fercoq & Bianchi primal-dual CD algorithm [1].
+
+    Parameters
+    ----------
+        X : array, shape (n_samples, n_features)
+            Training data.
+
+        y : array, shape (n_samples,)
+            Target values.
+
+        datafit : instance of Datafit class
+            Datafitting term.
+
+        penalty : instance of Penalty class
+            Penalty used in the model.
+
+        max_iter : int, default 1000
+            Maximum number of iterations.
+
+        tol : float, default 1e-4
+            Tolerance for convergence.
+
+        verbose : bool, default False
+            Amount of verbosity. 0/False is silent.
+
+    Returns
+    -------
+        w : array, shape (n_features,)
+            Regression coefficients.
+
+        p_objs_out : array, shape (n_iter,)
+            The objective values at every outer iteration.
+
+        stop_crit : float
+            Value of stopping criterion at convergence.
+
+    References
+    ----------
+    .. [1] Olivier Fercoq and Pascal Bianchi
+        "A Coordinate-Descent Primal-Dual Algorithm with Large Step Size and Possibly
+        Nonseparable Functions", SIAM Journal on Optimization, 2020,
+        https://epubs.siam.org/doi/10.1137/18M1168480
+    """
     n_samples, n_features = X.shape
     rng = np.random.RandomState(random_state)
     all_features = np.arange(n_features)

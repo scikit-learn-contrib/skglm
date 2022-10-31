@@ -52,6 +52,16 @@ class SqrtQuadratic(BaseDatafit):
         fill_value = 1 / (np.sqrt(n_samples) * norm(y - Xw))
         return np.full(n_samples, fill_value)
 
+    def prox_conjugate(self, y, X, v, stepsize):
+        """Computes the proximal operator of the Fenchel conjugate of datafit.
+
+        Solves::
+
+            arg min_u (datafit*(u) + 1 / (2 * stepsize) * ||u - v||^2)
+        """
+        sqrt_n = np.sqrt(len(y))
+        return proj_L2ball(sqrt_n * (v - stepsize * y)) / sqrt_n
+
 
 class SqrtLasso(LinearModel, RegressorMixin):
     """Square root Lasso estimator based on Prox Newton solver.

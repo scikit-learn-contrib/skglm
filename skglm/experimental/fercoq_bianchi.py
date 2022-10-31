@@ -80,7 +80,7 @@ def fercoq_bianchi(X, y, datafit, penalty, max_iter=1000, tol=1e-4,
         _primal_dual_cd_epoch(y, X, w, Xw, z, datafit, penalty,
                               selected_features, sigma, tau)
 
-        # check convergence
+        # check convergence (so far only the primal optimally condition)
         if iter % 10 == 0:
             otp = penalty.subdiff_distance(w, X.T @ z, all_features)
             stop_crit = np.max(otp)

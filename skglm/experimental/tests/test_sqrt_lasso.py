@@ -2,8 +2,12 @@ import pytest
 import numpy as np
 from numpy.linalg import norm
 
-from skglm.utils import make_correlated_data
+from skglm.utils import make_correlated_data, compiled_clone
 from skglm.experimental.sqrt_lasso import SqrtLasso, _chambolle_pock_sqrt
+
+from skglm.penalties import L1
+from skglm.experimental.sqrt_lasso import SqrtQuadratic
+from skglm.experimental.fercoq_bianchi import fercoq_bianchi
 
 
 def test_alpha_max():
@@ -55,5 +59,22 @@ def test_prox_newton_cp():
     np.testing.assert_allclose(clf.coef_, w)
 
 
+def test_fercoq_bianchi():
+    rho = 1e-2
+    n_samples, n_features = 50, 10
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
+    alpha_max = norm(X.T @ y, ord=np.inf) / (np.sqrt(n_samples) * norm(y))
+
+    alpha = rho * alpha_max
+    datafit = compiled_clone(SqrtQuadratic())
+    penalty = compiled_clone(L1(alpha))
+
+    w = fercoq_bianchi(X, y, datafit, penalty, max_iter=10_000, verbose=0, tol=1e-6)[0]
+    sqrt_lasso = SqrtLasso(alpha=alpha, tol=1e-6).fit(X, y)
+
+    np.testing.assert_allclose(w, sqrt_lasso.coef_.flatten(), atol=1e-5)
+
+
 if __name__ == '__main__':
+    test_fercoq_bianchi()
     pass

@@ -1,6 +1,8 @@
 import numpy as np
 from numpy.linalg import norm
 
+from numba import njit
+
 
 def fercoq_bianchi(X, y, datafit, penalty, max_iter=1000, tol=1e-4,
                    verbose=0, random_state=0):
@@ -66,7 +68,6 @@ def fercoq_bianchi(X, y, datafit, penalty, max_iter=1000, tol=1e-4,
 
     # dual variable
     z = np.zeros(n_samples)
-    z_bar = np.zeros(n_samples)
 
     # constants verifies: tau_j < 1 / (||X|| * (2n-1) * sigma * ||X_j||^2)
     sigma = 1 / ((2 * n_features - 1) * norm(X, ord=2))
@@ -74,21 +75,10 @@ def fercoq_bianchi(X, y, datafit, penalty, max_iter=1000, tol=1e-4,
 
     for iter in range(max_iter):
 
-        # random CD
-        for j in rng.choice(n_features, n_features):
-            # dual update
-            z_bar = datafit.prox_conjugate(y, X, z + sigma * Xw, sigma)
-            z += (z_bar - z) / n_features
-
-            # primal update
-            old_w_j = w[j]
-            w[j] = penalty.prox_1d(old_w_j - tau[j] * (X[:, j] @ (2 * z_bar - z)),
-                                   tau[j], j)
-
-            # keep Xw synchronized with X @ W
-            delta_w_j = w[j] - old_w_j
-            if delta_w_j != 0:
-                Xw += delta_w_j * X[:, j]
+        # random CD with inplace update of w, Xw, and z
+        selected_features = rng.choice(n_features, n_features)
+        _primal_dual_cd_epoch(y, X, w, Xw, z, datafit, penalty,
+                              selected_features, sigma, tau)
 
         # check convergence
         if iter % 10 == 0:
@@ -108,6 +98,28 @@ def fercoq_bianchi(X, y, datafit, penalty, max_iter=1000, tol=1e-4,
         p_obj = datafit.value(y, w, Xw) + penalty.value(w)
         p_objs_out.append(p_obj)
     return w, np.asarray(p_objs_out), stop_crit
+
+
+@njit
+def _primal_dual_cd_epoch(y, X, w, Xw, z, datafit, penalty,
+                          features, sigma, tau):
+    # inplace update of w, Xw
+    n_features = X.shape[1]
+
+    for j in features:
+        # dual update
+        z_bar = datafit.prox_conjugate(y, X, z + sigma * Xw, sigma)
+        z += (z_bar - z) / n_features
+
+        # primal update
+        old_w_j = w[j]
+        w[j] = penalty.prox_1d(old_w_j - tau[j] * (X[:, j] @ (2 * z_bar - z)),
+                               tau[j], j)
+
+        # keep Xw synchronized with X @ W
+        delta_w_j = w[j] - old_w_j
+        if delta_w_j != 0:
+            Xw += delta_w_j * X[:, j]
 
 
 if __name__ == '__main__':

@@ -31,6 +31,10 @@ def fercoq_bianchi(X, y, datafit, penalty, max_iter=1000, tol=1e-4,
         verbose : bool, default False
             Amount of verbosity. 0/False is silent.
 
+        random_state : int, default 0
+            The seed to control the randomly selected features to be updated
+            at each iteration.
+
     Returns
     -------
         w : array, shape (n_features,)

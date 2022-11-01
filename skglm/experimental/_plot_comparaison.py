@@ -11,7 +11,7 @@ from skglm.experimental.fercoq_bianchi import fercoq_bianchi
 import time
 
 
-def find_p_star(*args):
+def _find_p_star(*args):
     global X, y, alpha
     EPS_FLOATING = 1e-10
 
@@ -63,7 +63,7 @@ for normalize, ax in zip([False, True], axarr):
     print("CB time: ", end - start)
 
     # plt.close('all')
-    p_star = find_p_star(w, w_cd)
+    p_star = _find_p_star(w, w_cd)
     ax.semilogy(objs - p_star, label="CP")
     ax.semilogy(objs_cd - p_star, label="FB")
     ax.legend()

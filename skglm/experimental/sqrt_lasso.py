@@ -53,7 +53,7 @@ class SqrtQuadratic(BaseDatafit):
         return np.full(n_samples, fill_value)
 
     def prox_conjugate(self, y, X, v, stepsize):
-        """Computes the proximal operator of the Fenchel conjugate of datafit.
+        """Compute the proximal operator of the Fenchel conjugate of datafit.
 
         Solves::
 
@@ -63,7 +63,7 @@ class SqrtQuadratic(BaseDatafit):
         return proj_L2ball(sqrt_n * (v - stepsize * y)) / sqrt_n
 
     def subdiff_distance(self, y, z, Xw):
-        """Computes the distance of z to the subdifferential of datafit at Xw."""
+        """Compute the distance of z to the subdifferential of datafit at Xw."""
         y_minus_Xw = y - Xw
         norm_y_minus_Xw = norm(y_minus_Xw)
         sqrt_n = np.sqrt(len(y))

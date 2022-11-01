@@ -21,7 +21,7 @@ def find_p_star(*args):
     p_objs = [sqrt_lasso_obj(coef)
               for coef in args]
 
-    # run sqrt lasso
+    # fit sqrt lasso with Prox Newton
     clf = SqrtLasso(alpha=alpha, tol=1e-10)
     clf.fit(X, y)
 
@@ -34,7 +34,7 @@ fig, axarr = plt.subplots(1, 2, sharey=False, figsize=[8., 3],
                           constrained_layout=True)
 # for normalize, ax in zip([False, True], axarr):
 for normalize, ax in zip([False, True], axarr):
-    X, y, _ = make_correlated_data(n_samples=100, n_features=100, random_state=24)
+    X, y, _ = make_correlated_data(n_samples=100, n_features=50, random_state=24)
     if normalize:
         X /= norm(X, axis=0)
 
@@ -47,20 +47,20 @@ for normalize, ax in zip([False, True], axarr):
     # cache numba
     datafit = compiled_clone(SqrtQuadratic())
     penalty = compiled_clone(L1(alpha))
-    # fercoq_bianchi(X, y, datafit, penalty, max_iter=2)
+    fercoq_bianchi(X, y, datafit, penalty, max_iter=2)
 
     print(f"========== {normalize} ================")
     start = time.time()
     w_cd, objs_cd, _ = fercoq_bianchi(
         X, y, datafit, penalty, max_iter=max_iter, tol=1e-6)
     end = time.time()
-    # print("F&B time: ", end - start)
+    print("F&B time: ", end - start)
 
     start = time.time()
     w, _, objs = _chambolle_pock_sqrt(
         X, y, alpha, max_iter=max_iter, obj_freq=10)
     end = time.time()
-    # print("CB time: ", end - start)
+    print("CB time: ", end - start)
 
     # plt.close('all')
     p_star = find_p_star(w, w_cd)

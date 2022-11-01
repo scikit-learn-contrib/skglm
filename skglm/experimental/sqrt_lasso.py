@@ -62,6 +62,17 @@ class SqrtQuadratic(BaseDatafit):
         sqrt_n = np.sqrt(len(y))
         return proj_L2ball(sqrt_n * (v - stepsize * y)) / sqrt_n
 
+    def subdiff_distance(self, y, z, Xw):
+        """Computes the distance of z to the subdifferential of datafit at Xw."""
+        y_minus_Xw = y - Xw
+        norm_y_minus_Xw = norm(y_minus_Xw)
+        sqrt_n = np.sqrt(len(y))
+
+        if norm_y_minus_Xw == 0:
+            return norm(sqrt_n * z - proj_L2ball(z))
+        else:
+            return norm(sqrt_n * z + y_minus_Xw / norm_y_minus_Xw)
+
 
 class SqrtLasso(LinearModel, RegressorMixin):
     """Square root Lasso estimator based on Prox Newton solver.
@@ -228,10 +239,6 @@ def _chambolle_pock_sqrt(X, y, alpha, max_iter=1000, obj_freq=10, verbose=False)
     # take primal and dual stepsizes equal
     tau = 0.99 / L
     sigma = 0.99 / L
-
-    print("***CB***")
-    print("sigma: ", sigma)
-    print("tau: ", tau)
 
     for t in range(max_iter):
         w = ST_vec(w - tau * X.T @ (2 * z - z_old), alpha * np.sqrt(n_samples) * tau)

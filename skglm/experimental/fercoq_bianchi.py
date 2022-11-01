@@ -73,10 +73,6 @@ def fercoq_bianchi(X, y, datafit, penalty, max_iter=1000, tol=1e-4,
     sigma = 1 / ((2 * n_features - 1) * norm(X, ord=2))
     tau = 1 / (X ** 2).sum(axis=0)  # 1 / squared norm of columns
 
-    print("***F&B***")
-    print("sigma: ", sigma)
-    print("tau: ", max(tau))
-
     for iter in range(max_iter):
 
         # random CD with inplace update of w, Xw, and z
@@ -84,10 +80,13 @@ def fercoq_bianchi(X, y, datafit, penalty, max_iter=1000, tol=1e-4,
         _primal_dual_cd_epoch(y, X, w, Xw, z, datafit, penalty,
                               selected_features, sigma, tau)
 
-        # check convergence (so far only the primal optimally condition)
+        # check convergence
         if iter % 10 == 0:
-            otp = penalty.subdiff_distance(w, X.T @ z, all_features)
-            stop_crit = np.max(otp)
+            otp_primal = np.max(penalty.subdiff_distance(w, X.T @ z, all_features))
+            # use: Xw in \partial datafit*(z) <==> z in \partial datafit(Xw)
+            opt_dual = datafit.subdiff_distance(y, z, Xw)
+
+            stop_crit = max(otp_primal, opt_dual)
 
             if verbose:
                 p_obj = datafit.value(y, w, Xw) + penalty.value(w)

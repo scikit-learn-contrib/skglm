@@ -229,6 +229,10 @@ def _chambolle_pock_sqrt(X, y, alpha, max_iter=1000, obj_freq=10, verbose=False)
     tau = 0.99 / L
     sigma = 0.99 / L
 
+    print("***CB***")
+    print("sigma: ", sigma)
+    print("tau: ", tau)
+
     for t in range(max_iter):
         w = ST_vec(w - tau * X.T @ (2 * z - z_old), alpha * np.sqrt(n_samples) * tau)
         z_old = z.copy()

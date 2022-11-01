@@ -73,6 +73,10 @@ def fercoq_bianchi(X, y, datafit, penalty, max_iter=1000, tol=1e-4,
     sigma = 1 / ((2 * n_features - 1) * norm(X, ord=2))
     tau = 1 / (X ** 2).sum(axis=0)  # 1 / squared norm of columns
 
+    print("***F&B***")
+    print("sigma: ", sigma)
+    print("tau: ", max(tau))
+
     for iter in range(max_iter):
 
         # random CD with inplace update of w, Xw, and z

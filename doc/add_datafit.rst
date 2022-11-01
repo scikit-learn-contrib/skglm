@@ -42,7 +42,7 @@ As an example, we show how to implement the Poisson datafit in skglm.
 A case in point: defining Poisson datafit
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-First, this requires deriving some useful quantities used by the optimizers like the gradient or the Hessian matrix of the datafit.
+First, this requires deriving some quantities used by the optimizers like the gradient or the Hessian matrix of the datafit.
 With :math:`y \in \mathbb{R}^n` the target vector, the Poisson datafit reads
 
 .. math::
@@ -50,7 +50,7 @@ With :math:`y \in \mathbb{R}^n` the target vector, the Poisson datafit reads
     \enspace .
 
 
-Let's define some useful quantities needed in skglm. For :math:`z \in \mathbb{R}^n` and :math:`\beta \in \mathbb{R}^p`,
+Let's define some useful quantities to simplify our computations. For :math:`z \in \mathbb{R}^n` and :math:`\beta \in \mathbb{R}^p`,
 
 .. math::
    f(z) = \sum_{i=1}^n f_i(z_i)  \qquad  F(\beta) = f(X\beta)
@@ -71,7 +71,7 @@ Besides, it directly follows that
    \enspace .
 
 
-Back to the Poisson datafit, following the definition of the datafit, we have
+We can now apply these definitions to the Poisson datafit:
 
 .. math::
     f_i(z_i) = \frac{1}{n} \left(\exp(z_i) - y_iz_i\right)
@@ -93,10 +93,8 @@ Computing ``raw_grad`` and ``raw_hessian`` for the Poisson datafit yields
 
 
 Both ``raw_grad`` and ``raw_hessian`` are methods used by the ``ProxNewton`` solver.
-
-But other optimizers require different methods to be implemented. For instance, ``AndersonCD`` uses the ``gradient_scalar`` method.
-
-The method ``gradient_scalar`` is the derivative of the datafit with respect to the :math:`j`-th coordinate of :math:`\beta`.
+But other optimizers require different methods to be implemented. For instance, ``AndersonCD`` uses the ``gradient_scalar`` method:
+it is the derivative of the datafit with respect to the :math:`j`-th coordinate of :math:`\beta`.
 
 For the Poisson datafit, this yields
 
@@ -115,6 +113,6 @@ When implementing these quantites in the ``Poisson`` datafit class, this gives:
 
 
 Note that we have not initialized any quantities in the ``initialize`` method.
-Usually it is used to compute a Lipschitz constant of the datafit, used by the optimizers as a step size.
+Usually it serves to compute a Lipschitz constant of the datafit, whose inverse is used by the optimizers as a step size.
 However, in this example, the Poisson datafit has no Lipschitz constant since the eigenvalues of the Hessian matrix are unbounded. 
 This implies that a step size is not known in advance and a line search has to be performed at every epoch by the optimizer.

@@ -30,19 +30,20 @@ def _find_p_star(*args):
     return min(p_objs) - EPS_FLOATING
 
 
+reg = 1e-1
+n_samples, n_features = 100, 100
 fig, axarr = plt.subplots(1, 2, sharey=False, figsize=[8., 3],
                           constrained_layout=True)
-# for normalize, ax in zip([False, True], axarr):
+
 for normalize, ax in zip([False, True], axarr):
-    X, y, _ = make_correlated_data(n_samples=100, n_features=50, random_state=24)
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=24)
     if normalize:
         X /= norm(X, axis=0)
 
     n_samples, n_features = X.shape
     alpha_max = norm(X.T @ y, ord=np.inf) / (norm(y) * np.sqrt(n_samples))
 
-    alpha = alpha_max / 10
-    max_iter = 1000
+    alpha = reg * alpha_max
 
     # cache numba
     datafit = compiled_clone(SqrtQuadratic())
@@ -51,23 +52,23 @@ for normalize, ax in zip([False, True], axarr):
 
     print(f"========== {normalize} ================")
     start = time.time()
-    w_cd, objs_cd, _ = fercoq_bianchi(
-        X, y, datafit, penalty, max_iter=max_iter, tol=1e-6)
+    w_cd, objs_cd, _ = fercoq_bianchi(X, y, datafit, penalty, max_iter=1_000, tol=1e-6)
     end = time.time()
     print("F&B time: ", end - start)
 
     start = time.time()
-    w, _, objs = _chambolle_pock_sqrt(
-        X, y, alpha, max_iter=max_iter, obj_freq=10)
+    w, _, objs = _chambolle_pock_sqrt(X, y, alpha, max_iter=1_000, obj_freq=10)
     end = time.time()
     print("CB time: ", end - start)
 
-    # plt.close('all')
     p_star = _find_p_star(w, w_cd)
     ax.semilogy(objs - p_star, label="CP")
     ax.semilogy(objs_cd - p_star, label="FB")
+
     ax.legend()
     ax.set_xlabel("iteration")
     ax.set_title(f"Normalize={normalize}")
+
+fig.suptitle(f"n_samples={n_samples}, n_features={n_features}, reg={reg}")
 axarr[0].set_ylabel("primal suboptimality")
 plt.show()

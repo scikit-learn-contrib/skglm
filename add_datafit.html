@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>How to add a custom datafit &#8212; skglm 0.3.dev documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/bootstrap-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery-rendered-html.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          skglm</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.dev</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="auto_examples/index.html">Examples</a></li>
+                <li><a href="api.html">API</a></li>
+                <li><a href="#">Add custom datafit</a></li>
+                <li><a href="add_penalty.html">Add custom penalty</a></li>
+                <li><a href="https://github.com/scikit-learn-contrib/skglm">GitHub</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="whats_new.html">What’s new</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intercept.html">Computation of the intercept</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <section id="how-to-add-a-custom-datafit">
+<h1>How to add a custom datafit<a class="headerlink" href="#how-to-add-a-custom-datafit" title="Permalink to this heading">¶</a></h1>
+<p id="how">Motivated by generalized linear models but not limited to it, <code class="docutils literal notranslate"><span class="pre">skglm</span></code> solves problems of the form</p>
+<div class="math notranslate nohighlight">
+\[\hat{\beta} \in
+\arg\min_{\beta \in \mathbb{R}^p}
+F(X\beta) + \Omega(\beta)
+:= \sum_{i=1}^n f_i([X\beta]_i) + \sum_{j=1}^p \Omega_j(\beta_j)
+\enspace .\]</div>
+<p>Here, <span class="math notranslate nohighlight">\(X \in \mathbb{R}^{n \times p}\)</span> denotes the design matrix with <span class="math notranslate nohighlight">\(n\)</span> samples and <span class="math notranslate nohighlight">\(p\)</span> features,
+and <span class="math notranslate nohighlight">\(\beta \in \mathbb{R}^p\)</span> is the coefficient vector.</p>
+<p>skglm can solve any problems of this form with arbitrary smooth datafit <span class="math notranslate nohighlight">\(F\)</span> and arbitrary penalty <span class="math notranslate nohighlight">\(\Omega\)</span> whose proximal operator can be evaluated explicitly, by defining two classes: a <code class="docutils literal notranslate"><span class="pre">Penalty</span></code> and a <code class="docutils literal notranslate"><span class="pre">Datafit</span></code>.</p>
+<p>They can then be passed to a <a class="reference internal" href="generated/skglm.GeneralizedLinearEstimator.html#skglm.GeneralizedLinearEstimator" title="skglm.GeneralizedLinearEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeneralizedLinearEstimator</span></code></a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">clf</span> <span class="o">=</span> <span class="n">GeneralizedLinearEstimator</span><span class="p">(</span>
+   <span class="n">MyDatafit</span><span class="p">(),</span>
+   <span class="n">MyPenalty</span><span class="p">(),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>A <code class="docutils literal notranslate"><span class="pre">Datafit</span></code> is a jitclass which must inherit from the <code class="docutils literal notranslate"><span class="pre">BaseDatafit</span></code> class:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">BaseDatafit</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Base class for datafits.&quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">get_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Specify the numba types of the class attributes.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        spec: Tuple of (attribute_name, dtype)</span>
+<span class="sd">            spec to be passed to Numba jitclass to compile the class.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">params_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the parameters to initialize an instance of the class.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict_of_params : dict</span>
+<span class="sd">            The parameters to instantiate an object of the class.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Pre-computations before fitting on X and y.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : array, shape (n_samples, n_features)</span>
+<span class="sd">            Design matrix.</span>
+
+<span class="sd">        y : array, shape (n_samples,)</span>
+<span class="sd">            Target vector.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">initialize_sparse</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">X_data</span><span class="p">,</span> <span class="n">X_indptr</span><span class="p">,</span> <span class="n">X_indices</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Pre-computations before fitting on X and y when X is a sparse matrix.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X_data : array, shape (n_elements,)</span>
+<span class="sd">            `data` attribute of the sparse CSC matrix X.</span>
+
+<span class="sd">        X_indptr : array, shape (n_features + 1,)</span>
+<span class="sd">            `indptr` attribute of the sparse CSC matrix X.</span>
+
+<span class="sd">        X_indices : array, shape (n_elements,)</span>
+<span class="sd">            `indices` attribute of the sparse CSC matrix X.</span>
+
+<span class="sd">        y : array, shape (n_samples,)</span>
+<span class="sd">            Target vector.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">Xw</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Value of datafit at vector w.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        y : array_like, shape (n_samples,)</span>
+<span class="sd">            Target vector.</span>
+
+<span class="sd">        w : array_like, shape (n_features,)</span>
+<span class="sd">            Coefficient vector.</span>
+
+<span class="sd">        Xw: array_like, shape (n_samples,)</span>
+<span class="sd">            Model fit.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        value : float</span>
+<span class="sd">            The datafit value at vector w.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">gradient_scalar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">Xw</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Gradient with respect to j-th coordinate of w.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : array, shape (n_samples, n_features)</span>
+<span class="sd">            Design matrix.</span>
+
+<span class="sd">        y : array, shape (n_samples,)</span>
+<span class="sd">            Target vector.</span>
+
+<span class="sd">        w : array, shape (n_features,)</span>
+<span class="sd">            Coefficient vector.</span>
+
+<span class="sd">        Xw : array, shape (n_samples,)</span>
+<span class="sd">            Model fit.</span>
+
+<span class="sd">        j : int</span>
+<span class="sd">            The coordinate at which the gradient is evaluated.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        gradient : float</span>
+<span class="sd">            The gradient of the datafit with respect to the j-th coordinate of w.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">gradient_scalar_sparse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X_data</span><span class="p">,</span> <span class="n">X_indptr</span><span class="p">,</span> <span class="n">X_indices</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">Xw</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Gradient with respect to j-th coordinate of w when X is sparse.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X_data : array, shape (n_elements,)</span>
+<span class="sd">            `data` attribute of the sparse CSC matrix X.</span>
+
+<span class="sd">        X_indptr : array, shape (n_features + 1,)</span>
+<span class="sd">            `indptr` attribute of the sparse CSC matrix X.</span>
+
+<span class="sd">        X_indices : array, shape (n_elements,)</span>
+<span class="sd">            `indices` attribute of the sparse CSC matrix X.</span>
+
+<span class="sd">        y : array, shape (n_samples,)</span>
+<span class="sd">            Target vector.</span>
+
+<span class="sd">        Xw: array, shape (n_samples,)</span>
+<span class="sd">            Model fit.</span>
+
+<span class="sd">        j : int</span>
+<span class="sd">            The dimension along which the gradient is evaluated.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        gradient : float</span>
+<span class="sd">            The gradient of the datafit with respect to the j-th coordinate of w.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p>To define a custom datafit, you need to implement the methods declared in the <code class="docutils literal notranslate"><span class="pre">BaseDatafit</span></code> class.
+One needs to overload at least the <code class="docutils literal notranslate"><span class="pre">value</span></code> and <code class="docutils literal notranslate"><span class="pre">gradient</span></code> methods for skglm to support the datafit.
+Optionally, overloading the methods with the suffix <code class="docutils literal notranslate"><span class="pre">_sparse</span></code> adds support for sparse datasets (CSC matrix).
+As an example, we show how to implement the Poisson datafit in skglm.</p>
+</section>
+<section id="a-case-in-point-defining-poisson-datafit">
+<h1>A case in point: defining Poisson datafit<a class="headerlink" href="#a-case-in-point-defining-poisson-datafit" title="Permalink to this heading">¶</a></h1>
+<p>First, this requires deriving some quantities used by the solvers like the gradient or the Hessian matrix of the datafit.
+With <span class="math notranslate nohighlight">\(y \in \mathbb{R}^n\)</span> the target vector, the Poisson datafit reads</p>
+<div class="math notranslate nohighlight">
+\[f(X\beta) = \frac{1}{n}\sum_{i=1}^n \exp([X\beta]_i) - y_i[X\beta]_i
+\enspace .\]</div>
+<p>Let’s define some useful quantities to simplify our computations. For <span class="math notranslate nohighlight">\(z \in \mathbb{R}^n\)</span> and <span class="math notranslate nohighlight">\(\beta \in \mathbb{R}^p\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[f(z) = \sum_{i=1}^n f_i(z_i)  \qquad  F(\beta) = f(X\beta)
+\enspace .\]</div>
+<p>Computing the gradient of <span class="math notranslate nohighlight">\(F\)</span> and its Hessian matrix yields</p>
+<div class="math notranslate nohighlight">
+\[\nabla F(\beta) = X^{\top} \underbrace{\nabla f(X\beta)}_\textrm{raw grad} \qquad \nabla^2 F(\beta) = X^{\top} \underbrace{\nabla^2 f(X\beta)}_\textrm{raw hessian} X
+\enspace .\]</div>
+<p>Besides, it directly follows that</p>
+<div class="math notranslate nohighlight">
+\[\nabla f(z) = (f_i'(z_i))_{1 \leq i \leq n} \qquad \nabla^2 f(z) = \textrm{diag}(f_i''(z_i))_{1 \leq i \leq n}
+\enspace .\]</div>
+<p>We can now apply these definitions to the Poisson datafit:</p>
+<div class="math notranslate nohighlight">
+\[f_i(z_i) = \frac{1}{n} \left(\exp(z_i) - y_iz_i\right)
+\enspace .\]</div>
+<p>Therefore,</p>
+<div class="math notranslate nohighlight">
+\[f_i'(z_i) = \frac{1}{n}(\exp(z_i) - y_i) \qquad f_i''(z_i) = \frac{1}{n}\exp(z_i)
+\enspace .\]</div>
+<p>Computing <code class="docutils literal notranslate"><span class="pre">raw_grad</span></code> and <code class="docutils literal notranslate"><span class="pre">raw_hessian</span></code> for the Poisson datafit yields</p>
+<div class="math notranslate nohighlight">
+\[\nabla f(X\beta) = \frac{1}{n}(\exp([X\beta]_i) - y_i)_{1 \leq i \leq n} \qquad \nabla^2 f(X\beta) = \frac{1}{n}\textrm{diag}(\exp([X\beta]_i))_{1 \leq i \leq n}
+\enspace .\]</div>
+<p>Both <code class="docutils literal notranslate"><span class="pre">raw_grad</span></code> and <code class="docutils literal notranslate"><span class="pre">raw_hessian</span></code> are methods used by the <code class="docutils literal notranslate"><span class="pre">ProxNewton</span></code> solver.
+But other optimizers require different methods to be implemented. For instance, <code class="docutils literal notranslate"><span class="pre">AndersonCD</span></code> uses the <code class="docutils literal notranslate"><span class="pre">gradient_scalar</span></code> method:
+it is the derivative of the datafit with respect to the <span class="math notranslate nohighlight">\(j\)</span>-th coordinate of <span class="math notranslate nohighlight">\(\beta\)</span>.</p>
+<p>For the Poisson datafit, this yields</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial F(\beta)}{\partial \beta_j} = \frac{1}{n}
+  \sum_{i=1}^n X_{i,j} \left(
+     \exp([X\beta]_i) - y
+  \right)
+  \enspace .\]</div>
+<p>When implementing these quantities in the <code class="docutils literal notranslate"><span class="pre">Poisson</span></code> datafit class, this gives:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Poisson</span><span class="p">(</span><span class="n">BaseDatafit</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Poisson datafit.</span>
+
+<span class="sd">    The datafit reads::</span>
+
+<span class="sd">    (1 / n_samples) * \sum_i (exp(Xw_i) - y_i * Xw_i)</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">    ----</span>
+<span class="sd">    The class is jit compiled at fit time using Numba compiler.</span>
+<span class="sd">    This allows for faster computations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">get_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">params_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">initialize_sparse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X_data</span><span class="p">,</span> <span class="n">X_indptr</span><span class="p">,</span> <span class="n">X_indices</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">raw_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">Xw</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute gradient of datafit w.r.t ``Xw``.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">Xw</span><span class="p">)</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">raw_hessian</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">Xw</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute Hessian of datafit w.r.t ``Xw``.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">Xw</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">Xw</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">Xw</span><span class="p">)</span> <span class="o">-</span> <span class="n">y</span> <span class="o">*</span> <span class="n">Xw</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">gradient_scalar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">Xw</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">X</span><span class="p">[:,</span> <span class="n">j</span><span class="p">]</span> <span class="o">@</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">Xw</span><span class="p">)</span> <span class="o">-</span> <span class="n">y</span><span class="p">))</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">full_grad_sparse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X_data</span><span class="p">,</span> <span class="n">X_indptr</span><span class="p">,</span> <span class="n">X_indices</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">Xw</span><span class="p">):</span>
+        <span class="n">n_features</span> <span class="o">=</span> <span class="n">X_indptr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_features</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">X_data</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_features</span><span class="p">):</span>
+            <span class="n">grad</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">X_indptr</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">X_indptr</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]):</span>
+                <span class="n">grad</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="n">X_data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">Xw</span><span class="p">[</span><span class="n">X_indices</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">-</span> <span class="n">y</span><span class="p">[</span><span class="n">X_indices</span><span class="p">[</span><span class="n">i</span><span class="p">]]))</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">grad</span>
+
+    <span class="k">def</span> <span class="nf">gradient_scalar_sparse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X_data</span><span class="p">,</span> <span class="n">X_indptr</span><span class="p">,</span> <span class="n">X_indices</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">Xw</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+        <span class="n">grad</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">X_indptr</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">X_indptr</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]):</span>
+            <span class="n">idx_i</span> <span class="o">=</span> <span class="n">X_indices</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">grad</span> <span class="o">+=</span> <span class="n">X_data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">Xw</span><span class="p">[</span><span class="n">idx_i</span><span class="p">])</span> <span class="o">-</span> <span class="n">y</span><span class="p">[</span><span class="n">idx_i</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">grad</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">intercept_update_self</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">Xw</span><span class="p">):</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+<p>Note that we have not initialized any quantities in the <code class="docutils literal notranslate"><span class="pre">initialize</span></code> method.
+Usually it serves to compute a Lipschitz constant of the datafit, whose inverse is used by the solver as a step size.
+However, in this example, the Poisson datafit has no Lipschitz constant since the eigenvalues of the Hessian matrix are unbounded.
+This implies that a step size is not known in advance and a line search has to be performed at every epoch by the solver.</p>
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2022, skglm developers.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.3.0.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

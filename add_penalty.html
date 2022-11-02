@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>How to add a custom penalty &#8212; skglm 0.3.dev documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/bootstrap-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery-rendered-html.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          skglm</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.dev</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="auto_examples/index.html">Examples</a></li>
+                <li><a href="api.html">API</a></li>
+                <li><a href="add_datafit.html">Add custom datafit</a></li>
+                <li><a href="#">Add custom penalty</a></li>
+                <li><a href="https://github.com/scikit-learn-contrib/skglm">GitHub</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="whats_new.html">What’s new</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intercept.html">Computation of the intercept</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <section id="how-to-add-a-custom-penalty">
+<h1>How to add a custom penalty<a class="headerlink" href="#how-to-add-a-custom-penalty" title="Permalink to this heading">¶</a></h1>
+<p id="how">skglm supports any arbitrary proximable penalty.</p>
+<p>It is implemented as a jitclass which must inherit from the <code class="docutils literal notranslate"><span class="pre">BasePenalty</span></code> class:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">BasePenalty</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Base class for penalty subclasses.&quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">get_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Specify the numba types of the class attributes.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        spec: Tuple of (attribute_name, dtype)</span>
+<span class="sd">            spec to be passed to Numba jitclass to compile the class.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">params_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the parameters to initialize an instance of the class.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict_of_params : dict</span>
+<span class="sd">            The parameters to instantiate an object of the class.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Value of penalty at vector w.&quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">prox_1d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">stepsize</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Proximal operator of penalty for feature j.&quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">subdiff_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">grad</span><span class="p">,</span> <span class="n">ws</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Distance of negative gradient to subdifferential at w for features in `ws`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        w: array, shape (n_features,)</span>
+<span class="sd">            Coefficient vector.</span>
+
+<span class="sd">        grad: array, shape (ws.shape[0],)</span>
+<span class="sd">            Gradient of the datafit at w, restricted to features in `ws`.</span>
+
+<span class="sd">        ws: array, shape (ws_size,)</span>
+<span class="sd">            Indices of features in the working set.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        distances: array, shape (ws.shape[0],)</span>
+<span class="sd">            The distances to the subdifferential.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">is_penalized</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_features</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a binary mask with the penalized features.&quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">generalized_support</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Return a mask which is True for coefficients in the generalized support.&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p>To implement your own penalty, you only need to define a new jitclass, inheriting from <code class="docutils literal notranslate"><span class="pre">BasePenalty</span></code> and define how its value, proximal operator, distance to subdifferential (for KKT violation) and penalized features are computed.</p>
+</section>
+<section id="a-case-in-point-defining-l1-penalty">
+<h1>A case in point: defining L1 penalty<a class="headerlink" href="#a-case-in-point-defining-l1-penalty" title="Permalink to this heading">¶</a></h1>
+<p>We detail how the <span class="math notranslate nohighlight">\(\ell_1\)</span> penalty is implemented in skglm.
+For a vector <span class="math notranslate nohighlight">\(\beta \in \mathbb{R}^p\)</span>, the <span class="math notranslate nohighlight">\(\ell_1\)</span> penalty is defined as follows:</p>
+<div class="math notranslate nohighlight">
+\[\lvert\lvert \beta \rvert\rvert_1 = \sum_{i=1}^p |\beta _i| \enspace .\]</div>
+<p>The regularization level is controlled by the hyperparameter <span class="math notranslate nohighlight">\(\lambda \in \mathbb{R}^+\)</span>, that is defined and initialized in the constructor of the class.</p>
+<p>The method <code class="docutils literal notranslate"><span class="pre">get_spec</span></code> allows to strongly type the attributes of the penalty object, thus allowing Numba to JIT-compile the class.
+It should return an iterable of tuples, the first element being the name of the attribute, the second its Numba type (e.g. <cite>float64</cite>, <cite>bool_</cite>).
+Additionally, a penalty should implement <code class="docutils literal notranslate"><span class="pre">params_to_dict</span></code>, a helper method to get all the parameters of a penalty returned in a dictionary.</p>
+<p>To optimize an objective with a given penalty, skglm needs at least the proximal operator of the penalty applied to the <span class="math notranslate nohighlight">\(j\)</span>-th coordinate.
+For the <code class="docutils literal notranslate"><span class="pre">L1</span></code> penalty, it is the well-known soft-thresholding operator:</p>
+<div class="math notranslate nohighlight">
+\[\textrm{ST}(\beta , \lambda) = \mathrm{max}(0, \lvert \beta \rvert - \lambda) \mathrm{sgn}(\beta) \enspace .\]</div>
+<p>Note that skglm expects the threshold level to be the regularization hyperparameter <span class="math notranslate nohighlight">\(\lambda \in \mathbb{R}^+\)</span> <strong>scaled by</strong> the stepsize.</p>
+<p>Besides, by default all solvers in skglm have <code class="docutils literal notranslate"><span class="pre">ws_strategy</span></code> turned on to <code class="docutils literal notranslate"><span class="pre">subdiff</span></code>.
+This means that the optimality conditions (thus the stopping criterion) is computed using the method <code class="docutils literal notranslate"><span class="pre">subdiff_distance</span></code> of the penalty.
+If not implemented, the user should set <code class="docutils literal notranslate"><span class="pre">ws_strategy</span></code> to <code class="docutils literal notranslate"><span class="pre">fixpoint</span></code>.</p>
+<p>For the <span class="math notranslate nohighlight">\(\ell_1\)</span> penalty, the distance of the negative gradient of the datafit <span class="math notranslate nohighlight">\(F\)</span> to the subdifferential of the penalty reads</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\mathrm{dist}(-\nabla_j F(\beta), \partial |\beta_j|) = \begin{cases}
+     \mathrm{max}(0, \lvert -\nabla_j F(\beta) \rvert - \lambda) \\
+     \lvert -\nabla_j F(\beta) - \lambda \mathrm{sgn}(\beta_j) \lvert \\
+ \end{cases}
+\enspace .\end{split}\]</div>
+<p>The method <code class="docutils literal notranslate"><span class="pre">is_penalized</span></code> returns a binary mask with the penalized features.
+For the <span class="math notranslate nohighlight">\(\ell_1\)</span> penalty, all the coefficients are penalized.
+Finally, <code class="docutils literal notranslate"><span class="pre">generalized_support</span></code> returns the generalized support of the penalty for some coefficient vector <code class="docutils literal notranslate"><span class="pre">w</span></code>.
+It is typically the non-zero coefficients of the solution vector for <span class="math notranslate nohighlight">\(\ell_1\)</span>.</p>
+<p>Optionally, a penalty might implement <code class="docutils literal notranslate"><span class="pre">alpha_max</span></code> which returns the smallest <span class="math notranslate nohighlight">\(\lambda\)</span> for which the optimal solution is a null vector.
+Note that since <code class="docutils literal notranslate"><span class="pre">lambda</span></code> is a reserved keyword in Python, <code class="docutils literal notranslate"><span class="pre">alpha</span></code> in skglm codebase corresponds to <span class="math notranslate nohighlight">\(\lambda\)</span>.</p>
+<p>When putting all together, this gives the implementation of the <code class="docutils literal notranslate"><span class="pre">L1</span></code> penalty:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">L1</span><span class="p">(</span><span class="n">BasePenalty</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;L1 penalty.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span>
+
+    <span class="k">def</span> <span class="nf">get_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="n">float64</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">spec</span>
+
+    <span class="k">def</span> <span class="nf">params_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute L1 penalty value.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">w</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">prox_1d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">stepsize</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute proximal operator of the L1 penalty (soft-thresholding operator).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ST</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">*</span> <span class="n">stepsize</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">subdiff_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">grad</span><span class="p">,</span> <span class="n">ws</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute distance of negative gradient to the subdifferential at w.&quot;&quot;&quot;</span>
+        <span class="n">subdiff_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">grad</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ws</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">w</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># distance of - grad_j to  [-alpha, alpha]</span>
+                <span class="n">subdiff_dist</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">grad</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># distance of - grad_j to alpha * sign(w[j])</span>
+                <span class="n">subdiff_dist</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span>
+                    <span class="o">-</span> <span class="n">grad</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">w</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">subdiff_dist</span>
+
+    <span class="k">def</span> <span class="nf">is_penalized</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_features</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a binary mask with the penalized features.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_features</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">generalized_support</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a mask with non-zero coefficients.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">w</span> <span class="o">!=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">alpha_max</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gradient0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return penalization value for which 0 is solution.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">gradient0</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2022, skglm developers.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.3.0.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

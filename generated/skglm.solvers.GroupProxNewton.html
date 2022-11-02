@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>skglm.solvers.ProxNewton &#8212; skglm 0.3.dev documentation</title>
+    <title>skglm.solvers.GroupProxNewton &#8212; skglm 0.3.dev documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css" />
@@ -97,12 +97,12 @@
   <div class="row">
     <div class="body col-md-12 content" role="main">
       
-  <section id="skglm-solvers-proxnewton">
-<h1>skglm.solvers.ProxNewton<a class="headerlink" href="#skglm-solvers-proxnewton" title="Permalink to this heading">¶</a></h1>
+  <section id="skglm-solvers-groupproxnewton">
+<h1>skglm.solvers.GroupProxNewton<a class="headerlink" href="#skglm-solvers-groupproxnewton" title="Permalink to this heading">¶</a></h1>
 <dl class="py class">
-<dt class="sig sig-object py" id="skglm.solvers.ProxNewton">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.solvers.</span></span><span class="sig-name descname"><span class="pre">ProxNewton</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_pn_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warm_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/34da16f/skglm/solvers/prox_newton.py#L12"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.solvers.ProxNewton" title="Permalink to this definition">¶</a></dt>
-<dd><p>Prox Newton solver combined with working sets.</p>
+<dt class="sig sig-object py" id="skglm.solvers.GroupProxNewton">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.solvers.</span></span><span class="sig-name descname"><span class="pre">GroupProxNewton</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_pn_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warm_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/34da16f/skglm/solvers/group_prox_newton.py#L12"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.solvers.GroupProxNewton" title="Permalink to this definition">¶</a></dt>
+<dd><p>Group Prox Newton solver combined with working sets.</p>
 <dl class="simple">
 <dt>p0<span class="classifier">int, default 10</span></dt><dd><p>Minimum number of features to be included in the working set.</p>
 </dd>
@@ -112,21 +112,19 @@
 </dd>
 <dt>tol<span class="classifier">float, default 1e-4</span></dt><dd><p>Tolerance for convergence.</p>
 </dd>
-<dt>fit_intercept<span class="classifier">bool, default True</span></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, fits an unpenalized intercept.</p>
-</dd>
 <dt>verbose<span class="classifier">bool, default False</span></dt><dd><p>Amount of verbosity. 0/False is silent.</p>
 </dd>
 </dl>
 <p class="rubric">References</p>
 <div role="list" class="citation-list">
-<div class="citation" id="r64630441a6a8-1" role="doc-biblioentry">
+<div class="citation" id="r7bbd1c76d566-1" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <p>Massias, M. and Vaiter, S. and Gramfort, A. and Salmon, J.
 “Dual Extrapolation for Sparse Generalized Linear Models”, JMLR, 2020,
 <a class="reference external" href="https://arxiv.org/abs/1907.05830">https://arxiv.org/abs/1907.05830</a>
 code: <a class="reference external" href="https://github.com/mathurinm/celer">https://github.com/mathurinm/celer</a></p>
 </div>
-<div class="citation" id="r64630441a6a8-2" role="doc-biblioentry">
+<div class="citation" id="r7bbd1c76d566-2" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></span>
 <p>Johnson, T. B. and Guestrin, C.
 “Blitz: A principled meta-algorithm for scaling sparse optimization”,
@@ -136,14 +134,14 @@ code: <a class="reference external" href="https://github.com/tbjohns/BlitzL1">ht
 </div>
 </div>
 <dl class="py method">
-<dt class="sig sig-object py" id="skglm.solvers.ProxNewton.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_pn_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warm_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/34da16f/skglm/solvers/prox_newton.py#L47"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.solvers.ProxNewton.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="skglm.solvers.GroupProxNewton.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_pn_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warm_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/34da16f/skglm/solvers/group_prox_newton.py#L44"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.solvers.GroupProxNewton.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#skglm.solvers.ProxNewton.__init__" title="skglm.solvers.ProxNewton.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>([p0, max_iter, max_pn_iter, tol, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#skglm.solvers.GroupProxNewton.__init__" title="skglm.solvers.GroupProxNewton.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>([p0, max_iter, max_pn_iter, tol, ...])</p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve</span></code>(X, y, datafit, penalty[, w_init, Xw_init])</p></td>

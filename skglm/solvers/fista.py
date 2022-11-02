@@ -78,7 +78,6 @@ class FISTA(BaseSolver):
                 raise ValueError(
                     "Unknown error optimality strategy. Expected "
                     f"`subdiff` or `fixpoint`. Got {self.opt_strategy}")
-                                 f"`subdiff` or `fixpoint`. Got {self.opt_strategy}")
 
             stop_crit = np.max(opt)
 

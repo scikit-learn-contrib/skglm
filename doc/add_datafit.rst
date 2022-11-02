@@ -17,7 +17,7 @@ Motivated by generalized linear models but not limited to it, skglm solves probl
 
 Here, :math:`X \in \mathbb{R}^{n \times p}` denotes the design matrix with :math:`n` samples and :math:`p` features, and :math:`\beta \in \mathbb{R}^p` is the coefficient vector.
 
-skglm can solve any problems of this form with arbitrary smooth datafit :math:`F` and arbitrary proximable penaty :math:`\Omega`, by defining two classes: a ``Penalty`` and a ``Datafit``.
+skglm can solve any problems of this form with arbitrary smooth datafit :math:`F` and arbitrary penalty :math:`\Omega` whose proximal operator can be evaluated explicitly, by defining two classes: a ``Penalty`` and a ``Datafit``.
 
 They can then be passed to a :class:`~skglm.GeneralizedLinearEstimator`.
 
@@ -35,7 +35,9 @@ A ``Datafit`` is a jitclass which must inherit from the ``BaseDatafit`` class:
    :pyobject: BaseDatafit
 
 
-To define a custom datafit, you need to implement the methods declared in the ``BaseDatafit`` class (value, gradient, gradient when the design matrix is sparse).
+To define a custom datafit, you need to implement the methods declared in the ``BaseDatafit`` class.
+One needs to overload at least the ``value`` and ``gradient`` methods for skglm to support the datafit.
+Optionally, overloading the methods with the suffix ``_sparse`` adds support for sparse datasets (CSC matrix).
 As an example, we show how to implement the Poisson datafit in skglm.
 
 
@@ -67,7 +69,7 @@ Computing the gradient of :math:`F` and its Hessian matrix yields
 Besides, it directly follows that
 
 .. math::
-   \nabla f(z) = (f_i'(z_i))_{i \in [n]} \qquad \nabla^2 f(z) = \textrm{diag}(f_i''(z_i))_{i \in [n]}
+   \nabla f(z) = (f_i'(z_i))_{1 \leq i \leq n} \qquad \nabla^2 f(z) = \textrm{diag}(f_i''(z_i))_{1 \leq i \leq n}
    \enspace .
 
 
@@ -88,7 +90,7 @@ Therefore,
 Computing ``raw_grad`` and ``raw_hessian`` for the Poisson datafit yields
 
 .. math::
-   \nabla f(X\beta) = \frac{1}{n}(\exp([X\beta]_i) - y_i)_{i \in [n]} \qquad \nabla^2 f(X\beta) = \frac{1}{n}\textrm{diag}(\exp([X\beta]_i))_{i \in [n]}
+   \nabla f(X\beta) = \frac{1}{n}(\exp([X\beta]_i) - y_i)_{1 \leq i \leq n} \qquad \nabla^2 f(X\beta) = \frac{1}{n}\textrm{diag}(\exp([X\beta]_i))_{1 \leq i \leq n}
    \enspace .
 
 

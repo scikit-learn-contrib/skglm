@@ -41,8 +41,9 @@ class L2_1(BasePenalty):
                 if np.any(W[j, :] < 0.):
                     subdiff_dist[idx] = np.inf
                 elif not np.any(W[j, :]):
-                    # distance of -grad_j to ]-infty, alpha]^p
-                    subdiff_dist[idx] = norm(np.maximum(- grad[idx, :] - self.alpha, 0.))
+                    # distance of -grad_j to alpha * the unit half l2 ball
+                    norm_grad_j = norm(grad[idx, :])
+                    subdiff_dist[idx] = max(norm_grad_j - self.alpha, 0.)
                 else:
                     subdiff_dist[idx] = norm(
                         grad[idx, :]

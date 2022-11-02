@@ -56,6 +56,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx_gallery.gen_gallery',
     'sphinx.ext.autosectionlabel',
+    'sphinx_copybutton',
     'numpydoc',
     'sphinx.ext.linkcode',
     'gh_substitutions',
@@ -157,7 +158,7 @@ html_theme_options = {
     "light_css_variables": {
         "color-brand-primary": "#b91c1c",
         "color-brand-content": "#b91c1c",
-        # "font-stack": 'ui-sans-serif, system-ui',
+        "font-stack": 'ui-sans-serif, system-ui',
     },
     "dark_css_variables": {
         "color-brand-primary": "#f87171",
@@ -165,8 +166,14 @@ html_theme_options = {
     },
 }
 
+# -- Options for copybutton ---------------------------------------------
+# complete explanation of the regex expression can be found here
+# https://sphinx-copybutton.readthedocs.io/en/latest/use.html#using-regexp-prompt-identifiers
+copybutton_prompt_text = r">>> |\.\.\. |\$ |In \[\d*\]: | {2,5}\.\.\.: | {5,8}: "
+copybutton_prompt_is_regexp = True
+
 # Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
+# html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".

@@ -56,7 +56,6 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx_gallery.gen_gallery',
     'sphinx.ext.autosectionlabel',
-    'sphinxemoji.sphinxemoji',
     'sphinx_copybutton',
     'numpydoc',
     'sphinx.ext.linkcode',

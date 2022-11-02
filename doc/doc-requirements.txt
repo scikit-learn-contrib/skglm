@@ -6,7 +6,6 @@ numpydoc
 pillow
 sphinx-bootstrap-theme
 sphinx_copybutton
-sphinxemoji
 sphinx-gallery
 pytest
 furo

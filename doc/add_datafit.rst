@@ -5,7 +5,7 @@ How to add a custom datafit
 
 .. _how:
 
-Motivated by generalized linear models but not limited to it, skglm solves problems of the form
+Motivated by generalized linear models but not limited to it, ``skglm`` solves problems of the form
 
 .. math::
       \hat{\beta} \in
@@ -15,9 +15,11 @@ Motivated by generalized linear models but not limited to it, skglm solves probl
       \enspace .
 
 
-Here, :math:`X \in \mathbb{R}^{n \times p}` denotes the design matrix with :math:`n` samples and :math:`p` features, and :math:`\beta \in \mathbb{R}^p` is the coefficient vector.
+Here, :math:`X \in \mathbb{R}^{n \times p}` denotes the design matrix with :math:`n` samples and :math:`p` features,
+and :math:`\beta \in \mathbb{R}^p` is the coefficient vector.
 
-skglm can solve any problems of this form with arbitrary smooth datafit :math:`F` and arbitrary proximable penaty :math:`\Omega`, by defining two classes: a ``Penalty`` and a ``Datafit``.
+``skglm`` can solve any problems of this form with arbitrary smooth datafit :math:`F` and arbitrary proximable penalty :math:`\Omega`,
+by defining two classes: a ``Penalty`` and a ``Datafit``.
 
 They can then be passed to a :class:`~skglm.GeneralizedLinearEstimator`.
 
@@ -36,17 +38,17 @@ A ``Datafit`` is a jitclass which must inherit from the ``BaseDatafit`` class:
 
 
 To define a custom datafit, you need to implement the methods declared in the ``BaseDatafit`` class (value, gradient, gradient when the design matrix is sparse).
-As an example, we show how to implement the Poisson datafit in skglm.
+As an example, we show how to implement the Poisson datafit in ``skglm``.
 
 
 A case in point: defining Poisson datafit
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-First, this requires deriving some quantities used by the optimizers like the gradient or the Hessian matrix of the datafit.
+First, this requires deriving some quantities used by the solvers like the gradient or the Hessian matrix of the datafit.
 With :math:`y \in \mathbb{R}^n` the target vector, the Poisson datafit reads
 
 .. math::
-    f(X\beta) = \frac{1}{n}\sum_{i=1}^n \exp(X_i^{\top}\beta) - y_i X_i^{\top}\beta
+    F(X\beta) = \frac{1}{n}\sum_{i=1}^n \exp(X_i^{\top}\beta) - y_i X_i^{\top}\beta
     \enspace .
 
 
@@ -106,13 +108,13 @@ For the Poisson datafit, this yields
       \enspace .
 
 
-When implementing these quantites in the ``Poisson`` datafit class, this gives:
+When implementing these quantities in the ``Poisson`` datafit class, this gives:
 
 .. literalinclude:: ../skglm/datafits/single_task.py
    :pyobject: Poisson
 
 
 Note that we have not initialized any quantities in the ``initialize`` method.
-Usually it serves to compute a Lipschitz constant of the datafit, whose inverse is used by the optimizers as a step size.
+Usually it serves to compute a Lipschitz constant of the datafit, whose inverse is used by the solver as a step size.
 However, in this example, the Poisson datafit has no Lipschitz constant since the eigenvalues of the Hessian matrix are unbounded. 
-This implies that a step size is not known in advance and a line search has to be performed at every epoch by the optimizer.
+This implies that a step size is not known in advance and a line search has to be performed at every epoch by the solver.

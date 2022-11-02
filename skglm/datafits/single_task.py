@@ -512,7 +512,7 @@ class Gamma(BaseDatafit):
         return (y * np.exp(-Xw)) / len(y)
 
     def value(self, y, w, Xw):
-        return (np.sum(Xw + y * np.exp(-Xw)) - 1) / len(y)
+        return (np.sum(Xw + y * np.exp(-Xw)) - 1 - np.log(y)) / len(y)
 
     def gradient_scalar(self, X, y, w, Xw, j):
         return X[:, j] @ (1 - y * np.exp(-Xw)) / len(y)

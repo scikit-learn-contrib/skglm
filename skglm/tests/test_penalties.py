@@ -4,9 +4,6 @@ import numpy as np
 from numpy.linalg import norm
 from numpy.testing import assert_array_less
 
-from slope.solvers import pgd_slope
-from slope.utils import lambda_sequence
-
 from skglm.datafits import Quadratic, QuadraticMultiTask
 from skglm.penalties import (
     L1, L1_plus_L2, WeightedL1, MCPenalty, SCAD, IndicatorBox, L0_5, L2_3, SLOPE,
@@ -84,15 +81,24 @@ def test_slope_lasso():
 
 def test_slope():
     # compare solutions with `pyslope`: https://github.com/jolars/pyslope
+    try:
+        from slope.solvers import pgd_slope  # noqa
+        from slope.utils import lambda_sequence  # noqa
+    except ImportError:
+        pytest.xfail(
+            "This test requires slope to run.\n"
+            "https://github.com/jolars/pyslope"
+        )
+
     q = 0.1
     alphas = lambda_sequence(
-            X, y, fit_intercept=False, reg=alpha / alpha_max, q=q)
+        X, y, fit_intercept=False, reg=alpha / alpha_max, q=q)
     ours = GeneralizedLinearEstimator(
         penalty=SLOPE(alphas),
         solver=FISTA(max_iter=1000, tol=tol, opt_strategy="fixpoint"),
     ).fit(X, y)
     pyslope_out = pgd_slope(
-            X, y, alphas, fit_intercept=False, max_it=1000, gap_tol=tol)
+        X, y, alphas, fit_intercept=False, max_it=1000, gap_tol=tol)
     np.testing.assert_allclose(ours.coef_, pyslope_out["beta"], rtol=1e-5)
 
 

@@ -11,7 +11,7 @@ Motivated by generalized linear models but not limited to it, skglm solves probl
       \hat{\beta} \in
       \arg\min_{\beta \in \mathbb{R}^p}
       F(X\beta) + \Omega(\beta)
-      := \sum_{i=1}^n f_i(X_i^{\top}\beta) + \sum_{j=1}^p \Omega_j(\beta_j)
+      := \sum_{i=1}^n f_i([X\beta]_i) + \sum_{j=1}^p \Omega_j(\beta_j)
       \enspace .
 
 
@@ -46,7 +46,7 @@ First, this requires deriving some quantities used by the optimizers like the gr
 With :math:`y \in \mathbb{R}^n` the target vector, the Poisson datafit reads
 
 .. math::
-    f(X\beta) = \frac{1}{n}\sum_{i=1}^n \exp(X_i^{\top}\beta) - y_i X_i^{\top}\beta
+    f(X\beta) = \frac{1}{n}\sum_{i=1}^n \exp([X\beta]_i) - y_i[X\beta]_i 
     \enspace .
 
 
@@ -88,7 +88,7 @@ Therefore,
 Computing ``raw_grad`` and ``raw_hessian`` for the Poisson datafit yields
 
 .. math::
-   \nabla f(X\beta) = \frac{1}{n}(\exp(X_i^{\top}\beta) - y_i)_{i \in [n]} \qquad \nabla^2 f(X\beta) = \frac{1}{n}\textrm{diag}(\exp(X_i^{\top}\beta))_{i \in [n]}
+   \nabla f(X\beta) = \frac{1}{n}(\exp([X\beta]_i) - y_i)_{i \in [n]} \qquad \nabla^2 f(X\beta) = \frac{1}{n}\textrm{diag}(\exp([X\beta]_i))_{i \in [n]}
    \enspace .
 
 
@@ -101,7 +101,7 @@ For the Poisson datafit, this yields
 .. math::
     \frac{\partial F(\beta)}{\partial \beta_j} = \frac{1}{n}
       \sum_{i=1}^n X_{i,j} \left(
-         \exp(X_i^{\top}\beta) - y 
+         \exp([X\beta]_i) - y 
       \right)
       \enspace .
 

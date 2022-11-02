@@ -87,8 +87,7 @@ def test_slope():
     except ImportError:
         pytest.xfail(
             "This test requires slope to run.\n"
-            "https://github.com/jolars/pyslope"
-        )
+            "https://github.com/jolars/pyslope")
 
     q = 0.1
     alphas = lambda_sequence(

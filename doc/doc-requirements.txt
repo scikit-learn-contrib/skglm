@@ -5,6 +5,7 @@ myst_parser
 numpydoc
 pillow
 sphinx-bootstrap-theme
+sphinx_copybutton
 sphinx-gallery
 pytest
 furo

@@ -1,0 +1,30 @@
+﻿skglm.penalties.SLOPE
+=====================
+
+.. currentmodule:: skglm.penalties
+
+.. autoclass:: SLOPE
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~SLOPE.__init__
+      ~SLOPE.generalized_support
+      ~SLOPE.get_spec
+      ~SLOPE.is_penalized
+      ~SLOPE.params_to_dict
+      ~SLOPE.prox_1d
+      ~SLOPE.prox_vec
+      ~SLOPE.subdiff_distance
+      ~SLOPE.value
+   
+   
+
+   
+   
+   

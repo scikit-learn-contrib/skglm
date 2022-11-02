@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>skglm.penalties.L0_5 &#8212; skglm 0.3.dev documentation</title>
+    <title>skglm.penalties.SLOPE &#8212; skglm 0.3.dev documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css" />
@@ -96,46 +96,66 @@
   <div class="row">
     <div class="body col-md-12 content" role="main">
       
-  <section id="skglm-penalties-l0-5">
-<h1>skglm.penalties.L0_5<a class="headerlink" href="#skglm-penalties-l0-5" title="Permalink to this heading">¶</a></h1>
+  <section id="skglm-penalties-slope">
+<h1>skglm.penalties.SLOPE<a class="headerlink" href="#skglm-penalties-slope" title="Permalink to this heading">¶</a></h1>
 <dl class="py class">
-<dt class="sig sig-object py" id="skglm.penalties.L0_5">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.penalties.</span></span><span class="sig-name descname"><span class="pre">L0_5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/a4362ba/skglm/penalties/separable.py#L364"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.penalties.L0_5" title="Permalink to this definition">¶</a></dt>
-<dd><p>L_{0.5} non-convex quasi-norm penalty.</p>
+<dt class="sig sig-object py" id="skglm.penalties.SLOPE">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.penalties.</span></span><span class="sig-name descname"><span class="pre">SLOPE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alphas</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/a4362ba/skglm/penalties/non_separable.py#L8"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.penalties.SLOPE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sorted L-One Penalized Estimation (SLOPE) penalty.</p>
+<p class="rubric">References</p>
+<div role="list" class="citation-list">
+<div class="citation" id="r29ae544287d4-1" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
+<p>M. Bogdan, E. van den Berg, C. Sabatti, W. Su, E. Candes
+“SLOPE - Adaptive Variable Selection via Convex Optimization”,
+The Annals of Applied Statistics 9 (3): 1103-40
+<a class="reference external" href="https://doi.org/10.1214/15-AOAS842">https://doi.org/10.1214/15-AOAS842</a></p>
+</div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>alphas</strong><span class="classifier">array, shape (n_features,)</span></dt><dd><p>Contain regularization levels for every feature.
+When <code class="docutils literal notranslate"><span class="pre">alphas</span></code> contain a single unique value, <code class="docutils literal notranslate"><span class="pre">SLOPE</span></code>
+is equivalent to the <a href="#id2"><span class="problematic" id="id3">``</span></a>L1``penalty.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="skglm.penalties.L0_5.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/a4362ba/skglm/penalties/separable.py#L367"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.penalties.L0_5.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="skglm.penalties.SLOPE.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alphas</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/a4362ba/skglm/penalties/non_separable.py#L26"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.penalties.SLOPE.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#skglm.penalties.L0_5.__init__" title="skglm.penalties.L0_5.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(alpha)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#skglm.penalties.SLOPE.__init__" title="skglm.penalties.SLOPE.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(alphas)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">derivative</span></code>(w)</p></td>
-<td><p>Compute the element-wise derivative.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">generalized_support</span></code>(w)</p></td>
+<td><p>Return a mask which is True for coefficients in the generalized support.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">generalized_support</span></code>(w)</p></td>
-<td><p>Return a mask with non-zero coefficients.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_spec</span></code>()</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_spec</span></code>()</p></td>
 <td><p>Specify the numba types of the class attributes.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_penalized</span></code>(n_features)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_penalized</span></code>(n_features)</p></td>
 <td><p>Return a binary mask with the penalized features.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
 <td><p>Get the parameters to initialize an instance of the class.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">prox_1d</span></code>(value, stepsize, j)</p></td>
-<td><p>Compute the proximal operator of L0_5.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">prox_1d</span></code>(value, stepsize, j)</p></td>
+<td><p>Proximal operator of penalty for feature j.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">prox_vec</span></code>(x, stepsize)</p></td>
+<td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">subdiff_distance</span></code>(w, grad, ws)</p></td>
-<td><p>Compute distance of negative gradient to the subdifferential at w.</p></td>
+<td><p>Distance of negative gradient to subdifferential at w for features in <cite>ws</cite>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(w)</p></td>
-<td><p>Compute the value of L0_5 at w.</p></td>
+<td><p>Compute the value of SLOPE at w.</p></td>
 </tr>
 </tbody>
 </table>

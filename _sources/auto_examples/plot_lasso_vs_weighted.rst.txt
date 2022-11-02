@@ -84,7 +84,7 @@ Illustrate the importance of feature normalization when penalizing.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  6.525 seconds)
+   **Total running time of the script:** ( 0 minutes  5.837 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_lasso_vs_weighted.py:

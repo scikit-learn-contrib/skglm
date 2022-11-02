@@ -75,7 +75,9 @@ class FISTA(BaseSolver):
             elif self.opt_strategy == "fixpoint":
                 opt = np.abs(w - penalty.prox_vec(w - grad / lipschitz, 1 / lipschitz))
             else:
-                raise ValueError("Unknown error optimality strategy. Expected " +
+                raise ValueError(
+                    "Unknown error optimality strategy. Expected "
+                    f"`subdiff` or `fixpoint`. Got {self.opt_strategy}")
                                  f"`subdiff` or `fixpoint`. Got {self.opt_strategy}")
 
             stop_crit = np.max(opt)

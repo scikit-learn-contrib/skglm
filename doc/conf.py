@@ -58,9 +58,15 @@ extensions = [
     'sphinx.ext.autosectionlabel',
     'numpydoc',
     'sphinx.ext.linkcode',
-    'gh_substitutions',  # custom ext, see ./sphinxext/gh_substitutions.py
+    'gh_substitutions',
+    'myst_parser',
+    # custom ext, see ./sphinxext/gh_substitutions.py
 ]
 
+myst_enable_extensions = [
+    "dollarmath",
+    "amsmath"
+]
 # generate autosummary even if no references
 autosummary_generate = True
 
@@ -153,7 +159,8 @@ html_theme_options = {
     'navbar_links': [
         ("Examples", "auto_examples/index"),
         ("API", "api"),
-        ("Add custom penalty and datafit", "add"),
+        ("Add custom datafit", "add_datafit"),
+        ("Add custom penalty", "add_penalty"),
         ("GitHub", "https://github.com/scikit-learn-contrib/skglm", True)
     ],
     'bootswatch_theme': "united"

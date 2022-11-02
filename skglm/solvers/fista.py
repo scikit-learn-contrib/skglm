@@ -27,10 +27,13 @@ class FISTA(BaseSolver):
            https://epubs.siam.org/doi/10.1137/080716542
     """
 
-    def __init__(self, max_iter=100, tol=1e-4, verbose=0):
+    def __init__(self, max_iter=100, tol=1e-4, opt_strategy="subdiff", verbose=0):
         self.max_iter = max_iter
         self.tol = tol
         self.verbose = verbose
+        self.opt_strategy = opt_strategy
+        self.fit_intercept = False   # needed to be passed to GeneralizedLinearEstimator
+        self.warm_start = False
 
     def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
         p_objs_out = []
@@ -60,11 +63,22 @@ class FISTA(BaseSolver):
 
             step = 1 / lipschitz
             z -= step * grad
-            w = _prox_vec(w, z, penalty, step)
+            if hasattr(penalty, "prox_vec"):
+                w = penalty.prox_vec(z, step)
+            else:
+                w = _prox_vec(w, z, penalty, step)
             Xw = X @ w
             z = w + (t_old - 1.) / t_new * (w - w_old)
 
-            opt = penalty.subdiff_distance(w, grad, all_features)
+            if self.opt_strategy == "subdiff":
+                opt = penalty.subdiff_distance(w, grad, all_features)
+            elif self.opt_strategy == "fixpoint":
+                opt = np.abs(w - penalty.prox_vec(w - grad / lipschitz, 1 / lipschitz))
+            else:
+                raise ValueError(
+                    "Unknown error optimality strategy. Expected "
+                    f"`subdiff` or `fixpoint`. Got {self.opt_strategy}")
+
             stop_crit = np.max(opt)
 
             p_obj = datafit.value(y, w, Xw) + penalty.value(w)

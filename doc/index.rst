@@ -15,6 +15,8 @@
 that are **100% compatible with** ``scikit-learn``. It is **highly flexible** and supports a wide range of GLMs. 
 You get to choose from ``skglm``'s already-made estimators or **customize your own** by combining the available datafits and penalty.
 
+Get a hands-on glimpse on ``skglm`` through the :ref:`Getting started section <getting_started>`.
+
 
 Why ``skglm``?
 --------------
@@ -52,10 +54,12 @@ It is also available on Conda and can be installed via the command
 
     $ conda install skglm
 
+With ``skglm`` being installed, Get the first steps with the package via the :ref:`Getting started section <getting_started>`.
+Other advanced topics and uses-cases of ``skglm`` are covered in :ref:`Tutorials <tutorials>`.
 
 .. note::
 
-  Currently, ``skglm`` is unavailable on Conda but we are working on that and will release it be very soon... 
+  Currently, ``skglm`` is unavailable on Conda but would be release be very soon... 
 
 
 Cite
@@ -75,13 +79,13 @@ You are free to use it and if you do so, please cite
         year      = {2022},
 
 
-Release history
----------------
+Explore the documentation
+-------------------------
 
 .. toctree::
     :maxdepth: 1
 
-    get_started.rst
+    getting_started.rst
     tutorials/tutorials.rst
     auto_examples/index.rst
     api.rst

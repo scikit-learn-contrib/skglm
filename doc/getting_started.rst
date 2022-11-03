@@ -4,23 +4,22 @@
 Getting started
 ===============
 
-This page provides a started examples to get familiar with ``sglm``
+This page provides a started examples to get familiar with ``skglm``
 and explore some of its features.
 
-We start by fitting a Lasso estimator on a toy dataset using ``skglm`` Lasso estimator.
-and then we explore how modularity of the package by building and fitting a :math:`\ell_1` Huber regression.
+We start by fitting a Lasso estimator on a high dimensional (number of features is largely greater than the number of samples)
+toy dataset using ``skglm`` Lasso estimator. and then we explore how modularity of the package by building 
+and fitting a :math:`\ell_1` Huber regression.
 
 Beforehand, make sure that you have already installed ``skglm`` either through
 
 .. code-block:: shell
 
-    $ pip install -U skglm
+    # using pip
+    pip install -U skglm
 
-or
-
-.. code-block:: shell
-
-    $ conda install skglm
+    # using conda
+    conda install skglm
 
 -------------------------
 
@@ -68,3 +67,74 @@ Then let's fit ``skglm`` :ref:`Lasso <skglm.Lasso>` estimator and prints it's sc
 ``skglm`` has several other ``scikit-learn`` compatible estimators.
 Check the :ref:`API <Estimators>` for more information about the available estimators.
 
+
+Fitting :math:`\ell_1` Huber regression
+---------------------------------------
+
+Suppose that we have a dataset with outliers and we would like to mitigate their effects on the learned coefficients
+while considering the high dimensionality of dataset. Ideally, we would like to fit a :math:`\ell_1` Huber regressor.
+Unfortunately, this estimator is missing from ``scikit-learn`` and ``skglm`` already available estimators.
+
+``skglm`` offers high flexibility to compose custom estimators. Through a simple API, it is possible to combine any
+``skglm`` :ref:`datafit <Datafits>` and :ref:`penalty <Penalties>`.
+
+Let's explore how to achieve that.
+
+
+Generate corrupted data
+***********************
+
+We will use the same script as before except that we will take 10 samples and corrupt their values.
+
+.. code-block:: python
+
+    # imports
+    import numpy as np
+    from sklearn.datasets import make_regression
+    from sklearn.model_selection import train_test_split
+
+    # generate toy data
+    X, y = make_regression(n_samples=100, n_features=1000)
+
+    # select and corrupt 10 random samples
+    y[np.random.choice(n_samples, 10)] = 100 * y.max()
+
+    # split data
+    X_train, X_test, y_train, y_test = train_test_split(X, y)
+
+
+Now let's compose a custom estimator using :ref:`GeneralizedLinearEstimator <skglm.GeneralizedLinearEstimator>`.
+
+.. code-block:: python
+
+    # import penalty and datafit
+    from skglm.penalties import L1
+    from skglm.datafits import Huber
+
+    # import GLM estimator
+    from skglm import GeneralizedLinearEstimator
+
+    # build and fit estimator
+    estimator = GeneralizedLinearEstimator(
+        Huber(1.),
+        L1(alpha=1.)
+    )
+    estimator.fit(X_train, y_train)
+
+
+.. note::
+
+    Here the arguments given to the datafit and penalty are arbitrary and given just for sake of illustration.
+
+
+It is possible to combine any supported datafit and penalty. Explore the list of supported :ref:`datafits <Datafits>` 
+and :ref:`penalties <Penalties>`.
+
+.. important::
+
+    It is possible to create custom datafit and penalties.
+    Check the tutorials on :ref:`how to add a custom datafit <how_to_add_custom_datafit>` and
+    :ref:`how to add a custom penalty <how_to_add_custom_penalty>`.
+
+
+Explore further advanced topics and get hand-on examples on the :ref:`tutorials page <tutorials>`

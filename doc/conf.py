@@ -159,6 +159,7 @@ html_theme_options = {
         "color-brand-primary": "#b91c1c",
         "color-brand-content": "#b91c1c",
         "font-stack": 'ui-sans-serif, system-ui',
+        "color-background-secondary": "#fef2f2"
     },
     "dark_css_variables": {
         "color-brand-primary": "#f87171",

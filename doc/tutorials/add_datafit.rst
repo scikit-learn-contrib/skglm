@@ -1,9 +1,9 @@
 :orphan:
 
+.. _how_to_add_custom_datafit:
+
 How to add a custom datafit
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. _how:
 
 Motivated by generalized linear models but not limited to it, ``skglm`` solves problems of the form
 

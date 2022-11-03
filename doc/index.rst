@@ -55,7 +55,7 @@ It is also available on Conda and can be installed via the command
     $ conda install skglm
 
 With ``skglm`` being installed, Get the first steps with the package via the :ref:`Getting started section <getting_started>`.
-Other advanced topics and uses-cases of ``skglm`` are covered in :ref:`Tutorials <tutorials>`.
+Other advanced topics and uses-cases are covered in :ref:`Tutorials <tutorials>`.
 
 .. note::
 

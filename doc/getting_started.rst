@@ -3,6 +3,7 @@
 ===============
 Getting started
 ===============
+---------------
 
 This page provides a started examples to get familiar with ``skglm``
 and explore some of its features.

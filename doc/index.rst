@@ -15,7 +15,7 @@
 that are **100% compatible with** ``scikit-learn``. It is **highly flexible** and supports a wide range of GLMs. 
 You get to choose from ``skglm``'s already-made estimators or **customize your own** by combining the available datafits and penalty.
 
-Get a hands-on glimpse on ``skglm`` through the :ref:`Getting started section <getting_started>`.
+Get a hands-on glimpse on ``skglm`` through the :ref:`Getting started page <getting_started>`.
 
 
 Why ``skglm``?

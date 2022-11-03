@@ -43,6 +43,7 @@ Penalties
    WeightedGroupL2
    SCAD
    BlockSCAD
+   SLOPE
 
 
 Datafits
@@ -73,6 +74,7 @@ Solvers
    FISTA
    GramCD
    GroupBCD
+   GroupProxNewton
    MultiTaskBCD
    ProxNewton
 

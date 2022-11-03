@@ -559,5 +559,52 @@ def _XT_dot_vec(X_data, X_indptr, X_indices, vec):
     return result
 
 
+@njit
+def prox_SLOPE(z, alphas):
+    """Fast computation for proximal operator of SLOPE.
+
+    Extracted from:
+    https://github.com/agisga/grpSLOPE/blob/master/src/proxSortedL1.c
+
+    Parameters
+    ----------
+    z : array, shape (n_features,)
+        Non-negative coefficient vector sorted in non-increasing order.
+
+    alphas : array, shape (n_features,)
+        Regularization hyperparameter sorted in non-increasing order.
+    """
+    n_features = z.shape[0]
+    x = np.empty(n_features)
+
+    k = 0
+    idx_i = np.empty((n_features,), dtype=np.int64)
+    idx_j = np.empty((n_features,), dtype=np.int64)
+    s = np.empty((n_features,), dtype=np.float64)
+    w = np.empty((n_features,), dtype=np.float64)
+
+    for i in range(n_features):
+        idx_i[k] = i
+        idx_j[k] = i
+        s[k] = z[i] - alphas[i]
+        w[k] = s[k]
+
+        while k > 0 and w[k - 1] <= w[k]:
+            k -= 1
+            idx_j[k] = i
+            s[k] += s[k+1]
+            w[k] = s[k] / (i - idx_i[k] + 1)
+
+        k += 1
+
+    for j in range(k):
+        d = w[j]
+        d = 0 if d < 0 else d
+        for i in range(idx_i[j], idx_j[j] + 1):
+            x[i] = d
+
+    return x
+
+
 if __name__ == '__main__':
     pass

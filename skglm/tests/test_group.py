@@ -1,4 +1,6 @@
 import pytest
+from itertools import product
+
 import numpy as np
 from numpy.linalg import norm
 
@@ -6,7 +8,7 @@ from skglm.penalties import L1
 from skglm.datafits import Quadratic
 from skglm.penalties.block_separable import WeightedGroupL2
 from skglm.datafits.group import QuadraticGroup, LogisticGroup
-from skglm.solvers import GroupBCD
+from skglm.solvers import GroupBCD, GroupProxNewton
 from skglm.utils import (
     _alpha_max_group_lasso, grp_converter, make_correlated_data, compiled_clone,
     AndersonAcceleration)
@@ -30,13 +32,14 @@ def _generate_random_grp(n_groups, n_features, shuffle=True):
     return grp_indices, splits, groups
 
 
-def test_check_group_compatible():
+@pytest.mark.parametrize("solver", [GroupBCD, GroupProxNewton])
+def test_check_group_compatible(solver):
     l1_penalty = L1(1e-3)
     quad_datafit = Quadratic()
     X, y = np.random.randn(5, 5), np.random.randn(5)
 
     with np.testing.assert_raises(Exception):
-        GroupBCD().solve(X, y, quad_datafit, l1_penalty)
+        solver().solve(X, y, quad_datafit, l1_penalty)
 
 
 @pytest.mark.parametrize("n_groups, n_features, shuffle",
@@ -161,8 +164,9 @@ def test_intercept_grouplasso():
     np.testing.assert_allclose(model.intercept_, w[-1], atol=1e-5)
 
 
-@pytest.mark.parametrize("rho", [1e-1, 1e-2])
-def test_equivalence_logreg(rho):
+@pytest.mark.parametrize("solver, rho",
+                         product([GroupBCD, GroupProxNewton], [1e-1, 1e-2]))
+def test_equivalence_logreg(solver, rho):
     n_samples, n_features = 30, 50
     rng = np.random.RandomState(1123)
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=rng)
@@ -180,7 +184,7 @@ def test_equivalence_logreg(rho):
 
     group_logistic = compiled_clone(group_logistic, to_float32=X.dtype == np.float32)
     group_penalty = compiled_clone(group_penalty)
-    w = GroupBCD(tol=1e-12).solve(X, y, group_logistic, group_penalty)[0]
+    w = solver(tol=1e-12).solve(X, y, group_logistic, group_penalty)[0]
 
     sk_logreg = LogisticRegression(penalty='l1', C=1/(n_samples * alpha),
                                    fit_intercept=False, tol=1e-12, solver='liblinear')
@@ -189,8 +193,10 @@ def test_equivalence_logreg(rho):
     np.testing.assert_allclose(sk_logreg.coef_.flatten(), w, atol=1e-6, rtol=1e-5)
 
 
-@pytest.mark.parametrize("n_groups, rho", [[15, 1e-1], [25, 1e-2]])
-def test_group_logreg(n_groups, rho):
+@pytest.mark.parametrize("solver, n_groups, rho, fit_intercept",
+                         product([GroupBCD, GroupProxNewton], [15, 25], [1e-1, 1e-2],
+                                 [False, True]))
+def test_group_logreg(solver, n_groups, rho, fit_intercept):
     n_samples, n_features, shuffle = 30, 60, True
     random_state = 123
     rng = np.random.RandomState(random_state)
@@ -211,7 +217,8 @@ def test_group_logreg(n_groups, rho):
 
     group_logistic = compiled_clone(group_logistic, to_float32=X.dtype == np.float32)
     group_penalty = compiled_clone(group_penalty)
-    stop_crit = GroupBCD(tol=1e-12).solve(X, y, group_logistic, group_penalty)[2]
+    stop_crit = solver(tol=1e-12, fit_intercept=fit_intercept).solve(
+        X, y, group_logistic, group_penalty)[2]
 
     np.testing.assert_array_less(stop_crit, 1e-12)
 

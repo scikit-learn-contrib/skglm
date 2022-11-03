@@ -34,23 +34,28 @@ There are several reasons to opt for ``skglm`` among which:
     * - **Extensibility**
       - Flexible design that makes it **simple and easy to implement new datafits and penalties**, a matter of few lines of code
     * - **Compatibility**
-      - Estimators **fully compatible with the ``scikit-learn`` API** and drop-in replacements of its GLM estimators
+      - Estimators **fully compatible with the** ``scikit-learn`` **API** and drop-in replacements of its GLM estimators
 
 
 Installing ``skglm``
 -------------------
 
-``skglm`` is available on both PyPi and Conda. Run the following command to get the latest version
+``skglm`` is available on both PyPi. Get the latest version of the package by running
 
 .. code-block:: shell
 
     $ pip install -U skglm
 
-It is also available on Conda _(not yet, but very soon...)_ and can be installed via the command
+It is also available on Conda and can be installed via the command
 
 .. code-block:: shell
 
     $ conda install skglm
+
+
+.. note::
+
+  Currently, ``skglm`` is unavailable on Conda but we are working on that and will release it be very soon... 
 
 
 Cite
@@ -76,6 +81,10 @@ Release history
 .. toctree::
     :maxdepth: 1
 
-    whats_new.rst
-    intercept.rst
+    get_started.rst
+    tutorials/tutorials.rst
+    auto_examples/index.rst
+    api.rst
+    contribute.rst
+    changes/whats_new.rst
 

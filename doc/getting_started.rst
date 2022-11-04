@@ -75,10 +75,13 @@ Fitting :math:`\ell_1` Huber regression
 
 Suppose that the latter dataset contains outliers and we would like to mitigate their effects on the learned coefficients
 while having an estimator that generalizes well to unseen data. Ideally, we would like to fit a :math:`\ell_1` Huber regressor.
-Unfortunately, this estimator is missing from ``scikit-learn`` and ``skglm`` already-available estimators.
 
 ``skglm`` offers high flexibility to compose custom estimators. Through a simple API, it is possible to combine any
 ``skglm`` :ref:`datafit <Datafits>` and :ref:`penalty <Penalties>`.
+
+.. note::
+
+    - :math:`\ell_1` regularization is not supported in ``scikit-learn`` for HuberRegressor
 
 Let's explore how to achieve that.
 
@@ -134,9 +137,8 @@ and :ref:`penalties <Penalties>`.
 
 .. important::
 
-    - It is possible to create custom datafit and penalties.
-    Check the tutorials on :ref:`how to add a custom datafit <how_to_add_custom_datafit>` and
-    :ref:`how to add a custom penalty <how_to_add_custom_penalty>`.
+    - It is possible to create custom datafit and penalties. Check the tutorials on :ref:`how to add a custom datafit <how_to_add_custom_datafit>` 
+      and :ref:`how to add a custom penalty <how_to_add_custom_penalty>`.
 
 
 Explore further advanced topics and get hands-on examples on the :ref:`tutorials page <tutorials>`

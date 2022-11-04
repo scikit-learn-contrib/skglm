@@ -10,7 +10,7 @@ from prototype.pd_lasso import fb_lasso, cp_lasso, _compute_obj
 
 EPS_FLOATING = 1e-10
 reg = 1e-1
-n_samples, n_features = 100, 100
+n_samples, n_features = 1000, 100
 fig, axarr = plt.subplots(1, 2, sharey=False, figsize=[8., 3],
                           constrained_layout=True)
 
@@ -26,12 +26,12 @@ for normalize, ax in zip([False, True], axarr):
 
     print(f"========== {normalize} ================")
     # start = time.time()
-    w_fb, p_objs_fb = fb_lasso(A, b, alpha, max_iter=10000)
+    w_fb, p_objs_fb = fb_lasso(A, b, alpha, max_iter=1000)
     # end = time.time()
     # print("F&B time: ", end - start)
 
     # start = time.time()
-    w_cp, p_objs_cp = cp_lasso(A, b, alpha, max_iter=10000)
+    w_cp, p_objs_cp = cp_lasso(A, b, alpha, max_iter=1000)
     # end = time.time()
     # print("CB time: ", end - start)
 

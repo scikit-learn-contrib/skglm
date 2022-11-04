@@ -53,8 +53,8 @@ for normalize, ax in zip([False, True], axarr):
     w_start = lasso.coef_.flatten()
     p_star = _compute_obj(b, A, w_start, alpha) - EPS_FLOATING
 
-    ax.semilogy(p_objs_fb - p_star, label="FB")
-    ax.semilogy(p_objs_cp - p_star, label="CP")
+    ax.semilogy(p_objs_fb - p_star, label="Fercoq & Bianchi")
+    ax.semilogy(p_objs_cp - p_star, label="Chambolle Pock")
     ax.semilogy(p_objs - p_star, label="forward-backward")
     ax.semilogy(p_objs_cd - p_star, label="cyclic CD")
 

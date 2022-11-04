@@ -16,7 +16,7 @@ def test_solver(solver):
     A, b, _ = make_correlated_data(n_samples, n_features,
                                    random_state=0)
 
-    alpha_max = norm(A.T @ b, ord=np.inf) / 2
+    alpha_max = norm(A.T @ b, ord=np.inf)
     alpha = rho * alpha_max
 
     w, _ = solver(A, b, alpha, max_iter=1000)

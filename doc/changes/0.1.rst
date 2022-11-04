@@ -1,6 +1,6 @@
 .. _changes_0_1:
 
-Version 0.1 (2022-04-25)
+Version 0.1 (2022/04/25)
 ------------------------
 
-- Initial release (initial commit: 2022-04-20)
+- Initial release (initial commit: 2022/04/20)

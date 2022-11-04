@@ -44,7 +44,7 @@ For that, we will use ``scikit-learn``
     # split data
     X_train, X_test, y_train, y_test = train_test_split(X, y)
 
-Then let's fit ``skglm`` :ref:`Lasso <skglm.Lasso>` estimator and prints it's score on the test set.
+Then let's fit ``skglm`` :ref:`Lasso <skglm.Lasso>` estimator and prints its score on the test set.
 
 .. code-block:: python
 
@@ -61,9 +61,8 @@ Then let's fit ``skglm`` :ref:`Lasso <skglm.Lasso>` estimator and prints it's sc
 
 .. note::
 
-    - Every first fit of ``skglm`` estimator take some extra time as ``skglm`` uses `Numba <https://numba.pydata.org/>`_ 
-      to just-in-time compile the code.
-      Afterward, the other fits will be super fast.
+    - The first fit after importing ``skglm`` has an overhead as ``skglm`` uses `Numba <https://numba.pydata.org/>`_ 
+      The subsequent fits will achieve top speed since Numba compilation is cached.
 
 ``skglm`` has several other ``scikit-learn`` compatible estimators.
 Check the :ref:`API <Estimators>` for more information about the available estimators.
@@ -125,7 +124,7 @@ Now let's compose a custom estimator using :ref:`GeneralizedLinearEstimator <skg
 
 .. note::
 
-    Here the arguments given to the datafit and penalty are arbitrary and given just for sake of illustration.
+    - Here the arguments given to the datafit and penalty are arbitrary and given just for sake of illustration.
 
 
 It is possible to combine any supported datafit and penalty. Explore the list of supported :ref:`datafits <Datafits>` 
@@ -138,4 +137,4 @@ and :ref:`penalties <Penalties>`.
     :ref:`how to add a custom penalty <how_to_add_custom_penalty>`.
 
 
-Explore further advanced topics and get hand-on examples on the :ref:`tutorials page <tutorials>`
+Explore further advanced topics and get hands-on examples on the :ref:`tutorials page <tutorials>`

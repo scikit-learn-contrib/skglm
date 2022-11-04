@@ -59,7 +59,7 @@ Other advanced topics and uses-cases are covered in :ref:`Tutorials <tutorials>`
 
 .. note::
 
-  Currently, ``skglm`` is unavailable on Conda but will be released very soon... 
+  - Currently, ``skglm`` is unavailable on Conda but will be released very soon... 
 
 
 Cite

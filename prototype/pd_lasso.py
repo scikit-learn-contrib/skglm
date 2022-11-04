@@ -11,7 +11,7 @@ Which can be recast as a saddle point problem::
 where::
 
     g(x) = alpha ||x||_1
-    h(z) = (1/2) * ||b - z||^2   <===> h*(y) = <y, b> + (1/2) * ||y||^2
+    h(z) = (1/2) * ||b - z||^2  <===>  h*(y) = <y, b> + (1/2) * ||y||^2
 """
 
 import numpy as np
@@ -93,6 +93,50 @@ def cp_lasso(A, b, alpha, max_iter=1000, verbose=0):
     return x, p_obj_out
 
 
+def forward_backward(A, b, alpha, max_iter=1000, verbose=0):
+    # using forward backward approach
+    n_samples, n_features = A.shape
+
+    step = 1 / norm(A, ord=2) ** 2
+    x = np.zeros(n_features)
+
+    p_obj_out = []
+
+    for iter in range(max_iter):
+        x = ST_vec(x + step * A.T @ (b - A @ x), step * alpha)
+
+        if verbose:
+            print(f"Iter {iter+1}: {_compute_obj(b, A, x, alpha):.10f}")
+
+        p_obj_out.append(_compute_obj(b, A, x, alpha))
+
+    return x, p_obj_out
+
+
+def cd(A, b, alpha, max_iter=1000, verbose=0):
+    # using CD
+    n_samples, n_features = A.shape
+
+    steps = 1 / norm(A, axis=0, ord=2) ** 2
+    x = np.zeros(n_features)
+
+    all_features = np.arange(n_features)
+    p_obj_out = []
+
+    for iter in range(max_iter):
+
+        for j in all_features:
+            x[j] = ST_vec(x[j] + steps[j] * A[:, j] @ (b - A @ x), steps[j] * alpha)
+
+        if verbose:
+            print(f"Iter {iter+1}: {_compute_obj(b, A, x, alpha):.10f}")
+
+        p_obj_out.append(_compute_obj(b, A, x, alpha))
+
+    return x, p_obj_out
+
+
+# utils
 def _compute_obj(b, A, x, alpha):
     return ((1/2) * norm(b - A @ x, ord=2) ** 2
             + alpha * norm(x, ord=1))

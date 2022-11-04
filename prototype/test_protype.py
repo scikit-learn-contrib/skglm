@@ -6,10 +6,10 @@ from numpy.linalg import norm
 from sklearn.linear_model import Lasso
 from skglm.utils import make_correlated_data
 
-from prototype.pd_lasso import cp_lasso, fb_lasso
+from prototype.pd_lasso import cp_lasso, fb_lasso, forward_backward, cd
 
 
-@pytest.mark.parametrize('solver', [fb_lasso, cp_lasso])
+@pytest.mark.parametrize('solver', [fb_lasso, cp_lasso, forward_backward, cd])
 def test_solver(solver):
     rho = 0.1
     n_samples, n_features = 50, 10

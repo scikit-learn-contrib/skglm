@@ -1,7 +1,7 @@
 .. _changes_0_2:
 
-Version 0.2 (in progress)
--------------------------
+Version 0.2 (2022/10/18)
+------------------------
 
 - Experimental :ref:`Square root Lasso <skglm.experimental.SqrtLasso>` class with ProxNewton or Chambolle-Pock solver (PR :gh:`57`)
 

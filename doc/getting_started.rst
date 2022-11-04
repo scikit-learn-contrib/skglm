@@ -5,14 +5,16 @@ Getting started
 ===============
 ---------------
 
-This page provides a started examples to get familiar with ``skglm``
-and explore some of its features.
+This page provides a starter example to get familiar with ``skglm`` and explore some of its features.
 
-We start by fitting a Lasso estimator on a high dimensional (number of features is largely greater than the number of samples)
-toy dataset using ``skglm`` Lasso estimator. and then we explore how modularity of the package by building 
-and fitting a :math:`\ell_1` Huber regression.
+In the first section, we fit a Lasso estimator on a high dimensional
+toy dataset (number of features is largely greater than the number of samples). Linear models doesn't generalize well
+for unseen dataset. By adding a penalty, :math:`\ell_1` penalty, we can train estimator that overcome this drawback.
 
-Beforehand, make sure that you have already installed ``skglm`` either through
+The last section, we explore other combinations of datafit and penalty to create a custom estimator that achieves a lower prediction error,
+in the sequel :math:`\ell_1` Huber regression. We show that ``skglm`` is perfectly adapted to these experiments thanks to its modular design.
+
+Beforehand, make sure that you have already installed ``skglm``
 
 .. code-block:: shell
 
@@ -71,9 +73,9 @@ Check the :ref:`API <Estimators>` for more information about the available estim
 Fitting :math:`\ell_1` Huber regression
 ---------------------------------------
 
-Suppose that we have a dataset with outliers and we would like to mitigate their effects on the learned coefficients
-while considering the high dimensionality of dataset. Ideally, we would like to fit a :math:`\ell_1` Huber regressor.
-Unfortunately, this estimator is missing from ``scikit-learn`` and ``skglm`` already available estimators.
+Suppose that the latter dataset contains outliers and we would like to mitigate their effects on the learned coefficients
+while having an estimator that generalizes well to unseen data. Ideally, we would like to fit a :math:`\ell_1` Huber regressor.
+Unfortunately, this estimator is missing from ``scikit-learn`` and ``skglm`` already-available estimators.
 
 ``skglm`` offers high flexibility to compose custom estimators. Through a simple API, it is possible to combine any
 ``skglm`` :ref:`datafit <Datafits>` and :ref:`penalty <Penalties>`.
@@ -132,7 +134,7 @@ and :ref:`penalties <Penalties>`.
 
 .. important::
 
-    It is possible to create custom datafit and penalties.
+    - It is possible to create custom datafit and penalties.
     Check the tutorials on :ref:`how to add a custom datafit <how_to_add_custom_datafit>` and
     :ref:`how to add a custom penalty <how_to_add_custom_penalty>`.
 

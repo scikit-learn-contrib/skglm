@@ -109,6 +109,7 @@ We will use the same script as before except that we will take 10 samples and co
 
 
 Now let's compose a custom estimator using :ref:`GeneralizedLinearEstimator <skglm.GeneralizedLinearEstimator>`.
+It's the go-to way to create custom estimator by combining a datafit and a penalty.
 
 .. code-block:: python
 
@@ -131,13 +132,13 @@ Now let's compose a custom estimator using :ref:`GeneralizedLinearEstimator <skg
 
     - Here the arguments given to the datafit and penalty are arbitrary and given just for sake of illustration.
 
-
-It is possible to combine any supported datafit and penalty. Explore the list of supported :ref:`datafits <Datafits>` 
-and :ref:`penalties <Penalties>`.
+``GeneralizedLinearEstimator`` allows to combine any penalties and datafits implemented in ``skglm``.
+If you don't find an estimator in the ``estimators`` module, you can build it by combining the appropriate datafit and penalty
+and pass it to ``GeneralizedLinearEstimator``. Explore the list of supported :ref:`datafits <Datafits>` and :ref:`penalties <Penalties>`.
 
 .. important::
 
-    - It is possible to create custom datafit and penalties. Check the tutorials on :ref:`how to add a custom datafit <how_to_add_custom_datafit>` 
+    - It is possible to create your own datafit and penalties. Check the tutorials on :ref:`how to add a custom datafit <how_to_add_custom_datafit>` 
       and :ref:`how to add a custom penalty <how_to_add_custom_penalty>`.
 
 

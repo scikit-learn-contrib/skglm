@@ -86,8 +86,8 @@ while having an estimator that generalizes well to unseen data. Ideally, we woul
 Let's explore how to achieve that.
 
 
-Generate corrupted data
-***********************
+Generate corrupt data
+*********************
 
 We will use the same script as before except that we will take 10 samples and corrupt their values.
 

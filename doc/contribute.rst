@@ -25,7 +25,7 @@ Your contribution is welcome and highly valuable. It can be
 
 .. note::
 
-    - If are willing to contribute with code to ``skglm``, check the section below to learn how to install
+    - If you are willing to contribute with code to ``skglm``, check the section below to learn how to install
     the development version of ``skglm``
 
 

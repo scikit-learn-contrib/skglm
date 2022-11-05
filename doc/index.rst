@@ -13,7 +13,7 @@
 
 ``skglm`` is a Python package that offers **fast estimators** for sparse Generalized Linear Models (GLMs) 
 that are **100% compatible with** ``scikit-learn``. It is **highly flexible** and supports a wide range of GLMs. 
-You get to choose from ``skglm``'s already-made estimators or **customize your own** by combining the available datafits and penalty.
+You get to choose from ``skglm``'s already-made estimators or **customize your own** by combining the available datafits and penalties.
 
 Get a hands-on glimpse on ``skglm`` through the :ref:`Getting started page <getting_started>`.
 

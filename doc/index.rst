@@ -42,7 +42,7 @@ There are several reasons to opt for ``skglm`` among which:
 Installing ``skglm``
 -------------------
 
-``skglm`` is available on both PyPi. Get the latest version of the package by running
+``skglm`` is available on PyPi. Get the latest version of the package by running
 
 .. code-block:: shell
 

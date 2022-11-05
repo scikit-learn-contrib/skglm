@@ -8,7 +8,7 @@ Getting started
 This page provides a starter example to get familiar with ``skglm`` and explore some of its features.
 
 In the first section, we fit a Lasso estimator on a high dimensional
-toy dataset (number of features is largely greater than the number of samples). Linear models doesn't generalize well
+toy dataset (number of features is largely greater than the number of samples). Linear models don't generalize well
 for unseen dataset. By adding a penalty, :math:`\ell_1` penalty, we can train estimator that overcome this drawback.
 
 The last section, we explore other combinations of datafit and penalty to create a custom estimator that achieves a lower prediction error,

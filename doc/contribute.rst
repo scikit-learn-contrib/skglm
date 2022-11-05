@@ -51,7 +51,7 @@ contribute with code or documentation.
     $ pip install -e .
 
 
-3. To run the gallery of examples and build the documentation, run the followings
+3. To run the gallery of examples and build the documentation, run
 
 .. code-block:: shell
 

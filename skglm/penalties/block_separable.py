@@ -5,7 +5,7 @@ from numba import float64, int32
 
 from skglm.penalties.base import BasePenalty
 from skglm.utils import (
-    BST, prox_block_2_05, prox_SCAD, value_SCAD, prox_MCP, value_MCP)
+    BST, ST_vec, prox_block_2_05, prox_SCAD, value_SCAD, prox_MCP, value_MCP)
 
 
 class L2_1(BasePenalty):
@@ -330,3 +330,43 @@ class WeightedGroupL2(BasePenalty):
                 gsupp[g] = True
 
         return gsupp
+
+
+class L1_1(BasePenalty):
+    """L1/1 row-wise penalty: sum of the coefficient magnitudes of the matrix."""
+
+    def __init__(self, alpha):
+        self.alpha = alpha
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha)
+
+    def value(self, W):
+        """Compute the L1/1 penalty value."""
+        return self.alpha * np.sum(np.abs(W))
+
+    def prox_1feat(self, value, stepsize, j):
+        """Compute proximal operator of the L2/1 penalty (block soft thresholding)."""
+        return ST_vec(value, self.alpha * stepsize)
+
+    def subdiff_distance(self, W, grad, ws):
+        """Compute distance of negative gradient to the subdifferential at W."""
+        subdiff_dist = np.zeros_like(ws, dtype=grad.dtype)
+        for idx, j in enumerate(ws):
+            if not np.any(W[j, :]):
+                # distance of - grad_j to alpha * the unit l\infty ball
+                norm_grad_j = np.max(np.abs(grad[idx, :]))
+                subdiff_dist[idx] = max(0, norm_grad_j - self.alpha)
+            else:
+                subdiff_dist[idx] = norm(grad[idx, :] + self.alpha * np.sign(W[j, :]))
+        return subdiff_dist
+
+    def is_penalized(self, n_features):
+        """Return a binary mask with the penalized features."""
+        return np.ones(n_features, dtype=np.bool_)

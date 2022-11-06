@@ -7,7 +7,7 @@ from numpy.testing import assert_array_less
 from skglm.datafits import Quadratic, QuadraticMultiTask
 from skglm.penalties import (
     L1, L1_plus_L2, WeightedL1, MCPenalty, SCAD, IndicatorBox, L0_5, L2_3, SLOPE,
-    L2_1, L2_05, BlockMCPenalty, BlockSCAD)
+    L2_1, L2_05, L1_1, BlockMCPenalty, BlockSCAD)
 from skglm import GeneralizedLinearEstimator, Lasso
 from skglm.solvers import AndersonCD, MultiTaskBCD, FISTA
 from skglm.utils import make_correlated_data
@@ -38,14 +38,16 @@ penalties = [
     L2_3(alpha)]
 
 block_penalties = [
-    L2_1(alpha=alpha), L2_05(alpha=alpha),
+    L2_1(alpha=alpha), 
+    L2_05(alpha=alpha),
+    L1_1(alpha=alpha),
     BlockMCPenalty(alpha=alpha, gamma=4),
     BlockSCAD(alpha=alpha, gamma=4)
 ]
 
 
 @pytest.mark.parametrize('penalty', penalties)
-def test_subdiff_diff(penalty):
+def test_subdiff_dist(penalty):
     # tol=1e-14 is too low when coefs are of order 1. square roots are computed in
     # some penalties and precision is lost
     est = GeneralizedLinearEstimator(
@@ -58,7 +60,7 @@ def test_subdiff_diff(penalty):
 
 
 @pytest.mark.parametrize('block_penalty', block_penalties)
-def test_subdiff_diff_block(block_penalty):
+def test_subdiff_dist_block(block_penalty):
     est = GeneralizedLinearEstimator(
         datafit=QuadraticMultiTask(),
         penalty=block_penalty,
@@ -99,6 +101,16 @@ def test_slope():
     pyslope_out = pgd_slope(
         X, y, alphas, fit_intercept=False, max_it=1000, gap_tol=tol)
     np.testing.assert_allclose(ours.coef_, pyslope_out["beta"], rtol=1e-5)
+
+
+def test_l11():
+    ours = GeneralizedLinearEstimator(
+        datafit=QuadraticMultiTask(),
+        penalty=L1_1(alpha),
+        solver=MultiTaskBCD(tol=tol, ws_strategy="fixpoint", max_iter=10),
+    ).fit(X, Y)
+    sk = Lasso(alpha, tol=tol, fit_intercept=False).fit(X, Y)
+    np.testing.assert_allclose(ours.coef_, sk.coef_, rtol=1e-5)
 
 
 if __name__ == "__main__":

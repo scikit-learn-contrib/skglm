@@ -251,4 +251,4 @@ def _chambolle_pock_sqrt(X, y, alpha, max_iter=1000, obj_freq=10, verbose=False)
                 print(f"Iter {t}, obj {objs[-1]: .10f}")
 
         objs.append(norm(X @ w - y) / np.sqrt(n_samples) + alpha * norm(w, ord=1))
-    return w, z, objs
+    return w, z, np.asarray(objs)

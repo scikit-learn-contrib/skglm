@@ -3,6 +3,7 @@ import numpy as np
 
 from numpy.linalg import norm
 from numpy.testing import assert_array_less
+from sklearn.linear_model import Lasso as Lasso_sk
 
 from skglm.datafits import Quadratic, QuadraticMultiTask
 from skglm.penalties import (
@@ -38,7 +39,7 @@ penalties = [
     L2_3(alpha)]
 
 block_penalties = [
-    L2_1(alpha=alpha), 
+    L2_1(alpha=alpha),
     L2_05(alpha=alpha),
     L1_1(alpha=alpha),
     BlockMCPenalty(alpha=alpha, gamma=4),
@@ -107,10 +108,11 @@ def test_l11():
     ours = GeneralizedLinearEstimator(
         datafit=QuadraticMultiTask(),
         penalty=L1_1(alpha),
-        solver=MultiTaskBCD(tol=tol, ws_strategy="fixpoint", max_iter=10),
+        solver=MultiTaskBCD(
+            tol=tol, ws_strategy="fixpoint", max_iter=1000, fit_intercept=False),
     ).fit(X, Y)
-    sk = Lasso(alpha, tol=tol, fit_intercept=False).fit(X, Y)
-    np.testing.assert_allclose(ours.coef_, sk.coef_, rtol=1e-5)
+    sk = Lasso_sk(alpha, tol=tol, fit_intercept=False).fit(X, Y)
+    np.testing.assert_allclose(ours.coef_, sk.coef_.T, rtol=1e-3)
 
 
 if __name__ == "__main__":

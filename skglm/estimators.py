@@ -314,9 +314,6 @@ class Lasso(LinearModel, RegressorMixin):
     tol : float, optional
         Stopping criterion for the optimization.
 
-    positive : bool, optional
-        When set to ``True``, forces the coefficient vector to be positive.
-
     fit_intercept : bool, optional (default=True)
         Whether or not to fit an intercept.
 
@@ -461,9 +458,6 @@ class WeightedLasso(LinearModel, RegressorMixin):
 
     tol : float, optional
         Stopping criterion for the optimization.
-
-    positive : bool, optional
-        When set to ``True``, forces the coefficient vector to be positive.
 
     fit_intercept : bool, optional (default=True)
         Whether or not to fit an intercept.
@@ -626,9 +620,6 @@ class ElasticNet(LinearModel, RegressorMixin):
 
     tol : float, optional
         Stopping criterion for the optimization.
-
-    positive : bool, optional
-        When set to ``True``, forces the coefficient vector to be positive.
 
     fit_intercept : bool, optional (default=True)
         Whether or not to fit an intercept.

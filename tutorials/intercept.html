@@ -1,0 +1,453 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" />
+
+    <meta name="generator" content="sphinx-5.3.0, furo 2022.09.29"/>
+        <title>Computation of the intercept - skglm 0.3.dev documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #eeffcc;
+  --color-code-foreground: black;
+  --color-brand-primary: #b91c1c;
+  --color-brand-content: #b91c1c;
+  --font-stack: ui-sans-serif, system-ui;
+  --color-background-secondary: #fef2f2;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  --color-brand-primary: #f87171;
+  --color-brand-content: #f87171;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  --color-brand-primary: #f87171;
+  --color-brand-content: #f87171;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">skglm 0.3.dev documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  
+  <span class="sidebar-brand-text">skglm 0.3.dev documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../auto_examples/index.html">Examples Gallery</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../auto_examples/plot_pen_prox.html">Value and proximal operators of penalties</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../auto_examples/plot_lasso_vs_weighted.html">Comparison of Lasso and Weighted Lasso</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../auto_examples/plot_zero_weights_lasso.html">Weighted Lasso with some zero weights</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../auto_examples/plot_logreg_various_penalties.html">Logistic regression with Elastic net and minimax concave penalties</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../auto_examples/plot_reweighted_l1.html">Timing comparison between direct prox computation and reweighting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../auto_examples/plot_compare_time.html">Timing comparison with scikit-learn for Lasso</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../auto_examples/plot_sparse_recovery.html">Sparse recovery with non-convex penalties</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api.html">API Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.GeneralizedLinearEstimator.html">skglm.GeneralizedLinearEstimator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.ElasticNet.html">skglm.ElasticNet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.Lasso.html">skglm.Lasso</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.LinearSVC.html">skglm.LinearSVC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.SparseLogisticRegression.html">skglm.SparseLogisticRegression</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.MCPRegression.html">skglm.MCPRegression</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.MultiTaskLasso.html">skglm.MultiTaskLasso</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.WeightedLasso.html">skglm.WeightedLasso</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.IndicatorBox.html">skglm.penalties.IndicatorBox</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.L0_5.html">skglm.penalties.L0_5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.L1.html">skglm.penalties.L1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.L1_plus_L2.html">skglm.penalties.L1_plus_L2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.L2_3.html">skglm.penalties.L2_3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.MCPenalty.html">skglm.penalties.MCPenalty</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.WeightedL1.html">skglm.penalties.WeightedL1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.WeightedGroupL2.html">skglm.penalties.WeightedGroupL2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.SCAD.html">skglm.penalties.SCAD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.BlockSCAD.html">skglm.penalties.BlockSCAD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.SLOPE.html">skglm.penalties.SLOPE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.datafits.Huber.html">skglm.datafits.Huber</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.datafits.Logistic.html">skglm.datafits.Logistic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.datafits.LogisticGroup.html">skglm.datafits.LogisticGroup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.datafits.Quadratic.html">skglm.datafits.Quadratic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.datafits.QuadraticGroup.html">skglm.datafits.QuadraticGroup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.datafits.QuadraticSVC.html">skglm.datafits.QuadraticSVC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.solvers.AndersonCD.html">skglm.solvers.AndersonCD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.solvers.FISTA.html">skglm.solvers.FISTA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.solvers.GramCD.html">skglm.solvers.GramCD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.solvers.GroupBCD.html">skglm.solvers.GroupBCD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.solvers.GroupProxNewton.html">skglm.solvers.GroupProxNewton</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.solvers.MultiTaskBCD.html">skglm.solvers.MultiTaskBCD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.solvers.ProxNewton.html">skglm.solvers.ProxNewton</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.experimental.SqrtLasso.html">skglm.experimental.SqrtLasso</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../contribute.html">Contribute to <code class="docutils literal notranslate"><span class="pre">skglm</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changes/whats_new.html">What’s new</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="computation-of-the-intercept">
+<span id="maths-unpenalized-intercept"></span><h1>Computation of the intercept<a class="headerlink" href="#computation-of-the-intercept" title="Permalink to this heading">#</a></h1>
+<p>This note gives insights and guidance for the handling of an intercept coefficient within the <span class="math notranslate nohighlight">\(\texttt{skglm}\)</span> solvers.</p>
+<p>Let the design matrix be <span class="math notranslate nohighlight">\(X\in \mathbb{R}^{n\times p}\)</span> where <span class="math notranslate nohighlight">\(n\)</span> is the number of samples and <span class="math notranslate nohighlight">\(p\)</span> the number of features.
+We denote <span class="math notranslate nohighlight">\(\beta\in\mathbb{R}^p\)</span> the coefficients of the Generalized Linear Model and <span class="math notranslate nohighlight">\(\beta_0\)</span> its intercept.
+In many packages such as <code class="docutils literal notranslate"><span class="pre">liblinear</span></code>, the intercept is handled by adding an extra column of ones in the design matrix. This is costly in memory, and may lead to different solutions if all coefficients are penalized, as the intercept <span class="math notranslate nohighlight">\(\beta_0\)</span> is usually not.
+<code class="docutils literal notranslate"><span class="pre">skglm</span></code> follows a different route and solves directly:</p>
+<div class="math-wrapper amsmath docutils container" id="equation-e2720d8a-e405-40e1-b33a-db7daef5b206">
+<div class="amsmath math notranslate nohighlight" id="equation-e2720d8a-e405-40e1-b33a-db7daef5b206">
+<span class="eqno">(1)<a class="headerlink" href="#equation-e2720d8a-e405-40e1-b33a-db7daef5b206" title="Permalink to this equation">#</a></span>\[\begin{align}
+    \beta^\star, \beta_0^\star
+    \in
+    \underset{\beta \in \mathbb{R}^p, \beta_0 \in \mathbb{R}}{\text{argmin}}
+    \Phi(\beta)
+    \triangleq
+    \underbrace{F(X\beta + \beta_0\boldsymbol{1}_{n})}_{\triangleq f(\beta, \beta_0)}
+    + \sum_{j=1}^p g_j(\beta_j)
+    \enspace ,
+\end{align}\]</div>
+</div>
+<p>where <span class="math notranslate nohighlight">\(\boldsymbol{1}_{n}\)</span> is the vector of size <span class="math notranslate nohighlight">\(n\)</span> composed only of ones.</p>
+<p>The solvers of <code class="docutils literal notranslate"><span class="pre">skglm</span></code> update the intercept after each update of <span class="math notranslate nohighlight">\(\beta\)</span> by doing a (1 dimensional) gradient descent update:</p>
+<div class="math-wrapper amsmath docutils container" id="equation-bda83f01-84b3-400e-8403-706e97d9bb1b">
+<div class="amsmath math notranslate nohighlight" id="equation-bda83f01-84b3-400e-8403-706e97d9bb1b">
+<span class="eqno">(2)<a class="headerlink" href="#equation-bda83f01-84b3-400e-8403-706e97d9bb1b" title="Permalink to this equation">#</a></span>\[\begin{align}
+    \beta^{(k+1)}_0 = \beta^{(k)}_0 - \frac{1}{L_0}\nabla_{\beta_0}F(X\beta^{(k)} + \beta_0^{(k)}\boldsymbol{1}_{n})
+    \enspace ,
+\end{align}\]</div>
+</div>
+<p>where <span class="math notranslate nohighlight">\(L_0\)</span> is the Lipschitz constant associated to the intercept.
+The local Lipschitz constant <span class="math notranslate nohighlight">\(L_0\)</span> statisfies the following inequality</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[
+\forall x, x_0\in \mathbb{R}^p \times \mathbb{R}, \forall h \in \mathbb{R}, |\nabla_{x_0} f(x, x_0 + h) - \nabla_{x_0} f(x, x_0)| \leq L_0 |h| \enspace .
+\]</div>
+</div>
+<p>This update rule should be implemented in the <code class="docutils literal notranslate"><span class="pre">intercept_update_step</span></code> method of the datafit class.</p>
+<p>The convergence criterion computed for the gradient is then only the absolute value of the gradient with respect to <span class="math notranslate nohighlight">\(\beta_0\)</span> since the intercept optimality condition, for a solution <span class="math notranslate nohighlight">\(\beta^\star\)</span>, <span class="math notranslate nohighlight">\(\beta_0^\star\)</span> is:</p>
+<div class="math-wrapper amsmath docutils container" id="equation-1437495b-446e-4472-b313-1075d0882c0f">
+<div class="amsmath math notranslate nohighlight" id="equation-1437495b-446e-4472-b313-1075d0882c0f">
+<span class="eqno">(3)<a class="headerlink" href="#equation-1437495b-446e-4472-b313-1075d0882c0f" title="Permalink to this equation">#</a></span>\[\begin{align}
+    \nabla_{\beta_0}F(X\beta^\star + \beta_0^\star\boldsymbol{1}_{n}) = 0
+    \enspace ,
+\end{align}\]</div>
+</div>
+<p>Moreover, we have that</p>
+<div class="math-wrapper amsmath docutils container" id="equation-a43f4574-9757-4bb9-943d-d761fed79b9b">
+<div class="amsmath math notranslate nohighlight" id="equation-a43f4574-9757-4bb9-943d-d761fed79b9b">
+<span class="eqno">(4)<a class="headerlink" href="#equation-a43f4574-9757-4bb9-943d-d761fed79b9b" title="Permalink to this equation">#</a></span>\[\begin{align}
+    \nabla_{\beta_0}F(X\beta + \beta_0\boldsymbol{1}_{n}) = \boldsymbol{1}_{n}^\top \nabla_\beta F(X\beta + \beta_0\boldsymbol{1}_{n})
+    \enspace .
+\end{align}\]</div>
+</div>
+<p>We will now derive the update used in Equation 2 for three different datafitting functions.</p>
+<hr class="docutils" />
+<section id="the-quadratic-datafit">
+<h2>The Quadratic datafit<a class="headerlink" href="#the-quadratic-datafit" title="Permalink to this heading">#</a></h2>
+<p>We define</p>
+<div class="math-wrapper amsmath docutils container" id="equation-122f7d43-7e74-48d1-a21f-1ebfb126b586">
+<div class="amsmath math notranslate nohighlight" id="equation-122f7d43-7e74-48d1-a21f-1ebfb126b586">
+<span class="eqno">(5)<a class="headerlink" href="#equation-122f7d43-7e74-48d1-a21f-1ebfb126b586" title="Permalink to this equation">#</a></span>\[\begin{align}
+    F(X\beta + \beta_0\boldsymbol{1}_{n}) = \frac{1}{2n} \lVert y - X\beta - \beta_0\boldsymbol{1}_{n} \rVert^2_2
+    \enspace .
+\end{align}\]</div>
+</div>
+<p>In this case <span class="math notranslate nohighlight">\(\nabla f(z) = \frac{1}{n}(z - y)\)</span> hence Eq. 4 is equal to:</p>
+<div class="math-wrapper amsmath docutils container" id="equation-ffe6086c-e4c0-4663-9635-6ec2055d9c17">
+<div class="amsmath math notranslate nohighlight" id="equation-ffe6086c-e4c0-4663-9635-6ec2055d9c17">
+<span class="eqno">(6)<a class="headerlink" href="#equation-ffe6086c-e4c0-4663-9635-6ec2055d9c17" title="Permalink to this equation">#</a></span>\[\begin{align}
+    \nabla_{\beta_0}F(X\beta + \beta_0\boldsymbol{1}_{n}) = \frac{1}{n}\sum_{i=1}^n(X_{i:}\beta + \beta_0 - y_i)
+    \enspace .
+\end{align}\]</div>
+</div>
+<p>Finally, the Lipschitz constant is <span class="math notranslate nohighlight">\(L_0 = \frac{1}{n}\sum_{i=1}^n 1^2 = 1\)</span>.</p>
+<hr class="docutils" />
+</section>
+<section id="the-logistic-datafit">
+<h2>The Logistic datafit<a class="headerlink" href="#the-logistic-datafit" title="Permalink to this heading">#</a></h2>
+<p>In this case,</p>
+<div class="math-wrapper amsmath docutils container" id="equation-b972a8f4-4004-4cce-b84a-990f97e43620">
+<div class="amsmath math notranslate nohighlight" id="equation-b972a8f4-4004-4cce-b84a-990f97e43620">
+<span class="eqno">(7)<a class="headerlink" href="#equation-b972a8f4-4004-4cce-b84a-990f97e43620" title="Permalink to this equation">#</a></span>\[\begin{align}
+    F(X\beta + \beta_0\boldsymbol{1}_{n}) = \frac{1}{n} \sum_{i=1}^n \log(1 + \exp(-y_i(X_{i:}\beta + \beta_0\boldsymbol{1}_n))
+\end{align}\]</div>
+</div>
+<p>We can then write</p>
+<div class="math-wrapper amsmath docutils container" id="equation-9b36c9fb-e577-4c50-a41c-a3f7d4edd590">
+<div class="amsmath math notranslate nohighlight" id="equation-9b36c9fb-e577-4c50-a41c-a3f7d4edd590">
+<span class="eqno">(8)<a class="headerlink" href="#equation-9b36c9fb-e577-4c50-a41c-a3f7d4edd590" title="Permalink to this equation">#</a></span>\[\begin{align}
+ \nabla_{\beta_0}F(X\beta + \beta_0\boldsymbol{1}_{n}) = \frac{1}{n} \sum_{i=1}^n  \frac{-y_i}{1 + \exp(- y_i(X_{i:}\beta + \beta_0\boldsymbol{1}_n))} \enspace .
+\end{align}\]</div>
+</div>
+<p>Finally, the Lipschitz constant is <span class="math notranslate nohighlight">\(L_0 = \frac{1}{4n}\sum_{i=1}^n 1^2 = \frac{1}{4}\)</span>.</p>
+<hr class="docutils" />
+</section>
+<section id="the-huber-datafit">
+<h2>The Huber datafit<a class="headerlink" href="#the-huber-datafit" title="Permalink to this heading">#</a></h2>
+<p>In this case,</p>
+<div class="math-wrapper amsmath docutils container" id="equation-2e53afa5-c93a-4758-8ded-eb39449b50bc">
+<div class="amsmath math notranslate nohighlight" id="equation-2e53afa5-c93a-4758-8ded-eb39449b50bc">
+<span class="eqno">(9)<a class="headerlink" href="#equation-2e53afa5-c93a-4758-8ded-eb39449b50bc" title="Permalink to this equation">#</a></span>\[\begin{align}
+    F(X\beta + \beta_0\boldsymbol{1}_{n}) = \frac{1}{n} \sum_{i=1}^n f_{\delta}(y_i - X_{i:}\beta - \beta_0\boldsymbol{1}_n)) \enspace ,
+\end{align}\]</div>
+</div>
+<p>where</p>
+<div class="math-wrapper amsmath docutils container" id="equation-1e7bec91-362d-4294-a6d6-c2d4a59ba845">
+<div class="amsmath math notranslate nohighlight" id="equation-1e7bec91-362d-4294-a6d6-c2d4a59ba845">
+<span class="eqno">(10)<a class="headerlink" href="#equation-1e7bec91-362d-4294-a6d6-c2d4a59ba845" title="Permalink to this equation">#</a></span>\[\begin{align}
+    f_\delta(x) = \begin{cases}
+            \frac{1}{2}x^2 &amp; \text{if } x \leq \delta \\
+            \delta |x| - \frac{1}{2}\delta^2 &amp; \text{if } x &gt; \delta
+           \end{cases} \enspace .
+\end{align}\]</div>
+</div>
+<p>Let <span class="math notranslate nohighlight">\(r_i = y_i - X_{i:}\beta - \beta_0\boldsymbol{1}_n\)</span>. We can then write</p>
+<div class="math-wrapper amsmath docutils container" id="equation-c3855a60-4008-4bfa-bbb2-122e5ec056e8">
+<div class="amsmath math notranslate nohighlight" id="equation-c3855a60-4008-4bfa-bbb2-122e5ec056e8">
+<span class="eqno">(11)<a class="headerlink" href="#equation-c3855a60-4008-4bfa-bbb2-122e5ec056e8" title="Permalink to this equation">#</a></span>\[\begin{align}
+ \nabla_{\beta_0}F(X\beta + \beta_0\boldsymbol{1}_{n}) = \frac{1}{n} \sum_{i=1}^n r_i\mathbb{1}_{\{|r_i|\leq\delta\}} + \text{sign}(r_i)\delta\mathbb{1}_{\{|r_i|&gt;\delta\}} \enspace ,
+\end{align}\]</div>
+</div>
+<p>where <span class="math notranslate nohighlight">\(1_{x &gt; \delta}\)</span> is the classical indicator function.</p>
+<p>Finally, the Lipschitz constant is <span class="math notranslate nohighlight">\(L_0 = \frac{1}{n}\sum_{i=1}^n 1^2 = 1\)</span>.</p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022, skglm developers
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              <a class="muted-link " href="https://github.com/scikit-learn-contrib/skglm" aria-label="GitHub">
+                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+            </a>
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Computation of the intercept</a><ul>
+<li><a class="reference internal" href="#the-quadratic-datafit">The Quadratic datafit</a></li>
+<li><a class="reference internal" href="#the-logistic-datafit">The Logistic datafit</a></li>
+<li><a class="reference internal" href="#the-huber-datafit">The Huber datafit</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/scripts/furo.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    </body>
+</html>

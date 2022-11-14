@@ -1,9 +1,9 @@
 :orphan:
 
+.. _how_to_add_custom_penalty:
+
 How to add a custom penalty
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. _how:
 
 skglm supports any arbitrary proximable penalty.
 

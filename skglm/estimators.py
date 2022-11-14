@@ -313,7 +313,7 @@ class Lasso(LinearModel, RegressorMixin):
 
     tol : float, optional
         Stopping criterion for the optimization.
-    
+
     positive : bool, optional
         When set to ``True``, forces the coefficient vector to be positive.
 
@@ -461,7 +461,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
 
     tol : float, optional
         Stopping criterion for the optimization.
-    
+
     positive : bool, optional
         When set to ``True``, forces the coefficient vector to be positive.
 
@@ -626,7 +626,7 @@ class ElasticNet(LinearModel, RegressorMixin):
 
     tol : float, optional
         Stopping criterion for the optimization.
-    
+
     positive : bool, optional
         When set to ``True``, forces the coefficient vector to be positive.
 

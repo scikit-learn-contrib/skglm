@@ -9,8 +9,8 @@ from prototype.pd_sqrt_lasso import fb_sqrt_lasso, cp_sqrt_lasso, _compute_obj
 
 
 EPS_FLOATING = 1e-10
-reg = 1e-1
-n_samples, n_features = 1000, 100
+reg = 1e-2
+n_samples, n_features = 1000, 200
 fig, axarr = plt.subplots(1, 2, sharey=False, figsize=[8., 3],
                           constrained_layout=True)
 
@@ -41,7 +41,7 @@ for normalize, ax in zip([False, True], axarr):
 
     ax.semilogy(p_objs_fb - p_star, label="Fercoq & Bianchi")
     ax.semilogy(p_objs_cp - p_star, label="Chambolle Pock")
-    ax.semilogy(sqrt_n * p_objs_norm - p_star, label="normalized Chambolle Pock")
+    ax.semilogy(sqrt_n * p_objs_norm - p_star, label="M.M Chambolle Pock")
 
     ax.legend()
     ax.set_xlabel("iteration")

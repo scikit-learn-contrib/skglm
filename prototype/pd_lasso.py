@@ -27,6 +27,9 @@ def fb_lasso(A, b, alpha, max_iter=1000, verbose=0):
     sigma = 1 / norm(A, ord=2)
     tau = 1 / norm(A, axis=0, ord=2)
 
+    # sigma = 1 / (2*n_features - 1)
+    # tau = 1 / norm(A, axis=0, ord=2) ** 2
+
     all_features = np.arange(n_features)
     p_obj_out = []
 
@@ -50,8 +53,12 @@ def fb_lasso(A, b, alpha, max_iter=1000, verbose=0):
                                  b, A)
             y += (y_bar - y) / n_features
 
-            if verbose:
-                print(f"Iter {iter+1}: {_compute_obj(b, A, x, alpha):.10f}")
+        # print(norm(old_x - x), norm(old_y - y))
+        if verbose:
+            print(
+                f"Iter {iter+1}: {_compute_obj(b, A, x, alpha):.10f}, "
+                f"support: {(x != 0).sum()}"
+            )
 
         p_obj_out.append(_compute_obj(b, A, x, alpha))
 
@@ -152,3 +159,20 @@ def _prox_g(x, step, alpha, b, A):
 
 def _prox_h_star(y, step, b, A):
     return (y/step - b) / (1 + 1/step)
+
+
+if __name__ == '__main__':
+    from skglm.utils import make_correlated_data
+
+    reg = 9 * 1e-2
+    n_samples, n_features = 100, 10
+
+    A, b, _ = make_correlated_data(n_samples, n_features, random_state=24)
+
+    n_samples, n_features = A.shape
+    alpha_max = norm(A.T @ b, ord=np.inf)
+
+    max_iter = 60
+    alpha = reg * alpha_max
+
+    w_fb, p_objs_fb = fb_lasso(A, b, alpha, max_iter=max_iter, verbose=0)

@@ -3,6 +3,7 @@ from numpy.linalg import norm
 import matplotlib.pyplot as plt
 
 from celer import Lasso
+from cd_solver.sklearn_api import Lasso as fb_Lasso
 from skglm.utils import make_correlated_data
 
 from prototype.pd_lasso import (fb_lasso, cp_lasso, forward_backward,
@@ -11,7 +12,7 @@ from prototype.pd_lasso import (fb_lasso, cp_lasso, forward_backward,
 
 EPS_FLOATING = 1e-10
 reg = 1e-1
-n_samples, n_features = 1000, 100
+n_samples, n_features = 100, 500
 fig, axarr = plt.subplots(1, 2, sharey=False, figsize=[8., 3],
                           constrained_layout=True)
 
@@ -47,6 +48,14 @@ for normalize, ax in zip([False, True], axarr):
     # end = time.time()
     # print("cyclic CD time: ", end - start)
 
+    # start = time.time()
+    fq_estimator = fb_Lasso(alpha, smooth_formulation=False,
+                            max_iter=max_iter)
+    fq_estimator.fit(A, b)
+    pb_obj_fb_lasso = fq_estimator.p_objs_
+    # end = time.time()
+    # print("cyclic CD time: ", end - start)
+
     # find optimal val
     lasso = Lasso(fit_intercept=False,
                   alpha=alpha / n_samples, tol=EPS_FLOATING).fit(A, b)
@@ -54,6 +63,7 @@ for normalize, ax in zip([False, True], axarr):
     p_star = _compute_obj(b, A, w_start, alpha) - EPS_FLOATING
 
     ax.semilogy(p_objs_fb - p_star, label="Fercoq & Bianchi")
+    ax.semilogy(pb_obj_fb_lasso - p_star, label="Lasso F&B")
     ax.semilogy(p_objs_cp - p_star, label="Chambolle Pock")
     ax.semilogy(p_objs - p_star, label="forward-backward")
     ax.semilogy(p_objs_cd - p_star, label="cyclic CD")

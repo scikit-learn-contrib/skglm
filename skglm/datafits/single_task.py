@@ -431,14 +431,14 @@ class Poisson(BaseDatafit):
     def initialize(self, X, y):
         if np.any(y <= 0):
             raise ValueError(
-                    "Target vector `y` should only take positive values " +
-                    "when fitting a Poisson model.")
+                "Target vector `y` should only take positive values " +
+                "when fitting a Poisson model.")
 
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
         if np.any(y <= 0):
             raise ValueError(
-                    "Target vector `y` should only take positive values " +
-                    "when fitting a Poisson model.")
+                "Target vector `y` should only take positive values " +
+                "when fitting a Poisson model.")
 
     def raw_grad(self, y, Xw):
         """Compute gradient of datafit w.r.t ``Xw``."""
@@ -500,14 +500,14 @@ class Gamma(BaseDatafit):
     def initialize(self, X, y):
         if np.any(y <= 0):
             raise ValueError(
-                    "Target vector `y` should only take positive values " +
-                    "when fitting a Gamma model.")
+                "Target vector `y` should only take positive values "
+                "when fitting a Gamma model.")
 
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
         if np.any(y <= 0):
             raise ValueError(
-                    "Target vector `y` should only take positive values " +
-                    "when fitting a Gamma model.")
+                "Target vector `y` should only take positive values "
+                "when fitting a Gamma model.")
 
     def raw_grad(self, y, Xw):
         """Compute gradient of datafit w.r.t. ``Xw``."""

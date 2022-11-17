@@ -3,7 +3,7 @@ from numpy.linalg import norm
 import matplotlib.pyplot as plt
 
 from skglm.utils import make_correlated_data
-from skglm.experimental.sqrt_lasso import SqrtLasso, _chambolle_pock_sqrt
+from skglm.experimental.sqrt_lasso import SqrtLasso
 
 from prototype.pd_sqrt_lasso import fb_sqrt_lasso, cp_sqrt_lasso, _compute_obj
 
@@ -31,22 +31,19 @@ for normalize, ax in zip([False, True], axarr):
 
     w_cp, p_objs_cp = cp_sqrt_lasso(A, b, alpha, max_iter=max_iter)
 
-    w_norm, _, p_objs_norm = _chambolle_pock_sqrt(
-        A, b, alpha / sqrt_n, max_iter=max_iter)
-
     # find optimal val
     lasso = SqrtLasso(alpha=alpha / sqrt_n, tol=EPS_FLOATING).fit(A, b)
     w_start = lasso.coef_.flatten()
     p_star = _compute_obj(b, A, w_start, alpha) - EPS_FLOATING
 
-    ax.semilogy(p_objs_fb - p_star, label="Fercoq & Bianchi")
+    ax.semilogy(p_objs_fb - p_star, label="my Fercoq & Bianchi")
     ax.semilogy(p_objs_cp - p_star, label="Chambolle Pock")
-    ax.semilogy(sqrt_n * p_objs_norm - p_star, label="M.M Chambolle Pock")
 
     ax.legend()
     ax.set_xlabel("iteration")
     ax.set_title(f"Normalize={normalize}")
 
-fig.suptitle(f"n_samples={n_samples}, n_features={n_features}, reg={reg}")
+fig.suptitle("Sqrt Lasso on dataset with\n"
+             f"n_samples={n_samples}, n_features={n_features}, reg={reg}")
 axarr[0].set_ylabel("primal suboptimality")
 plt.show()

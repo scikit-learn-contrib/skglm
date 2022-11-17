@@ -103,7 +103,7 @@ def _glm_fit(X, y, model, datafit, penalty, solver):
         datafit_jit.initialize_sparse(X_.data, X_.indptr, X_.indices, y)
     else:
         datafit_jit.initialize(X_, y)
-
+    
     # if model.warm_start and hasattr(model, 'coef_') and model.coef_ is not None:
     if solver.warm_start and hasattr(model, 'coef_') and model.coef_ is not None:
         if isinstance(datafit, QuadraticSVC):

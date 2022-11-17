@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.linalg import norm
 from numba import njit
-from numba import float64
+from numba import float64, int64, bool_
 
 from skglm.datafits.base import BaseDatafit
 from skglm.utils import spectral_norm
@@ -527,4 +527,112 @@ class Gamma(BaseDatafit):
         pass
 
     def intercept_update_self(self, y, Xw):
+        pass
+
+
+class CoxPHBreslow(BaseDatafit):
+    r"""Breslow's estimate of the partial NLL of Cox proportional hazards model.
+
+    The datafit reads::
+
+    (1 / n_samples) * \sum_{i: C_i = 1} (
+        (\log \sum_{j: y_j >= y_i} \exp{X_j\beta}) - X_i \beta)d
+
+    
+    Attributes 
+    ----------
+    is_observed : array, shape (n_samples)
+        Binary mask for observed variables.
+    
+    argsorted_samples : array, shape (n_samples)
+        Indices of the elements that sort the observation vector.
+    
+    Note:
+    ----
+    For small number of ties, Breslow's estimate is accurate and computationally
+    efficient. If there are a large number of times (a lot of samples with the same
+    event time), the Efron's estimate `CoxPHEfron` should be preferred.
+    """
+
+    def __init__(self):
+        pass
+
+    def get_spec(self):
+        spec = (
+            ('is_observed', bool_[:]),
+            ('argsorted_samples', int64[:])
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict()
+
+    def initialize(self, X, y):
+        self.is_observed = y != np.nan
+        self.argsorted_samples = np.argsort(y)
+
+    def initialize_sparse(self, X_data, X_indptr, X_indices, y):
+        self.is_observed = y != np.nan
+        self.argsorted_samples = np.argsort(y)
+
+    def raw_grad(self, y, Xw):
+        """Compute gradient of datafit w.r.t. ``Xw``."""
+        n_samples = len(y)
+        grad = np.zeros(n_samples)
+        for i in self.argsorted_samples:
+            if self.is_observed[i]:
+                tmp = 0.
+                # TODO: how about events occurring at the same time
+                for k in self.argsorted_samples[i:]:
+                    tmp += np.exp(Xw[k])
+                exp_Xw_i = np.exp(Xw[i])
+                grad[i] = (exp_Xw_i / tmp - 1) / n_samples
+        return grad
+
+    def raw_hessian(self, y, Xw):
+        """Compute Hessian of datafit w.r.t. ``Xw``."""
+        n_samples = len(y)
+        hessian = np.zeros(n_samples)
+        for i in self.argsorted_samples:
+            if self.is_observed[i]:
+                tmp = 0.
+                # TODO: how about events occurring at the same time
+                for k in self.argsorted_samples[i:]:
+                    tmp += np.exp(Xw[k])
+                exp_Xw_i = np.exp(Xw[i])
+                hessian[i] = (exp_Xw_i * (tmp - exp_Xw_i)) / (tmp ** 2)
+                hessian[i] /= n_samples
+        return hessian
+
+    def value(self, y, w, Xw):
+        n_samples = len(y)
+        out = 0.
+        for i in self.argsorted_samples:
+            if self.is_observed[i]:
+                tmp = 0
+                # TODO: how about events occurring at the same time
+                for k in self.argsorted_samples[i:]:
+                    tmp += np.exp(Xw[k])
+                out += np.log(tmp) - Xw[i]
+        return out / n_samples
+
+    def gradient_scalar(self, X, y, w, Xw, j):
+        n_samples = len(y)
+        grad_j = 0
+        for i in self.argsorted_samples:
+            if self.is_observed[i]:
+                num, denom = 0., 0.
+                for k in self.argsorted_samples[i:]:
+                    exp_Xw_k = np.exp(Xw[k])
+                    num += X[k, j] * exp_Xw_k
+                    denom += exp_Xw_k
+                grad_j += num / denom - X[i, j]
+        return grad_j / n_samples
+
+    def gradient_scalar_sparse(self, X_data, X_indptr, X_indices, y, Xw, j):
+        # TODO
+        pass
+
+    def intercept_update_self(self, y, Xw):
+        # TODO: important for this statistical model
         pass

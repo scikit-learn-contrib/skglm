@@ -54,9 +54,11 @@ Datafits
 .. autosummary::
    :toctree: generated/
 
+   Gamma
    Huber
    Logistic
    LogisticGroup
+   Poisson
    Quadratic
    QuadraticGroup
    QuadraticSVC

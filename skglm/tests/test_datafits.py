@@ -4,7 +4,7 @@ import pytest
 from sklearn.linear_model import HuberRegressor
 from numpy.testing import assert_allclose, assert_array_less
 
-from skglm.datafits import Huber, Logistic, Poisson
+from skglm.datafits import Huber, Logistic, Poisson, Gamma
 from skglm.penalties import L1, WeightedL1
 from skglm.solvers import AndersonCD, ProxNewton
 from skglm import GeneralizedLinearEstimator
@@ -82,6 +82,36 @@ def test_poisson():
     w_statsmodels = res.params
 
     assert_allclose(model.coef_, w_statsmodels, rtol=1e-4)
+
+
+def test_gamma():
+    try:
+        import statsmodels.api as sm
+    except ImportError:
+        pytest.xfail("`statsmodels` not found. `Gamma` datafit can't be tested.")
+
+    # When n_samples < n_features, the unregularized Gamma objective does not have a
+    # unique minimizer.
+    rho = 1e-2
+    n_samples, n_features = 100, 10
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
+    y[y <= 0] = 0.1
+    tol = 1e-14
+
+    alpha_max = np.linalg.norm(X.T @ (1 - y), ord=np.inf) / n_samples
+    alpha = rho * alpha_max
+
+    gamma_model = sm.GLM(y, X, family=sm.families.Gamma(sm.families.links.Log()))
+    gamma_results = gamma_model.fit_regularized(
+        method="elastic_net", L1_wt=1, cnvrg_tol=tol, alpha=alpha)
+
+    clf = GeneralizedLinearEstimator(
+        datafit=Gamma(),
+        penalty=L1(alpha),
+        solver=ProxNewton(fit_intercept=False, tol=tol)
+    ).fit(X, y)
+
+    np.testing.assert_allclose(clf.coef_, gamma_results.params, rtol=1e-6)
 
 
 if __name__ == '__main__':

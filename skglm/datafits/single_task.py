@@ -429,10 +429,16 @@ class Poisson(BaseDatafit):
         return dict()
 
     def initialize(self, X, y):
-        pass
+        if np.any(y <= 0):
+            raise ValueError(
+                "Target vector `y` should only take positive values " +
+                "when fitting a Poisson model.")
 
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
-        pass
+        if np.any(y <= 0):
+            raise ValueError(
+                "Target vector `y` should only take positive values " +
+                "when fitting a Poisson model.")
 
     def raw_grad(self, y, Xw):
         """Compute gradient of datafit w.r.t ``Xw``."""
@@ -464,6 +470,61 @@ class Poisson(BaseDatafit):
             idx_i = X_indices[i]
             grad += X_data[i] * (np.exp(Xw[idx_i]) - y[idx_i])
         return grad / len(y)
+
+    def intercept_update_self(self, y, Xw):
+        pass
+
+
+class Gamma(BaseDatafit):
+    r"""Gamma datafit.
+
+    The datafit reads::
+
+    (1 / n_samples) * \sum_i (Xw_i + y_i * exp(-Xw_i) - 1 - log(y_i))
+
+    Note:
+    ----
+    The class is jit compiled at fit time using Numba compiler.
+    This allows for faster computations.
+    """
+
+    def __init__(self):
+        pass
+
+    def get_spec(self):
+        pass
+
+    def params_to_dict(self):
+        return dict()
+
+    def initialize(self, X, y):
+        if np.any(y <= 0):
+            raise ValueError(
+                "Target vector `y` should only take positive values "
+                "when fitting a Gamma model.")
+
+    def initialize_sparse(self, X_data, X_indptr, X_indices, y):
+        if np.any(y <= 0):
+            raise ValueError(
+                "Target vector `y` should only take positive values "
+                "when fitting a Gamma model.")
+
+    def raw_grad(self, y, Xw):
+        """Compute gradient of datafit w.r.t. ``Xw``."""
+        return (1 - y * np.exp(-Xw)) / len(y)
+
+    def raw_hessian(self, y, Xw):
+        """Compute Hessian of datafit w.r.t. ``Xw``."""
+        return (y * np.exp(-Xw)) / len(y)
+
+    def value(self, y, w, Xw):
+        return (np.sum(Xw + y * np.exp(-Xw) - np.log(y)) - 1) / len(y)
+
+    def gradient_scalar(self, X, y, w, Xw, j):
+        return X[:, j] @ (1 - y * np.exp(-Xw)) / len(y)
+
+    def gradient_scalar_sparse(self, X_data, X_indptr, X_indices, y, Xw, j):
+        pass
 
     def intercept_update_self(self, y, Xw):
         pass

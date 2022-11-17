@@ -62,8 +62,8 @@ for normalize, ax in zip([False, True], axarr):
     w_start = lasso.coef_.flatten()
     p_star = _compute_obj(b, A, w_start, alpha) - EPS_FLOATING
 
-    ax.semilogy(p_objs_fb - p_star, label="Fercoq & Bianchi")
-    ax.semilogy(pb_obj_fb_lasso - p_star, label="Lasso F&B")
+    ax.semilogy(p_objs_fb - p_star, label="my Fercoq & Bianchi")
+    ax.semilogy(pb_obj_fb_lasso - p_star, label="his Fercoq & Bianchi")
     ax.semilogy(p_objs_cp - p_star, label="Chambolle Pock")
     ax.semilogy(p_objs - p_star, label="forward-backward")
     ax.semilogy(p_objs_cd - p_star, label="cyclic CD")
@@ -72,6 +72,7 @@ for normalize, ax in zip([False, True], axarr):
     ax.set_xlabel("iteration")
     ax.set_title(f"Normalize={normalize}")
 
-fig.suptitle(f"n_samples={n_samples}, n_features={n_features}, reg={reg}")
+fig.suptitle("Lasso on dataset with\n"
+             f"n_samples={n_samples}, n_features={n_features}, reg={reg}")
 axarr[0].set_ylabel("primal suboptimality")
 plt.show()

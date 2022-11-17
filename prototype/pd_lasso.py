@@ -24,11 +24,13 @@ def fb_lasso(A, b, alpha, max_iter=1000, verbose=0):
     # solves using Fercoq & Bianchi
     n_samples, n_features = A.shape
 
+    # my step sizes
     sigma = 1 / norm(A, ord=2)
     tau = 1 / norm(A, axis=0, ord=2)
 
-    # sigma = 1 / (2*n_features - 1)
-    # tau = 1 / norm(A, axis=0, ord=2) ** 2
+    # # step sizes in fercoq package
+    # sigma = max(1 / np.sqrt(norm(A, axis=0, ord=2)**2 * n_features))
+    # tau = 0.9 / (norm(A, axis=0, ord=2)**2 * sigma * n_features)
 
     all_features = np.arange(n_features)
     p_obj_out = []

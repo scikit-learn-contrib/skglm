@@ -1,8 +1,3 @@
-# CoxPHFitter and lifelines as test dependencies
-# Implement first Breslow method
-# Then Efron's method for tied times
-# Write an example for exhaustivity
-
 import numpy as np
 from numpy.linalg import norm
 import pandas as pd

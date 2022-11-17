@@ -538,19 +538,19 @@ class CoxPHBreslow(BaseDatafit):
     (1 / n_samples) * \sum_{i: C_i = 1} (
         (\log \sum_{j: y_j >= y_i} \exp{X_j\beta}) - X_i \beta)d
 
-    
-    Attributes 
+
+    Attributes
     ----------
     is_observed : array, shape (n_samples)
-        Binary mask for observed variables.
-    
+        Binary mask for observed target variables (observed or censored).
+
     argsorted_samples : array, shape (n_samples)
-        Indices of the elements that sort the observation vector.
-    
+        Indices of sorted target vector.
+
     Note:
     ----
-    For small number of ties, Breslow's estimate is accurate and computationally
-    efficient. If there are a large number of times (a lot of samples with the same
+    For a small number of ties, Breslow's estimate is accurate and computationally
+    efficient. If there are a large number of ties (a lot of samples with the same
     event time), the Efron's estimate `CoxPHEfron` should be preferred.
     """
 

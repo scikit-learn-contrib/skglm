@@ -16,7 +16,7 @@ from sklearn.utils.estimator_checks import check_estimator
 
 from scipy.sparse import csc_matrix, issparse
 
-from skglm.utils import make_correlated_data
+from skglm.utils.data import make_correlated_data
 from skglm.estimators import (
     GeneralizedLinearEstimator, Lasso, MultiTaskLasso, WeightedLasso, ElasticNet,
     MCPRegression, SparseLogisticRegression, LinearSVC)

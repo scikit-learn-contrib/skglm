@@ -1,7 +1,9 @@
 import numpy as np
 from numba import njit
+
 from skglm.solvers.base import BaseSolver
-from skglm.utils import AndersonAcceleration, check_group_compatible
+from skglm.utils.anderson import AndersonAcceleration
+from skglm.utils.validation import check_group_compatible
 
 
 class GroupBCD(BaseSolver):

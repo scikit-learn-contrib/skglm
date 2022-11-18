@@ -4,7 +4,7 @@ from scipy import sparse
 from sklearn.utils import check_array
 from skglm.solvers.common import construct_grad, construct_grad_sparse, dist_fix_point
 from skglm.solvers.base import BaseSolver
-from skglm.utils import AndersonAcceleration
+from skglm.utils.anderson import AndersonAcceleration
 
 
 class AndersonCD(BaseSolver):

@@ -15,10 +15,10 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score, mean_squared_error
 
-from skglm.utils import make_correlated_data
+from skglm.utils.data import make_correlated_data
 from skglm.solvers import AndersonCD
 from skglm.datafits import Quadratic
-from skglm.utils import compiled_clone
+from skglm.utils.jit_compilation import compiled_clone
 from skglm.penalties import L1, MCPenalty, L0_5, L2_3, SCAD
 
 cmap = plt.get_cmap('tab10')

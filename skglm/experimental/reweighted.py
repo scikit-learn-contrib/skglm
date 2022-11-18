@@ -2,7 +2,7 @@ import numpy as np
 from skglm.datafits import Quadratic
 from skglm.estimators import GeneralizedLinearEstimator
 from skglm.penalties import WeightedL1, L0_5
-from skglm.utils import compiled_clone
+from skglm.utils.jit_compilation import compiled_clone
 
 
 class IterativeReweightedL1(GeneralizedLinearEstimator):

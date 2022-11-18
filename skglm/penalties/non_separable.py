@@ -2,7 +2,7 @@ import numpy as np
 from numba import float64
 
 from skglm.penalties.base import BasePenalty
-from skglm.utils import prox_SLOPE
+from skglm.utils.prox_funcs import prox_SLOPE
 
 
 class SLOPE(BasePenalty):

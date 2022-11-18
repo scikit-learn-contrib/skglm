@@ -2,7 +2,7 @@ import numpy as np
 from numba import njit
 from numpy.linalg import norm
 from skglm.solvers.base import BaseSolver
-from skglm.utils import check_group_compatible
+from skglm.utils.validation import check_group_compatible
 
 EPS_TOL = 0.3
 MAX_CD_ITER = 20

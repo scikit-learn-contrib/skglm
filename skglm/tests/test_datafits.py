@@ -8,7 +8,7 @@ from skglm.datafits import Huber, Logistic, Poisson, Gamma
 from skglm.penalties import L1, WeightedL1
 from skglm.solvers import AndersonCD, ProxNewton
 from skglm import GeneralizedLinearEstimator
-from skglm.utils import make_correlated_data
+from skglm.utils.data import make_correlated_data
 
 
 @pytest.mark.parametrize('fit_intercept', [False, True])

@@ -4,7 +4,7 @@ from numba import njit
 from numba import float64
 
 from skglm.datafits.base import BaseDatafit
-from skglm.utils import spectral_norm
+from skglm.utils.sparse_ops import spectral_norm
 
 
 class Quadratic(BaseDatafit):

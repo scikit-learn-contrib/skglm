@@ -3,7 +3,7 @@ from numba import float64
 from numba.types import bool_
 
 from skglm.penalties.base import BasePenalty
-from skglm.utils import (
+from skglm.utils.prox_funcs import (
     ST, box_proj, prox_05, prox_2_3, prox_SCAD, value_SCAD, prox_MCP, value_MCP)
 
 

@@ -4,7 +4,7 @@ from numpy.linalg import norm
 from numba import float64, int32
 
 from skglm.penalties.base import BasePenalty
-from skglm.utils import (
+from skglm.utils.prox_funcs import (
     BST, prox_block_2_05, prox_SCAD, value_SCAD, prox_MCP, value_MCP)
 
 

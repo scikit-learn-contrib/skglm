@@ -16,7 +16,7 @@ from sklearn.utils.extmath import softmax
 from sklearn.preprocessing import LabelEncoder
 from sklearn.multiclass import OneVsRestClassifier, check_classification_targets
 
-from skglm.utils import compiled_clone
+from skglm.utils.jit_compilation import compiled_clone
 from skglm.solvers import AndersonCD, MultiTaskBCD
 from skglm.datafits import Quadratic, Logistic, QuadraticSVC, QuadraticMultiTask
 from skglm.penalties import L1, WeightedL1, L1_plus_L2, MCPenalty, IndicatorBox, L2_1

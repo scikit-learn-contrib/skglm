@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 from numpy.linalg import norm
 
-from skglm.utils import make_correlated_data
+from skglm.utils.data import make_correlated_data
 from skglm.experimental.sqrt_lasso import SqrtLasso, _chambolle_pock_sqrt
 
 

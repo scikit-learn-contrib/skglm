@@ -7,7 +7,9 @@ from sklearn.linear_model import Lasso
 
 from skglm.penalties import L1
 from skglm.solvers import GramCD
-from skglm.utils import make_correlated_data, compiled_clone
+
+from skglm.utils.data import make_correlated_data
+from skglm.utils.jit_compilation import compiled_clone
 
 
 @pytest.mark.parametrize("rho, X_density, greedy_cd",

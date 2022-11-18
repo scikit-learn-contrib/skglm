@@ -3,7 +3,7 @@ import numpy as np
 from numba import njit
 from scipy.sparse import issparse
 from skglm.solvers.base import BaseSolver
-from skglm.utils import AndersonAcceleration
+from skglm.utils.anderson import AndersonAcceleration
 
 
 class GramCD(BaseSolver):

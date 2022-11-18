@@ -9,9 +9,12 @@ from skglm.datafits import Quadratic
 from skglm.penalties.block_separable import WeightedGroupL2
 from skglm.datafits.group import QuadraticGroup, LogisticGroup
 from skglm.solvers import GroupBCD, GroupProxNewton
-from skglm.utils import (
-    _alpha_max_group_lasso, grp_converter, make_correlated_data, compiled_clone,
-    AndersonAcceleration)
+
+from skglm.utils.anderson import AndersonAcceleration
+from skglm.utils.jit_compilation import compiled_clone
+from skglm.utils.data import (make_correlated_data, grp_converter,
+                              _alpha_max_group_lasso)
+
 from celer import GroupLasso, Lasso
 from sklearn.linear_model import LogisticRegression
 

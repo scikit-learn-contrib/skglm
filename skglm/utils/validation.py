@@ -4,10 +4,11 @@ def check_group_compatible(obj):
 
     Parameters
     ----------
-    obj : instance of BaseDatafit or BasePenalty Object to check.
+    obj : instance of BaseDatafit or BasePenalty
+        Object to check.
 
     Raises
-    -----
+    ------
     ValueError
         if the ``obj`` doesn't have a ``grp_ptr`` and ``grp_indices``
         attributes.

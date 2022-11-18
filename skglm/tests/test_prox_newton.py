@@ -6,7 +6,9 @@ from sklearn.linear_model import LogisticRegression
 from skglm.penalties import L1
 from skglm.datafits import Logistic
 from skglm.solvers.prox_newton import ProxNewton
-from skglm.utils import make_correlated_data, compiled_clone
+
+from skglm.utils.jit_compilation import compiled_clone
+from skglm.utils.data import make_correlated_data
 
 
 @pytest.mark.parametrize("X_density, fit_intercept", product([1., 0.5], [True, False]))

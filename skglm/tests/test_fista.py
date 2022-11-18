@@ -10,7 +10,10 @@ from scipy.sparse import csc_matrix, issparse
 from skglm.penalties import L1, IndicatorBox
 from skglm.solvers import FISTA, AndersonCD
 from skglm.datafits import Quadratic, Logistic, QuadraticSVC
-from skglm.utils import make_correlated_data, compiled_clone, spectral_norm
+
+from skglm.utils.sparse_ops import spectral_norm
+from skglm.utils.jit_compilation import compiled_clone
+from skglm.utils.data import make_correlated_data, compiled_clone
 
 
 random_state = 113

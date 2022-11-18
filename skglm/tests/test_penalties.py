@@ -10,7 +10,7 @@ from skglm.penalties import (
     L2_1, L2_05, BlockMCPenalty, BlockSCAD)
 from skglm import GeneralizedLinearEstimator, Lasso
 from skglm.solvers import AndersonCD, MultiTaskBCD, FISTA
-from skglm.utils import make_correlated_data
+from skglm.utils.data import make_correlated_data
 
 
 n_samples = 20

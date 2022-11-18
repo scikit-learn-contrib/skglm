@@ -2,7 +2,7 @@ import numpy as np
 from numpy.linalg import norm
 
 from skglm.penalties.separable import L0_5
-from skglm.utils import make_correlated_data
+from skglm.utils.data import make_correlated_data
 from skglm.experimental import IterativeReweightedL1
 from skglm.solvers import AndersonCD
 

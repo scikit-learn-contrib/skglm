@@ -5,7 +5,8 @@ from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model._base import LinearModel, RegressorMixin
 
 from skglm.penalties import L1
-from skglm.utils import compiled_clone, ST_vec, proj_L2ball
+from skglm.utils.prox_funcs import ST_vec, proj_L2ball
+from skglm.utils.jit_compilation import compiled_clone
 from skglm.datafits.base import BaseDatafit
 from skglm.solvers.prox_newton import ProxNewton
 

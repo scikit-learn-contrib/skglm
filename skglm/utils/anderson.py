@@ -43,7 +43,3 @@ class AndersonAcceleration:
         C = inv_UTU_ones / np.sum(inv_UTU_ones)
         # floating point errors may cause w and Xw to disagree
         return self.arr_w_[:, 1:] @ C, self.arr_Xw_[:, 1:] @ C, True
-
-
-if __name__ == '__main__':
-    pass

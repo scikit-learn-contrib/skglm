@@ -23,7 +23,3 @@ def check_group_compatible(obj):
                 f"'{obj_name}' is not block-separable. "
                 f"Missing '{attr}' attribute."
             )
-
-
-if __name__ == '__main__':
-    pass

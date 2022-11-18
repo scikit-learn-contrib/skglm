@@ -180,7 +180,3 @@ def _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights):
             norm(X[:, grp_g_indices].T @ y) / (n_samples * weights[g])
         )
     return alpha_max
-
-
-if __name__ == '__main__':
-    pass

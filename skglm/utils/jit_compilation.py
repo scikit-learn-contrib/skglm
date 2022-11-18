@@ -81,7 +81,3 @@ def compiled_clone(instance, to_float32=False):
         instance.get_spec(),
         to_float32,
     )(**instance.params_to_dict())
-
-
-if __name__ == '__main__':
-    pass

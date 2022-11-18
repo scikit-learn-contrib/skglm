@@ -92,7 +92,3 @@ def _XT_dot_vec(X_data, X_indptr, X_indices, vec):
             result[j] += X_data[idx] * vec[X_indices[idx]]
 
     return result
-
-
-if __name__ == '__main__':
-    pass

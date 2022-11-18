@@ -13,7 +13,7 @@ from numpy.linalg import norm
 import matplotlib.pyplot as plt
 
 from skglm import Lasso, WeightedLasso
-from skglm.utils import make_correlated_data
+from skglm.utils.data import make_correlated_data
 
 n_features = 30
 X, _, _ = make_correlated_data(

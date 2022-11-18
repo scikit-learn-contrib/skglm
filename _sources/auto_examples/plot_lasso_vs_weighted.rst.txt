@@ -47,7 +47,7 @@ Illustrate the importance of feature normalization when penalizing.
     import matplotlib.pyplot as plt
 
     from skglm import Lasso, WeightedLasso
-    from skglm.utils import make_correlated_data
+    from skglm.utils.data import make_correlated_data
 
     n_features = 30
     X, _, _ = make_correlated_data(
@@ -84,7 +84,7 @@ Illustrate the importance of feature normalization when penalizing.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  5.840 seconds)
+   **Total running time of the script:** ( 0 minutes  5.720 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_lasso_vs_weighted.py:

@@ -48,7 +48,7 @@ direct proximal computation and iterative reweighting.
     import matplotlib.pyplot as plt
 
     from skglm.penalties.separable import L0_5
-    from skglm.utils import make_correlated_data
+    from skglm.utils.data import make_correlated_data
     from skglm.estimators import GeneralizedLinearEstimator
     from skglm.experimental import IterativeReweightedL1
     from skglm.solvers import AndersonCD
@@ -131,7 +131,7 @@ direct proximal computation and iterative reweighting.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  3.983 seconds)
+   **Total running time of the script:** ( 0 minutes  4.209 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_reweighted_l1.py:

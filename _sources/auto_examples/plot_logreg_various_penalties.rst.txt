@@ -65,7 +65,7 @@ Illustrate the modularity of ``skglm`` by using ``GeneralizedLinearEstimator`` w
     from skglm import GeneralizedLinearEstimator
     from skglm.datafits import Logistic
     from skglm.penalties import L1_plus_L2, MCPenalty
-    from skglm.utils import make_correlated_data
+    from skglm.utils.data import make_correlated_data
 
 
     n_samples, n_features = 50, 100
@@ -130,7 +130,7 @@ Illustrate the modularity of ``skglm`` by using ``GeneralizedLinearEstimator`` w
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  9.499 seconds)
+   **Total running time of the script:** ( 0 minutes  9.566 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_logreg_various_penalties.py:

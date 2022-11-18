@@ -63,10 +63,10 @@ Illustrate the superior performance of penalties for sparse recovery.
     from sklearn.model_selection import train_test_split
     from sklearn.metrics import f1_score, mean_squared_error
 
-    from skglm.utils import make_correlated_data
+    from skglm.utils.data import make_correlated_data
     from skglm.solvers import AndersonCD
     from skglm.datafits import Quadratic
-    from skglm.utils import compiled_clone
+    from skglm.utils.jit_compilation import compiled_clone
     from skglm.penalties import L1, MCPenalty, L0_5, L2_3, SCAD
 
     cmap = plt.get_cmap('tab10')
@@ -190,7 +190,7 @@ Illustrate the superior performance of penalties for sparse recovery.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  17.614 seconds)
+   **Total running time of the script:** ( 0 minutes  15.731 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_sparse_recovery.py:

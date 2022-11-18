@@ -16,7 +16,7 @@ from sklearn.metrics import f1_score
 from skglm import GeneralizedLinearEstimator
 from skglm.datafits import Logistic
 from skglm.penalties import L1_plus_L2, MCPenalty
-from skglm.utils import make_correlated_data
+from skglm.utils.data import make_correlated_data
 
 
 n_samples, n_features = 50, 100

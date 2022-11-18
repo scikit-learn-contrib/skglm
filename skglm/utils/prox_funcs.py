@@ -104,6 +104,7 @@ def prox_SCAD(value, stepsize, alpha, gamma):
     return np.sign(value) * x_s[np.argmin(objs)]
 
 
+@njit
 def BST_vec(x, u, grp_size):
     """Vectorized block soft-thresholding of vector x at level u."""
     norm_grp = norm(x.reshape(-1, grp_size), axis=1)

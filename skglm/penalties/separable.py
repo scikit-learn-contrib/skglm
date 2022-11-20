@@ -466,3 +466,49 @@ class L2_3(BasePenalty):
     def generalized_support(self, w):
         """Return a mask with non-zero coefficients."""
         return w != 0
+
+
+class NNLR(BasePenalty):
+    """Non-negative least square penalty"""
+
+    def __init__(self):
+        pass
+
+    def get_spec(self):
+        return ()
+
+    def params_to_dict(self):
+        return dict()
+
+    def value(self, w):
+        """NNLR consists in having positive weights, hence no value."""
+        return 0.
+
+    def prox_1d(self, value, stepsize, j):
+        """Compute the proximal operator of the NNLR ."""
+        return max(0., value)
+
+    def subdiff_distance(self, w, grad, ws):
+        """Compute distance of negative gradient to the subdifferential at w."""
+        subdiff_dist = np.zeros_like(grad)
+        for idx, j in enumerate(ws):
+            if w[j] == 0:
+                # distance of - grad_j to  ]-infty, 0]
+                subdiff_dist[idx] = max(0, -grad[idx])
+            elif w[j] > 0:
+                # distance of - grad_j to 0
+                subdiff_dist[idx] = abs(-grad[idx])
+            else:
+                # subdiff is empty, distance is infinite
+                subdiff_dist[idx] = np.inf
+
+        return subdiff_dist
+
+    def is_penalized(self, n_features):
+        """Return a binary mask with the penalized features."""
+        return np.ones(n_features, bool_)
+
+    def generalized_support(self, w):
+        """Return a mask with non-zero coefficients."""
+        return w != 0
+

@@ -196,3 +196,23 @@ def prox_SLOPE(z, alphas):
             x[i] = d
 
     return x
+
+
+@njit
+def _root_prox_log_vec(x, alpha, eps):
+    return (x - eps) / 2. + np.sqrt(((x + eps) ** 2) / 4 - alpha)
+
+
+@njit
+def prox_log_sum(x, alpha, eps):
+    if np.sqrt(alpha) <= eps:
+        if abs(x) <= alpha / eps:
+            return 0.
+        else:
+            return np.sign(x) * _root_prox_log_vec(abs(x), alpha, eps)
+    else:
+        x_star = None  # TODO
+        if abs(x) <= x_star:
+            return 0.
+        else:
+            return np.sign(x) * _root_prox_log_vec(abs(x), alpha, eps)

@@ -4,7 +4,8 @@ from numba.types import bool_
 
 from skglm.penalties.base import BasePenalty
 from skglm.utils.prox_funcs import (
-    ST, box_proj, prox_05, prox_2_3, prox_SCAD, value_SCAD, prox_MCP, value_MCP)
+    ST, box_proj, prox_05, prox_2_3, prox_SCAD, value_SCAD, prox_MCP, value_MCP,
+    prox_log_sum)
 
 
 class L1(BasePenalty):
@@ -458,6 +459,48 @@ class L2_3(BasePenalty):
                     self.alpha * 2 / (3 * np.abs(w[j]) ** (1/3)))
 
         return subdiff_dist
+
+    def is_penalized(self, n_features):
+        """Return a binary mask with the penalized features."""
+        return np.ones(n_features, bool_)
+
+    def generalized_support(self, w):
+        """Return a mask with non-zero coefficients."""
+        return w != 0
+
+
+class LogSumPenalty(BasePenalty):
+    """Log sum penalty."""
+
+    def __init__(self, alpha, eps):
+        self.alpha = alpha
+        self.eps = eps
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+            ('eps', float64),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha, eps=self.eps)
+
+    def value(self, w):
+        """Compute the value of the log-sum penalty at w."""
+        return self.alpha * np.sum(np.log(1. + np.abs(w) / self.eps))
+
+    def derivative(self, w):
+        """Compute the element-wise derivative."""
+        return 1. / (np.abs(w) + self.eps)
+
+    def prox_1d(self, value, stepsize, j):
+        """Compute the proximal operator of the log-sum penalty."""
+        return prox_log_sum(value, self.alpha * stepsize, self.eps)
+
+    def subdiff_distance(self, w, grad, ws):
+        """Compute distance of negative gradient to the subdifferential at w."""
+        raise NotImplementedError("TODO?")
 
     def is_penalized(self, n_features):
         """Return a binary mask with the penalized features."""

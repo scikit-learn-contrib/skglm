@@ -104,7 +104,7 @@ def test_slope():
 
 
 def test_nnls():
-    # compare solutions with sklearn's LinearRegression, note that n_samples >= 
+    # compare solutions with sklearn's LinearRegression, note that n_samples >=
     # n_features for the design matrix to be injective, hence the solution unique
     clf = GeneralizedLinearEstimator(
         datafit=Quadratic(),

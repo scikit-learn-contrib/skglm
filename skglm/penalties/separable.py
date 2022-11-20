@@ -511,4 +511,3 @@ class NNLS(BasePenalty):
     def generalized_support(self, w):
         """Return a mask with non-zero coefficients."""
         return w != 0
-

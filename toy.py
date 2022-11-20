@@ -8,30 +8,26 @@ from skglm.estimators import GeneralizedLinearEstimator
 from skglm.datafits import CoxPHBreslow
 from skglm.penalties import L1
 from skglm.solvers import ProxNewton
+from skglm.utils import make_correlated_data
 
 
-df = pd.DataFrame({
-    'T': [5, 3, 9, 8, 7, 4, 1, 10, 2, 11, 6, 70],
-    'E': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    'var': [0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2],
-    'month': [10, 3, 9, 8, 7, 4, 4, 3, 2, 5, 6, 7],
-    'age': [4, 3, 9, 8, 7, 4, 4, 3, 2, 5, 6, 7],
-})
-X = df[["var", "month", "age"]].to_numpy()
-y = df["T"].to_numpy()
+n_samples = 10
+n_features = 20
+
+X = make_correlated_data(n_samples=n_samples, n_features=n_features, density=0.3,
+                         random_state=0)[0]
+y = np.random.randint(0, 10, (n_samples,))
+print("y:", y)
 
 alpha_max = norm(X.T @ y, ord=np.inf) / len(y)
-alpha = alpha_max * 0.01
+alpha = alpha_max * 0.1
 
-tol = 1e-8
+tol = 1e-5
 
 our_cox = GeneralizedLinearEstimator(
     datafit=CoxPHBreslow(),
     penalty=L1(alpha),
-    solver=ProxNewton(verbose=2, fit_intercept=False, tol=tol),
+    solver=ProxNewton(max_pn_iter=100, verbose=2, fit_intercept=False, tol=tol),
 ).fit(X, y)
 
-cph = CoxPHFitter(penalizer=alpha, l1_ratio=1.)
-cph.fit(df, "T", "E")  # fit right censoring
-
-np.testing.assert_allclose(our_cox.coef_, cph.params_, rtol=1e-3)
+print(our_cox.coef_)

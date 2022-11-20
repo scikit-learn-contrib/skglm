@@ -468,7 +468,7 @@ class L2_3(BasePenalty):
         return w != 0
 
 
-class NNLR(BasePenalty):
+class NNLS(BasePenalty):
     """Non-negative least square penalty"""
 
     def __init__(self):
@@ -481,11 +481,11 @@ class NNLR(BasePenalty):
         return dict()
 
     def value(self, w):
-        """NNLR consists in having positive weights, hence no value."""
+        """NNLS consists in having positive weights, hence no value."""
         return 0.
 
     def prox_1d(self, value, stepsize, j):
-        """Compute the proximal operator of the NNLR ."""
+        """Compute the proximal operator of the NNLS ."""
         return max(0., value)
 
     def subdiff_distance(self, w, grad, ws):

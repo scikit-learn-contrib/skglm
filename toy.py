@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 
 from skglm.datafits import Quadratic
-from skglm.penalties import NNLR
+from skglm.penalties import NNLS
 from skglm.estimators import GeneralizedLinearEstimator
 from skglm.solvers import AndersonCD
 from skglm.utils import make_correlated_data
@@ -15,7 +15,7 @@ tol = 1e-8
 
 clf = GeneralizedLinearEstimator(
     datafit=Quadratic(),
-    penalty=NNLR(),
+    penalty=NNLS(),
     solver=AndersonCD(tol=tol, fit_intercept=False, verbose=2),
 ).fit(X, y)
 

@@ -16,7 +16,7 @@ tol = 1e-8
 clf = GeneralizedLinearEstimator(
     datafit=Quadratic(),
     penalty=NNLR(),
-    solver=AndersonCD(tol=tol, fit_intercept=False),
+    solver=AndersonCD(tol=tol, fit_intercept=False, verbose=2),
 ).fit(X, y)
 
 reg_nnls = LinearRegression(positive=True, fit_intercept=False)

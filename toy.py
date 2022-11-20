@@ -7,7 +7,7 @@ from skglm.estimators import GeneralizedLinearEstimator
 from skglm.solvers import AndersonCD
 from skglm.utils import make_correlated_data
 
-n_samples = 10
+n_samples = 100
 n_features = 40
 X, y, _ = make_correlated_data(n_samples, n_features, density=0.2, random_state=0)
 

@@ -469,7 +469,7 @@ class L2_3(BasePenalty):
 
 
 class NNLS(BasePenalty):
-    """Non-negative least square penalty"""
+    """Non-negative least square penalty."""
 
     def __init__(self):
         pass

@@ -103,16 +103,19 @@ def test_slope():
     np.testing.assert_allclose(ours.coef_, pyslope_out["beta"], rtol=1e-5)
 
 
-def test_nnls():
+@pytest.mark.parametrize("fit_intercept", [True, False])
+def test_nnls(fit_intercept):
     # compare solutions with sklearn's LinearRegression, note that n_samples >=
     # n_features for the design matrix to be injective, hence the solution unique
     clf = GeneralizedLinearEstimator(
         datafit=Quadratic(),
         penalty=NNLS(),
-        solver=AndersonCD(tol=tol, fit_intercept=False, verbose=2),
+        solver=AndersonCD(tol=tol, fit_intercept=fit_intercept)
     ).fit(X, y)
-    reg_nnls = LinearRegression(positive=True, fit_intercept=False).fit(X, y)
-    np.testing.assert_allclose(clf.coef_, reg_nnls.coef_, rtol=1e-3)
+    reg_nnls = LinearRegression(positive=True, fit_intercept=fit_intercept).fit(X, y)
+
+    np.testing.assert_allclose(clf.coef_, reg_nnls.coef_)
+    np.testing.assert_allclose(clf.intercept_, reg_nnls.intercept_)
 
 
 if __name__ == "__main__":

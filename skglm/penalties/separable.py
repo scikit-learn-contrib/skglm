@@ -468,11 +468,8 @@ class L2_3(BasePenalty):
         return w != 0
 
 
-class NNLS(BasePenalty):
+class PositiveConstraint(BasePenalty):
     """Non-negative least square penalty."""
-
-    def __init__(self):
-        pass
 
     def get_spec(self):
         return ()
@@ -481,11 +478,11 @@ class NNLS(BasePenalty):
         return dict()
 
     def value(self, w):
-        """NNLS consists in having positive weights, hence no value."""
-        return 0.
+        """Compute the value of the PositiveConstraint penalty at w."""
+        return np.inf if (w < 0).any() else 0.
 
     def prox_1d(self, value, stepsize, j):
-        """Compute the proximal operator of the NNLS ."""
+        """Compute the proximal operator of the PositiveConstraint."""
         return max(0., value)
 
     def subdiff_distance(self, w, grad, ws):

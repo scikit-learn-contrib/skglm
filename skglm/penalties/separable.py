@@ -469,7 +469,7 @@ class L2_3(BasePenalty):
 
 
 class PositiveConstraint(BasePenalty):
-    """Non-negative least square penalty."""
+    """Positivity constraint penalty."""
 
     def __init__(self):
         pass

@@ -581,12 +581,11 @@ class CoxPHBreslow(BaseDatafit):
         grad = np.zeros(n_samples)
         for i in self.argsorted_samples:
             if self.is_observed[i]:
-                tmp = 0.
-                # TODO: how about events occurring at the same time
+                denom = 0.
                 for k in self.argsorted_samples[i:]:
-                    tmp += np.exp(Xw[k])
+                    denom += np.exp(Xw[k])
                 exp_Xw_i = np.exp(Xw[i])
-                grad[i] = (exp_Xw_i / tmp - 1) / n_samples
+                grad[i] = (exp_Xw_i / denom - 1) / n_samples
         return grad
 
     def raw_hessian(self, y, Xw):
@@ -596,7 +595,6 @@ class CoxPHBreslow(BaseDatafit):
         for i in self.argsorted_samples:
             if self.is_observed[i]:
                 tmp = 0.
-                # TODO: how about events occurring at the same time
                 for k in self.argsorted_samples[i:]:
                     tmp += np.exp(Xw[k])
                 exp_Xw_i = np.exp(Xw[i])
@@ -610,7 +608,6 @@ class CoxPHBreslow(BaseDatafit):
         for i in self.argsorted_samples:
             if self.is_observed[i]:
                 tmp = 0
-                # TODO: how about events occurring at the same time
                 for k in self.argsorted_samples[i:]:
                     tmp += np.exp(Xw[k])
                 out += np.log(tmp) - Xw[i]

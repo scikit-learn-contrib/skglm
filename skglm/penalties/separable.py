@@ -3,7 +3,7 @@ from numba import float64
 from numba.types import bool_
 
 from skglm.penalties.base import BasePenalty
-from skglm.utils import (
+from skglm.utils.prox_funcs import (
     ST, box_proj, prox_05, prox_2_3, prox_SCAD, value_SCAD, prox_MCP, value_MCP)
 
 
@@ -495,6 +495,51 @@ class L2_3(BasePenalty):
                 subdiff_dist[idx] = np.abs(
                     - grad[idx] - np.sign(w[j]) *
                     self.alpha * 2 / (3 * np.abs(w[j]) ** (1/3)))
+
+        return subdiff_dist
+
+    def is_penalized(self, n_features):
+        """Return a binary mask with the penalized features."""
+        return np.ones(n_features, bool_)
+
+    def generalized_support(self, w):
+        """Return a mask with non-zero coefficients."""
+        return w != 0
+
+
+class PositiveConstraint(BasePenalty):
+    """Positivity constraint penalty."""
+
+    def __init__(self):
+        pass
+
+    def get_spec(self):
+        return ()
+
+    def params_to_dict(self):
+        return dict()
+
+    def value(self, w):
+        """Compute the value of the PositiveConstraint penalty at w."""
+        return np.inf if (w < 0).any() else 0.
+
+    def prox_1d(self, value, stepsize, j):
+        """Compute the proximal operator of the PositiveConstraint."""
+        return max(0., value)
+
+    def subdiff_distance(self, w, grad, ws):
+        """Compute distance of negative gradient to the subdifferential at w."""
+        subdiff_dist = np.zeros_like(grad)
+        for idx, j in enumerate(ws):
+            if w[j] == 0:
+                # distance of - grad_j to  ]-infty, 0]
+                subdiff_dist[idx] = max(0, -grad[idx])
+            elif w[j] > 0:
+                # distance of - grad_j to 0
+                subdiff_dist[idx] = abs(-grad[idx])
+            else:
+                # subdiff is empty, distance is infinite
+                subdiff_dist[idx] = np.inf
 
         return subdiff_dist
 

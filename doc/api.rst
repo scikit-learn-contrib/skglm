@@ -43,6 +43,7 @@ Penalties
    WeightedGroupL2
    SCAD
    BlockSCAD
+   SLOPE
 
 
 Datafits
@@ -53,9 +54,11 @@ Datafits
 .. autosummary::
    :toctree: generated/
 
+   Gamma
    Huber
    Logistic
    LogisticGroup
+   Poisson
    Quadratic
    QuadraticGroup
    QuadraticSVC
@@ -73,6 +76,7 @@ Solvers
    FISTA
    GramCD
    GroupBCD
+   GroupProxNewton
    MultiTaskBCD
    ProxNewton
 

@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from skglm import WeightedLasso
-from skglm.utils import make_correlated_data
+from skglm.utils.data import make_correlated_data
 
 n_features = 100
 w_true = np.zeros(n_features)

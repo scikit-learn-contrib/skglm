@@ -14,7 +14,7 @@ from numpy.linalg import norm
 import matplotlib.pyplot as plt
 
 from skglm.penalties.separable import L0_5
-from skglm.utils import make_correlated_data
+from skglm.utils.data import make_correlated_data
 from skglm.estimators import GeneralizedLinearEstimator
 from skglm.experimental import IterativeReweightedL1
 from skglm.solvers import AndersonCD

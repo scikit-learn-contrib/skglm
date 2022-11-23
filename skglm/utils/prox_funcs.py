@@ -205,6 +205,26 @@ def _root_prox_log_vec(x, alpha, eps):
 
 @njit
 def prox_log_sum(x, alpha, eps):
+    """Proximal operator of log-sum penalty.
+
+    Parameters
+    ----------
+    x : float
+        Coefficient.
+
+    alpha : float
+        Regularization hyperparameter.
+    
+    eps : float
+        Curvature hyperparameter.
+
+    Reference
+    ---------
+        https://www.researchgate.net/profile/Erin-Tripp/publication/ \
+        349804616_The_Proximity_Operator_of_the_Log-Sum_Penalty/links/ \
+        60914684a6fdccaebd08e9ff/The-Proximity-Operator-of-the-Log-Sum-Penalty.pdf \
+        ?origin=publication_detail
+    """
     if np.sqrt(alpha) <= eps:
         if abs(x) <= alpha / eps:
             return 0.

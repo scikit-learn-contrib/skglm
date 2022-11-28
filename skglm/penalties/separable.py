@@ -40,17 +40,17 @@ class L1(BasePenalty):
                 if w[j] < 0:
                     subdiff_dist[idx] = np.inf
                 elif w[j] == 0:
-                    # distance of - grad_j to ]-infty, alpha]
+                    # distance of -grad_j to (-infty, alpha]
                     subdiff_dist[idx] = max(0, - grad[idx] - self.alpha)
                 else:
-                    # distance of - grad_j to {alpha}
+                    # distance of -grad_j to {alpha}
                     subdiff_dist[idx] = np.abs(- grad[idx] - self.alpha)
             else:
                 if w[j] == 0:
-                    # distance of - grad_j to  [-alpha, alpha]
+                    # distance of -grad_j to  [-alpha, alpha]
                     subdiff_dist[idx] = max(0, np.abs(grad[idx]) - self.alpha)
                 else:
-                    # distance of - grad_j to alpha * sign(w[j])
+                    # distance of -grad_j to {alpha * sign(w[j])}
                     subdiff_dist[idx] = np.abs(
                         - grad[idx] - np.sign(w[j]) * self.alpha)
         return subdiff_dist
@@ -107,17 +107,16 @@ class L1_plus_L2(BasePenalty):
                 if w[j] < 0:
                     subdiff_dist[idx] = np.inf
                 elif w[j] == 0:
-                    # distance of -grad_j to ]-infty, alpha * l1_ratio]
+                    # distance of -grad_j to (-infty, alpha * l1_ratio]
                     subdiff_dist[idx] = max(0, - grad[idx] - self.alpha * self.l1_ratio)
                 else:
-                    # distance of -grad_j to {alpha * l1_ratio + alpha
-                    # * (1 - l1_ratio) * w[j]}
+                    # distance of -grad_j to alpha * {l1_ratio + (1 - l1_ratio) * w[j]}
                     subdiff_dist[idx] = np.abs(
-                            - grad[idx] - self.alpha * self.l1_ratio
-                            - self.alpha * (1 - self.l1_ratio) * w[j])
+                        -grad[idx] - self.alpha * self.l1_ratio
+                        - self.alpha * (1 - self.l1_ratio) * w[j])
             else:
                 if w[j] == 0:
-                    # distance of - grad_j to alpha * l1_ratio * [-1, 1]
+                    # distance of -grad_j to alpha * l1_ratio * [-1, 1]
                     subdiff_dist[idx] = max(
                         0, np.abs(grad[idx]) - self.alpha * self.l1_ratio)
                 else:
@@ -177,22 +176,22 @@ class WeightedL1(BasePenalty):
                 if w[j] < 0:
                     subdiff_dist[idx] = np.inf
                 elif w[j] == 0:
-                    # distance of - grad_j to ]-infty, alpha * weights[j]]
+                    # distance of -grad_j to (-infty, alpha * weights[j]]
                     subdiff_dist[idx] = max(
-                            0, - grad[idx] - self.alpha * self.weights[j])
+                        0, -grad[idx] - self.alpha * self.weights[j])
                 else:
-                    # distance of - grad_j to {alpha * weights[j]}
+                    # distance of -grad_j to {alpha * weights[j]}
                     subdiff_dist[idx] = np.abs(
-                            - grad[idx] - self.alpha * self.weights[j])
+                        -grad[idx] - self.alpha * self.weights[j])
             else:
                 if w[j] == 0:
-                    # distance of - grad_j to alpha * weights[j] * [-1, 1]
+                    # distance of -grad_j to alpha * weights[j] * [-1, 1]
                     subdiff_dist[idx] = max(
                         0, np.abs(grad[idx]) - self.alpha * self.weights[j])
                 else:
-                    # distance of - grad_j to alpha * weights[j] * sign(w[j])
+                    # distance of -grad_j to alpha * weights[j] * sign(w[j])
                     subdiff_dist[idx] = np.abs(
-                        - grad[idx] - self.alpha * self.weights[j] * np.sign(w[j]))
+                        -grad[idx] - self.alpha * self.weights[j] * np.sign(w[j]))
         return subdiff_dist
 
     def is_penalized(self, n_features):

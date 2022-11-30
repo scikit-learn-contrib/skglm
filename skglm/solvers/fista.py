@@ -52,7 +52,11 @@ class FISTA(BaseSolver):
             else:
                 datafit.init_global_lipschitz(X, y)
         except AttributeError:
-            raise Exception("Datafit is not compatible with FISTA solver.")
+            sparse_suffix = '_sparse' if X_is_sparse else ''
+
+            raise Exception(
+                "Datafit is not compatible with FISTA solver.\n Datafit must "
+                f"implement `init_global_lipschitz{sparse_suffix}` method")
 
         lipschitz = datafit.global_lipschitz
         for n_iter in range(self.max_iter):

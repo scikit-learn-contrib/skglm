@@ -75,8 +75,8 @@ class Quadratic(BaseDatafit):
         self.global_lipschitz = norm(X, ord=2) ** 2 / len(y)
 
     def init_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
-        self.global_lipschitz = spectral_norm(X_data, X_indptr, X_indices, len(y)) ** 2
-        self.global_lipschitz /= len(y)
+        self.global_lipschitz = spectral_norm(
+            X_data, X_indptr, X_indices, len(y)) ** 2 / len(y)
 
     def value(self, y, w, Xw):
         return np.sum((y - Xw) ** 2) / (2 * len(Xw))
@@ -173,8 +173,8 @@ class Logistic(BaseDatafit):
         self.global_lipschitz = norm(X, ord=2) ** 2 / (4 * len(y))
 
     def init_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
-        self.global_lipschitz = spectral_norm(X_data, X_indptr, X_indices, len(y)) ** 2
-        self.global_lipschitz /= 4 * len(y)
+        self.global_lipschitz = spectral_norm(
+            X_data, X_indptr, X_indices, len(y)) ** 2 / (4 * len(y))
 
     def value(self, y, w, Xw):
         return np.log(1. + np.exp(- y * Xw)).sum() / len(y)
@@ -357,8 +357,8 @@ class Huber(BaseDatafit):
         self.global_lipschitz = norm(X, ord=2) ** 2 / len(y)
 
     def init_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
-        self.global_lipschitz = spectral_norm(X_data, X_indptr, X_indices, len(y)) ** 2
-        self.global_lipschitz /= len(y)
+        self.global_lipschitz = spectral_norm(
+            X_data, X_indptr, X_indices, len(y)) ** 2 / len(y)
 
     def value(self, y, w, Xw):
         n_samples = len(y)

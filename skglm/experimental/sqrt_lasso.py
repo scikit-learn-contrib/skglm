@@ -15,7 +15,8 @@ class SqrtQuadratic(BaseDatafit):
     """Square root quadratic datafit.
 
     The datafit reads::
-        ||y - Xw||_2 / sqrt(n_samples)
+
+        ||y - Xw||_2
     """
 
     def __init__(self):
@@ -29,7 +30,7 @@ class SqrtQuadratic(BaseDatafit):
         return dict()
 
     def value(self, y, w, Xw):
-        return np.linalg.norm(y - Xw) / np.sqrt(len(y))
+        return np.linalg.norm(y - Xw)
 
     def raw_grad(self, y, Xw):
         """Compute gradient of datafit w.r.t ``Xw``.
@@ -45,12 +46,12 @@ class SqrtQuadratic(BaseDatafit):
         if norm_residuals < 1e-2 * norm(y):
             raise ValueError("SmallResidualException")
 
-        return minus_residual / (norm_residuals * np.sqrt(len(y)))
+        return minus_residual / norm_residuals
 
     def raw_hessian(self, y, Xw):
         """Diagonal matrix upper bounding the Hessian."""
         n_samples = len(y)
-        fill_value = 1 / (np.sqrt(n_samples) * norm(y - Xw))
+        fill_value = 1 / norm(y - Xw)
         return np.full(n_samples, fill_value)
 
 
@@ -59,7 +60,7 @@ class SqrtLasso(LinearModel, RegressorMixin):
 
     The optimization objective for square root Lasso is::
 
-        |y - X w||_2 / sqrt(n_samples) + alpha * ||w||_1
+        |y - X w||_2 + alpha * ||w||_1
 
     Parameters
     ----------
@@ -205,7 +206,8 @@ def _chambolle_pock_sqrt(X, y, alpha, max_iter=1000, obj_freq=10, verbose=False)
     """Apply Chambolle-Pock algorithm to solve square-root Lasso.
 
     The objective function is:
-        min_w ||Xw - y||_2/sqrt(n_samples) + alpha * ||w||_1.
+
+        min_w ||Xw - y||_2 + alpha * ||w||_1.
     """
     n_samples, n_features = X.shape
     # dual variable is z, primal is w
@@ -221,12 +223,12 @@ def _chambolle_pock_sqrt(X, y, alpha, max_iter=1000, obj_freq=10, verbose=False)
     sigma = 0.99 / L
 
     for t in range(max_iter):
-        w = ST_vec(w - tau * X.T @ (2 * z - z_old), alpha * np.sqrt(n_samples) * tau)
+        w = ST_vec(w - tau * X.T @ (2 * z - z_old), alpha * tau)
         z_old = z.copy()
         z[:] = proj_L2ball(z + sigma * (X @ w - y))
 
         if t % obj_freq == 0:
-            objs.append(norm(X @ w - y) / np.sqrt(n_samples) + alpha * norm(w, ord=1))
+            objs.append(norm(X @ w - y) + alpha * norm(w, ord=1))
             if verbose:
                 print(f"Iter {t}, obj {objs[-1]: .10f}")
 

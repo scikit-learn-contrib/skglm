@@ -261,9 +261,9 @@
 We denote <span class="math notranslate nohighlight">\(\beta\in\mathbb{R}^p\)</span> the coefficients of the Generalized Linear Model and <span class="math notranslate nohighlight">\(\beta_0\)</span> its intercept.
 In many packages such as <code class="docutils literal notranslate"><span class="pre">liblinear</span></code>, the intercept is handled by adding an extra column of ones in the design matrix. This is costly in memory, and may lead to different solutions if all coefficients are penalized, as the intercept <span class="math notranslate nohighlight">\(\beta_0\)</span> is usually not.
 <code class="docutils literal notranslate"><span class="pre">skglm</span></code> follows a different route and solves directly:</p>
-<div class="math-wrapper amsmath docutils container" id="equation-ff6f4cd8-5472-4e9a-954a-8bdcba1b2c2e">
-<div class="amsmath math notranslate nohighlight" id="equation-ff6f4cd8-5472-4e9a-954a-8bdcba1b2c2e">
-<span class="eqno">(1)<a class="headerlink" href="#equation-ff6f4cd8-5472-4e9a-954a-8bdcba1b2c2e" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="math-wrapper amsmath docutils container" id="equation-bc89c3f7-c114-4eba-82e5-3f6357156dd8">
+<div class="amsmath math notranslate nohighlight" id="equation-bc89c3f7-c114-4eba-82e5-3f6357156dd8">
+<span class="eqno">(1)<a class="headerlink" href="#equation-bc89c3f7-c114-4eba-82e5-3f6357156dd8" title="Permalink to this equation">#</a></span>\[\begin{align}
     \beta^\star, \beta_0^\star
     \in
     \underset{\beta \in \mathbb{R}^p, \beta_0 \in \mathbb{R}}{\text{argmin}}
@@ -276,9 +276,9 @@ In many packages such as <code class="docutils literal notranslate"><span class=
 </div>
 <p>where <span class="math notranslate nohighlight">\(\boldsymbol{1}_{n}\)</span> is the vector of size <span class="math notranslate nohighlight">\(n\)</span> composed only of ones.</p>
 <p>The solvers of <code class="docutils literal notranslate"><span class="pre">skglm</span></code> update the intercept after each update of <span class="math notranslate nohighlight">\(\beta\)</span> by doing a (1 dimensional) gradient descent update:</p>
-<div class="math-wrapper amsmath docutils container" id="equation-b553c225-08e1-4b54-9af3-bc8bc9e17576">
-<div class="amsmath math notranslate nohighlight" id="equation-b553c225-08e1-4b54-9af3-bc8bc9e17576">
-<span class="eqno">(2)<a class="headerlink" href="#equation-b553c225-08e1-4b54-9af3-bc8bc9e17576" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="math-wrapper amsmath docutils container" id="equation-dda0aa2f-6949-4e00-a217-869492fd92ab">
+<div class="amsmath math notranslate nohighlight" id="equation-dda0aa2f-6949-4e00-a217-869492fd92ab">
+<span class="eqno">(2)<a class="headerlink" href="#equation-dda0aa2f-6949-4e00-a217-869492fd92ab" title="Permalink to this equation">#</a></span>\[\begin{align}
     \beta^{(k+1)}_0 = \beta^{(k)}_0 - \frac{1}{L_0}\nabla_{\beta_0}F(X\beta^{(k)} + \beta_0^{(k)}\boldsymbol{1}_{n})
     \enspace ,
 \end{align}\]</div>
@@ -293,17 +293,17 @@ The local Lipschitz constant <span class="math notranslate nohighlight">\(L_0\)<
 </div>
 <p>This update rule should be implemented in the <code class="docutils literal notranslate"><span class="pre">intercept_update_step</span></code> method of the datafit class.</p>
 <p>The convergence criterion computed for the gradient is then only the absolute value of the gradient with respect to <span class="math notranslate nohighlight">\(\beta_0\)</span> since the intercept optimality condition, for a solution <span class="math notranslate nohighlight">\(\beta^\star\)</span>, <span class="math notranslate nohighlight">\(\beta_0^\star\)</span> is:</p>
-<div class="math-wrapper amsmath docutils container" id="equation-c4f55eef-346b-434a-add8-0ef9a2986a51">
-<div class="amsmath math notranslate nohighlight" id="equation-c4f55eef-346b-434a-add8-0ef9a2986a51">
-<span class="eqno">(3)<a class="headerlink" href="#equation-c4f55eef-346b-434a-add8-0ef9a2986a51" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="math-wrapper amsmath docutils container" id="equation-80ea8b08-1a0e-4055-99eb-ff727e532efd">
+<div class="amsmath math notranslate nohighlight" id="equation-80ea8b08-1a0e-4055-99eb-ff727e532efd">
+<span class="eqno">(3)<a class="headerlink" href="#equation-80ea8b08-1a0e-4055-99eb-ff727e532efd" title="Permalink to this equation">#</a></span>\[\begin{align}
     \nabla_{\beta_0}F(X\beta^\star + \beta_0^\star\boldsymbol{1}_{n}) = 0
     \enspace ,
 \end{align}\]</div>
 </div>
 <p>Moreover, we have that</p>
-<div class="math-wrapper amsmath docutils container" id="equation-44054979-1029-45df-8f45-7bce923db78c">
-<div class="amsmath math notranslate nohighlight" id="equation-44054979-1029-45df-8f45-7bce923db78c">
-<span class="eqno">(4)<a class="headerlink" href="#equation-44054979-1029-45df-8f45-7bce923db78c" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="math-wrapper amsmath docutils container" id="equation-31c3e77b-e516-481c-9a49-c377929c7a6d">
+<div class="amsmath math notranslate nohighlight" id="equation-31c3e77b-e516-481c-9a49-c377929c7a6d">
+<span class="eqno">(4)<a class="headerlink" href="#equation-31c3e77b-e516-481c-9a49-c377929c7a6d" title="Permalink to this equation">#</a></span>\[\begin{align}
     \nabla_{\beta_0}F(X\beta + \beta_0\boldsymbol{1}_{n}) = \boldsymbol{1}_{n}^\top \nabla_\beta F(X\beta + \beta_0\boldsymbol{1}_{n})
     \enspace .
 \end{align}\]</div>
@@ -313,17 +313,17 @@ The local Lipschitz constant <span class="math notranslate nohighlight">\(L_0\)<
 <section id="the-quadratic-datafit">
 <h2>The Quadratic datafit<a class="headerlink" href="#the-quadratic-datafit" title="Permalink to this heading">#</a></h2>
 <p>We define</p>
-<div class="math-wrapper amsmath docutils container" id="equation-66e422f9-ebcf-4a5d-8622-79ccec64730c">
-<div class="amsmath math notranslate nohighlight" id="equation-66e422f9-ebcf-4a5d-8622-79ccec64730c">
-<span class="eqno">(5)<a class="headerlink" href="#equation-66e422f9-ebcf-4a5d-8622-79ccec64730c" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="math-wrapper amsmath docutils container" id="equation-7fa15c8b-cdb1-48e5-9d0e-04206b5ce241">
+<div class="amsmath math notranslate nohighlight" id="equation-7fa15c8b-cdb1-48e5-9d0e-04206b5ce241">
+<span class="eqno">(5)<a class="headerlink" href="#equation-7fa15c8b-cdb1-48e5-9d0e-04206b5ce241" title="Permalink to this equation">#</a></span>\[\begin{align}
     F(X\beta + \beta_0\boldsymbol{1}_{n}) = \frac{1}{2n} \lVert y - X\beta - \beta_0\boldsymbol{1}_{n} \rVert^2_2
     \enspace .
 \end{align}\]</div>
 </div>
 <p>In this case <span class="math notranslate nohighlight">\(\nabla f(z) = \frac{1}{n}(z - y)\)</span> hence Eq. 4 is equal to:</p>
-<div class="math-wrapper amsmath docutils container" id="equation-89f06e7e-11b2-4952-aa62-4ebc562b50cc">
-<div class="amsmath math notranslate nohighlight" id="equation-89f06e7e-11b2-4952-aa62-4ebc562b50cc">
-<span class="eqno">(6)<a class="headerlink" href="#equation-89f06e7e-11b2-4952-aa62-4ebc562b50cc" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="math-wrapper amsmath docutils container" id="equation-7080cce3-c863-46bc-be4b-73480f360ce4">
+<div class="amsmath math notranslate nohighlight" id="equation-7080cce3-c863-46bc-be4b-73480f360ce4">
+<span class="eqno">(6)<a class="headerlink" href="#equation-7080cce3-c863-46bc-be4b-73480f360ce4" title="Permalink to this equation">#</a></span>\[\begin{align}
     \nabla_{\beta_0}F(X\beta + \beta_0\boldsymbol{1}_{n}) = \frac{1}{n}\sum_{i=1}^n(X_{i:}\beta + \beta_0 - y_i)
     \enspace .
 \end{align}\]</div>
@@ -334,16 +334,16 @@ The local Lipschitz constant <span class="math notranslate nohighlight">\(L_0\)<
 <section id="the-logistic-datafit">
 <h2>The Logistic datafit<a class="headerlink" href="#the-logistic-datafit" title="Permalink to this heading">#</a></h2>
 <p>In this case,</p>
-<div class="math-wrapper amsmath docutils container" id="equation-be70ffaa-4b98-4890-87ce-4972d824f3db">
-<div class="amsmath math notranslate nohighlight" id="equation-be70ffaa-4b98-4890-87ce-4972d824f3db">
-<span class="eqno">(7)<a class="headerlink" href="#equation-be70ffaa-4b98-4890-87ce-4972d824f3db" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="math-wrapper amsmath docutils container" id="equation-51348d9e-6438-4f86-90f8-8b7b9b5f4e48">
+<div class="amsmath math notranslate nohighlight" id="equation-51348d9e-6438-4f86-90f8-8b7b9b5f4e48">
+<span class="eqno">(7)<a class="headerlink" href="#equation-51348d9e-6438-4f86-90f8-8b7b9b5f4e48" title="Permalink to this equation">#</a></span>\[\begin{align}
     F(X\beta + \beta_0\boldsymbol{1}_{n}) = \frac{1}{n} \sum_{i=1}^n \log(1 + \exp(-y_i(X_{i:}\beta + \beta_0\boldsymbol{1}_n))
 \end{align}\]</div>
 </div>
 <p>We can then write</p>
-<div class="math-wrapper amsmath docutils container" id="equation-cee5f8a6-d10c-45cb-af13-7660f8e16294">
-<div class="amsmath math notranslate nohighlight" id="equation-cee5f8a6-d10c-45cb-af13-7660f8e16294">
-<span class="eqno">(8)<a class="headerlink" href="#equation-cee5f8a6-d10c-45cb-af13-7660f8e16294" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="math-wrapper amsmath docutils container" id="equation-7a751c16-f860-445d-a5c2-b92d38e548af">
+<div class="amsmath math notranslate nohighlight" id="equation-7a751c16-f860-445d-a5c2-b92d38e548af">
+<span class="eqno">(8)<a class="headerlink" href="#equation-7a751c16-f860-445d-a5c2-b92d38e548af" title="Permalink to this equation">#</a></span>\[\begin{align}
  \nabla_{\beta_0}F(X\beta + \beta_0\boldsymbol{1}_{n}) = \frac{1}{n} \sum_{i=1}^n  \frac{-y_i}{1 + \exp(- y_i(X_{i:}\beta + \beta_0\boldsymbol{1}_n))} \enspace .
 \end{align}\]</div>
 </div>
@@ -353,16 +353,16 @@ The local Lipschitz constant <span class="math notranslate nohighlight">\(L_0\)<
 <section id="the-huber-datafit">
 <h2>The Huber datafit<a class="headerlink" href="#the-huber-datafit" title="Permalink to this heading">#</a></h2>
 <p>In this case,</p>
-<div class="math-wrapper amsmath docutils container" id="equation-a4ad26fc-1547-4719-810b-fcd8a655e420">
-<div class="amsmath math notranslate nohighlight" id="equation-a4ad26fc-1547-4719-810b-fcd8a655e420">
-<span class="eqno">(9)<a class="headerlink" href="#equation-a4ad26fc-1547-4719-810b-fcd8a655e420" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="math-wrapper amsmath docutils container" id="equation-23d54718-46b8-47a1-bf83-aecb8f66c131">
+<div class="amsmath math notranslate nohighlight" id="equation-23d54718-46b8-47a1-bf83-aecb8f66c131">
+<span class="eqno">(9)<a class="headerlink" href="#equation-23d54718-46b8-47a1-bf83-aecb8f66c131" title="Permalink to this equation">#</a></span>\[\begin{align}
     F(X\beta + \beta_0\boldsymbol{1}_{n}) = \frac{1}{n} \sum_{i=1}^n f_{\delta}(y_i - X_{i:}\beta - \beta_0\boldsymbol{1}_n)) \enspace ,
 \end{align}\]</div>
 </div>
 <p>where</p>
-<div class="math-wrapper amsmath docutils container" id="equation-ca014049-86ed-4311-9569-abaeeb532a62">
-<div class="amsmath math notranslate nohighlight" id="equation-ca014049-86ed-4311-9569-abaeeb532a62">
-<span class="eqno">(10)<a class="headerlink" href="#equation-ca014049-86ed-4311-9569-abaeeb532a62" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="math-wrapper amsmath docutils container" id="equation-8092e99b-1149-42ab-993a-ba8e2d69d8f1">
+<div class="amsmath math notranslate nohighlight" id="equation-8092e99b-1149-42ab-993a-ba8e2d69d8f1">
+<span class="eqno">(10)<a class="headerlink" href="#equation-8092e99b-1149-42ab-993a-ba8e2d69d8f1" title="Permalink to this equation">#</a></span>\[\begin{align}
     f_\delta(x) = \begin{cases}
             \frac{1}{2}x^2 &amp; \text{if } x \leq \delta \\
             \delta |x| - \frac{1}{2}\delta^2 &amp; \text{if } x &gt; \delta
@@ -370,9 +370,9 @@ The local Lipschitz constant <span class="math notranslate nohighlight">\(L_0\)<
 \end{align}\]</div>
 </div>
 <p>Let <span class="math notranslate nohighlight">\(r_i = y_i - X_{i:}\beta - \beta_0\boldsymbol{1}_n\)</span>. We can then write</p>
-<div class="math-wrapper amsmath docutils container" id="equation-73fec8df-23e2-4570-af0e-3a8a5551fe58">
-<div class="amsmath math notranslate nohighlight" id="equation-73fec8df-23e2-4570-af0e-3a8a5551fe58">
-<span class="eqno">(11)<a class="headerlink" href="#equation-73fec8df-23e2-4570-af0e-3a8a5551fe58" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="math-wrapper amsmath docutils container" id="equation-16fcae1f-bf12-4e26-84ef-ae7b776e4cb3">
+<div class="amsmath math notranslate nohighlight" id="equation-16fcae1f-bf12-4e26-84ef-ae7b776e4cb3">
+<span class="eqno">(11)<a class="headerlink" href="#equation-16fcae1f-bf12-4e26-84ef-ae7b776e4cb3" title="Permalink to this equation">#</a></span>\[\begin{align}
  \nabla_{\beta_0}F(X\beta + \beta_0\boldsymbol{1}_{n}) = \frac{1}{n} \sum_{i=1}^n r_i\mathbb{1}_{\{|r_i|\leq\delta\}} + \text{sign}(r_i)\delta\mathbb{1}_{\{|r_i|&gt;\delta\}} \enspace ,
 \end{align}\]</div>
 </div>

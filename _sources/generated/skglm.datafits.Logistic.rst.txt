@@ -18,6 +18,8 @@
       ~Logistic.get_spec
       ~Logistic.gradient_scalar
       ~Logistic.gradient_scalar_sparse
+      ~Logistic.init_global_lipschitz
+      ~Logistic.init_global_lipschitz_sparse
       ~Logistic.initialize
       ~Logistic.initialize_sparse
       ~Logistic.intercept_update_step

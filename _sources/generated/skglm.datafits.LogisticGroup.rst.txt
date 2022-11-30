@@ -19,6 +19,8 @@
       ~LogisticGroup.gradient_g
       ~LogisticGroup.gradient_scalar
       ~LogisticGroup.gradient_scalar_sparse
+      ~LogisticGroup.init_global_lipschitz
+      ~LogisticGroup.init_global_lipschitz_sparse
       ~LogisticGroup.initialize
       ~LogisticGroup.initialize_sparse
       ~LogisticGroup.intercept_update_step

@@ -18,6 +18,8 @@
       ~Quadratic.get_spec
       ~Quadratic.gradient_scalar
       ~Quadratic.gradient_scalar_sparse
+      ~Quadratic.init_global_lipschitz
+      ~Quadratic.init_global_lipschitz_sparse
       ~Quadratic.initialize
       ~Quadratic.initialize_sparse
       ~Quadratic.intercept_update_step

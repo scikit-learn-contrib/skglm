@@ -340,16 +340,11 @@ class Huber(BaseDatafit):
     def initialize(self, X, y):
         n_features = X.shape[1]
         self.lipschitz = np.zeros(n_features, dtype=X.dtype)
-        self.global_lipschitz = 0.
         for j in range(n_features):
             self.lipschitz[j] = (X[:, j] ** 2).sum() / len(y)
-            self.global_lipschitz += (X[:, j] ** 2).sum() / len(y)
 
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
         n_features = len(X_indptr) - 1
-
-        self.global_lipschitz = spectral_norm(X_data, X_indptr, X_indices, len(y)) ** 2
-        self.global_lipschitz /= len(y)
 
         self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
         for j in range(n_features):
@@ -357,6 +352,13 @@ class Huber(BaseDatafit):
             for idx in range(X_indptr[j], X_indptr[j + 1]):
                 nrm2 += X_data[idx] ** 2
             self.lipschitz[j] = nrm2 / len(y)
+
+    def init_global_lipschitz(self, X, y):
+        self.global_lipschitz = norm(X, ord=2) ** 2 / len(y)
+
+    def init_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+        self.global_lipschitz = spectral_norm(X_data, X_indptr, X_indices, len(y)) ** 2
+        self.global_lipschitz /= len(y)
 
     def value(self, y, w, Xw):
         n_samples = len(y)

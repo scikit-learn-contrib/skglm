@@ -160,18 +160,21 @@ class Logistic(BaseDatafit):
 
     def initialize(self, X, y):
         self.lipschitz = (X ** 2).sum(axis=0) / (len(y) * 4)
-        self.global_lipschitz = norm(X, ord=2) ** 2 / (len(y) * 4)
 
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
         n_features = len(X_indptr) - 1
-
-        self.global_lipschitz = spectral_norm(X_data, X_indptr, X_indices, len(y)) ** 2
-        self.global_lipschitz /= 4 * len(y)
 
         self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
         for j in range(n_features):
             Xj = X_data[X_indptr[j]:X_indptr[j+1]]
             self.lipschitz[j] = (Xj ** 2).sum() / (len(y) * 4)
+
+    def init_global_lipschitz(self, X, y):
+        self.global_lipschitz = norm(X, ord=2) ** 2 / (4 * len(y))
+
+    def init_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+        self.global_lipschitz = spectral_norm(X_data, X_indptr, X_indices, len(y)) ** 2
+        self.global_lipschitz /= 4 * len(y)
 
     def value(self, y, w, Xw):
         return np.log(1. + np.exp(- y * Xw)).sum() / len(y)

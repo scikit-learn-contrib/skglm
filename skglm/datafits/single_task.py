@@ -243,15 +243,12 @@ class QuadraticSVC(BaseDatafit):
     def initialize(self, yXT, y):
         n_features = yXT.shape[1]
         self.lipschitz = np.zeros(n_features, dtype=yXT.dtype)
-        self.global_lipschitz = norm(yXT, ord=2) ** 2
+
         for j in range(n_features):
             self.lipschitz[j] = norm(yXT[:, j]) ** 2
 
     def initialize_sparse(self, yXT_data, yXT_indptr, yXT_indices, y):
         n_features = len(yXT_indptr) - 1
-
-        self.global_lipschitz = spectral_norm(
-            yXT_data, yXT_indptr, yXT_indices, max(yXT_indices)+1) ** 2
 
         self.lipschitz = np.zeros(n_features, dtype=yXT_data.dtype)
         for j in range(n_features):
@@ -259,6 +256,13 @@ class QuadraticSVC(BaseDatafit):
             for idx in range(yXT_indptr[j], yXT_indptr[j + 1]):
                 nrm2 += yXT_data[idx] ** 2
             self.lipschitz[j] = nrm2
+
+    def init_global_lipschitz(self, yXT, y):
+        self.global_lipschitz = norm(yXT, ord=2) ** 2
+
+    def init_global_lipschitz_sparse(self, yXT_data, yXT_indptr, yXT_indices, y):
+        self.global_lipschitz = spectral_norm(
+            yXT_data, yXT_indptr, yXT_indices, max(yXT_indices)+1) ** 2
 
     def value(self, y, w, yXTw):
         return (yXTw ** 2).sum() / 2 - np.sum(w)

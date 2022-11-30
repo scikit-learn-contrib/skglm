@@ -39,23 +39,27 @@ class FISTA(BaseSolver):
         p_objs_out = []
         n_samples, n_features = X.shape
         all_features = np.arange(n_features)
+        X_is_sparse = issparse(X)
         t_new = 1.
 
         w = w_init.copy() if w_init is not None else np.zeros(n_features)
         z = w_init.copy() if w_init is not None else np.zeros(n_features)
         Xw = Xw_init.copy() if Xw_init is not None else np.zeros(n_samples)
 
-        if hasattr(datafit, "global_lipschitz"):
-            lipschitz = datafit.global_lipschitz
-        else:
-            # TODO: OR line search
-            raise Exception("Line search is not yet implemented for FISTA solver.")
+        try:
+            if X_is_sparse:
+                datafit.init_global_lipschitz_sparse(X.data, X.indptr, X.indices, y)
+            else:
+                datafit.init_global_lipschitz(X, y)
+        except AttributeError:
+            raise Exception("Datafit is not compatible with FISTA solver.")
 
+        lipschitz = datafit.global_lipschitz
         for n_iter in range(self.max_iter):
             t_old = t_new
             t_new = (1 + np.sqrt(1 + 4 * t_old ** 2)) / 2
             w_old = w.copy()
-            if issparse(X):
+            if X_is_sparse:
                 grad = construct_grad_sparse(
                     X.data, X.indptr, X.indices, y, z, X @ z, datafit, all_features)
             else:

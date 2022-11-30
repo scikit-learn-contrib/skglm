@@ -51,17 +51,21 @@ class Quadratic(BaseDatafit):
     def initialize(self, X, y):
         self.Xty = X.T @ y
         n_features = X.shape[1]
-        self.global_lipschitz = norm(X, ord=2) ** 2 / len(y)
+
         self.lipschitz = np.zeros(n_features, dtype=X.dtype)
         for j in range(n_features):
             self.lipschitz[j] = (X[:, j] ** 2).sum() / len(y)
 
+    def init_global_lipschitz(self, X, y):
+        self.global_lipschitz = norm(X, ord=2) ** 2 / len(y)
+
+    def init_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+        self.global_lipschitz = spectral_norm(X_data, X_indptr, X_indices, len(y)) ** 2
+        self.global_lipschitz /= len(y)
+
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
         n_features = len(X_indptr) - 1
         self.Xty = np.zeros(n_features, dtype=X_data.dtype)
-
-        self.global_lipschitz = spectral_norm(X_data, X_indptr, X_indices, len(y)) ** 2
-        self.global_lipschitz /= len(y)
 
         self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
         for j in range(n_features):

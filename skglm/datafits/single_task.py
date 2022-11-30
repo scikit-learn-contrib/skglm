@@ -17,7 +17,8 @@ class Quadratic(BaseDatafit):
     Attributes
     ----------
     Xty : array, shape (n_features,)
-        Pre-computed quantity used during the gradient evaluation. Equal to X.T @ y.
+        Pre-computed quantity used during the gradient evaluation.
+        Equal to ``X.T @ y``.
 
     lipschitz : array, shape (n_features,)
         The coordinatewise gradient Lipschitz constants. Equal to

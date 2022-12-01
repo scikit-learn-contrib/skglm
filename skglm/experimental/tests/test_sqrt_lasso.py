@@ -36,7 +36,7 @@ def test_vs_statsmodels():
     # fit statsmodels on path
     for i in range(n_alphas):
         alpha = alphas[i]
-        # statsmodel fits: ||y - Xw||_2 + alpha* ||w||_1 / sqrt(n_samples)
+        # statsmodels solves: ||y - Xw||_2 + alpha * ||w||_1 / sqrt(n_samples)
         model = linear_model.OLS(y, X)
         model = model.fit_regularized(method='sqrt_lasso', L1_wt=1.,
                                       alpha=np.sqrt(n_samples) * alpha)

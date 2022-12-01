@@ -41,18 +41,17 @@ class L1(BasePenalty):
                     subdiff_dist[idx] = np.inf
                 elif w[j] == 0:
                     # distance of -grad_j to (-infty, alpha]
-                    subdiff_dist[idx] = max(0, - grad[idx] - self.alpha)
+                    subdiff_dist[idx] = max(0, -grad[idx] - self.alpha)
                 else:
                     # distance of -grad_j to {alpha}
-                    subdiff_dist[idx] = np.abs(- grad[idx] - self.alpha)
+                    subdiff_dist[idx] = np.abs(grad[idx] + self.alpha)
             else:
                 if w[j] == 0:
                     # distance of -grad_j to  [-alpha, alpha]
                     subdiff_dist[idx] = max(0, np.abs(grad[idx]) - self.alpha)
                 else:
                     # distance of -grad_j to {alpha * sign(w[j])}
-                    subdiff_dist[idx] = np.abs(
-                        - grad[idx] - np.sign(w[j]) * self.alpha)
+                    subdiff_dist[idx] = np.abs(grad[idx] + np.sign(w[j]) * self.alpha)
         return subdiff_dist
 
     def is_penalized(self, n_features):

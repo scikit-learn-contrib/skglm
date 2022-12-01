@@ -49,7 +49,7 @@ def test_prox_newton_cp():
     n_samples, n_features = 50, 10
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
 
-    alpha_max = norm(X.T @ y, ord=np.inf) / (np.sqrt(n_samples) * norm(y))
+    alpha_max = norm(X.T @ y, ord=np.inf) / norm(y)
     alpha = alpha_max / 10
     clf = SqrtLasso(alpha=alpha, tol=1e-12).fit(X, y)
     w, _, _ = _chambolle_pock_sqrt(X, y, alpha, max_iter=1000)

@@ -101,30 +101,31 @@ class L1_plus_L2(BasePenalty):
     def subdiff_distance(self, w, grad, ws):
         """Compute distance of negative gradient to the subdifferential at w."""
         subdiff_dist = np.zeros_like(grad)
+        alpha = self.alpha
+        l1_ratio = self.l1_ratio
+
         for idx, j in enumerate(ws):
             if self.positive:
                 if w[j] < 0:
                     subdiff_dist[idx] = np.inf
                 elif w[j] == 0:
                     # distance of -grad_j to (-infty, alpha * l1_ratio]
-                    subdiff_dist[idx] = max(0, - grad[idx] - self.alpha * self.l1_ratio)
+                    subdiff_dist[idx] = max(0, -grad[idx] - alpha * l1_ratio)
                 else:
                     # distance of -grad_j to alpha * {l1_ratio + (1 - l1_ratio) * w[j]}
                     subdiff_dist[idx] = np.abs(
-                        -grad[idx] - self.alpha * self.l1_ratio
-                        - self.alpha * (1 - self.l1_ratio) * w[j])
+                        grad[idx] + alpha * (l1_ratio
+                                             + (1 - l1_ratio) * w[j]))
             else:
                 if w[j] == 0:
                     # distance of -grad_j to alpha * l1_ratio * [-1, 1]
-                    subdiff_dist[idx] = max(
-                        0, np.abs(grad[idx]) - self.alpha * self.l1_ratio)
+                    subdiff_dist[idx] = max(0, np.abs(grad[idx]) - alpha * l1_ratio)
                 else:
-                    # distance of - grad_j to alpha * l_1 ratio * sign(w[j]) +
-                    # alpha * (1 - l1_ratio) * w[j]
+                    # distance of -grad_j to
+                    # {alpha * (l1 ratio * sign(w[j]) + (1 - l1_ratio) * w[j])}
                     subdiff_dist[idx] = np.abs(
-                        - grad[idx] -
-                        self.alpha * (self.l1_ratio *
-                                      np.sign(w[j]) + (1 - self.l1_ratio) * w[j]))
+                        grad[idx] + alpha * (l1_ratio * np.sign(w[j])
+                                             + (1 - l1_ratio) * w[j]))
         return subdiff_dist
 
     def is_penalized(self, n_features):

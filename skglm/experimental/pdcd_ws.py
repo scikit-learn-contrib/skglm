@@ -46,7 +46,7 @@ class PDCD_WS:
         for iter in range(self.max_iter):
 
             # check convergence
-            opts_primal = penalty.subdiff_distance(X.T @ z, w, all_features)
+            opts_primal = penalty.subdiff_distance(w, X.T @ z, all_features)
             opt_dual = datafit.subdiff_distance(Xw, z, y)
 
             stop_crit = max(
@@ -55,13 +55,13 @@ class PDCD_WS:
             )
 
             if self.verbose:
-                current_p_obj = datafit.value(y, Xw) + penalty.value(w)
+                current_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
                 print(
                     f"Iteration {iter+1}: {current_p_obj:.10f}, "
                     f"stopping crit: {stop_crit:.2e}")
 
             if self.return_p_objs:
-                current_p_obj = datafit.value(y, Xw) + penalty.value(w)
+                current_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
                 p_objs.append(current_p_obj)
 
             if stop_crit <= self.tol:
@@ -82,7 +82,7 @@ class PDCD_WS:
                 primal_steps, dual_step, ws, self.max_epochs, tol_in=0.3*stop_crit)
         else:
             warnings.warn(
-                f"PDCD_WS did not converge for tol={self.tol:3.e} "
+                f"PDCD_WS did not converge for tol={self.tol:.3e} "
                 f"and max_iter={self.max_iter}.\n"
                 "Considering increasing `max_iter` or decreasing `tol`.",
                 category=ConvergenceWarning
@@ -105,7 +105,7 @@ class PDCD_WS:
                 past_pseudo_grad[idx] = X[:, j] @ (2 * z_bar - z)
                 w[j] = penalty.prox_1d(
                     old_w_j - primal_steps[j] * past_pseudo_grad[idx],
-                    primal_steps[j])
+                    primal_steps[j], j)
 
                 # keep Xw syncr with X @ w
                 delta_w_j = w[j] - old_w_j
@@ -119,7 +119,7 @@ class PDCD_WS:
 
             # check convergence
             if epoch % 10 == 0:
-                opts_primal_in = penalty.subdiff_distance(past_pseudo_grad, w, ws)
+                opts_primal_in = penalty.subdiff_distance(w, past_pseudo_grad, ws)
                 opt_dual_in = datafit.subdiff_distance(Xw, z, y)
 
                 stop_crit_in = max(

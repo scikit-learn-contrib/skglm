@@ -55,16 +55,16 @@ class SqrtQuadratic(BaseDatafit):
         return np.full(n_samples, fill_value)
 
     def prox(self, w, step, y):
-        """prox of ||y - . || with step."""
+        """Prox of ||y - . || with step."""
         return y - BST(y - w, step)
 
     def prox_conjugate(self, z, step, y):
-        """prox of ||y - . ||^* with step using Moreau decomposition."""
+        """Prox of ||y - . ||^* with step using Moreau decomposition."""
         inv_step = 1 / step
         return z - step * self.prox(inv_step * z, inv_step, y)
 
     def subdiff_distance(self, Xw, z, y):
-        """distance of z to subdiff of ||y - . || at Xw."""
+        """Distance of ``z`` to subdiff of ||y - . || at ``Xw``."""
         # computation note: \partial ||y - . ||(Xw) = - \partial || . ||(y - Xw)
         y_minus_Xw = y - Xw
 

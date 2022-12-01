@@ -9,6 +9,48 @@ from sklearn.exceptions import ConvergenceWarning
 
 
 class PDCD_WS:
+    """Primal-Dual Coordinate Descent solver with working sets.
+
+    Solver inspired by [1] that uses working sets.
+
+    Parameters
+    ----------
+    max_iter : int, optional
+        The maximum number of iterations or equivalently the
+        the maximum number solved subproblems.
+
+    max_epochs : int, optional
+        Maximum number of CD epochs on each subproblem.
+
+    p0 : int, optional
+        First working set size.
+
+    tol : float, optional
+        The tolerance for the optimization.
+
+    dual_init : array, shape (n_samples,) default None
+        The initialization of dual variables.
+        If None, they are initialized as the 0 vector ``np.zeros(n_samples)``.
+
+    return_p_objs : bool, default False
+        If True, returns the values of the objective in each iteration.
+        Otherwise returns an empty array.
+
+    verbose : bool or int, default False
+        Amount of verbosity. 0/False is silent.
+
+    References
+    ----------
+    .. [1] Olivier Fercoq and Pascal Bianchi,
+        "A Coordinate-Descent Primal-Dual Algorithm with Large Step Size and Possibly
+        Nonseparable Functions", SIAM Journal on Optimization, 2020,
+        https://epubs.siam.org/doi/10.1137/18M1168480,
+        code: https://github.com/Badr-MOUFAD/Fercoq-Bianchi-solver
+
+    .. [2] Mathurin Massias, Alexandre Gramfort, Joseph Salmon,
+        "From safe screening rules to working sets for faster Lasso-type solvers",
+        OPTML workshop at NIPS 2017, https://arxiv.org/abs/1703.07285v2
+    """
 
     def __init__(self, max_iter=1000, max_epochs=1000, p0=100, tol=1e-6,
                  dual_init=None, return_p_objs=False, verbose=False):
@@ -131,11 +173,11 @@ class PDCD_WS:
                     break
 
     @staticmethod
-    def _validate_init(datafit, penalty):
+    def _validate_init(datafit_, penalty_):
         # validate datafit
         missing_attrs = []
         for attr in ('prox_conjugate', 'subdiff_distance'):
-            if not hasattr(datafit, attr):
+            if not hasattr(datafit_, attr):
                 missing_attrs.append(f"`{attr}`")
 
         if len(missing_attrs):
@@ -146,7 +188,7 @@ class PDCD_WS:
             )
 
         # jit compile classes
-        compiled_datafit = compiled_clone(datafit)
-        compiled_penalty = compiled_clone(penalty)
+        compiled_datafit = compiled_clone(datafit_)
+        compiled_penalty = compiled_clone(penalty_)
 
         return compiled_datafit, compiled_penalty

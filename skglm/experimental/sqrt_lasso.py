@@ -5,7 +5,7 @@ from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model._base import LinearModel, RegressorMixin
 
 from skglm.penalties import L1
-from skglm.utils.prox_funcs import ST_vec, proj_L2ball
+from skglm.utils.prox_funcs import ST_vec, proj_L2ball, BST
 from skglm.utils.jit_compilation import compiled_clone
 from skglm.datafits.base import BaseDatafit
 from skglm.solvers.prox_newton import ProxNewton
@@ -53,6 +53,25 @@ class SqrtQuadratic(BaseDatafit):
         n_samples = len(y)
         fill_value = 1 / norm(y - Xw)
         return np.full(n_samples, fill_value)
+
+    def prox(self, w, step, y):
+        """prox of ||y - . || with step."""
+        return y - BST(y - w, step)
+
+    def prox_conjugate(self, z, step, y):
+        """prox of ||y - . ||^* with step using Moreau decomposition."""
+        inv_step = 1 / step
+        return z - step * self.prox(inv_step * z, inv_step, y)
+
+    def subdiff_distance(self, Xw, z, y):
+        """distance of z to subdiff of ||y - . || at Xw."""
+        # computation note: \partial ||y - . ||(Xw) = - \partial || . ||(y - Xw)
+        y_minus_Xw = y - Xw
+
+        if np.any(y_minus_Xw):
+            return norm(z + y_minus_Xw / norm(y_minus_Xw))
+
+        return norm(z - proj_L2ball(z))
 
 
 class SqrtLasso(LinearModel, RegressorMixin):

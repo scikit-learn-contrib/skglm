@@ -11,7 +11,7 @@ from sklearn.exceptions import ConvergenceWarning
 class PDCD_WS:
     """Primal-Dual Coordinate Descent solver with working sets.
 
-    Solver inspired by [1] that uses working sets.
+    Solver inspired by [1] that uses working sets [2].
 
     Parameters
     ----------
@@ -83,13 +83,17 @@ class PDCD_WS:
             z_bar = self.dual_init.copy()
 
         p_objs = []
+        stop_crit = 0.
         all_features = np.arange(n_features)
 
         for iter in range(self.max_iter):
 
             # check convergence
-            opts_primal = penalty.subdiff_distance(w, X.T @ z, all_features)
-            opt_dual = datafit.subdiff_distance(Xw, z, y)
+            opts_primal = _scores_primal(
+                X, w, z, penalty, primal_steps, all_features)
+
+            opt_dual = _score_dual(
+                y, z, Xw, datafit, dual_step)
 
             stop_crit = max(
                 max(opts_primal),
@@ -126,7 +130,7 @@ class PDCD_WS:
             warnings.warn(
                 f"PDCD_WS did not converge for tol={self.tol:.3e} "
                 f"and max_iter={self.max_iter}.\n"
-                "Considering increasing `max_iter` or decreasing `tol`.",
+                "Considering increasing `max_iter` or `tol`.",
                 category=ConvergenceWarning
             )
 
@@ -137,16 +141,15 @@ class PDCD_WS:
     def _solve_subproblem(y, X, w, Xw, z, z_bar, datafit, penalty,
                           primal_steps, dual_step, ws, max_epochs, tol_in):
         n_features = X.shape[1]
-        past_pseudo_grad = np.zeros(len(ws))
 
         for epoch in range(max_epochs):
 
-            for idx, j in enumerate(ws):
+            for j in ws:
                 # update primal
                 old_w_j = w[j]
-                past_pseudo_grad[idx] = X[:, j] @ (2 * z_bar - z)
+                pseudo_grad = X[:, j] @ (2 * z_bar - z)
                 w[j] = penalty.prox_1d(
-                    old_w_j - primal_steps[j] * past_pseudo_grad[idx],
+                    old_w_j - primal_steps[j] * pseudo_grad,
                     primal_steps[j], j)
 
                 # keep Xw syncr with X @ w
@@ -161,8 +164,11 @@ class PDCD_WS:
 
             # check convergence
             if epoch % 10 == 0:
-                opts_primal_in = penalty.subdiff_distance(w, past_pseudo_grad, ws)
-                opt_dual_in = datafit.subdiff_distance(Xw, z, y)
+                opts_primal_in = _scores_primal(
+                    X, w, z, penalty, primal_steps, ws)
+
+                opt_dual_in = _score_dual(
+                    y, z, Xw, datafit, dual_step)
 
                 stop_crit_in = max(
                     max(opts_primal_in),
@@ -192,3 +198,22 @@ class PDCD_WS:
         compiled_penalty = compiled_clone(penalty_)
 
         return compiled_datafit, compiled_penalty
+
+
+@njit
+def _scores_primal(X, w, z, penalty, primal_steps, ws):
+    scores_ws = np.zeros(len(ws))
+
+    for idx, j in enumerate(ws):
+        next_w_j = penalty.prox_1d(w[j] - primal_steps[j] * X[:, j] @ z,
+                                   primal_steps[j], j)
+        scores_ws[idx] = abs(w[j] - next_w_j)
+
+    return scores_ws
+
+
+@njit
+def _score_dual(y, z, Xw, datafit, dual_step):
+    next_z = datafit.prox_conjugate(z + dual_step * Xw,
+                                    dual_step, y)
+    return norm(z - next_z, ord=np.inf)

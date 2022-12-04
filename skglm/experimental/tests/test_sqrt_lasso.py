@@ -76,4 +76,11 @@ def test_PDCD_WS(with_dual_init):
 
 
 if __name__ == '__main__':
+    n_samples, n_features = 50, 1000
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
+
+    alpha_max = norm(X.T @ y, ord=np.inf) / norm(y)
+    alpha = alpha_max / 10
+
+    PDCD_WS(verbose=1, dual_init=y / norm(y)).solve(X, y, SqrtQuadratic(), L1(alpha))
     pass

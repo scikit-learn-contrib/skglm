@@ -59,28 +59,17 @@ def test_prox_newton_cp():
     np.testing.assert_allclose(clf.coef_, w)
 
 
-@pytest.mark.parametrize('with_dual_init', [True, False])
-def test_PDCD_WS(with_dual_init):
+def test_PDCD_WS():
     n_samples, n_features = 50, 10
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
 
     alpha_max = norm(X.T @ y, ord=np.inf) / norm(y)
     alpha = alpha_max / 10
 
-    dual_init = y / norm(y) if with_dual_init else None
-
-    w = PDCD_WS(dual_init=dual_init).solve(X, y, SqrtQuadratic(), L1(alpha))[0]
+    w = PDCD_WS().solve(X, y, SqrtQuadratic(), L1(alpha))[0]
     clf = SqrtLasso(alpha=alpha, tol=1e-12).fit(X, y)
     np.testing.assert_allclose(clf.coef_, w, atol=1e-6)
 
 
 if __name__ == '__main__':
-    n_samples, n_features = 10, 100
-    X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
-
-    alpha_max = norm(X.T @ y, ord=np.inf) / norm(y)
-    alpha = alpha_max / 10
-
-    PDCD_WS(verbose=1, dual_init=y / norm(y), p0=1000,
-            max_epochs=10_000).solve(X, y, SqrtQuadratic(), L1(alpha))
     pass

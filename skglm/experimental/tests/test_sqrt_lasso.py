@@ -75,8 +75,6 @@ def test_PDCD_WS(with_dual_init):
 
 
 if __name__ == '__main__':
-    import plotly.graph_objects as go
-
     n_samples, n_features = 10, 100
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
 

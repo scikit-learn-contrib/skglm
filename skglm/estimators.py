@@ -314,6 +314,9 @@ class Lasso(LinearModel, RegressorMixin):
     tol : float, optional
         Stopping criterion for the optimization.
 
+    positive : bool, optional
+        When set to ``True``, forces the coefficient vector to be positive.
+
     fit_intercept : bool, optional (default=True)
         Whether or not to fit an intercept.
 
@@ -345,7 +348,8 @@ class Lasso(LinearModel, RegressorMixin):
     """
 
     def __init__(self, alpha=1., max_iter=50, max_epochs=50_000, p0=10, verbose=0,
-                 tol=1e-4, fit_intercept=True, warm_start=False, ws_strategy="subdiff"):
+                 tol=1e-4, positive=False, fit_intercept=True, warm_start=False,
+                 ws_strategy="subdiff"):
         super().__init__()
         self.alpha = alpha
         self.tol = tol
@@ -353,6 +357,7 @@ class Lasso(LinearModel, RegressorMixin):
         self.max_epochs = max_epochs
         self.p0 = p0
         self.ws_strategy = ws_strategy
+        self.positive = positive
         self.fit_intercept = fit_intercept
         self.warm_start = warm_start
         self.verbose = verbose
@@ -378,7 +383,7 @@ class Lasso(LinearModel, RegressorMixin):
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
             ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
             warm_start=self.warm_start, verbose=self.verbose)
-        return _glm_fit(X, y, self, Quadratic(), L1(self.alpha), solver)
+        return _glm_fit(X, y, self, Quadratic(), L1(self.alpha, self.positive), solver)
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
         """Compute Lasso path.
@@ -417,7 +422,7 @@ class Lasso(LinearModel, RegressorMixin):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
-        penalty = compiled_clone(L1(self.alpha))
+        penalty = compiled_clone(L1(self.alpha, self.positive))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
         solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
@@ -457,6 +462,9 @@ class WeightedLasso(LinearModel, RegressorMixin):
     tol : float, optional
         Stopping criterion for the optimization.
 
+    positive : bool, optional
+        When set to ``True``, forces the coefficient vector to be positive.
+
     fit_intercept : bool, optional (default=True)
         Whether or not to fit an intercept.
 
@@ -492,8 +500,8 @@ class WeightedLasso(LinearModel, RegressorMixin):
     """
 
     def __init__(self, alpha=1., weights=None, max_iter=50, max_epochs=50_000, p0=10,
-                 verbose=0, tol=1e-4, fit_intercept=True, warm_start=False,
-                 ws_strategy="subdiff"):
+                 verbose=0, tol=1e-4, positive=False, fit_intercept=True,
+                 warm_start=False, ws_strategy="subdiff"):
         super().__init__()
         self.alpha = alpha
         self.weights = weights
@@ -502,6 +510,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
         self.max_epochs = max_epochs
         self.p0 = p0
         self.ws_strategy = ws_strategy
+        self.positive = positive
         self.fit_intercept = fit_intercept
         self.warm_start = warm_start
         self.verbose = verbose
@@ -548,7 +557,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
             raise ValueError("The number of weights must match the number of \
                               features. Got %s, expected %s." % (
                 len(weights), X.shape[1]))
-        penalty = compiled_clone(WeightedL1(self.alpha, weights))
+        penalty = compiled_clone(WeightedL1(self.alpha, weights, self.positive))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
         solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
@@ -574,9 +583,9 @@ class WeightedLasso(LinearModel, RegressorMixin):
         """
         if self.weights is None:
             warnings.warn('Weights are not provided, fitting with Lasso penalty')
-            penalty = L1(self.alpha)
+            penalty = L1(self.alpha, self.positive)
         else:
-            penalty = WeightedL1(self.alpha, self.weights)
+            penalty = WeightedL1(self.alpha, self.weights, self.positive)
         solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
             ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
@@ -618,6 +627,9 @@ class ElasticNet(LinearModel, RegressorMixin):
     tol : float, optional
         Stopping criterion for the optimization.
 
+    positive : bool, optional
+        When set to ``True``, forces the coefficient vector to be positive.
+
     fit_intercept : bool, optional (default=True)
         Whether or not to fit an intercept.
 
@@ -648,8 +660,8 @@ class ElasticNet(LinearModel, RegressorMixin):
     """
 
     def __init__(self, alpha=1., l1_ratio=0.5, max_iter=50, max_epochs=50_000, p0=10,
-                 verbose=0, tol=1e-4, fit_intercept=True, warm_start=False,
-                 ws_strategy="subdiff"):
+                 verbose=0, tol=1e-4, positive=False, fit_intercept=True,
+                 warm_start=False, ws_strategy="subdiff"):
         super().__init__()
         self.alpha = alpha
         self.l1_ratio = l1_ratio
@@ -659,6 +671,7 @@ class ElasticNet(LinearModel, RegressorMixin):
         self.p0 = p0
         self.ws_strategy = ws_strategy
         self.fit_intercept = fit_intercept
+        self.positive = positive
         self.warm_start = warm_start
         self.verbose = verbose
 
@@ -699,7 +712,7 @@ class ElasticNet(LinearModel, RegressorMixin):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
-        penalty = compiled_clone(L1_plus_L2(self.alpha, self.l1_ratio))
+        penalty = compiled_clone(L1_plus_L2(self.alpha, self.l1_ratio, self.positive))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
         solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
@@ -728,7 +741,7 @@ class ElasticNet(LinearModel, RegressorMixin):
             ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
             warm_start=self.warm_start, verbose=self.verbose)
         return _glm_fit(X, y, self, Quadratic(),
-                        L1_plus_L2(self.alpha, self.l1_ratio), solver)
+                        L1_plus_L2(self.alpha, self.l1_ratio, self.positive), solver)
 
 
 class MCPRegression(LinearModel, RegressorMixin):

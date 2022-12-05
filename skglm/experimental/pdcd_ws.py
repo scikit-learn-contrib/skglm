@@ -9,32 +9,41 @@ from sklearn.exceptions import ConvergenceWarning
 
 
 class PDCD_WS:
-    """Primal-Dual Coordinate Descent solver with working sets.
+    r"""Primal-Dual Coordinate Descent solver with working sets.
 
-    Solver inspired by [1] that uses working sets [2].
+    It solves::
+
+        \min_w F(Xw) + G(w) \Leftrightarrow \min_w \max_z <Xw, z> + G(w) - F^*(z)
+
+    where :math:`F` is the datafit term (:math:`F^*` it's Fenchel conjugate)
+    and :math:`G` is the penalty term.
+
+    The datafit is required to be convex and proximable. Also, the penalty
+    is also required to be convex, separable, and proximable.
+
+    The solver is inspired by [1] and uses working sets [2].
+    The working sets are built using a fixed point distance strategy
+    where each feature is assigned a score based how much it maps
+    to itself when performing a primal update::
+
+        \text{score}_j = \abs{w_j - prox_{G_j}(w_j - \tau_j <X_j, z>)}
+
+    where :maths:`\tau_j` is the primal step associated with the j-th feature.
 
     Parameters
     ----------
     max_iter : int, optional
         The maximum number of iterations or equivalently the
-        the maximum number solved subproblems.
+        the maximum number of solved subproblems.
 
     max_epochs : int, optional
-        Maximum number of CD epochs on each subproblem.
+        Maximum number of primal CD epochs on each subproblem.
 
     p0 : int, optional
         First working set size.
 
     tol : float, optional
         The tolerance for the optimization.
-
-    dual_init : array, shape (n_samples,) default None
-        The initialization of dual variables.
-        If None, they are initialized as the 0 vector ``np.zeros(n_samples)``.
-
-    return_p_objs : bool, default False
-        If True, returns the values of the objective in each iteration.
-        Otherwise returns an empty array.
 
     verbose : bool or int, default False
         Amount of verbosity. 0/False is silent.
@@ -47,46 +56,44 @@ class PDCD_WS:
         https://epubs.siam.org/doi/10.1137/18M1168480,
         code: https://github.com/Badr-MOUFAD/Fercoq-Bianchi-solver
 
-    .. [2] Mathurin Massias, Alexandre Gramfort, Joseph Salmon,
-        "From safe screening rules to working sets for faster Lasso-type solvers",
-        OPTML workshop at NIPS 2017, https://arxiv.org/abs/1703.07285v2
+    .. [2] Bertrand, Q. and Klopfenstein, Q. and Bannier, P.-A. and Gidel, G.
+           and Massias, M.
+           "Beyond L1: Faster and Better Sparse Models with skglm", 2022
+           https://arxiv.org/abs/2204.07826
     """
 
-    def __init__(self, max_iter=1000, max_epochs=1000, p0=100, tol=1e-6,
-                 dual_init=None, return_p_objs=False, verbose=False):
+    def __init__(self, max_iter=1000, max_epochs=1000,
+                 p0=100, tol=1e-6, verbose=False):
         self.max_iter = max_iter
         self.max_epochs = max_epochs
-        self.dual_init = dual_init
         self.p0 = p0
         self.tol = tol
         self.verbose = verbose
-        self.return_p_objs = return_p_objs
 
-    def solve(self, X, y, datafit_, penalty_):
+    def solve(self, X, y, datafit_, penalty_, w_init=None, Xw_init=None):
         datafit, penalty = PDCD_WS._validate_init(datafit_, penalty_)
         n_samples, n_features = X.shape
 
         # init steps
+        # Despite violating the conditions mentioned in [1]
+        # this choice of steps yield in practice a convergent algorithm
+        # with better speed of convergence
         dual_step = 1 / norm(X, ord=2)
         primal_steps = 1 / norm(X, axis=0, ord=2)
 
         # primal vars
-        w = np.zeros(n_features)
-        Xw = np.zeros(n_samples)
+        w = np.zeros(n_features) if w_init is None else w_init
+        Xw = np.zeros(n_samples) if Xw_init is None else Xw_init
 
         # dual vars
-        if self.dual_init is None:
-            z = np.zeros(n_samples)
-            z_bar = np.zeros(n_samples)
-        else:
-            z = self.dual_init.copy()
-            z_bar = self.dual_init.copy()
+        z = y.copy()
+        z_bar = y.copy()
 
         p_objs = []
         stop_crit = 0.
         all_features = np.arange(n_features)
 
-        for iter in range(self.max_iter):
+        for iteration in range(self.max_iter):
 
             # check convergence
             opts_primal = _scores_primal(
@@ -103,12 +110,8 @@ class PDCD_WS:
             if self.verbose:
                 current_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
                 print(
-                    f"Iteration {iter+1}: {current_p_obj:.10f}, "
+                    f"Iteration {iteration+1}: {current_p_obj:.10f}, "
                     f"stopping crit: {stop_crit:.2e}")
-
-            if self.return_p_objs:
-                current_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
-                p_objs.append(current_p_obj)
 
             if stop_crit <= self.tol:
                 break
@@ -126,6 +129,9 @@ class PDCD_WS:
             PDCD_WS._solve_subproblem(
                 y, X, w, Xw, z, z_bar, datafit, penalty,
                 primal_steps, dual_step, ws, self.max_epochs, tol_in=0.3*stop_crit)
+
+            current_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
+            p_objs.append(current_p_obj)
         else:
             warnings.warn(
                 f"PDCD_WS did not converge for tol={self.tol:.3e} "

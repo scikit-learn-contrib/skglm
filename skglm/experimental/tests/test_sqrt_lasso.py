@@ -69,18 +69,20 @@ def test_PDCD_WS(with_dual_init):
 
     dual_init = y / norm(y) if with_dual_init else None
 
-    w, _, _ = PDCD_WS(dual_init=dual_init).solve(X, y, SqrtQuadratic(), L1(alpha))
+    w = PDCD_WS(dual_init=dual_init).solve(X, y, SqrtQuadratic(), L1(alpha))[0]
     clf = SqrtLasso(alpha=alpha, tol=1e-12).fit(X, y)
-    w, _, _ = _chambolle_pock_sqrt(X, y, alpha, max_iter=1000)
-    np.testing.assert_allclose(clf.coef_, w)
+    np.testing.assert_allclose(clf.coef_, w, atol=1e-6)
 
 
 if __name__ == '__main__':
-    n_samples, n_features = 50, 1000
+    import plotly.graph_objects as go
+
+    n_samples, n_features = 10, 100
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
 
     alpha_max = norm(X.T @ y, ord=np.inf) / norm(y)
     alpha = alpha_max / 10
 
-    PDCD_WS(verbose=1, dual_init=y / norm(y)).solve(X, y, SqrtQuadratic(), L1(alpha))
+    PDCD_WS(verbose=1, dual_init=y / norm(y), p0=1000,
+            max_epochs=10_000).solve(X, y, SqrtQuadratic(), L1(alpha))
     pass

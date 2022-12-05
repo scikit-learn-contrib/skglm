@@ -59,9 +59,8 @@ class SqrtQuadratic(BaseDatafit):
         return y - BST(y - w, step)
 
     def prox_conjugate(self, z, step, y):
-        """Prox of ||y - . ||^* with step using Moreau decomposition."""
-        inv_step = 1 / step
-        return z - step * self.prox(inv_step * z, inv_step, y)
+        """Prox of ||y - . ||^* with step."""
+        return proj_L2ball(z - step * y)
 
     def subdiff_distance(self, Xw, z, y):
         """Distance of ``z`` to subdiff of ||y - . || at ``Xw``."""

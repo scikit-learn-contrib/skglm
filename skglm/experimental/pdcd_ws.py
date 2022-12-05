@@ -2,6 +2,7 @@ import warnings
 
 import numpy as np
 from numpy.linalg import norm
+from scipy.sparse import issparse
 
 from numba import njit
 from skglm.utils.jit_compilation import compiled_clone
@@ -13,20 +14,24 @@ class PDCD_WS:
 
     It solves::
 
-        \min_w F(Xw) + G(w) \Leftrightarrow \min_w \max_z <Xw, z> + G(w) - F^*(z)
+        \min_w F(Xw) + G(w)
 
-    where :math:`F` is the datafit term (:math:`F^*` it's Fenchel conjugate)
+    using a primal-dual method on the saddle point problem::
+
+        \min_w \max_z <Xw, z> + G(w) - F^*(z)
+
+    where :math:`F` is the datafit term (:math:`F^*` its Fenchel conjugate)
     and :math:`G` is the penalty term.
 
     The datafit is required to be convex and proximable. Also, the penalty
-    is also required to be convex, separable, and proximable.
+    is required to be convex, separable, and proximable.
 
-    The solver is inspired by [1] and uses working sets [2].
+    The solver is an adaptation of algorithm [1] to working sets [2].
     The working sets are built using a fixed point distance strategy
-    where each feature is assigned a score based how much it maps
-    to itself when performing a primal update::
+    where each feature is assigned a score based how much its coefficient varies
+    when performing a primal update::
 
-        \text{score}_j = \abs{w_j - prox_{G_j}(w_j - \tau_j <X_j, z>)}
+        \text{score}_j = \abs{w_j - prox_{\tau_j, G_j}(w_j - \tau_j <X_j, z>)}
 
     where :maths:`\tau_j` is the primal step associated with the j-th feature.
 
@@ -38,6 +43,10 @@ class PDCD_WS:
 
     max_epochs : int, optional
         Maximum number of primal CD epochs on each subproblem.
+
+    dual_init : array, shape (n_samples,) default None
+        The initialization of dual variables.
+        If None, they are initialized as the 0 vector ``np.zeros(n_samples)``.
 
     p0 : int, optional
         First working set size.
@@ -62,15 +71,19 @@ class PDCD_WS:
            https://arxiv.org/abs/2204.07826
     """
 
-    def __init__(self, max_iter=1000, max_epochs=1000,
+    def __init__(self, max_iter=1000, max_epochs=1000, dual_init=None,
                  p0=100, tol=1e-6, verbose=False):
         self.max_iter = max_iter
         self.max_epochs = max_epochs
+        self.dual_init = dual_init
         self.p0 = p0
         self.tol = tol
         self.verbose = verbose
 
     def solve(self, X, y, datafit_, penalty_, w_init=None, Xw_init=None):
+        if issparse(X):
+            raise ValueError("Sparse matrices are not yet support in PDCD_WS solver.")
+
         datafit, penalty = PDCD_WS._validate_init(datafit_, penalty_)
         n_samples, n_features = X.shape
 
@@ -86,8 +99,12 @@ class PDCD_WS:
         Xw = np.zeros(n_samples) if Xw_init is None else Xw_init
 
         # dual vars
-        z = y.copy()
-        z_bar = y.copy()
+        if self.dual_init is None:
+            z = np.zeros(n_samples)
+            z_bar = np.zeros(n_samples)
+        else:
+            z = self.dual_init.copy()
+            z_bar = self.dual_init.copy()
 
         p_objs = []
         stop_crit = 0.

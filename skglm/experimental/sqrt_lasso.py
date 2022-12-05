@@ -59,7 +59,7 @@ class SqrtQuadratic(BaseDatafit):
         return y - BST(y - w, step)
 
     def prox_conjugate(self, z, step, y):
-        """Prox of ||y - . ||^* with step."""
+        """Prox of ||y - . ||^* with step `step`."""
         return proj_L2ball(z - step * y)
 
     def subdiff_distance(self, Xw, z, y):

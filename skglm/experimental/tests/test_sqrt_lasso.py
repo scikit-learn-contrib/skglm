@@ -2,8 +2,11 @@ import pytest
 import numpy as np
 from numpy.linalg import norm
 
+from skglm.penalties import L1
 from skglm.utils.data import make_correlated_data
-from skglm.experimental.sqrt_lasso import SqrtLasso, _chambolle_pock_sqrt
+from skglm.experimental.sqrt_lasso import (SqrtLasso, SqrtQuadratic,
+                                           _chambolle_pock_sqrt)
+from skglm.experimental.pdcd_ws import PDCD_WS
 
 
 def test_alpha_max():
@@ -54,6 +57,21 @@ def test_prox_newton_cp():
     clf = SqrtLasso(alpha=alpha, tol=1e-12).fit(X, y)
     w, _, _ = _chambolle_pock_sqrt(X, y, alpha, max_iter=1000)
     np.testing.assert_allclose(clf.coef_, w)
+
+
+@pytest.mark.parametrize('with_dual_init', [True, False])
+def test_PDCD_WS(with_dual_init):
+    n_samples, n_features = 50, 10
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
+
+    alpha_max = norm(X.T @ y, ord=np.inf) / norm(y)
+    alpha = alpha_max / 10
+
+    dual_init = y / norm(y) if with_dual_init else None
+
+    w = PDCD_WS(dual_init=dual_init).solve(X, y, SqrtQuadratic(), L1(alpha))[0]
+    clf = SqrtLasso(alpha=alpha, tol=1e-12).fit(X, y)
+    np.testing.assert_allclose(clf.coef_, w, atol=1e-6)
 
 
 if __name__ == '__main__':

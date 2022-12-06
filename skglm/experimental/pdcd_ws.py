@@ -67,7 +67,7 @@ class PDCD_WS:
 
     .. [2] Bertrand, Q. and Klopfenstein, Q. and Bannier, P.-A. and Gidel, G.
            and Massias, M.
-           "Beyond L1: Faster and Better Sparse Models with skglm", 2022
+           "Beyond L1: Faster and Better Sparse Models with skglm", NeurIPS, 2022
            https://arxiv.org/abs/2204.07826
     """
 
@@ -112,17 +112,14 @@ class PDCD_WS:
 
         for iteration in range(self.max_iter):
 
-            # check convergence
+            # check convergence using fixed-point criteria on both dual and primal
             opts_primal = _scores_primal(
                 X, w, z, penalty, primal_steps, all_features)
 
             opt_dual = _score_dual(
                 y, z, Xw, datafit, dual_step)
 
-            stop_crit = max(
-                max(opts_primal),
-                opt_dual
-            )
+            stop_crit = max(max(opts_primal), opt_dual)
 
             if self.verbose:
                 current_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
@@ -185,7 +182,7 @@ class PDCD_WS:
                                                   dual_step, y)
                 z += (z_bar - z) / n_features
 
-            # check convergence
+            # check convergence using fixed-point criteria on both dual and primal
             if epoch % 10 == 0:
                 opts_primal_in = _scores_primal(
                     X, w, z, penalty, primal_steps, ws)
@@ -193,10 +190,7 @@ class PDCD_WS:
                 opt_dual_in = _score_dual(
                     y, z, Xw, datafit, dual_step)
 
-                stop_crit_in = max(
-                    max(opts_primal_in),
-                    opt_dual_in
-                )
+                stop_crit_in = max(max(opts_primal_in), opt_dual_in)
 
                 if stop_crit_in <= tol_in:
                     break

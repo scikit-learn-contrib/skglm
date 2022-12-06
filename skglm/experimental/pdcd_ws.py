@@ -113,11 +113,8 @@ class PDCD_WS:
         for iteration in range(self.max_iter):
 
             # check convergence using fixed-point criteria on both dual and primal
-            opts_primal = _scores_primal(
-                X, w, z, penalty, primal_steps, all_features)
-
-            opt_dual = _score_dual(
-                y, z, Xw, datafit, dual_step)
+            opts_primal = _scores_primal(X, w, z, penalty, primal_steps, all_features)
+            opt_dual = _score_dual(y, z, Xw, datafit, dual_step)
 
             stop_crit = max(max(opts_primal), opt_dual)
 
@@ -184,11 +181,8 @@ class PDCD_WS:
 
             # check convergence using fixed-point criteria on both dual and primal
             if epoch % 10 == 0:
-                opts_primal_in = _scores_primal(
-                    X, w, z, penalty, primal_steps, ws)
-
-                opt_dual_in = _score_dual(
-                    y, z, Xw, datafit, dual_step)
+                opts_primal_in = _scores_primal(X, w, z, penalty, primal_steps, ws)
+                opt_dual_in = _score_dual(y, z, Xw, datafit, dual_step)
 
                 stop_crit_in = max(max(opts_primal_in), opt_dual_in)
 

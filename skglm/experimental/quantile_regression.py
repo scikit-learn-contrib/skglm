@@ -24,17 +24,20 @@ class Pinball(BaseDatafit):
         self.quantile = quantile
 
     def value(self, y, w, Xw):
+        # implementation of:
+        # github.com/benchopt/benchmark_quantile_regression/blob/main/objective.py
+        quantile = self.quantile
+
         residual = y - Xw
+        sign = residual >= 0
 
-        right_half_loss = self.quantile * np.where(residual > 0, residual, 0)
-        left_half_loss = (1 - self.quantile) * np.where(residual < 0, residual, 0)
-
-        return np.sum(left_half_loss + right_half_loss)
+        loss = quantile * sign * residual - (1 - quantile) * (1 - sign) * residual
+        return np.sum(loss)
 
     def prox(self, w, step, y):
         """Prox of ||y - . || with step ``step``."""
         shifted_w = w - (2 * self.quantile - 1) * step
-        return y - ST_vec(y - shifted_w, 2 * step)
+        return y - ST_vec(y - shifted_w, step / 2)
 
     def prox_conjugate(self, z, step, y):
         """Prox of ||y - . ||^* with step ``step``."""

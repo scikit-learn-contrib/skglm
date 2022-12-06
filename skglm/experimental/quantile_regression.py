@@ -24,7 +24,7 @@ class Pinball(BaseDatafit):
         self.quantile = quantile
 
     def value(self, y, w, Xw):
-        # implementation of:
+        # implementation taken from
         # github.com/benchopt/benchmark_quantile_regression/blob/main/objective.py
         quantile = self.quantile
 
@@ -36,8 +36,8 @@ class Pinball(BaseDatafit):
 
     def prox(self, w, step, y):
         """Prox of ||y - . || with step ``step``."""
-        shifted_w = w - (2 * self.quantile - 1) * step
-        return y - ST_vec(y - shifted_w, step / 2)
+        shift_cst = (self.quantile - 1/2) * step
+        return y - ST_vec(y - w - shift_cst, step / 2)
 
     def prox_conjugate(self, z, step, y):
         """Prox of ||y - . ||^* with step ``step``."""
@@ -49,15 +49,15 @@ class Pinball(BaseDatafit):
         """Distance of ``z`` to subdiff of ||y - . ||_1 at ``Xw``."""
         # computation note: \partial ||y - . ||_1(Xw) = -\partial || . ||_1(y - Xw)
         y_minus_Xw = y - Xw
-        shifting_cst = self.alpha - 1/2
+        shift_cst = self.quantile - 1/2
 
         max_distance = 0.
         for i in range(len(y)):
 
             if y_minus_Xw[i] == 0.:
-                distance_i = max(0, abs(z[i] - shifting_cst) - 1)
+                distance_i = max(0, abs(z[i] - shift_cst) - 1)
             else:
-                distance_i = abs(z[i] + shifting_cst + np.sign(y_minus_Xw[i]))
+                distance_i = abs(z[i] + shift_cst + np.sign(y_minus_Xw[i]))
 
             max_distance = max(max_distance, distance_i)
 

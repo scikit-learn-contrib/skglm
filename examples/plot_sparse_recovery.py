@@ -50,7 +50,7 @@ X, X_test, y, y_test = train_test_split(X_, y_, test_size=0.5)
 # solution for the Lasso.
 alpha_max = norm(X.T @ y, ord=np.inf) / len(y)
 
-n_alphas = 10
+n_alphas = 30
 alphas = alpha_max * np.geomspace(1, 1e-2, num=n_alphas)
 
 # Benjamini-Hochberg sequence for SLOPE:

@@ -35,18 +35,18 @@ class Pinball(BaseDatafit):
         return np.sum(loss)
 
     def prox(self, w, step, y):
-        """Prox of ``step * ||y - . ||``."""
+        """Prox of ``step * pinball``."""
         shift_cst = (self.quantile - 1/2) * step
         return y - ST_vec(y - w - shift_cst, step / 2)
 
     def prox_conjugate(self, z, step, y):
-        """Prox of ``step * ||y - . ||^*``."""
+        """Prox of ``step * pinball^*``."""
         # using Moreau decomposition
         inv_step = 1 / step
         return z - step * self.prox(inv_step * z, inv_step, y)
 
     def subdiff_distance(self, Xw, z, y):
-        """Distance of ``z`` to subdiff of ||y - . ||_1 at ``Xw``."""
+        """Distance of ``z`` to subdiff of pinball at ``Xw``."""
         # computation note: \partial ||y - . ||_1(Xw) = -\partial || . ||_1(y - Xw)
         y_minus_Xw = y - Xw
         shift_cst = self.quantile - 1/2

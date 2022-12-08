@@ -9,7 +9,7 @@ class Pinball(BaseDatafit):
 
     The datafit reads::
 
-        quantile * max(y - Xw, 0) + (1 - quantile) * max(Xw - y, 0)
+        sum_i quantile * max(y_i - Xw_i, 0) + (1 - quantile) * max(Xw_i - y_i, 0)
 
     such that ``quantile`` in [0, 1].
 

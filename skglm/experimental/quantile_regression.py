@@ -11,7 +11,7 @@ class Pinball(BaseDatafit):
 
         sum_i quantile * max(y_i - Xw_i, 0) + (1 - quantile) * max(Xw_i - y_i, 0)
 
-    such that ``quantile`` in [0, 1].
+    with ``quantile`` in [0, 1].
 
     Parameters
     ----------

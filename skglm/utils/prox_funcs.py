@@ -4,11 +4,11 @@ from numpy.linalg import norm
 
 
 @njit
-def ST(x, u):
+def ST(x, u, positive=False):
     """Soft-thresholding of scalar x at level u."""
     if x > u:
         return x - u
-    elif x < - u:
+    elif x < - u and not positive:
         return x + u
     else:
         return 0.

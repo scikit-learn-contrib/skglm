@@ -55,11 +55,11 @@ class SqrtQuadratic(BaseDatafit):
         return np.full(n_samples, fill_value)
 
     def prox(self, w, step, y):
-        """Prox of ||y - . || with step."""
+        """Prox of ``step * ||y - . ||``."""
         return y - BST(y - w, step)
 
     def prox_conjugate(self, z, step, y):
-        """Prox of ||y - . ||^* with step `step`."""
+        """Prox of ``step * ||y - . ||^*``."""
         return proj_L2ball(z - step * y)
 
     def subdiff_distance(self, Xw, z, y):

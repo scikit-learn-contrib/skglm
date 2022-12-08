@@ -11,12 +11,12 @@ class Pinball(BaseDatafit):
 
         quantile * max(y - Xw, 0) + (1 - quantile) * max(Xw - y, 0)
 
-    such that quantile in ``[0, 1]``.
+    such that ``quantile`` in [0, 1].
 
     Parameters
     ----------
     quantile : float
-        Quantile must be in ``[0, 1]``. When ``quantile=0.5``,
+        Quantile must be in [0, 1]. When ``quantile=0.5``,
         the datafit becomes a Least Absolute Deviation (LAD) datafit.
     """
 
@@ -35,12 +35,12 @@ class Pinball(BaseDatafit):
         return np.sum(loss)
 
     def prox(self, w, step, y):
-        """Prox of ||y - . || with step ``step``."""
+        """Prox of ``step * ||y - . ||``."""
         shift_cst = (self.quantile - 1/2) * step
         return y - ST_vec(y - w - shift_cst, step / 2)
 
     def prox_conjugate(self, z, step, y):
-        """Prox of ||y - . ||^* with step ``step``."""
+        """Prox of ``step * ||y - . ||^*``."""
         # using Moreau decomposition
         inv_step = 1 / step
         return z - step * self.prox(inv_step * z, inv_step, y)

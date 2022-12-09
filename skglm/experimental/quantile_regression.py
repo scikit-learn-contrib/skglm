@@ -9,34 +9,36 @@ class Pinball(BaseDatafit):
 
     The datafit reads::
 
-        sum_i quantile * max(y_i - Xw_i, 0) + (1 - quantile) * max(Xw_i - y_i, 0)
+        sum_i quantile_level * max(y_i - Xw_i, 0) +
+        (1 - quantile_level) * max(Xw_i - y_i, 0)
 
-    with ``quantile`` in [0, 1].
+    with ``quantile_level`` in [0, 1].
 
     Parameters
     ----------
-    quantile : float
-        Quantile must be in [0, 1]. When ``quantile=0.5``,
+    quantile_level : float
+        Quantile level must be in [0, 1]. When ``quantile_level=0.5``,
         the datafit becomes a Least Absolute Deviation (LAD) datafit.
     """
 
-    def __init__(self, quantile):
-        self.quantile = quantile
+    def __init__(self, quantile_level):
+        self.quantile_level = quantile_level
 
     def value(self, y, w, Xw):
         # implementation taken from
         # github.com/benchopt/benchmark_quantile_regression/blob/main/objective.py
-        quantile = self.quantile
+        quantile_level = self.quantile_level
 
         residual = y - Xw
         sign = residual >= 0
 
-        loss = quantile * sign * residual - (1 - quantile) * (1 - sign) * residual
+        loss = (quantile_level * sign * residual -
+                (1 - quantile_level) * (1 - sign) * residual)
         return np.sum(loss)
 
     def prox(self, w, step, y):
         """Prox of ``step * pinball``."""
-        shift_cst = (self.quantile - 1/2) * step
+        shift_cst = (self.quantile_level - 1/2) * step
         return y - ST_vec(y - w - shift_cst, step / 2)
 
     def prox_conjugate(self, z, step, y):
@@ -49,7 +51,7 @@ class Pinball(BaseDatafit):
         """Distance of ``z`` to subdiff of pinball at ``Xw``."""
         # computation note: \partial ||y - . ||_1(Xw) = -\partial || . ||_1(y - Xw)
         y_minus_Xw = y - Xw
-        shift_cst = self.quantile - 1/2
+        shift_cst = self.quantile_level - 1/2
 
         max_distance = 0.
         for i in range(len(y)):
@@ -65,9 +67,9 @@ class Pinball(BaseDatafit):
 
     def get_spec(self):
         spec = (
-            ('quantile', float64),
+            ('quantile_level', float64),
         )
         return spec
 
     def params_to_dict(self):
-        return dict(quantile=self.quantile)
+        return dict(quantile_level=self.quantile_level)

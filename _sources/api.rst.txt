@@ -90,3 +90,4 @@ Experimental
    :toctree: generated/
 
    SqrtLasso
+   PDCD_WS

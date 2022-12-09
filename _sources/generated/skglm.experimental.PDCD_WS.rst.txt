@@ -1,0 +1,23 @@
+﻿skglm.experimental.PDCD\_WS
+===========================
+
+.. currentmodule:: skglm.experimental
+
+.. autoclass:: PDCD_WS
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~PDCD_WS.__init__
+      ~PDCD_WS.solve
+   
+   
+
+   
+   
+   

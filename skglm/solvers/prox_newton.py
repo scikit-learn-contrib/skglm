@@ -2,6 +2,7 @@ import numpy as np
 from numba import njit
 from scipy.sparse import issparse
 from skglm.solvers.base import BaseSolver
+from skglm.solvers.common import dist_fix_point
 
 
 EPS_TOL = 0.3
@@ -24,6 +25,9 @@ class ProxNewton(BaseSolver):
     tol : float, default 1e-4
         Tolerance for convergence.
 
+    ws_strategy : ('subdiff'|'fixpoint'), optional
+        The score used to build the working set.
+
     fit_intercept : bool, default True
         If ``True``, fits an unpenalized intercept.
 
@@ -45,11 +49,13 @@ class ProxNewton(BaseSolver):
     """
 
     def __init__(self, p0=10, max_iter=20, max_pn_iter=1000, tol=1e-4,
-                 fit_intercept=True, warm_start=False, verbose=0):
+                 ws_strategy="subdiff", fit_intercept=True, warm_start=False,
+                 verbose=0):
         self.p0 = p0
         self.max_iter = max_iter
         self.max_pn_iter = max_pn_iter
         self.tol = tol
+        self.ws_strategy = ws_strategy
         self.fit_intercept = fit_intercept
         self.warm_start = warm_start
         self.verbose = verbose
@@ -86,7 +92,11 @@ class ProxNewton(BaseSolver):
             else:
                 grad = _construct_grad(X, y, w[:n_features], Xw, datafit, all_features)
 
-            opt = penalty.subdiff_distance(w[:n_features], grad, all_features)
+            if self.ws_strategy == "subdiff":
+                opt = penalty.subdiff_distance(w[:n_features], grad, all_features)
+            elif self.ws_strategy == "fixpoint":
+                opt = dist_fix_point(
+                    w[:n_features], grad, datafit, penalty, all_features)
 
             # optimality of intercept
             if fit_intercept:

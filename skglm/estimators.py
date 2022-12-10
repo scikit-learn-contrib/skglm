@@ -16,6 +16,7 @@ from sklearn.utils.extmath import softmax
 from sklearn.preprocessing import LabelEncoder
 from sklearn.multiclass import OneVsRestClassifier, check_classification_targets
 
+from skglm.utils.dispatcher import validate_solver
 from skglm.utils.jit_compilation import compiled_clone
 from skglm.solvers import AndersonCD, MultiTaskBCD
 from skglm.datafits import Quadratic, Logistic, QuadraticSVC, QuadraticMultiTask
@@ -25,6 +26,7 @@ from skglm.penalties import L1, WeightedL1, L1_plus_L2, MCPenalty, IndicatorBox,
 def _glm_fit(X, y, model, datafit, penalty, solver):
     is_classif = isinstance(datafit, (Logistic, QuadraticSVC))
     fit_intercept = solver.fit_intercept
+    validate_solver(solver, datafit, penalty)
 
     if is_classif:
         check_classification_targets(y)

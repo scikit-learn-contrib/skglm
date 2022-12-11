@@ -151,7 +151,7 @@ class ProxNewton(BaseSolver):
                         delta_w_ws, X_delta_w_ws, ws)
 
                 # check convergence
-                if self.ws_strategy == "subdiff_dist":
+                if self.ws_strategy == "subdiff":
                     opt_in = penalty.subdiff_distance(w, grad_ws, ws)
                 elif self.ws_strategy == "fixpoint":
                     opt_in = dist_fix_point(w, grad_ws, datafit, penalty, ws)

@@ -181,7 +181,7 @@ class ProxNewton(BaseSolver):
         return w, np.asarray(p_objs_out), stop_crit
 
 
-@njit
+# @njit
 def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
                        penalty, ws, tol, ws_strategy):
     # Given:

@@ -72,6 +72,13 @@ class ProxNewton(BaseSolver):
         is_sparse = issparse(X)
         if is_sparse:
             X_bundles = (X.data, X.indptr, X.indices)
+        
+        # fixpoint criterion requires lipschitz constant
+        if self.ws_strategy == "fixpoint":
+            if is_sparse:
+                datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
+            else:
+                datafit.initialize(X, y)
 
         if len(w) != n_features + self.fit_intercept:
             if self.fit_intercept:

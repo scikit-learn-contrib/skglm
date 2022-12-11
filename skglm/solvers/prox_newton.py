@@ -134,11 +134,11 @@ class ProxNewton(BaseSolver):
                 if is_sparse:
                     delta_w_ws, X_delta_w_ws = _descent_direction_s(
                         *X_bundles, y, w, Xw, fit_intercept, grad_ws, datafit,
-                        penalty, ws, tol=EPS_TOL*tol_in)
+                        penalty, ws, tol=EPS_TOL*tol_in, ws_strategy=self.ws_strategy)
                 else:
                     delta_w_ws, X_delta_w_ws = _descent_direction(
                         X, y, w, Xw, fit_intercept, grad_ws, datafit,
-                        penalty, ws, tol=EPS_TOL*tol_in)
+                        penalty, ws, tol=EPS_TOL*tol_in, ws_strategy=self.ws_strategy)
 
                 # backtracking line search with inplace update of w, Xw
                 if is_sparse:
@@ -151,7 +151,10 @@ class ProxNewton(BaseSolver):
                         delta_w_ws, X_delta_w_ws, ws)
 
                 # check convergence
-                opt_in = penalty.subdiff_distance(w, grad_ws, ws)
+                if self.ws_strategy == "subdiff_dist":
+                    opt_in = penalty.subdiff_distance(w, grad_ws, ws)
+                elif self.ws_strategy == "fixpoint":
+                    opt_in = dist_fix_point(w, grad_ws, datafit, penalty, ws)
                 stop_crit_in = np.max(opt_in)
 
                 if max(self.verbose-1, 0):
@@ -173,7 +176,7 @@ class ProxNewton(BaseSolver):
 
 @njit
 def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
-                       penalty, ws, tol):
+                       penalty, ws, tol, ws_strategy):
     # Given:
     #   1) b = \nabla F(X w_epoch)
     #   2) D = \nabla^2 F(X w_epoch)  <------>  raw_hess
@@ -225,7 +228,10 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
             # TODO: can be improved by passing in w_ws but breaks for WeightedL1
             current_w = w_epoch.copy()
             current_w[ws_intercept] = w_ws
-            opt = penalty.subdiff_distance(current_w, past_grads, ws)
+            if ws_strategy == "subdiff":
+                opt = penalty.subdiff_distance(current_w, past_grads, ws)
+            elif ws_strategy == "fixpoint":
+                opt = dist_fix_point(current_w, past_grads, datafit, penalty, ws)
             stop_crit = np.max(opt)
 
             if fit_intercept:
@@ -241,7 +247,8 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
 # sparse version of _descent_direction
 @njit
 def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
-                         Xw_epoch, fit_intercept, grad_ws, datafit, penalty, ws, tol):
+                         Xw_epoch, fit_intercept, grad_ws, datafit, penalty, ws, tol,
+                         ws_strategy):
     raw_hess = datafit.raw_hessian(y, Xw_epoch)
 
     lipschitz = np.zeros(len(ws))
@@ -293,7 +300,10 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
             # TODO: could be improved by passing in w_ws
             current_w = w_epoch.copy()
             current_w[ws_intercept] = w_ws
-            opt = penalty.subdiff_distance(current_w, past_grads, ws)
+            if ws_strategy == "subdiff":
+                opt = penalty.subdiff_distance(current_w, past_grads, ws)
+            elif ws_strategy == "fixpoint":
+                opt = dist_fix_point(current_w, past_grads, datafit, penalty, ws)
             stop_crit = np.max(opt)
 
             if fit_intercept:

@@ -91,3 +91,4 @@ Experimental
 
    SqrtLasso
    PDCD_WS
+   IterativeReweightedL1

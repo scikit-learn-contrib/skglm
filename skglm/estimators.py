@@ -163,15 +163,15 @@ class GeneralizedLinearEstimator(LinearModel):
     Parameters
     ----------
     datafit : instance of BaseDatafit, optional
-        Datafit. If None, `datafit` is initialized as a `Quadratic` datafit.
-        `datafit` is replaced by a JIT-compiled instance when calling fit.
+        Datafit. If None, `datafit` is initialized as a ``Quadratic`` datafit.
+        ``datafit`` is replaced by a JIT-compiled instance when calling fit.
 
     penalty : instance of BasePenalty, optional
-        Penalty. If None, `penalty` is initialized as a `L1` penalty.
-        `penalty` is replaced by a JIT-compiled instance when calling fit.
+        Penalty. If None, `penalty` is initialized as a ``L1`` penalty.
+        ``penalty`` is replaced by a JIT-compiled instance when calling fit.
 
     solver : instance of BaseSolver, optional
-        Solver. If None, `solver` is initialized as an `AndersonCD` solver.
+        Solver. If None, ``solver`` is initialized as an ``AndersonCD`` solver.
 
     Attributes
     ----------

@@ -217,6 +217,7 @@
 <li class="toctree-l2"><a class="reference internal" href="skglm.solvers.ProxNewton.html">skglm.solvers.ProxNewton</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.experimental.SqrtLasso.html">skglm.experimental.SqrtLasso</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.experimental.PDCD_WS.html">skglm.experimental.PDCD_WS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="skglm.experimental.IterativeReweightedL1.html">skglm.experimental.IterativeReweightedL1</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../contribute.html">Contribute to <code class="docutils literal notranslate"><span class="pre">skglm</span></code></a></li>
@@ -259,20 +260,20 @@
 <h1>skglm.GeneralizedLinearEstimator<a class="headerlink" href="#skglm-generalizedlinearestimator" title="Permalink to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="skglm.GeneralizedLinearEstimator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.</span></span><span class="sig-name descname"><span class="pre">GeneralizedLinearEstimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datafit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">penalty</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/4cf5976/skglm/estimators.py#L157"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.GeneralizedLinearEstimator" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.</span></span><span class="sig-name descname"><span class="pre">GeneralizedLinearEstimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datafit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">penalty</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/edde7c7/skglm/estimators.py#L157"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.GeneralizedLinearEstimator" title="Permalink to this definition">#</a></dt>
 <dd><p>Generic generalized linear estimator.</p>
 <p>This estimator takes a penalty and a datafit and runs a coordinate descent solver
 to solve the optimization problem. It handles classification and regression tasks.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>datafit</strong><span class="classifier">instance of BaseDatafit, optional</span></dt><dd><p>Datafit. If None, <cite>datafit</cite> is initialized as a <cite>Quadratic</cite> datafit.
-<cite>datafit</cite> is replaced by a JIT-compiled instance when calling fit.</p>
+<dt><strong>datafit</strong><span class="classifier">instance of BaseDatafit, optional</span></dt><dd><p>Datafit. If None, <cite>datafit</cite> is initialized as a <code class="docutils literal notranslate"><span class="pre">Quadratic</span></code> datafit.
+<code class="docutils literal notranslate"><span class="pre">datafit</span></code> is replaced by a JIT-compiled instance when calling fit.</p>
 </dd>
-<dt><strong>penalty</strong><span class="classifier">instance of BasePenalty, optional</span></dt><dd><p>Penalty. If None, <cite>penalty</cite> is initialized as a <cite>L1</cite> penalty.
-<cite>penalty</cite> is replaced by a JIT-compiled instance when calling fit.</p>
+<dt><strong>penalty</strong><span class="classifier">instance of BasePenalty, optional</span></dt><dd><p>Penalty. If None, <cite>penalty</cite> is initialized as a <code class="docutils literal notranslate"><span class="pre">L1</span></code> penalty.
+<code class="docutils literal notranslate"><span class="pre">penalty</span></code> is replaced by a JIT-compiled instance when calling fit.</p>
 </dd>
-<dt><strong>solver</strong><span class="classifier">instance of BaseSolver, optional</span></dt><dd><p>Solver. If None, <cite>solver</cite> is initialized as an <cite>AndersonCD</cite> solver.</p>
+<dt><strong>solver</strong><span class="classifier">instance of BaseSolver, optional</span></dt><dd><p>Solver. If None, <code class="docutils literal notranslate"><span class="pre">solver</span></code> is initialized as an <code class="docutils literal notranslate"><span class="pre">AndersonCD</span></code> solver.</p>
 </dd>
 </dl>
 </dd>
@@ -291,7 +292,7 @@ to solve the optimization problem. It handles classification and regression task
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="skglm.GeneralizedLinearEstimator.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datafit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">penalty</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/4cf5976/skglm/estimators.py#L191"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.GeneralizedLinearEstimator.__init__" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datafit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">penalty</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/edde7c7/skglm/estimators.py#L191"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.GeneralizedLinearEstimator.__init__" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>

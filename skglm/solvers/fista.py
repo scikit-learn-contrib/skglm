@@ -102,3 +102,6 @@ class FISTA(BaseSolver):
                     print(f"Stopping criterion max violation: {stop_crit:.2e}")
                 break
         return w, np.array(p_objs_out), stop_crit
+
+    def validate(self, datafit, penalty):
+        pass

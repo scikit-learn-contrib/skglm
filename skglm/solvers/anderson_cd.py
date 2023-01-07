@@ -2,6 +2,7 @@ import numpy as np
 from numba import njit
 from scipy import sparse
 from sklearn.utils import check_array
+from skglm.penalties import L0_5, L2_3
 from skglm.solvers.common import construct_grad, construct_grad_sparse, dist_fix_point
 from skglm.solvers.base import BaseSolver
 from skglm.utils.anderson import AndersonAcceleration
@@ -257,6 +258,12 @@ class AndersonCD(BaseSolver):
         if return_n_iter:
             results += (n_iters,)
         return results
+    
+    def validate(self, datafit, penalty):
+        if self.ws_strategy == "subdiff" and isinstance(penalty, (L0_5, L2_3)):
+            raise Exception(
+                "ws_strategy=`subdiff` is not available for Lp penalties (p < 1). "
+                "Set ws_strategy to `fixpoint`.")
 
 
 @njit

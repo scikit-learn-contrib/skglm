@@ -138,6 +138,9 @@ class GroupBCD(BaseSolver):
 
         return w, p_objs_out, stop_crit
 
+    def validate(self, datafit, penalty):
+        pass
+
 
 @njit
 def _bcd_epoch(X, y, w, Xw, datafit, penalty, ws):

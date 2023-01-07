@@ -150,3 +150,6 @@ def _gram_cd_epoch(scaled_gram, w, grad, penalty, greedy_cd):
             grad += (w[j] - old_w_j) * scaled_gram[:, j]
 
     return penalty.subdiff_distance(w, grad, all_features)
+
+    def validate(self, datafit, penalty):
+        pass

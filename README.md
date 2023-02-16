@@ -8,8 +8,9 @@
 
 ![build](https://github.com/scikit-learn-contrib/skglm/workflows/pytest/badge.svg)
 ![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)
-![Downloads](https://pepy.tech/badge/skglm/month)
-![PyPI version](https://badge.fury.io/py/skglm.svg)
+[![Downloads](https://static.pepy.tech/badge/skglm)](https://pepy.tech/project/skglm)
+[![Downloads](https://static.pepy.tech/badge/skglm/month)](https://pepy.tech/project/skglm)
+[![PyPI version](https://badge.fury.io/py/skglm.svg)](https://pypi.org/project/skglm/)
 
 
 ``skglm`` is a Python package that offers **fast estimators** for sparse Generalized Linear Models (GLMs) that are **100% compatible with ``scikit-learn``**. It is **highly flexible** and supports a wide range of GLMs. You get to choose from ``skglm``'s already-made estimators or **customize your own** by combining the available datafits and penalty.

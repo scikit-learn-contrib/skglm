@@ -423,9 +423,9 @@ class Huber(BaseDatafit):
 class Poisson(BaseDatafit):
     r"""Poisson datafit.
 
-    The datafit reads::
+    The datafit reads:
 
-    (1 / n_samples) * \sum_i (exp(Xw_i) - y_i * Xw_i)
+    .. math:: \frac{1}{\texttt{n_samples}} \sum_i (\exp(Xw_i) - y_i Xw_i)
 
     Note:
     ----

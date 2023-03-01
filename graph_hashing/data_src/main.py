@@ -81,6 +81,11 @@ def generate_data(n_hashtable=10, n_nodes=10_000, n_supernodes=1_000, n_events=1
         tensor_H_k[k] = H_kT.T
         tensor_S_k[k] = S_k
 
+    # cast values as int
+    tensor_H_k = tensor_H_k.astype(int)
+    tensor_S_k = tensor_S_k.astype(int)
+    S_ground_truth = S_ground_truth.astype(int)
+
     return tensor_H_k, tensor_S_k, S_ground_truth
 
 

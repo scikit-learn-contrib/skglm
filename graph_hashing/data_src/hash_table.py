@@ -50,7 +50,8 @@ class HashTable:
         for i in range(3):
             for j in range(self.order):
                 # pick an int between 0 and 2^31-1
-                self.ai[i][j] = (random.randint(0, 0x7fffffff-1) << 32) + (random.randint(0, 0x7fffffff-1)) % prime
+                self.ai[i][j] = (random.randint(0, 0x7fffffff-1) << 32) + \
+                    (random.randint(0, 0x7fffffff-1)) % prime
         # initialize self.hashtable
         for i in range(3):
             for j in range(size_table):
@@ -94,20 +95,3 @@ class HashTable:
         if not self.initialized:
             self.set_order_single_init(new_order=10)
         return self.hashtable[0][upper] ^ self.hashtable[1][lower] ^ self.hashtable[2][lower+upper]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

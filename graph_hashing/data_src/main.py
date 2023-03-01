@@ -1,9 +1,12 @@
+from joblib import Memory
+
 import utils
 import networkx as nx
 from hash_table import HashTable
 import numpy as np
 
 
+@Memory(location='./graph_hashing/data', verbose=0, mmap_mode='r').cache
 def generate_data(n_hashtable=10, n_nodes=10_000, n_supernodes=1_000, n_events=10_000):
     """Generate the graph hashing data.
 

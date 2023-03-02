@@ -41,3 +41,19 @@ $$\partial_{i, j}^2 f(S) = \sum_{k=1}^{K} \lVert h^{(k)}_i {h^{(k)}_j}^\top\lVer
     $$\lVert H_k R_k(S) H_k^\top - H_k R_k(S') H_k^\top \rVert_F^2 \leq \lVert (H_k^\top H_k)^2 \rVert_2 \lVert S - S' \rVert_F^2$$
     * upper bound on the spectral norm
     $$\lVert (H_k^\top H_k)^2 \rVert_2 \leq \lVert H_k \rVert_2^4$$
+
+### Algorithm cost
+Cost per iteration is $\mathcal{O}(K \times n^2 \times n_s)$.
+Details:
+1. Compute grad $\mathcal{O}(K \times n^2 \times n_s)$
+$$
+\begin{aligned}
+\mathrm{For \ k=1 \ldots K}:\\
+R_k & \gets H_k^\top S H_k \\  
+\mathrm{grad} &\gets \mathrm{grad} - H_k R_k H_k^\top  \\
+\end{aligned}
+$$
+2. Prox grad update update $\mathcal{O}(n^2) + \mathcal{O}(n^2) = \mathcal{O}(n^2)$
+$$
+S \gets \mathrm{ST}_{\frac{\lambda}{L}}(S - \frac{1}{L} \mathrm{grad})
+$$

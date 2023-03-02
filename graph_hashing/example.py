@@ -29,6 +29,6 @@ lmbd_max = norm(grad_zero.flatten(), ord=np.inf)
 ########################
 lmbd = reg * lmbd_max
 
-S, stop_crit = PGD(verbose=1, max_iter=500).solve(tensor_H_k, tensor_S_k, lmbd)
+S, stop_crit = PGD(verbose=1, max_iter=10_000).solve(tensor_H_k, tensor_S_k, lmbd)
 
 print((S != 0).sum())

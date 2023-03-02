@@ -9,7 +9,7 @@ class PGD:
 
     Objective to optimize::
 
-        min_S (1/2) * ||sum_k S_k - H_k^T S H_k||_F^2 + lambda * ||S||_1
+        min_S sum_k (1/2) * ||S_k - H_k^T S H_k||_F^2 + lambda * ||S||_1
 
 
     Parameters
@@ -42,10 +42,7 @@ class PGD:
 
         # init vars
         n_nodes, _ = tensor_H_k[0].shape
-
         S = np.zeros((n_nodes, n_nodes))
-        sum_S_k = tensor_S_k.sum(axis=0)
-
         stop_crit = 0.
 
         # grad step
@@ -61,13 +58,13 @@ class PGD:
         for it in range(self.max_iter):
 
             # compute gradient
-            grad = _compute_grad(S, tensor_H_k, sum_S_k)
+            grad = _compute_grad(S, tensor_H_k, tensor_S_k)
 
             # prox grad step
             S[:] = ST_vec(S - step * grad, step * lmbd)
 
             if self.verbose:
-                p_obj = _compute_obj(S, tensor_H_k, sum_S_k, lmbd)
+                p_obj = _compute_obj(S, tensor_H_k, tensor_S_k, lmbd)
 
                 next_S = ST_vec(S - step * grad, step * lmbd)
                 stop_crit = norm(S - next_S)
@@ -89,38 +86,27 @@ def _compute_lipchitz_cst(tensor_H_k):
     # Lipchitz is approximated using ``sum_k ||H_k||**4``
     # tensor_H_k has shape (n_H_k, n_nodes, n_sup_nodes)
 
-    # arr_lipchitz_H_k = norm(tensor_H_k, ord=2, axis=(1, 2))
-    # return (arr_lipchitz_H_k ** 4).sum()
-
-    n_nodes, n_supernodes = tensor_H_k[0].shape
-
-    sum_H_i_H_j_square = np.zeros((n_supernodes, n_supernodes))
-
-    for H_i in tensor_H_k:
-
-        for H_j in tensor_H_k:
-
-            prod = H_i.T @ H_j
-            sum_H_i_H_j_square += prod @ prod
-
-    return norm(sum_H_i_H_j_square)
+    arr_lipchitz_H_k = norm(tensor_H_k, ord=2, axis=(1, 2))
+    return (arr_lipchitz_H_k ** 4).sum()
 
 
-def _compute_grad(S, tensor_H_k, sum_S_k):
+def _compute_grad(S, tensor_H_k, tensor_S_k):
     grad = np.zeros_like(S)
-    residual = _compute_residual(S, tensor_H_k, sum_S_k)
 
-    for H_k in tensor_H_k:
-        grad -= H_k @ residual @ H_k.T
+    for k, H_k in enumerate(tensor_H_k):
+        residual_k = _compute_residual_k(S, tensor_H_k, tensor_S_k, k)
+        grad -= H_k @ residual_k @ H_k.T
 
     return grad
 
 
-def _compute_obj(S, tensor_H_k, sum_S_k, lmbd):
-    residual = _compute_residual(S, tensor_H_k, sum_S_k)
+def _compute_obj(S, tensor_H_k, tensor_S_k, lmbd):
 
+    datafit_val = 0.
     # compute datafit
-    datafit_val = 0.5 * norm(residual) ** 2
+    for k in range(len(tensor_H_k)):
+        residual_k = _compute_residual_k(S, tensor_H_k, tensor_S_k, k)
+        datafit_val += 0.5 * norm(residual_k) ** 2
 
     # compute penalty
     penalty_val = lmbd * np.abs(S).sum()
@@ -128,10 +114,8 @@ def _compute_obj(S, tensor_H_k, sum_S_k, lmbd):
     return datafit_val + penalty_val
 
 
-def _compute_residual(S, tensor_H_k, sum_S_k):
-    residual = sum_S_k.copy()
+def _compute_residual_k(S, tensor_H_k, tensor_S_k, k):
+    S_k = tensor_S_k[k]
+    H_k = tensor_H_k[k]
 
-    for H_k in tensor_H_k:
-        residual -= H_k.T @ S @ H_k
-
-    return residual
+    return S_k - H_k.T @ S @ H_k

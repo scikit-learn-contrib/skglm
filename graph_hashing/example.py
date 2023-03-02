@@ -7,16 +7,19 @@ from graph_hashing.solvers import PGD
 
 reg = 1e-1
 n_H_k, n_nodes, n_supernodes = 10, 1000, 100
+
+# tensore_H_k has shape (n_H_k, n_nodes, n_supernodes)
+# tensore_S_k has shape (n_H_k, n_supernodes, n_supernodes)
 tensor_H_k, tensor_S_k, _ = generate_data(n_H_k, n_nodes, n_supernodes)
+
 
 ########################
 ###  compute lmd max ###
 ########################
-residual = tensor_S_k.sum(axis=0)
 grad_zero = np.zeros((n_nodes, n_nodes))
 
-for H_k in tensor_H_k:
-    grad_zero -= H_k @ residual @ H_k.T
+for H_k, S_k in zip(tensor_H_k, tensor_S_k):
+    grad_zero -= H_k @ S_k @ H_k.T
 
 lmbd_max = norm(grad_zero.flatten(), ord=np.inf)
 

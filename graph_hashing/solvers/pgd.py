@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.linalg import norm
 
+from numba import njit
 from skglm.utils.prox_funcs import ST_vec
 
 
@@ -65,16 +66,13 @@ class PGD:
 
             if self.verbose:
                 p_obj = _compute_obj(S, tensor_H_k, tensor_S_k, lmbd)
-
-                next_S = ST_vec(S - step * grad, step * lmbd)
-                stop_crit = norm(S - next_S)
+                stop_crit = _compute_dist_subdiff(S, grad, lmbd)
 
                 print(f"Iteration {it}: {p_obj=:.4e} {stop_crit=:.4e}")
 
             # check convergence using fixed point distance
             if it % self.check_freq == 0:
-                next_S = ST_vec(S - step * grad, step * lmbd)
-                stop_crit = norm(S - next_S)
+                stop_crit = _compute_dist_subdiff(S, grad, lmbd)
 
                 if stop_crit <= self.tol:
                     break
@@ -98,6 +96,28 @@ def _compute_grad(S, tensor_H_k, tensor_S_k):
         grad -= H_k @ residual_k @ H_k.T
 
     return grad
+
+
+@njit
+def _compute_dist_subdiff(S, grad, lmbd):
+    max_dist = 0.
+    n_nodes = len(S)
+
+    for i in range(n_nodes):
+        for j in range(n_nodes):
+            s_ij = S[i, j]
+            grad_ij = grad[i, j]
+
+            # compute distance
+            if s_ij == 0.:
+                dist_ij = max(0, abs(grad_ij) - lmbd)
+            else:
+                dist_ij = abs(grad_ij + np.sign(s_ij) * lmbd)
+
+            # keep max
+            max_dist = max(max_dist, dist_ij)
+
+    return max_dist
 
 
 def _compute_obj(S, tensor_H_k, tensor_S_k, lmbd):

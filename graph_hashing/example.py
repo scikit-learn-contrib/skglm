@@ -6,11 +6,11 @@ from graph_hashing.solvers import PGD
 
 
 reg = 1e-1
-n_H_k, n_nodes, n_supernodes = 10, 1000, 100
+n_H_k, n_nodes, n_supernodes = 10, 100, 10
 
 # tensore_H_k has shape (n_H_k, n_nodes, n_supernodes)
 # tensore_S_k has shape (n_H_k, n_supernodes, n_supernodes)
-tensor_H_k, tensor_S_k, _ = generate_data(n_H_k, n_nodes, n_supernodes)
+tensor_H_k, tensor_S_k, _ = generate_data(n_H_k, n_nodes, n_supernodes, n_events=100)
 
 
 ########################
@@ -29,4 +29,6 @@ lmbd_max = norm(grad_zero.flatten(), ord=np.inf)
 ########################
 lmbd = reg * lmbd_max
 
-PGD(verbose=1).solve(tensor_H_k, tensor_S_k, lmbd)
+S, stop_crit = PGD(verbose=1, max_iter=500).solve(tensor_H_k, tensor_S_k, lmbd)
+
+print((S != 0).sum())

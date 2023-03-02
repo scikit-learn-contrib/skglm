@@ -20,19 +20,13 @@ Denotes the $i$-th row of $H_k$ by $h^{(k)}_i \in \mathbb{R}^{n_s}$
 ## CD algorithm
 
 - reformulation:
-$$
-\min_{s_{i,j}} \sum_{k=1}^{K} \frac{1}{2} \lVert  S_k -  \sum_{i,j} s_{i,j} h^{(k)}_i {h^{(k)}_j}^\top \rVert_F^2 + \lambda \sum_{i,j}  \lvert s_{i,j} \rvert
-$$
+$$\min_{s_{i,j}} \sum_{k=1}^{K} \frac{1}{2} \lVert  S_k -  \sum_{i,j} s_{i,j} h^{(k)}_i {h^{(k)}_j}^\top \rVert_F^2 + \lambda \sum_{i,j}  \lvert s_{i,j} \rvert$$
 can be derived using the [connection between matrix product and outer product of the rows/columns](https://math.stackexchange.com/questions/2335457/matrix-at-a-as-sum-of-outer-products)
 
 - Derivative w.r.t. $i,j$ coordinate
-$$
-\partial_{i, j} f(S) = \sum_{k=1}^{K} \langle h^{(k)}_i {h^{(k)}_j}^\top, R_k\rangle_F
-$$
+$$\partial_{i, j} f(S) = \sum_{k=1}^{K} \langle h^{(k)}_i {h^{(k)}_j}^\top, R_k\rangle_F$$
 - second derivative w.r.t. $i,j$ coordinate
-$$
-\partial_{i, j}^2 f(S) = \sum_{k=1}^{K} \lVert h^{(k)}_i {h^{(k)}_j}^\top\lVert_F^2
-$$
+$$\partial_{i, j}^2 f(S) = \sum_{k=1}^{K} \lVert h^{(k)}_i {h^{(k)}_j}^\top\lVert_F^2$$
 
 
 ##  PGD algorithm

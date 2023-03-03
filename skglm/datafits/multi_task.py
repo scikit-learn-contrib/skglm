@@ -8,9 +8,9 @@ from skglm.datafits.base import BaseMultitaskDatafit
 class QuadraticMultiTask(BaseMultitaskDatafit):
     """Quadratic datafit used for multi-task regression.
 
-    The datafit reads::
+    The datafit reads:
 
-    (1 / (2 * n_samples)) * ||Y - X W||^2_F
+    .. math: (1 / (2 * n_"samples")) * ||Y - X W||_F ^ 2
 
     Attributes
     ----------

@@ -10,9 +10,9 @@ from skglm.utils.sparse_ops import spectral_norm
 class Quadratic(BaseDatafit):
     """Quadratic datafit.
 
-    The datafit reads::
+    The datafit reads:
 
-    (1 / (2 * n_samples)) * ||y - X w||^2_2
+    .. math:: (1 / (2 * n_"samples")) * ||y - X w||_2 ^ 2
 
     Attributes
     ----------
@@ -116,9 +116,9 @@ def sigmoid(x):
 class Logistic(BaseDatafit):
     r"""Logistic datafit with labels in {-1, 1}.
 
-    The datafit reads::
+    The datafit reads:
 
-    (1 / n_samples) * \sum_i log(1 + exp(-y_i * Xw_i))
+    .. math:: (1 / n_"samples") * \sum_(i=1)^(n_"samples") log(1 + exp(-y_i * (Xw)_i))
 
     Attributes
     ----------
@@ -207,9 +207,9 @@ class Logistic(BaseDatafit):
 class QuadraticSVC(BaseDatafit):
     """A Quadratic SVC datafit used for classification tasks.
 
-    The datafit reads::
+    The datafit reads:
 
-    1 / 2 * ||(y X).T w||^2_2
+    .. math:: 1 / 2 * ||(y X)^T w||_2 ^ 2
 
     Attributes
     ----------
@@ -294,15 +294,15 @@ class QuadraticSVC(BaseDatafit):
 class Huber(BaseDatafit):
     """Huber datafit.
 
-    The datafit reads::
+    The datafit reads:
 
-    (1 / n_samples) * sum_{i=1}^{n_samples} f(y_i - Xw_i)
+    .. math:: (1 / n_"samples") * sum_(i=1)^(n_"samples") f(y_i - (Xw)_i)
 
-    where f is the Huber function:
+    where :math:`f` is the Huber function:
 
-    f(x) =
-    1 / 2 * x^2                      if x <= delta
-    delta * |x| - 1/2 * delta^2      if x > delta
+    .. math::
+        f(x) = {(1 / 2 * x^2,                 if x <= delta),
+                (delta * |x| - 1/2 * delta^2, if x > delta):}
 
     Attributes
     ----------
@@ -425,7 +425,7 @@ class Poisson(BaseDatafit):
 
     The datafit reads:
 
-    .. math:: \frac{1}{\texttt{n_samples}} \sum_i (\exp(Xw_i) - y_i Xw_i)
+    .. math:: (1/n_"samples") * sum_(i=1)^(n_"samples") (exp((Xw)_i) - y_i * (Xw)_i)
 
     Note:
     ----
@@ -492,9 +492,10 @@ class Poisson(BaseDatafit):
 class Gamma(BaseDatafit):
     r"""Gamma datafit.
 
-    The datafit reads::
+    The datafit reads:
 
-    (1 / n_samples) * \sum_i (Xw_i + y_i * exp(-Xw_i) - 1 - log(y_i))
+    .. math::
+        (1 / n_"samples") * \sum_(i=1)^(n_"samples") ((Xw)_i + y_i * exp(-(Xw)_i) - 1 - log(y_i))
 
     Note:
     ----

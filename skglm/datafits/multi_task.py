@@ -19,7 +19,7 @@ class QuadraticMultiTask(BaseMultitaskDatafit):
 
     lipschitz : array, shape (n_features,)
         The coordinatewise gradient Lipschitz constants. Equal to
-        norm(X, axis=0) ** 2 / n_samples.
+        ``norm(X, axis=0) ** 2 / n_samples``.
     """
 
     def __init__(self):

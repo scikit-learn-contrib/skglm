@@ -22,11 +22,11 @@ class Quadratic(BaseDatafit):
 
     lipschitz : array, shape (n_features,)
         The coordinatewise gradient Lipschitz constants. Equal to
-        norm(X, axis=0) ** 2 / n_samples.
+        ``norm(X, axis=0) ** 2 / n_samples``.
 
     global_lipschitz : float
         Global Lipschitz constant. Equal to
-        norm(X, ord=2) ** 2 / n_samples.
+        ``norm(X, ord=2) ** 2 / n_samples``.
 
     Note
     ----
@@ -124,11 +124,11 @@ class Logistic(BaseDatafit):
     ----------
     lipschitz : array, shape (n_features,)
         The coordinatewise gradient Lipschitz constants. Equal to
-        norm(X, axis=0) ** 2 / (4 * n_samples).
+        ``norm(X, axis=0) ** 2 / (4 * n_samples)``.
 
     global_lipschitz : float
         Global Lipschitz constant. Equal to
-        norm(X, ord=2) ** 2 / (4 * n_samples).
+        ``norm(X, ord=2) ** 2 / (4 * n_samples)``.
 
     Note
     ----
@@ -215,11 +215,11 @@ class QuadraticSVC(BaseDatafit):
     ----------
     lipschitz : array, shape (n_features,)
         The coordinatewise gradient Lipschitz constants.
-        Equal to norm(yXT, axis=0) ** 2.
+        Equal to ``norm(yXT, axis=0) ** 2``.
 
     global_lipschitz : float
         Global Lipschitz constant. Equal to
-        norm(yXT, ord=2) ** 2.
+        ``norm(yXT, ord=2) ** 2``.
 
     Note
     ----
@@ -311,11 +311,11 @@ class Huber(BaseDatafit):
 
     lipschitz : array, shape (n_features,)
         The coordinatewise gradient Lipschitz constants. Equal to
-        norm(X, axis=0) ** 2 / n_samples.
+        ``norm(X, axis=0) ** 2 / n_samples``.
 
     global_lipschitz : float
         Global Lipschitz constant. Equal to
-        norm(X, ord=2) ** 2 / n_samples.
+        ``norm(X, ord=2) ** 2 / n_samples``.
 
     Note
     ----

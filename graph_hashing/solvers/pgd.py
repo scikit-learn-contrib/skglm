@@ -4,6 +4,8 @@ from numpy.linalg import norm
 from numba import njit
 from skglm.utils.prox_funcs import ST_vec
 
+from graph_hashing.solvers.utils import compute_obj, compute_residual_k
+
 
 class PGD:
     r"""Solve problem using a Proximal Gradient Descent algorithm.
@@ -65,7 +67,7 @@ class PGD:
             S[:] = ST_vec(S - step * grad, step * lmbd)
 
             if self.verbose:
-                p_obj = _compute_obj(S, tensor_H_k, tensor_S_k, lmbd)
+                p_obj = compute_obj(S, tensor_H_k, tensor_S_k, lmbd)
                 stop_crit = _compute_dist_subdiff(S, grad, lmbd)
 
                 print(f"Iteration {it}: {p_obj=:.4e} {stop_crit=:.4e}")
@@ -92,7 +94,7 @@ def _compute_grad(S, tensor_H_k, tensor_S_k):
     grad = np.zeros_like(S)
 
     for k, H_k in enumerate(tensor_H_k):
-        residual_k = _compute_residual_k(S, tensor_H_k, tensor_S_k, k)
+        residual_k = compute_residual_k(S, tensor_H_k, tensor_S_k, k)
         grad -= H_k @ residual_k @ H_k.T
 
     return grad
@@ -118,24 +120,3 @@ def _compute_dist_subdiff(S, grad, lmbd):
             max_dist = max(max_dist, dist_ij)
 
     return max_dist
-
-
-def _compute_obj(S, tensor_H_k, tensor_S_k, lmbd):
-
-    datafit_val = 0.
-    # compute datafit
-    for k in range(len(tensor_H_k)):
-        residual_k = _compute_residual_k(S, tensor_H_k, tensor_S_k, k)
-        datafit_val += 0.5 * norm(residual_k) ** 2
-
-    # compute penalty
-    penalty_val = lmbd * np.abs(S).sum()
-
-    return datafit_val + penalty_val
-
-
-def _compute_residual_k(S, tensor_H_k, tensor_S_k, k):
-    S_k = tensor_S_k[k]
-    H_k = tensor_H_k[k]
-
-    return S_k - H_k.T @ S @ H_k

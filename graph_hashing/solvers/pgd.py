@@ -4,7 +4,7 @@ from numpy.linalg import norm
 from numba import njit
 from skglm.utils.prox_funcs import ST_vec
 
-from graph_hashing.solvers.utils import compute_obj, compute_residual_k
+from graph_hashing.solvers.utils import compute_obj, compute_residual_k, validate_input
 
 
 class PGD:
@@ -37,11 +37,7 @@ class PGD:
         self.verbose = verbose
 
     def solve(self, tensor_H_k, tensor_S_k, lmbd):
-        # TODO: validate parameters
-
-        # cast as float
-        tensor_H_k = tensor_H_k.astype(float)
-        tensor_S_k = tensor_S_k.astype(float)
+        tensor_H_k, tensor_S_k = validate_input(tensor_H_k, tensor_S_k)
 
         # init vars
         n_nodes, _ = tensor_H_k[0].shape

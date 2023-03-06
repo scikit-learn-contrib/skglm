@@ -1,8 +1,8 @@
 import numpy as np
-from numpy.linalg import norm
 
-from graph_hashing.data_src import generate_data
 from graph_hashing.solvers import PGD, CD
+from graph_hashing.solvers.utils import compute_lmbd_max
+from graph_hashing.data_src import generate_data
 
 
 reg = 1e-1
@@ -16,12 +16,7 @@ tensor_H_k, tensor_S_k, _ = generate_data(n_H_k, n_nodes, n_supernodes, n_events
 ########################
 ###  compute lmd max ###
 ########################
-grad_zero = np.zeros((n_nodes, n_nodes))
-
-for H_k, S_k in zip(tensor_H_k, tensor_S_k):
-    grad_zero -= H_k @ S_k @ H_k.T
-
-lmbd_max = norm(grad_zero.flatten(), ord=np.inf)
+lmbd_max = compute_lmbd_max(tensor_H_k, tensor_S_k)
 
 
 ########################
@@ -31,4 +26,5 @@ lmbd = reg * lmbd_max
 
 S, stop_crit = CD(verbose=1, max_iter=10_000).solve(tensor_H_k, tensor_S_k, lmbd)
 
+# print support of solution
 print((S != 0).sum())

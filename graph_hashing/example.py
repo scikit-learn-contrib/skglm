@@ -6,7 +6,7 @@ from graph_hashing.data_src import generate_data
 
 
 reg = 1e-1
-n_H_k, n_nodes, n_supernodes = 3, 10, 5
+n_H_k, n_nodes, n_supernodes = 10, 100, 20
 
 # tensore_H_k has shape (n_H_k, n_nodes, n_supernodes)
 # tensore_S_k has shape (n_H_k, n_supernodes, n_supernodes)
@@ -24,7 +24,7 @@ lmbd_max = compute_lmbd_max(tensor_H_k, tensor_S_k)
 ########################
 lmbd = reg * lmbd_max
 
-S, stop_crit = CD(verbose=1, max_iter=10_000).solve(tensor_H_k, tensor_S_k, lmbd)
+S, stop_crit = CD(verbose=1, max_iter=100).solve(tensor_H_k, tensor_S_k, lmbd)
 
 # print support of solution
 print((S != 0).sum())

@@ -3,7 +3,7 @@ import numpy as np
 from numpy.linalg import norm
 
 import numba
-from numba import njit
+from numba import njit, prange
 from skglm.utils.prox_funcs import ST
 
 from graph_hashing.solvers.utils import compute_obj, validate_input
@@ -100,14 +100,14 @@ def _update_residuals(tensor_H_k, residuals, delta_s_ij, i, j):
         residuals[k] -= delta_s_ij * np.outer(H_k[i], H_k[j])
 
 
-@njit("(f8[:, :, :], f8, f8[:, :], f8[:, :, :], f8[:, :])")
+@njit("(f8[:, :, :], f8, f8[:, :], f8[:, :, :], f8[:, :])", parallel=True)
 def _cd_pass(tensor_H_k, lmbd, S, residuals, lipchitz):
     # inplace update of S, grad
 
     n_nodes = len(S)
 
-    for i in range(n_nodes):
-        for j in range(n_nodes):
+    for i in prange(n_nodes):
+        for j in prange(n_nodes):
 
             # skip zero coordinates
             if lipchitz[i, j] == 0.:
@@ -122,16 +122,17 @@ def _cd_pass(tensor_H_k, lmbd, S, residuals, lipchitz):
 
             # update grad
             delta_s_ij = S[i, j] - old_s_ij
-            _update_residuals(tensor_H_k, residuals, delta_s_ij, i, j)
+            if delta_s_ij != 0:
+                _update_residuals(tensor_H_k, residuals, delta_s_ij, i, j)
 
 
-@njit("f8(f8[:, :, :], f8, f8[:, :, :], f8[:, :])")
+@njit("f8(f8[:, :, :], f8, f8[:, :, :], f8[:, :])", parallel=True)
 def _compute_dist_subdiff(tensor_H_k, lmbd, residuals, S):
     n_nodes = len(S)
     max_dist = 0.
 
-    for i in range(n_nodes):
-        for j in range(n_nodes):
+    for i in prange(n_nodes):
+        for j in prange(n_nodes):
 
             s_ij = S[i, j]
             grad_ij = _compute_grad(tensor_H_k, residuals, i, j)

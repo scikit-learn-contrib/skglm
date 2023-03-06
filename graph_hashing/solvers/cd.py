@@ -2,7 +2,8 @@ from itertools import product
 import numpy as np
 from numpy.linalg import norm
 
-from numba import jit
+import numba
+from numba import njit
 from skglm.utils.prox_funcs import ST
 
 from graph_hashing.solvers.utils import compute_obj, validate_input
@@ -19,14 +20,23 @@ class CD:
     Parameters
     ----------
     max_iter: int, default=100
-        Maximum number of iteration.
+        Maximum number of iteration. One iteration is a one pass on
+        all features.
+
+    tol : float, default=1e-6
+        Stopping criterion for the optimization.
+
+    check_freq: int, default=10
+        Frequency according to which check the stopping criterion.
 
     verbose : bool or int
         Amount of verbosity.
     """
 
-    def __init__(self, max_iter=100, verbose=False):
+    def __init__(self, max_iter=100, tol=1e-6, check_freq=10, verbose=False):
         self.max_iter = max_iter
+        self.tol = tol
+        self.check_freq = check_freq
         self.verbose = verbose
 
     def solve(self, tensor_H_k, tensor_S_k, lmbd):
@@ -35,101 +45,103 @@ class CD:
         # init vars
         n_nodes, _ = tensor_H_k[0].shape
         S = np.zeros((n_nodes, n_nodes))
-        all_idx = np.arange(n_nodes ** 2)
+        residuals = tensor_S_k.copy()
         stop_crit = 0.
-
-        # grad where grad[i, j] is grad w.r.t (i, j)
-        grad = _init_grad(tensor_H_k, tensor_S_k)
 
         # squared norm of each row of H_k
         # squared_norms_H[k, i] is squared norm of the i-th row of H_k
         squared_norms_H = norm(tensor_H_k, axis=2) ** 2
 
-        # prod_squared_norms_H[i, j] = sum_k (||row_H_k_i|| ||row_H_k_i||)**2
-        prod_squared_norms_H = squared_norms_H.T @ squared_norms_H
+        # lipchitz[i, j] = sum_k (||row_H_k_i|| ||row_H_k_i||)**2
+        lipchitz = squared_norms_H.T @ squared_norms_H
 
         for it in range(self.max_iter):
             # inplace update of S, grad
-            _cd_pass(S, grad, lmbd, prod_squared_norms_H, all_idx)
+            _cd_pass(tensor_H_k, lmbd, S, residuals, lipchitz)
 
             if self.verbose:
                 p_obj = compute_obj(S, tensor_H_k, tensor_S_k, lmbd)
-                dist = _compute_dist_subdiff(S, grad, lmbd, all_idx)
+                dist = _compute_dist_subdiff(tensor_H_k, lmbd, residuals, S)
 
                 stop_crit = np.max(dist)
 
-                print(f"Iteration {it}: {p_obj=:.4e} {stop_crit=:.4e}")
+                print(f"Iteration {it:4}: {p_obj=:.8f} {stop_crit=:.4e}")
+
+            # check convergence
+            if it % self.check_freq == 0:
+                dist = _compute_dist_subdiff(tensor_H_k, lmbd, residuals, S)
+
+                stop_crit = np.max(dist)
+
+                if stop_crit <= self.tol:
+                    break
 
         return S, stop_crit
 
 
-# specify signature in jit to avoid compilation overhead
-# @jit(["UniTuple(i4, 2)(i4, f8[:, :])",
-#       "UniTuple(i8, 2)(i8, f8[:, :])"],
-#      nopython=True)
-def _from_vec_idx_to_ij(vec_idx, S):
-    # map idx in flatten representation to idx in matrix representation
-    n_nodes = len(S)
-    i, j = divmod(vec_idx, n_nodes)
+@njit(["f8(f8[:, :, :], f8[:, :, :], i4, i4)",
+       "f8(f8[:, :, :], f8[:, :, :], i8, i8)"])
+def _compute_grad(tensor_H_k, residuals, i, j):
+    grad_ij = 0.
 
-    return i, j
+    for H_k, residual_k in zip(tensor_H_k, residuals):
+        # arrays shape is correct (C-contiguous) but numba doesn't recognize it
+        # to avoid warnings in grad_ij -= (residual_k @ H_k[j]) @ H_k[i]
+        grad_ij -= ((residual_k * H_k[j]).T * H_k[i]).sum()
+
+    return grad_ij
 
 
-# @jit(["(f8[:, :], f8[:, :], f8, f8[:, :], i4[:])",
-#       "(f8[:, :], f8[:, :], f8, f8[:, :], i8[:])"],
-#      nopython=True)
-def _cd_pass(S, grad, lmbd, prod_squared_norms_H, ws):
+@njit(["(f8[:, :, :], f8[:, :, :], f8, i4, i4)",
+       "(f8[:, :, :], f8[:, :, :], f8, i8, i8)"])
+def _update_residuals(tensor_H_k, residuals, delta_s_ij, i, j):
+    # inplace update of residuals
+    for k, H_k in enumerate(tensor_H_k):
+        residuals[k] -= delta_s_ij * np.outer(H_k[i], H_k[j])
+
+
+@njit("(f8[:, :, :], f8, f8[:, :], f8[:, :, :], f8[:, :])")
+def _cd_pass(tensor_H_k, lmbd, S, residuals, lipchitz):
     # inplace update of S, grad
 
-    for vec_idx in ws:
-        i, j = _from_vec_idx_to_ij(vec_idx, S)
+    n_nodes = len(S)
 
-        # skip zero coordinates
-        if prod_squared_norms_H[i, j] == 0.:
-            continue
-
-        step = 1 / prod_squared_norms_H[i, j]
-
-        old_s_ij = S[i, j]
-        S[i, j] = ST(old_s_ij - step * grad[i, j], step * lmbd)
-
-        # update grad
-        grad[i, j] += (S[i, j] - old_s_ij) * prod_squared_norms_H[i, j]
-
-
-# @jit("f8[:, :](f8[:, :, :], f8[:, :, :])",
-#      nopython=True)
-def _init_grad(tensor_H_k, tensor_S_k):
-    n_H_k, n_nodes, _ = tensor_H_k.shape
-
-    grad = np.zeros((n_nodes, n_nodes))
     for i in range(n_nodes):
         for j in range(n_nodes):
 
-            for H_k, S_k in zip(tensor_H_k, tensor_S_k):
-                grad[i, j] -= (S_k @ H_k[j]) @ H_k[i]
+            # skip zero coordinates
+            if lipchitz[i, j] == 0.:
+                continue
 
-    return grad
+            step = 1 / lipchitz[i, j]
+
+            grad_ij = _compute_grad(tensor_H_k, residuals, i, j)
+
+            old_s_ij = S[i, j]
+            S[i, j] = ST(old_s_ij - step * grad_ij, step * lmbd)
+
+            # update grad
+            delta_s_ij = S[i, j] - old_s_ij
+            _update_residuals(tensor_H_k, residuals, delta_s_ij, i, j)
 
 
-# @jit(["f8[:](f8[:, :], f8[:, :], f8, i4[:])",
-#       "f8[:](f8[:, :], f8[:, :], f8, i8[:])"],
-#      nopython=True)
-def _compute_dist_subdiff(S, grad, lmbd, ws):
-    dist = np.zeros(len(ws))
+@njit("f8(f8[:, :, :], f8, f8[:, :, :], f8[:, :])")
+def _compute_dist_subdiff(tensor_H_k, lmbd, residuals, S):
+    n_nodes = len(S)
+    max_dist = 0.
 
-    for vec_idx in ws:
-        i, j = _from_vec_idx_to_ij(vec_idx, S)
+    for i in range(n_nodes):
+        for j in range(n_nodes):
 
-        s_ij = S[i, j]
-        grad_ij = grad[i, j]
+            s_ij = S[i, j]
+            grad_ij = _compute_grad(tensor_H_k, residuals, i, j)
 
-        # compute distance
-        if s_ij == 0.:
-            dist_ij = max(0, abs(grad_ij) - lmbd)
-        else:
-            dist_ij = abs(grad_ij + np.sign(s_ij) * lmbd)
+            # compute distance
+            if s_ij == 0.:
+                dist_ij = max(0, abs(grad_ij) - lmbd)
+            else:
+                dist_ij = abs(grad_ij + np.sign(s_ij) * lmbd)
 
-        dist[vec_idx] = dist_ij
+            max_dist = max(max_dist, dist_ij)
 
-    return dist
+    return max_dist

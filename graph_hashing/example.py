@@ -2,11 +2,11 @@ import numpy as np
 from numpy.linalg import norm
 
 from graph_hashing.data_src import generate_data
-from graph_hashing.solvers import PGD
+from graph_hashing.solvers import PGD, CD
 
 
 reg = 1e-1
-n_H_k, n_nodes, n_supernodes = 10, 100, 10
+n_H_k, n_nodes, n_supernodes = 3, 10, 5
 
 # tensore_H_k has shape (n_H_k, n_nodes, n_supernodes)
 # tensore_S_k has shape (n_H_k, n_supernodes, n_supernodes)
@@ -29,6 +29,6 @@ lmbd_max = norm(grad_zero.flatten(), ord=np.inf)
 ########################
 lmbd = reg * lmbd_max
 
-S, stop_crit = PGD(verbose=1, max_iter=10_000).solve(tensor_H_k, tensor_S_k, lmbd)
+S, stop_crit = CD(verbose=1, max_iter=10_000).solve(tensor_H_k, tensor_S_k, lmbd)
 
 print((S != 0).sum())

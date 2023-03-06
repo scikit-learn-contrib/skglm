@@ -66,7 +66,7 @@ class PGD:
                 p_obj = compute_obj(S, tensor_H_k, tensor_S_k, lmbd)
                 stop_crit = _compute_dist_subdiff(S, grad, lmbd)
 
-                print(f"Iteration {it}: {p_obj=:.4e} {stop_crit=:.4e}")
+                print(f"Iteration {it:4}: {p_obj=:.8f} {stop_crit=:.4e}")
 
             # check convergence using fixed point distance
             if it % self.check_freq == 0:

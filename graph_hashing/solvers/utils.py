@@ -31,3 +31,17 @@ def validate_input(tensor_H_k, tensor_S_k):
     tensor_S_k = tensor_S_k.astype(float)
 
     return tensor_H_k, tensor_S_k
+
+
+def compute_lmbd_max(tensor_H_k, tensor_S_k):
+    n_nodes = tensor_H_k.shape[1]
+
+    # compute lambda max
+    grad_zero = np.zeros((n_nodes, n_nodes))
+
+    for H_k, S_k in zip(tensor_H_k, tensor_S_k):
+        grad_zero -= H_k @ S_k @ H_k.T
+
+    lmbd_max = norm(grad_zero.flatten(), ord=np.inf)
+
+    return lmbd_max

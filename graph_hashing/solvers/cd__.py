@@ -2,7 +2,8 @@ from itertools import product
 import numpy as np
 from numpy.linalg import norm
 
-from numba import jit
+import numba
+from numba import njit
 from skglm.utils.prox_funcs import ST
 
 from graph_hashing.solvers.utils import compute_obj, validate_input
@@ -19,14 +20,23 @@ class CD:
     Parameters
     ----------
     max_iter: int, default=100
-        Maximum number of iteration.
+        Maximum number of iteration. One iteration is a one pass on
+        all features.
+
+    tol : float, default=1e-6
+        Stopping criterion for the optimization.
+
+    check_freq: int, default=10
+        Frequency according to which check the stopping criterion.
 
     verbose : bool or int
         Amount of verbosity.
     """
 
-    def __init__(self, max_iter=100, verbose=False):
+    def __init__(self, max_iter=100, tol=1e-6, check_freq=10, verbose=False):
         self.max_iter = max_iter
+        self.tol = tol
+        self.check_freq = check_freq
         self.verbose = verbose
 
     def solve(self, tensor_H_k, tensor_S_k, lmbd):
@@ -47,20 +57,51 @@ class CD:
 
         for it in range(self.max_iter):
             # inplace update of S, grad
-            _cd_pass(tensor_H_k, S, residuals, lmbd, lipchitz)
+            _cd_pass(tensor_H_k, lmbd, S, residuals, lipchitz)
 
             if self.verbose:
                 p_obj = compute_obj(S, tensor_H_k, tensor_S_k, lmbd)
-                dist = _compute_dist_subdiff(tensor_H_k, residuals, S, lmbd)
+                dist = _compute_dist_subdiff(tensor_H_k, lmbd, residuals, S)
 
                 stop_crit = np.max(dist)
 
                 print(f"Iteration {it:4}: {p_obj=:.8f} {stop_crit=:.4e}")
 
+            # check convergence
+            if it % self.check_freq == 0:
+                dist = _compute_dist_subdiff(tensor_H_k, lmbd, residuals, S)
+
+                stop_crit = np.max(dist)
+
+                if stop_crit <= self.tol:
+                    break
+
         return S, stop_crit
 
 
-def _cd_pass(tensor_H_k, S, residuals, lmbd, lipchitz):
+@njit(["f8(f8[:, :, :], f8[:, :, :], i4, i4)",
+       "f8(f8[:, :, :], f8[:, :, :], i8, i8)"])
+def _compute_grad(tensor_H_k, residuals, i, j):
+    grad_ij = 0.
+
+    for H_k, residual_k in zip(tensor_H_k, residuals):
+        # arrays shape is correct (C-contiguous) but numba doesn't recognize it
+        # to avoid warnings in grad_ij -= (residual_k @ H_k[j]) @ H_k[i]
+        grad_ij -= ((residual_k * H_k[j]).T * H_k[i]).sum()
+
+    return grad_ij
+
+
+@njit(["(f8[:, :, :], f8[:, :, :], f8, i4, i4)",
+       "(f8[:, :, :], f8[:, :, :], f8, i8, i8)"])
+def _update_residuals(tensor_H_k, residuals, delta_s_ij, i, j):
+    # inplace update of residuals
+    for k, H_k in enumerate(tensor_H_k):
+        residuals[k] -= delta_s_ij * np.outer(H_k[i], H_k[j])
+
+
+@njit("(f8[:, :, :], f8, f8[:, :], f8[:, :, :], f8[:, :])")
+def _cd_pass(tensor_H_k, lmbd, S, residuals, lipchitz):
     # inplace update of S, grad
 
     n_nodes = len(S)
@@ -84,22 +125,8 @@ def _cd_pass(tensor_H_k, S, residuals, lmbd, lipchitz):
             _update_residuals(tensor_H_k, residuals, delta_s_ij, i, j)
 
 
-def _compute_grad(tensor_H_k, residuals, i, j):
-    grad_ij = 0.
-
-    for H_k, residual_k in zip(tensor_H_k, residuals):
-        grad_ij -= (residual_k @ H_k[j]) @ H_k[i]
-
-    return grad_ij
-
-
-def _update_residuals(tensor_H_k, residuals, delta_s_ij, i, j):
-
-    for k, H_k in enumerate(tensor_H_k):
-        residuals[k] -= delta_s_ij * np.outer(H_k[i], H_k[j])
-
-
-def _compute_dist_subdiff(tensor_H_k, residuals, S, lmbd):
+@njit("f8(f8[:, :, :], f8, f8[:, :, :], f8[:, :])")
+def _compute_dist_subdiff(tensor_H_k, lmbd, residuals, S):
     n_nodes = len(S)
     max_dist = 0.
 

@@ -23,6 +23,16 @@ def compute_residual_k(S, tensor_H_k, tensor_S_k, k):
     return S_k - H_k.T @ S @ H_k
 
 
+def compute_grad(S, tensor_H_k, tensor_S_k):
+    grad = np.zeros_like(S)
+
+    for k, H_k in enumerate(tensor_H_k):
+        residual_k = compute_residual_k(S, tensor_H_k, tensor_S_k, k)
+        grad -= H_k @ residual_k @ H_k.T
+
+    return grad
+
+
 def validate_input(tensor_H_k, tensor_S_k):
     # TODO: validate type shape of parameters
 

@@ -7,7 +7,7 @@ from skglm.utils.prox_funcs import ST_vec
 from graph_hashing.solvers.utils import compute_obj, compute_grad, validate_input
 
 
-class PGD:
+class FISTA:
     r"""Solve problem using a Proximal Gradient Descent algorithm.
 
     Objective to optimize::
@@ -44,6 +44,10 @@ class PGD:
         S = np.zeros((n_nodes, n_nodes))
         stop_crit = 0.
 
+        w = np.zeros((n_nodes, n_nodes))
+        S_old = np.zeros((n_nodes, n_nodes))
+        t_old, t_new = 1., 1.
+
         # grad step
         lipchitz_cst = _compute_lipchitz_cst(tensor_H_k)
 
@@ -57,10 +61,19 @@ class PGD:
         for it in range(self.max_iter):
 
             # compute gradient
-            grad = compute_grad(S, tensor_H_k, tensor_S_k)
+            grad = compute_grad(w, tensor_H_k, tensor_S_k)
 
-            # prox grad step
-            S[:] = ST_vec(S - step * grad, step * lmbd)
+            # forward-backward step
+            w -= step * grad
+            S = ST_vec(w, step * lmbd)
+
+            # extrapolation
+            w = S + ((t_old - 1) / t_new) * (S - S_old)
+
+            # update FISTA vars
+            t_old = t_new
+            t_new = (1 + np.sqrt(1 + 4 * t_old ** 2)) / 2
+            S_old = S.copy()
 
             if self.verbose:
                 p_obj = compute_obj(S, tensor_H_k, tensor_S_k, lmbd)

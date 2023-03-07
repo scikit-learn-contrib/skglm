@@ -12,7 +12,7 @@ Motivated by generalized linear models but not limited to it, ``skglm`` solves p
       \arg\min_{\beta \in \mathbb{R}^p}
       F(X\beta) + \Omega(\beta)
       := \sum_{i=1}^n f_i([X\beta]_i) + \sum_{j=1}^p \Omega_j(\beta_j)
-      \enspace .
+      \ .
 
 
 Here, :math:`X \in \mathbb{R}^{n \times p}` denotes the design matrix with :math:`n` samples and :math:`p` features,
@@ -49,50 +49,50 @@ First, this requires deriving some quantities used by the solvers like the gradi
 With :math:`y \in \mathbb{R}^n` the target vector, the Poisson datafit reads
 
 .. math::
-    f(X\beta) = \frac{1}{n}\sum_{i=1}^n \exp([X\beta]_i) - y_i[X\beta]_i 
-    \enspace .
+    f(X\beta) = \frac{1}{n}\sum_{i=1}^n \exp([X\beta]_i) - y_i[X\beta]_i
+    \ .
 
 
 Let's define some useful quantities to simplify our computations. For :math:`z \in \mathbb{R}^n` and :math:`\beta \in \mathbb{R}^p`,
 
 .. math::
    f(z) = \sum_{i=1}^n f_i(z_i)  \qquad  F(\beta) = f(X\beta)
-   \enspace .
+   \ .
 
 
 Computing the gradient of :math:`F` and its Hessian matrix yields
 
 .. math::
-   \nabla F(\beta) = X^{\top} \underbrace{\nabla f(X\beta)}_\textrm{raw grad} \qquad \nabla^2 F(\beta) = X^{\top} \underbrace{\nabla^2 f(X\beta)}_\textrm{raw hessian} X
-   \enspace .
+   \nabla F(\beta) = X^{\top} \underbrace{\nabla f(X\beta)}_"raw grad" \qquad \nabla^2 F(\beta) = X^{\top} \underbrace{\nabla^2 f(X\beta)}_"raw hessian" X
+   \ .
 
 
 Besides, it directly follows that
 
 .. math::
-   \nabla f(z) = (f_i'(z_i))_{1 \leq i \leq n} \qquad \nabla^2 f(z) = \textrm{diag}(f_i''(z_i))_{1 \leq i \leq n}
-   \enspace .
+   \nabla f(z) = (f_i^'(z_i))_{1 \leq i \leq n} \qquad \nabla^2 f(z) = "diag"(f_i^('')(z_i))_{1 \leq i \leq n}
+   \ .
 
 
 We can now apply these definitions to the Poisson datafit:
 
 .. math::
     f_i(z_i) = \frac{1}{n} \left(\exp(z_i) - y_iz_i\right)
-    \enspace .
+    \ .
 
 
 Therefore,
 
 .. math::
-   f_i'(z_i) = \frac{1}{n}(\exp(z_i) - y_i) \qquad f_i''(z_i) = \frac{1}{n}\exp(z_i)
-   \enspace .
+   f_i^('')(z_i) = \frac{1}{n}(\exp(z_i) - y_i) \qquad f^''_i(z_i) = \frac{1}{n}\exp(z_i)
+   \ .
 
 
 Computing ``raw_grad`` and ``raw_hessian`` for the Poisson datafit yields
 
 .. math::
-   \nabla f(X\beta) = \frac{1}{n}(\exp([X\beta]_i) - y_i)_{1 \leq i \leq n} \qquad \nabla^2 f(X\beta) = \frac{1}{n}\textrm{diag}(\exp([X\beta]_i))_{1 \leq i \leq n}
-   \enspace .
+   \nabla f(X\beta) = \frac{1}{n}(\exp([X\beta]_i) - y_i)_{1 \leq i \leq n} \qquad \nabla^2 f(X\beta) = \frac{1}{n}"diag"(\exp([X\beta]_i))_{1 \leq i \leq n}
+   \ .
 
 
 Both ``raw_grad`` and ``raw_hessian`` are methods used by the ``ProxNewton`` solver.
@@ -106,7 +106,7 @@ For the Poisson datafit, this yields
       \sum_{i=1}^n X_{i,j} \left(
          \exp([X\beta]_i) - y 
       \right)
-      \enspace .
+      \ .
 
 
 When implementing these quantities in the ``Poisson`` datafit class, this gives:

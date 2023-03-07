@@ -192,6 +192,9 @@ mathjax3_config = {
 mathjax_inline = ['`', '`']
 mathjax_display = ['`', '`']
 
+html_static_path = ['_static']
+html_js_files = ["scripts/asciimath-defines.js"]
+
 # -- Options for copybutton ---------------------------------------------
 # complete explanation of the regex expression can be found here
 # https://sphinx-copybutton.readthedocs.io/en/latest/use.html#using-regexp-prompt-identifiers

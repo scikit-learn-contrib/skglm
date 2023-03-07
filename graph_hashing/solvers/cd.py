@@ -50,7 +50,7 @@ class CD:
         # squared_norms_H[k, i] is squared norm of the i-th row of H_k
         squared_norms_H = norm(tensor_H_k, axis=2) ** 2
 
-        # lipchitz[i, j] = sum_k (||row_H_k_i|| ||row_H_k_i||)**2
+        # lipchitz[i, j] = sum_k (||row_H_k_i|| ||row_H_k_j||)**2
         lipchitz = squared_norms_H.T @ squared_norms_H
 
         for it in range(self.max_iter):

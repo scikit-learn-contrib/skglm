@@ -163,16 +163,16 @@ class GeneralizedLinearEstimator(LinearModel):
     Parameters
     ----------
     datafit : instance of BaseDatafit, optional
-        Datafit. If ``None``, ``datafit`` is initialized as a :py:class:`.Quadratic`
+        Datafit. If ``None``, ``datafit`` is initialized as a :class:`.Quadratic`
         datafit.  ``datafit`` is replaced by a JIT-compiled instance when calling fit.
 
     penalty : instance of BasePenalty, optional
-        Penalty. If ``None``, ``penalty`` is initialized as a :py:class:`.L1` penalty.
+        Penalty. If ``None``, ``penalty`` is initialized as a :class:`.L1` penalty.
         ``penalty`` is replaced by a JIT-compiled instance when
         calling fit.
 
     solver : instance of BaseSolver, optional
-        Solver. If ``None``, ``solver`` is initialized as an :py:class:`.AndersonCD`
+        Solver. If ``None``, ``solver`` is initialized as an :class:`.AndersonCD`
         solver.
 
     Attributes
@@ -765,8 +765,9 @@ class MCPRegression(LinearModel, RegressorMixin):
         obj = (1 / (2 * n_"samples")) * ||y - X w||_2 ^ 2 + pen(|w_j|)
 
     For more details see
-    Coordinate descent algorithms for nonconvex penalized regression,
-    with applications to biological feature selection, Breheny and Huang.
+    `Coordinate descent algorithms for nonconvex penalized regression,
+    with applications to biological feature selection, Breheny and Huang
+    <https://doi.org/10.1214/10-aoas388>`_.
 
     Parameters
     ----------
@@ -774,8 +775,8 @@ class MCPRegression(LinearModel, RegressorMixin):
         Penalty strength.
 
     gamma : float, default=3
-        If gamma = 1, the prox of MCP is a hard thresholding.
-        If gamma = np.inf it is a soft thresholding.
+        If ``gamma = 1``, the prox of MCP is a hard thresholding.
+        If ``gamma = np.inf`` it is a soft thresholding.
         Should be larger than (or equal to) 1.
 
     max_iter : int, optional

@@ -1,6 +1,7 @@
-import numpy as np
+import numpy
 
 from graph_hashing.solvers import PGD, CD
+from graph_hashing.solvers.fista import FISTA
 from graph_hashing.solvers.utils import compute_lmbd_max
 from graph_hashing.data_src import generate_data
 
@@ -24,7 +25,8 @@ lmbd_max = compute_lmbd_max(tensor_H_k, tensor_S_k)
 ########################
 lmbd = reg * lmbd_max
 
-S, stop_crit = CD(verbose=1, max_iter=100).solve(tensor_H_k, tensor_S_k, lmbd)
+S, stop_crit = CD(verbose=1, max_iter=100, tol=1e-15).solve(
+    tensor_H_k, tensor_S_k, lmbd)
 
 # print support of solution
 print((S != 0).sum())

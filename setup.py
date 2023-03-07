@@ -32,6 +32,6 @@ setup(name=DISTNAME,
       url=URL,
       download_url=DOWNLOAD_URL,
       packages=find_packages(),
-      install_requires=['numpy>=1.12', 'numba',
+      install_requires=['numpy>=1.12', 'numba', "networkx",
                         'scipy>=0.18.0', 'scikit-learn>=1.0']
       )

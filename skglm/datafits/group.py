@@ -9,9 +9,9 @@ from skglm.datafits.single_task import Logistic
 class QuadraticGroup(BaseDatafit):
     r"""Quadratic datafit used with group penalties.
 
-    The datafit reads::
+    The datafit reads:
 
-    (1 / (2 * n_samples)) * ||y - X w||^2_2
+    .. math:: (1 / (2 * n_"samples")) * ||y - X w||^2_2
 
     Attributes
     ----------
@@ -77,9 +77,9 @@ class QuadraticGroup(BaseDatafit):
 class LogisticGroup(Logistic):
     r"""Logistic datafit used with group penalties.
 
-    The datafit reads::
+    The datafit reads:
 
-    (1 / n_samples) * \sum_i log(1 + exp(-y_i * Xw_i))
+    .. math:: (1 / n_"samples") * sum_(i=1)^(n_"samples") log(1 + exp(-y_i * (Xw)_i))
 
     Attributes
     ----------

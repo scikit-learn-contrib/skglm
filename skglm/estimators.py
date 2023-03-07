@@ -176,7 +176,7 @@ class GeneralizedLinearEstimator(LinearModel):
     Attributes
     ----------
     coef_ : array, shape (n_features,) or (n_features, n_tasks)
-        parameter array (w in the cost function formula)
+        parameter array (:math:`w` in the cost function formula)
 
     sparse_coef_ : scipy.sparse matrix, shape (n_features, 1) or (n_features, n_tasks)
         ``sparse_coef_`` is a readonly property derived from ``coef_``
@@ -332,7 +332,7 @@ class Lasso(LinearModel, RegressorMixin):
     Attributes
     ----------
     coef_ : array, shape (n_features,)
-        parameter vector (w in the cost function formula)
+        parameter vector (:math:`w` in the cost function formula)
 
     sparse_coef_ : scipy.sparse matrix, shape (n_features, 1)
         ``sparse_coef_`` is a readonly property derived from ``coef_``
@@ -482,7 +482,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
     Attributes
     ----------
     coef_ : array, shape (n_features,)
-        parameter vector (w in the cost function formula)
+        parameter vector (:math:`w` in the cost function formula)
 
     sparse_coef_ : scipy.sparse matrix, shape (n_features, 1)
         ``sparse_coef_`` is a readonly property derived from ``coef_``
@@ -649,7 +649,7 @@ class ElasticNet(LinearModel, RegressorMixin):
     Attributes
     ----------
     coef_ : array, shape (n_features,)
-        parameter vector (w in the cost function formula)
+        parameter vector (:math:`w` in the cost function formula)
 
     sparse_coef_ : scipy.sparse matrix, shape (n_features, 1)
         ``sparse_coef_`` is a readonly property derived from ``coef_``
@@ -804,7 +804,7 @@ class MCPRegression(LinearModel, RegressorMixin):
     Attributes
     ----------
     coef_ : array, shape (n_features,)
-        parameter vector (w in the cost function formula)
+        parameter vector (:math:`w` in the cost function formula)
 
     sparse_coef_ : scipy.sparse matrix, shape (n_features, 1)
         ``sparse_coef_`` is a readonly property derived from ``coef_``
@@ -1096,7 +1096,7 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
     Attributes
     ----------
     coef_ : array, shape (n_features,)
-        parameter vector (w in the cost function formula)
+        parameter vector (:math:`w` in the cost function formula)
 
     sparse_coef_ : scipy.sparse matrix, shape (n_features, 1)
         ``sparse_coef_`` is a readonly property derived from ``coef_``
@@ -1193,7 +1193,7 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
     Attributes
     ----------
     coef_ : array, shape (n_features,)
-        parameter vector (w in the cost function formula)
+        parameter vector (:math:`w` in the cost function formula)
 
     sparse_coef_ : scipy.sparse matrix, shape (n_features, 1)
         ``sparse_coef_`` is a readonly property derived from ``coef_``

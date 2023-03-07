@@ -30,7 +30,7 @@ class IterativeReweightedL1(GeneralizedLinearEstimator):
     Attributes
     ----------
     coef_ : array, shape (n_features,)
-        Parameter vector (w in the cost function formula).
+        Parameter vector (:math:`w` in the cost function formula).
 
     loss_history_ : list
         Objective history after every reweighting.

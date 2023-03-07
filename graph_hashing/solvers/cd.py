@@ -1,9 +1,7 @@
-from itertools import product
 import numpy as np
 from numpy.linalg import norm
 
-import numba
-from numba import njit, prange
+from numba import njit
 from skglm.utils.prox_funcs import ST
 
 from graph_hashing.solvers.utils import compute_obj, validate_input
@@ -85,9 +83,7 @@ def _compute_grad(tensor_H_k, residuals, i, j):
     grad_ij = 0.
 
     for H_k, residual_k in zip(tensor_H_k, residuals):
-        # arrays shape is correct (C-contiguous) but numba doesn't recognize it
-        # to avoid warnings in grad_ij -= (residual_k @ H_k[j]) @ H_k[i]
-        grad_ij -= ((residual_k * H_k[j]).T * H_k[i]).sum()
+        grad_ij -= H_k[i].T @ residual_k @ H_k[j]
 
     return grad_ij
 
@@ -100,14 +96,14 @@ def _update_residuals(tensor_H_k, residuals, delta_s_ij, i, j):
         residuals[k] -= delta_s_ij * np.outer(H_k[i], H_k[j])
 
 
-@njit("(f8[:, :, :], f8, f8[:, :], f8[:, :, :], f8[:, :])", parallel=True)
+@njit("(f8[:, :, :], f8, f8[:, :], f8[:, :, :], f8[:, :])")
 def _cd_pass(tensor_H_k, lmbd, S, residuals, lipchitz):
     # inplace update of S, grad
 
     n_nodes = len(S)
 
-    for i in prange(n_nodes):
-        for j in prange(n_nodes):
+    for i in range(n_nodes):
+        for j in range(n_nodes):
 
             # skip zero coordinates
             if lipchitz[i, j] == 0.:
@@ -126,13 +122,13 @@ def _cd_pass(tensor_H_k, lmbd, S, residuals, lipchitz):
                 _update_residuals(tensor_H_k, residuals, delta_s_ij, i, j)
 
 
-@njit("f8(f8[:, :, :], f8, f8[:, :, :], f8[:, :])", parallel=True)
+@njit("f8(f8[:, :, :], f8, f8[:, :, :], f8[:, :])")
 def _compute_dist_subdiff(tensor_H_k, lmbd, residuals, S):
     n_nodes = len(S)
     max_dist = 0.
 
-    for i in prange(n_nodes):
-        for j in prange(n_nodes):
+    for i in range(n_nodes):
+        for j in range(n_nodes):
 
             s_ij = S[i, j]
             grad_ij = _compute_grad(tensor_H_k, residuals, i, j)

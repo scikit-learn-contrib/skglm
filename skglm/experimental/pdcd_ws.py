@@ -23,25 +23,24 @@ class PDCD_WS:
 
     .. math::
 
-        \min_w \max_z \langle Xw, z \rangle + G(w) - F^*(z)
+        min_w max_z (:Xw, z:) + G(w) - F^**(z)
 
-    where :math:`F` is the datafit term (:math:`F^*` its Fenchel conjugate)
+    where :math:`F` is the datafit term (:math:`F^**` its Fenchel conjugate)
     and :math:`G` is the penalty term.
 
     The datafit is required to be convex and proximable. Also, the penalty
     is required to be convex, separable, and proximable.
 
-    The solver is an adaptation of algorithm [1] to working sets [2].
+    The solver is an adaptation of algorithm [1]_ to working sets [2]_.
     The working sets are built using a fixed point distance strategy
     where each feature is assigned a score based how much its coefficient varies
     when performing a primal update
 
     .. math::
 
-        \mathrm{score}_j = \lvert w_j -
-        \mathrm{prox}_{\tau_j, G_j}(w_j - \tau_j \langle X_j, z \rangle) \rvert
+        "score"_j = abs(w_j - "prox"_(tau_j, G_j)(w_j - tau_j (:X_j, z:)))
 
-    where :math:`\tau_j` is the primal step associated with the j-th feature.
+    where :math:`tau_j` is the primal step associated with the j-th feature.
 
     Parameters
     ----------
@@ -67,6 +66,7 @@ class PDCD_WS:
 
     References
     ----------
+
     .. [1] Olivier Fercoq and Pascal Bianchi,
         "A Coordinate-Descent Primal-Dual Algorithm with Large Step Size and Possibly
         Nonseparable Functions", SIAM Journal on Optimization, 2020,

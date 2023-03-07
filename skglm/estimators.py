@@ -290,9 +290,11 @@ class GeneralizedLinearEstimator(LinearModel):
 class Lasso(LinearModel, RegressorMixin):
     r"""Lasso estimator based on Celer solver and primal extrapolation.
 
-    The optimization objective for Lasso is::
+    The optimization objective for Lasso is:
 
-        (1 / (2 * n_samples)) * ||y - X w||^2_2 + alpha * \sum_j |w_j|
+    .. math::
+        (1 / (2 * n_"samples")) * norm(y - Xw)_2 ^ 2
+        + alpha * \sum_(j=1)^(n_"features") |w_j|
 
     Parameters
     ----------
@@ -434,9 +436,11 @@ class Lasso(LinearModel, RegressorMixin):
 class WeightedLasso(LinearModel, RegressorMixin):
     r"""WeightedLasso estimator based on Celer solver and primal extrapolation.
 
-    The optimization objective for WeightedLasso is::
+    The optimization objective for WeightedLasso is:
 
-        (1 / (2 * n_samples)) * ||y - X w||^2_2 + alpha * \sum_j weights_j |w_j|
+    .. math::
+        (1 / (2 * n_"samples")) * ||y - X w||_2 ^ 2
+        + alpha * \sum_(j=1)^(n_"features") "weights"_j |w_j|
 
     Parameters
     ----------
@@ -596,10 +600,12 @@ class WeightedLasso(LinearModel, RegressorMixin):
 class ElasticNet(LinearModel, RegressorMixin):
     r"""Elastic net estimator.
 
-    The optimization objective for Elastic net is::
+    The optimization objective for Elastic net is:
 
-        (1 / (2 * n_samples)) * ||y - X w||^2_2 + l1_ratio * alpha * sum_j |w_j| \
-        + (1 - l1_ratio) * alpha / 2 sum_j w_j ** 2
+    .. math::
+        (1 / (2 * n_"samples")) * ||y - X w||_2 ^ 2
+        + tt"l1_ratio" * alpha * sum_(j=1)^(n_"features") |w_j|
+        + (1 - tt"l1_ratio") * alpha / 2 sum_(j=1)^(n_"features") w_j ^ 2
 
     Parameters
     ----------
@@ -747,12 +753,14 @@ class ElasticNet(LinearModel, RegressorMixin):
 class MCPRegression(LinearModel, RegressorMixin):
     r"""Linear regression with MCP penalty estimator.
 
-    The optimization objective for MCPRegression is, with x >= 0::
+    The optimization objective for MCPRegression is, with :math:`x >= 0`:
 
-        pen(x) = alpha * x - x^2 / (2 * gamma) if x =< gamma * alpha
-                 gamma * alpha ** 2 / 2        if x > gamma * alpha
+    .. math::
+        pen(x) = {(alpha * x - x^2 / (2 * gamma), if x <= gamma * alpha),
+                  (gamma * alpha^2 / 2       , if x > gamma * alpha):}
 
-        obj = (1 / (2 * n_samples)) * ||y - X w||^2_2 + pen(|w_j|)
+    .. math::
+        obj = (1 / (2 * n_"samples")) * ||y - X w||_2 ^ 2 + pen(|w_j|)
 
     For more details see
     Coordinate descent algorithms for nonconvex penalized regression,
@@ -899,9 +907,9 @@ class MCPRegression(LinearModel, RegressorMixin):
 class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
     r"""Sparse Logistic regression estimator.
 
-    The optimization objective for sparse Logistic regression is::
+    The optimization objective for sparse Logistic regression is:
 
-        mean(log(1 + exp(-y_i x_i^T w))) + alpha * ||w||_1
+    .. math:: (1 / n_"samples") * sum_(i=1)^(n_"samples") log(1 + exp(-y_i x_i^T w)) + alpha * ||w||_1
 
     Parameters
     ----------
@@ -1035,20 +1043,24 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
 class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
     r"""LinearSVC estimator, with hinge loss.
 
-    The optimization objective for LinearSVC is::
+    The optimization objective for LinearSVC is:
 
-        C * \sum_i max(0, 1 - y_i beta.T X[i, :]) + 1 / 2 * ||beta||^2
+    .. math:: C * \sum_(i=1)^(n_"samples") max(0, 1 - y_i beta^T X[i, :]) + 1 / 2 * ||beta||^2
 
     i.e. hinge datafit loss (non-smooth) + l2 regularization (smooth)
 
     To solve this, we solve the dual optimization problem to stay in our
     framework of smooth datafit and non-smooth penalty.
-    The dual optimization problem of SVC is::
+    The dual optimization problem of SVC is:
 
-        1 / 2 * ||(y X).T w||^2_2 - \sum_i w_i + \sum_i ind(0 <= w_i <= C)
+    .. math::
+        1 / 2 * ||(y X)^T w||_2 ^ 2
+        - \sum_(i=0)^(n_"samples") w_i
+        + \sum_(i=0)^(n_"samples") [0 <= w_i <= C]
 
-    The primal-dual relation is given by::
-        w = \sum_i y_i * w_i * X[i, :]
+    The primal-dual relation is given by:
+
+    .. math:: w = \sum_(i=0)^(n_"samples") y_i * w_i * X[i, :]
 
     Parameters
     ----------
@@ -1141,9 +1153,9 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
 class MultiTaskLasso(LinearModel, RegressorMixin):
     r"""MultiTaskLasso estimator.
 
-    The optimization objective for MultiTaskLasso is::
+    The optimization objective for MultiTaskLasso is:
 
-        (1 / (2 * n_samples)) * ||y - X W||^2_2 + alpha * ||W||_{21}
+    .. math:: (1 / (2 * n_"samples")) * ||y - X W||_2 ^ 2 + alpha * ||W||_(21)
 
     Parameters
     ----------

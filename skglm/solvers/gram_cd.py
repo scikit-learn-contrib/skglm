@@ -32,14 +32,14 @@ class GramCD(BaseSolver):
 
     w_init : array, shape (n_features,), default None
         Initial value of coefficients.
-        If set to None, a zero vector is used instead.
+        If set to ``None``, a zero vector is used instead.
 
     use_acc : bool, default True
-        Extrapolate the iterates based on the past 5 iterates if set to True.
+        Extrapolate the iterates based on the past 5 iterates if set to ``True``.
 
     greedy_cd : bool, default True
         Use a greedy strategy to select features to update in coordinate descent epochs
-        if set to True. A cyclic strategy is used otherwise.
+        if set to ``True``. A cyclic strategy is used otherwise.
 
     tol : float, default 1e-4
         Tolerance for convergence.

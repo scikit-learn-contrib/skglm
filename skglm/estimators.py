@@ -163,15 +163,17 @@ class GeneralizedLinearEstimator(LinearModel):
     Parameters
     ----------
     datafit : instance of BaseDatafit, optional
-        Datafit. If None, `datafit` is initialized as a ``Quadratic`` datafit.
-        ``datafit`` is replaced by a JIT-compiled instance when calling fit.
+        Datafit. If ``None``, ``datafit`` is initialized as a :py:class:`.Quadratic`
+        datafit.  ``datafit`` is replaced by a JIT-compiled instance when calling fit.
 
     penalty : instance of BasePenalty, optional
-        Penalty. If None, `penalty` is initialized as a ``L1`` penalty.
-        ``penalty`` is replaced by a JIT-compiled instance when calling fit.
+        Penalty. If ``None``, ``penalty`` is initialized as a :py:class:`.L1` penalty.
+        ``penalty`` is replaced by a JIT-compiled instance when
+        calling fit.
 
     solver : instance of BaseSolver, optional
-        Solver. If None, ``solver`` is initialized as an ``AndersonCD`` solver.
+        Solver. If ``None``, ``solver`` is initialized as an :py:class:`.AndersonCD`
+        solver.
 
     Attributes
     ----------
@@ -323,11 +325,11 @@ class Lasso(LinearModel, RegressorMixin):
         Whether or not to fit an intercept.
 
     warm_start : bool, optional (default=False)
-        When set to True, reuse the solution of the previous call to fit as
+        When set to ``True``, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
 
     ws_strategy : str
-        The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
+        The score used to build the working set. Can be ``"fixpoint"`` or ``"subdiff"``.
 
     Attributes
     ----------
@@ -402,7 +404,7 @@ class Lasso(LinearModel, RegressorMixin):
             Grid of alpha.
 
         coef_init : array, shape (n_features,), optional
-            If warm_start is enabled, the optimization problem restarts from coef_init.
+            If warm_start is enabled, the optimization problem restarts from ``coef_init``.
 
         return_n_iter : bool
             Returns the number of iterations along the path.
@@ -422,7 +424,7 @@ class Lasso(LinearModel, RegressorMixin):
             Value of stopping criterion at convergence along the path.
 
         n_iters : array, shape (n_alphas,), optional
-            The number of iterations along the path. If return_n_iter is set to `True`.
+            The number of iterations along the path. If return_n_iter is set to ``True``.
         """
         penalty = compiled_clone(L1(self.alpha, self.positive))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
@@ -449,7 +451,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
 
     weights : array, shape (n_features,), optional (default=None)
         Positive weights used in the L1 penalty part of the Lasso
-        objective. If None, weights equal to 1 are used.
+        objective. If ``None``, weights equal to 1 are used.
 
     max_iter : int, optional
         The maximum number of iterations (subproblem definitions).
@@ -473,7 +475,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
         Whether or not to fit an intercept.
 
     warm_start : bool, optional (default=False)
-        When set to True, reuse the solution of the previous call to fit as
+        When set to ``True``, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
 
     ws_strategy : str
@@ -640,7 +642,7 @@ class ElasticNet(LinearModel, RegressorMixin):
         Whether or not to fit an intercept.
 
     warm_start : bool, optional (default=False)
-        When set to True, reuse the solution of the previous call to fit as
+        When set to ``True``, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
 
     ws_strategy : str
@@ -716,7 +718,7 @@ class ElasticNet(LinearModel, RegressorMixin):
             Value of stopping criterion at convergence along the path.
 
         n_iters : array, shape (n_alphas,), optional
-            The number of iterations along the path. If return_n_iter is set to `True`.
+            The number of iterations along the path. If return_n_iter is set to ``True``.
         """
         penalty = compiled_clone(L1_plus_L2(self.alpha, self.l1_ratio, self.positive))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
@@ -795,7 +797,7 @@ class MCPRegression(LinearModel, RegressorMixin):
         Whether or not to fit an intercept.
 
     warm_start : bool, optional (default=False)
-        When set to True, reuse the solution of the previous call to fit as
+        When set to ``True``, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
 
     ws_strategy : str
@@ -850,7 +852,7 @@ class MCPRegression(LinearModel, RegressorMixin):
             Grid of alpha.
 
         coef_init : array, shape (n_features,), optional
-            If warm_start is enabled, the optimization problem restarts from coef_init.
+            If warm_start is enabled, the optimization problem restarts from ``coef_init``.
 
         return_n_iter : bool
             Returns the number of iterations along the path.
@@ -870,7 +872,7 @@ class MCPRegression(LinearModel, RegressorMixin):
             Value of stopping criterion at convergence along the path.
 
         n_iters : array, shape (n_alphas,), optional
-            The number of iterations along the path. If return_n_iter is set to `True`.
+            The number of iterations along the path. If return_n_iter is set to ``True``.
         """
         penalty = compiled_clone(MCPenalty(self.alpha, self.gamma))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
@@ -932,7 +934,7 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         Whether or not to fit an intercept.
 
     warm_start : bool, optional (default=False)
-        When set to True, reuse the solution of the previous call to fit as
+        When set to ``True``, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
 
     Attributes
@@ -943,7 +945,7 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
     coef_ : ndarray, shape (1, n_features) or (n_classes, n_features)
         Coefficient of the features in the decision function.
 
-        `coef_` is of shape (1, n_features) when the given problem is binary.
+        ``coef_`` is of shape (1, n_features) when the given problem is binary.
 
     intercept_ :  ndarray, shape (1,) or (n_classes,)
         constant term in decision function. Not handled yet.
@@ -998,7 +1000,7 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
-            Vector to be scored, where `n_samples` is the number of samples and
+            Vector to be scored, where ``n_samples`` is the number of samples and
             `n_features` is the number of features.
 
         Returns
@@ -1016,7 +1018,7 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
                 """Probability estimation for OvR logistic regression.
 
                 Positive class probabilities are computed as
-                1. / (1. + np.exp(-self.decision_function(X)));
+                ``1. / (1. + np.exp(-self.decision_function(X)))``;
                 multiclass is handled by normalizing that over all classes.
                 """
                 prob = self.decision_function(X)
@@ -1087,7 +1089,7 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
         Whether or not to fit an intercept.
 
     warm_start : bool, optional (default=False)
-        When set to True, reuse the solution of the previous call to fit as
+        When set to ``True``, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
 
     ws_strategy : str
@@ -1163,7 +1165,7 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
         Regularization strength (constant that multiplies the L21 penalty).
 
     copy_X : bool, optional (default=True)
-        If True, X will be copied; else, it may be overwritten.
+        If ``True``, X will be copied; else, it may be overwritten.
 
     max_iter : int, optional
         The maximum number of iterations (subproblem definitions).
@@ -1184,7 +1186,7 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
         Whether or not to fit an intercept.
 
     warm_start : bool, optional (default=False)
-        When set to True, reuse the solution of the previous call to fit as
+        When set to ``True``, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
 
     ws_strategy : str
@@ -1293,7 +1295,7 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
             Grid of alpha.
 
         coef_init : array, shape (n_features,), optional
-            If warm_start is enabled, the optimization problem restarts from coef_init.
+            If warm_start is enabled, the optimization problem restarts from ``coef_init``.
 
         return_n_iter : bool
             Returns the number of iterations along the path.
@@ -1313,7 +1315,7 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
             Value of stopping criterion at convergence along the path.
 
         n_iters : array, shape (n_alphas,), optional
-            The number of iterations along the path. If return_n_iter is set to `True`.
+            The number of iterations along the path. If return_n_iter is set to ``True``.
         """
         datafit = compiled_clone(QuadraticMultiTask(), to_float32=X.dtype == np.float32)
         penalty = compiled_clone(L2_1(self.alpha))

@@ -213,11 +213,13 @@ class MCPenalty(BasePenalty):
 
     Notes
     -----
-    With x >= 0
-    pen(x) =
-    alpha * x - x^2 / (2 * gamma) if x =< gamma * alpha
-    gamma * alpha^2 / 2           if x > gamma * alpha
-    value = sum_{j=1}^{n_features} pen(abs(w_j))
+    With :math:`x >= 0`:
+
+    .. math::
+        "pen"(x) = {(alpha * x - x^2 / (2 * gamma), if x =< gamma * alpha),
+                    (gamma * alpha^2 / 2          , if x > gamma * alpha):}
+    .. math::
+        "value" = sum_(j=1)^(n_"features") "pen"(abs(w_j))
     """
 
     def __init__(self, alpha, gamma):
@@ -276,13 +278,18 @@ class SCAD(BasePenalty):
 
     Notes
     -----
-    With x >= 0
-    pen(x) =
-    alpha * x                         if x =< alpha
-    2 * gamma * alpha * x - x^2 - alpha^2 \
-        / 2 * (gamma - 1))            if alpha < x < alpha * gamma
-    alpha^2 * (gamma + 1) / 2      if x > gamma * alpha
-    value = sum_{j=1}^{n_features} pen(abs(w_j))
+    With :math:`x >= 0`:
+
+    .. math::
+        "pen"(x) = {
+            (alpha x                  , if \ \ \ \ \ \ \ \ \ \ x <= alpha),
+            (2 alpha gamma x - x^2 - alpha^2 / 2 (gamma - 1)
+                                      , if       alpha \ \   < x <= alpha gamma),
+            (alpha^2 (gamma + 1) / 2  , if       alpha gamma < x  )
+        :}
+
+    .. math::
+        "value" = sum_{j=1}^{n_"features"} "pen"(abs(w_j))
     """
 
     def __init__(self, alpha, gamma):
@@ -344,9 +351,10 @@ class IndicatorBox(BasePenalty):
 
     Notes
     -----
-    ind_[0, alpha]^n_samples
-    where ind is the indicator function of the convex set
-    [0, alpha]^n_samples
+    .. math:: bb"1"_([0, alpha]^(n_"samples"))
+
+    where :math:`bb"1"` is the indicator function of the convex set
+    :math:`[0, alpha]^(n_"samples")`
     """
 
     def __init__(self, alpha):

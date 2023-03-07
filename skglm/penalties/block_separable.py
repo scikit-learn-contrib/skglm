@@ -162,12 +162,18 @@ class BlockSCAD(BasePenalty):
 
     Notes
     -----
-    With W_j the j-th row of W, the penalty is:
-        pen(||W_j||) = alpha * ||W_j||               if ||W_j|| =< alpha
-                       (2 * gamma * alpha * ||W_j|| - ||W_j|| ** 2 - alpha ** 2) \
-                           / (2 * (gamma - 1))       if alpha < ||W_j|| < alpha * gamma
-                       (alpha **2 * (gamma + 1)) / 2 if ||W_j|| > gamma * alpha
-        value = sum_{j=1}^{n_features} pen(||W_j||)
+    With :math:`W_j` the j-th row of W, the penalty is:
+
+    .. math::
+        "pen"(||W_j||) = {
+            (alpha ||W_j||            , if  quad qquad qquad  ||W_j|| <= alpha),
+            ((2 alpha gamma ||W_j|| - ||W_j||^2 - alpha^2) / (2 (gamma - 1))
+                                      , if      alpha quad  < ||W_j|| <= alpha gamma),
+            ((alpha^2 (gamma + 1)) / 2, if      alpha gamma < ||W_j||)
+        :}
+
+    .. math::
+        "value" = sum_(j=1)^(n_"features") "pen"(||W_j||)
     """
 
     def __init__(self, alpha, gamma):

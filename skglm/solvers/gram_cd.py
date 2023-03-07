@@ -9,18 +9,21 @@ from skglm.utils.anderson import AndersonAcceleration
 class GramCD(BaseSolver):
     r"""Coordinate descent solver keeping the gradients up-to-date with Gram updates.
 
-    This solver should be used when n_features < n_samples, and computes the
-    (n_features, n_features) Gram matrix which comes with an overhead. It is  only
-    suited to Quadratic datafits.
+    This solver should be used when ``n_features`` < ``n_samples``, and computes the
+    (``n_features``, ``n_features``) Gram matrix which comes with an overhead. It is
+    only suited to Quadratic datafits.
 
-    It minimizes::
-        1 / (2*n_samples) * norm(y - Xw)**2 + penalty(w)
+    It minimizes:
 
-    which can be rewritten as::
-        w.T @ Q @ w / (2*n_samples) - q.T @ w / n_samples + penalty(w)
+    .. math:: 1 / (2*n_"samples") * norm(y - Xw)^2 + "penalty"(w)
 
-    where::
-        Q = X.T @ X (gram matrix), and q = X.T @ y
+    which can be rewritten as:
+
+    .. math:: (w^T Q w) / (2*n_"samples") - (q^T w) / n_"samples" + "penalty"(w)
+
+    where:
+
+    .. math:: Q = X^T X " (gram matrix),  and " q = X^T y
 
     Attributes
     ----------

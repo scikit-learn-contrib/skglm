@@ -1,8 +1,8 @@
 import numpy as np
 
-from graph_hashing.solvers import PGD, CD, FISTA, CD_WS
-from graph_hashing.solvers.utils import compute_obj, compute_lmbd_max
-from graph_hashing.data_src import generate_data
+from skglm.graph_hashing.solvers import PGD, CD, FISTA, CD_WS
+from skglm.graph_hashing.solvers.utils import compute_obj, compute_lmbd_max
+from skglm.graph_hashing.data_src import generate_data
 
 
 def test_data():

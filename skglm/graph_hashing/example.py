@@ -1,9 +1,13 @@
-import numpy as np
+import warnings
 from numpy.linalg import norm
 
-from graph_hashing.solvers import FISTA
-from graph_hashing.solvers.utils import compute_lmbd_max
-from graph_hashing.data_src import generate_data
+# suppress numba performance related warnings
+import numba
+warnings.simplefilter('ignore', category=numba.errors.NumbaPerformanceWarning)  # noqa
+
+from skglm.graph_hashing.data_src import generate_data
+from skglm.graph_hashing.solvers.utils import compute_lmbd_max
+from skglm.graph_hashing.solvers import FISTA
 
 
 #################

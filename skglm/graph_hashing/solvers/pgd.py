@@ -4,7 +4,7 @@ from numpy.linalg import norm
 from numba import njit
 from skglm.utils.prox_funcs import ST_vec
 
-from graph_hashing.solvers.utils import compute_obj, compute_grad, validate_input
+from skglm.graph_hashing.solvers.utils import compute_obj, compute_grad, validate_input
 
 
 class PGD:

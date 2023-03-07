@@ -1,3 +1,14 @@
+# Quick start
+
+1. Install ``skglm`` corresponding branch
+```bash
+pip install git+https://github.com/Badr-MOUFAD/skglm.git@graph-hashing
+```
+
+2. Run the starter example in ``skglm/graph_hashing/example.py``
+
+
+
 ## Content
 
 1. [Setup](#setup)

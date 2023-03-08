@@ -295,7 +295,7 @@ class Lasso(LinearModel, RegressorMixin):
     The optimization objective for Lasso is:
 
     .. math::
-        (1 / (2 * n_"samples")) * norm(y - Xw)_2 ^ 2
+        1 / (2 xx n_"samples")  norm(y - Xw)_2 ^ 2
         + alpha * \sum_(j=1)^(n_"features") |w_j|
 
     Parameters

@@ -274,7 +274,7 @@ class MCPenalty(BasePenalty):
 
 
 class SCAD(BasePenalty):
-    """Smoothly Clipped Absolute Deviation.
+    r"""Smoothly Clipped Absolute Deviation.
 
     Notes
     -----

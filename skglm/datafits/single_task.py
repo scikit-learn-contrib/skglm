@@ -495,7 +495,8 @@ class Gamma(BaseDatafit):
     The datafit reads:
 
     .. math::
-        (1 / n_"samples") * \sum_(i=1)^(n_"samples") ((Xw)_i + y_i * exp(-(Xw)_i) - 1 - log(y_i))
+        1 / n_"samples" \sum_(i=1)^(n_"samples")
+        ((Xw)_i + y_i * exp(-(Xw)_i) - 1 - log(y_i))
 
     Note:
     ----

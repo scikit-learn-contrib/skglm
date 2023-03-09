@@ -404,7 +404,8 @@ class Lasso(LinearModel, RegressorMixin):
             Grid of alpha.
 
         coef_init : array, shape (n_features,), optional
-            If warm_start is enabled, the optimization problem restarts from ``coef_init``.
+            If warm_start is enabled, the optimization problem restarts from
+            ``coef_init``.
 
         return_n_iter : bool
             Returns the number of iterations along the path.
@@ -424,7 +425,8 @@ class Lasso(LinearModel, RegressorMixin):
             Value of stopping criterion at convergence along the path.
 
         n_iters : array, shape (n_alphas,), optional
-            The number of iterations along the path. If return_n_iter is set to ``True``.
+            The number of iterations along the path. If return_n_iter is set to
+            ``True``.
         """
         penalty = compiled_clone(L1(self.alpha, self.positive))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
@@ -718,7 +720,8 @@ class ElasticNet(LinearModel, RegressorMixin):
             Value of stopping criterion at convergence along the path.
 
         n_iters : array, shape (n_alphas,), optional
-            The number of iterations along the path. If return_n_iter is set to ``True``.
+            The number of iterations along the path. If return_n_iter is set to
+            ``True``.
         """
         penalty = compiled_clone(L1_plus_L2(self.alpha, self.l1_ratio, self.positive))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
@@ -853,7 +856,8 @@ class MCPRegression(LinearModel, RegressorMixin):
             Grid of alpha.
 
         coef_init : array, shape (n_features,), optional
-            If warm_start is enabled, the optimization problem restarts from ``coef_init``.
+            If warm start is enabled, the optimization problem restarts from
+            ``coef_init``.
 
         return_n_iter : bool
             Returns the number of iterations along the path.
@@ -873,7 +877,8 @@ class MCPRegression(LinearModel, RegressorMixin):
             Value of stopping criterion at convergence along the path.
 
         n_iters : array, shape (n_alphas,), optional
-            The number of iterations along the path. If return_n_iter is set to ``True``.
+            The number of iterations along the path. If return_n_iter is set to
+            ``True``.
         """
         penalty = compiled_clone(MCPenalty(self.alpha, self.gamma))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
@@ -912,7 +917,8 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
 
     The optimization objective for sparse Logistic regression is:
 
-    .. math:: (1 / n_"samples") * sum_(i=1)^(n_"samples") log(1 + exp(-y_i x_i^T w)) + alpha * ||w||_1
+    .. math:: 1 / n_"samples" * sum_(i=1)^(n_"samples") log(1 + exp(-y_i x_i^T w))
+        + alpha * ||w||_1
 
     Parameters
     ----------
@@ -1048,7 +1054,8 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
 
     The optimization objective for LinearSVC is:
 
-    .. math:: C * \sum_(i=1)^(n_"samples") max(0, 1 - y_i beta^T X[i, :]) + 1 / 2 * ||beta||^2
+    .. math:: C * \sum_(i=1)^(n_"samples") max(0, 1 - y_i beta^T X[i, :])
+        + 1 / 2 * ||beta||^2
 
     i.e. hinge datafit loss (non-smooth) + l2 regularization (smooth)
 
@@ -1296,7 +1303,8 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
             Grid of alpha.
 
         coef_init : array, shape (n_features,), optional
-            If warm_start is enabled, the optimization problem restarts from ``coef_init``.
+            If warm start is enabled, the optimization problem restarts from
+            ``coef_init``.
 
         return_n_iter : bool
             Returns the number of iterations along the path.
@@ -1316,7 +1324,8 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
             Value of stopping criterion at convergence along the path.
 
         n_iters : array, shape (n_alphas,), optional
-            The number of iterations along the path. If return_n_iter is set to ``True``.
+            The number of iterations along the path. If return_n_iter is set to
+            ``True``.
         """
         datafit = compiled_clone(QuadraticMultiTask(), to_float32=X.dtype == np.float32)
         penalty = compiled_clone(L2_1(self.alpha))

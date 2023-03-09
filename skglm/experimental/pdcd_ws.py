@@ -66,7 +66,6 @@ class PDCD_WS:
 
     References
     ----------
-
     .. [1] Olivier Fercoq and Pascal Bianchi,
         "A Coordinate-Descent Primal-Dual Algorithm with Large Step Size and Possibly
         Nonseparable Functions", SIAM Journal on Optimization, 2020,

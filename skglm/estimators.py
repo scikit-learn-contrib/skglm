@@ -1063,13 +1063,13 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
     The dual optimization problem of SVC is:
 
     .. math::
-        1 / 2 * ||(y X)^T w||_2 ^ 2
-        - \sum_(i=0)^(n_"samples") w_i
-        + \sum_(i=0)^(n_"samples") [0 <= w_i <= C]
+        1/2 norm((y X)^T w)_2 ^ 2
+        - \sum_(i=1)^(n_"samples") w_i
+        + \sum_(i=1)^(n_"samples") [0 <= w_i <= C]
 
     The primal-dual relation is given by:
 
-    .. math:: w = \sum_(i=0)^(n_"samples") y_i * w_i * X[i, :]
+    .. math:: w = \sum_(i=1)^(n_"samples") y_i w_i X[i, :]
 
     Parameters
     ----------

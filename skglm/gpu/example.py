@@ -4,7 +4,6 @@ import numpy as np
 from numpy.linalg import norm
 
 from sklearn.linear_model import Lasso
-from skglm.gpu.cupy_solver import CupySolver
 from skglm.gpu.jax_solver import JaxSolver
 
 from skglm.gpu.utils.host_utils import compute_obj, eval_opt_crit

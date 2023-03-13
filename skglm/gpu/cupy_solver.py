@@ -1,6 +1,5 @@
 import cupy as cp
 import numpy as np
-from numpy.linalg import norm
 
 from skglm.gpu.utils.host_utils import compute_obj, eval_opt_crit
 

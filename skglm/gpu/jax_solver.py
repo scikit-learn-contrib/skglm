@@ -4,15 +4,15 @@
 import os
 os.environ['XLA_FLAGS'] = '--xla_gpu_force_compilation_parallelism=1'  # noqa
 
-import numpy as np
+import numpy as np  # noqa
 
-import jax
-import jax.numpy as jnp
+import jax  # noqa
+import jax.numpy as jnp  # noqa
 # set float64 as default float type.
 # if not, amplifies rounding errors.
 jax.config.update("jax_enable_x64", True)  # noqa
 
-from skglm.gpu.utils.host_utils import compute_obj, eval_opt_crit
+from skglm.gpu.utils.host_utils import compute_obj, eval_opt_crit  # noqa
 
 
 class JaxSolver:

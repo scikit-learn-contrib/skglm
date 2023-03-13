@@ -4,13 +4,13 @@ import numpy as np
 from numpy.linalg import norm
 
 from sklearn.linear_model import Lasso
-from skglm.gpu.jax_solver import JaxSolver
+from skglm.gpu.numba_solver import NumbaSolver
 
 from skglm.gpu.utils.host_utils import compute_obj, eval_opt_crit
 
 
 random_state = 1265
-n_samples, n_features = 100, 30
+n_samples, n_features = 10 * 1020, 100
 reg = 1e-2
 
 # generate dummy data
@@ -23,15 +23,10 @@ y = rng.randn(n_samples)
 lmbd_max = norm(X.T @ y, ord=np.inf)
 lmbd = reg * lmbd_max
 
-solver = JaxSolver(verbose=1, use_auto_diff=False)
-
-# cache grad
-solver.max_iter = 2
-solver.solve(X, y, lmbd)
+solver = NumbaSolver(verbose=0)
 
 # solve problem
 start = time.perf_counter()
-solver.max_iter = 1000
 w_gpu = solver.solve(X, y, lmbd)
 end = time.perf_counter()
 

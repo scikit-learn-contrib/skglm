@@ -5,11 +5,15 @@ from numpy.linalg import norm
 
 from skglm.gpu.cpu_solver import CPUSolver
 from skglm.gpu.cupy_solver import CupySolver
+from skglm.gpu.jax_solver import JaxSolver
 
 from skglm.gpu.utils.host_utils import eval_opt_crit
 
 
-@pytest.mark.parametrize("solver", [CupySolver(), CPUSolver()])
+@pytest.mark.parametrize("solver", [CupySolver(),
+                                    CPUSolver(),
+                                    JaxSolver(use_auto_diff=False),
+                                    JaxSolver(use_auto_diff=True)])
 def test_solves(solver):
     random_state = 1265
     n_samples, n_features = 100, 30

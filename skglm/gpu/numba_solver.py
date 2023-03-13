@@ -31,8 +31,8 @@ class NumbaSolver:
         n_blocks_axis_0, n_blocks_axis_1 = [math.ceil(n / N_THREADS) for n in X.shape]
 
         # transfer to device
-        X_gpu = cuda.as_cuda_array(X)
-        y_gpu = cuda.as_cuda_array(y)
+        X_gpu = cuda.to_device(X)
+        y_gpu = cuda.to_device(y)
 
         # init vars on device
         w = cuda.device_array(n_features)
@@ -46,18 +46,23 @@ class NumbaSolver:
 
         for it in range(self.max_iter):
 
-            __compute_minus_residual[n_blocks_axis_0, N_THREADS](
-                X_gpu, y_gpu, w, out=minus_residual)
+            # inplace update of minus residual
+            _compute_minus_residual[n_blocks_axis_0, N_THREADS](
+                X_gpu, y_gpu, w, minus_residual)
 
-            __compute_grad[n_blocks_axis_1, N_THREADS](
-                X_gpu, minus_residual, out=grad)
+            # inplace update of grad
+            _compute_grad[n_blocks_axis_1, N_THREADS](
+                X_gpu, minus_residual, grad)
 
-            __forward_backward[n_blocks_axis_1, N_THREADS](
-                mid_w, grad, step, lmbd, out=w)
+            # inplace update of w
+            _forward_backward[n_blocks_axis_1, N_THREADS](
+                mid_w, grad, step, lmbd, w)
 
             if self.verbose:
-                p_obj = compute_obj(X, y, lmbd, w)
-                opt_crit = eval_opt_crit(X, y, lmbd, w)
+                w_cpu = w.copy_to_host()
+
+                p_obj = compute_obj(X, y, lmbd, w_cpu)
+                opt_crit = eval_opt_crit(X, y, lmbd, w_cpu)
 
                 print(
                     f"Iteration {it:4}: p_obj={p_obj:.8f}, opt crit={opt_crit:.4e}"
@@ -65,7 +70,8 @@ class NumbaSolver:
 
             # extrapolate
             coef = (t_old - 1) / t_new
-            __extrapolate[n_blocks_axis_1, N_THREADS](w, old_w, coef, out=mid_w)
+            _extrapolate[n_blocks_axis_1, N_THREADS](
+                w, old_w, coef, mid_w)
 
             # update FISTA vars
             t_old = t_new
@@ -73,11 +79,14 @@ class NumbaSolver:
             # in `copy_to_device`: `self` is destination and `other` is source
             old_w.copy_to_device(w)
 
-        return w
+        # transfer back to host
+        w_cpu = w.copy_to_host()
+
+        return w_cpu
 
 
 @cuda.jit
-def __compute_minus_residual(X_gpu, y_gpu, w, out):
+def _compute_minus_residual(X_gpu, y_gpu, w, out):
     # compute: out = X_gpu @ w - y_gpu
     i = cuda.grid(1)
 
@@ -88,13 +97,13 @@ def __compute_minus_residual(X_gpu, y_gpu, w, out):
     tmp = 0.
     for j in range(n_features):
         tmp += X_gpu[i, j] * w[j]
-    tmp += y_gpu[i]
+    tmp -= y_gpu[i]
 
     out[i] = tmp
 
 
 @cuda.jit
-def __compute_grad(X_gpu, minus_residual, out):
+def _compute_grad(X_gpu, minus_residual, out):
     # compute: out=X.T @ minus_residual
     j = cuda.grid(1)
 
@@ -110,7 +119,7 @@ def __compute_grad(X_gpu, minus_residual, out):
 
 
 @cuda.jit
-def __forward_backward(mid_w, grad, step, lmbd, out):
+def _forward_backward(mid_w, grad, step, lmbd, out):
     # forward: mid_w = mid_w - step * grad
     # backward: w = ST_vec(mid_w, step * lmbd)
     j = cuda.grid(1)
@@ -135,7 +144,7 @@ def __forward_backward(mid_w, grad, step, lmbd, out):
 
 
 @cuda.jit
-def __extrapolate(w, old_w, coef, out):
+def _extrapolate(w, old_w, coef, out):
     # compute: out = w + coef * (w - old_w)
     j = cuda.grid(1)
 

@@ -158,7 +158,7 @@ class BlockMCPenalty(BasePenalty):
 
 
 class BlockSCAD(BasePenalty):
-    """Block Smoothly Clipped Absolute Deviation.
+    r"""Block Smoothly Clipped Absolute Deviation.
 
     Notes
     -----

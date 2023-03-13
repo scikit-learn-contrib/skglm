@@ -76,22 +76,71 @@ class NumbaSolver:
         return w
 
 
+@cuda.jit
 def __compute_minus_residual(X_gpu, y_gpu, w, out):
-    # X_gpu @ w - y_gpu
-    pass
+    # compute: out = X_gpu @ w - y_gpu
+    i = cuda.grid(1)
+
+    n_samples, n_features = X_gpu.shape
+    if i >= n_samples:
+        return
+
+    tmp = 0.
+    for j in range(n_features):
+        tmp += X_gpu[i, j] * w[j]
+    tmp += y_gpu[i]
+
+    out[i] = tmp
 
 
+@cuda.jit
 def __compute_grad(X_gpu, minus_residual, out):
-    # X.T @ minus_residual
-    pass
+    # compute: out=X.T @ minus_residual
+    j = cuda.grid(1)
+
+    n_samples, n_features = X_gpu.shape
+    if j >= n_features:
+        return
+
+    tmp = 0.
+    for i in range(n_samples):
+        tmp += X_gpu[i, j] * minus_residual[i]
+
+    out[j] = tmp
 
 
-def __forward_backward():
-    # mid_w = mid_w - step * grad
-    # w = ST_vec(mid_w, step * lmbd)
-    pass
+@cuda.jit
+def __forward_backward(mid_w, grad, step, lmbd, out):
+    # forward: mid_w = mid_w - step * grad
+    # backward: w = ST_vec(mid_w, step * lmbd)
+    j = cuda.grid(1)
+
+    n_features = len(mid_w)
+    if j >= n_features:
+        return
+
+    # forward
+    tmp = mid_w[j] - step * grad[j]
+
+    # backward
+    level = step * lmbd
+    if abs(tmp) <= level:
+        tmp = 0.
+    elif tmp > level:
+        tmp = tmp - level
+    else:
+        tmp = tmp + level
+
+    out[j] = tmp
 
 
+@cuda.jit
 def __extrapolate(w, old_w, coef, out):
-    # mid_w = w + ((t_old - 1) / t_new) * (w - old_w)
-    pass
+    # compute: out = w + coef * (w - old_w)
+    j = cuda.grid(1)
+
+    n_features = len(w)
+    if j >= n_features:
+        return
+
+    out[j] = w[j] + coef * (w[j] - old_w[j])

@@ -289,7 +289,7 @@ class SCAD(BasePenalty):
         :}
 
     .. math::
-        "value" = sum_{j=1}^{n_"features"} "pen"(abs(w_j))
+        "value" = sum_(j=1)^(n_"features") "pen"(abs(w_j))
     """
 
     def __init__(self, alpha, gamma):

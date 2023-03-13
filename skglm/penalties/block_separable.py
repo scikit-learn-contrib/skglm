@@ -166,10 +166,10 @@ class BlockSCAD(BasePenalty):
 
     .. math::
         "pen"(||W_j||) = {
-            (alpha ||W_j||            , if  quad qquad qquad  ||W_j|| <= alpha),
+            (alpha ||W_j||            , if \ \ \ \ \ \ \ \ \ \ ||W_j|| <= alpha),
             ((2 alpha gamma ||W_j|| - ||W_j||^2 - alpha^2) / (2 (gamma - 1))
-                                      , if      alpha quad  < ||W_j|| <= alpha gamma),
-            ((alpha^2 (gamma + 1)) / 2, if      alpha gamma < ||W_j||)
+                                      , if       alpha  \ \  < ||W_j|| <= alpha gamma),
+            ((alpha^2 (gamma + 1)) / 2, if       alpha gamma < ||W_j||)
         :}
 
     .. math::

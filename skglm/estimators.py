@@ -295,8 +295,7 @@ class Lasso(LinearModel, RegressorMixin):
     The optimization objective for Lasso is:
 
     .. math::
-        1 / (2 xx n_"samples")  norm(y - Xw)_2 ^ 2
-        + alpha * \sum_(j=1)^(n_"features") |w_j|
+        1 / (2 xx n_"samples")  norm(y - Xw)_2 ^ 2 + alpha ||w||_1
 
     Parameters
     ----------
@@ -443,8 +442,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
     The optimization objective for WeightedLasso is:
 
     .. math::
-        (1 / (2 * n_"samples")) * ||y - X w||_2 ^ 2
-        + alpha * \sum_(j=1)^(n_"features") "weights"_j |w_j|
+        1 / (2 xx n_"samples") norm(y - X w)_2 ^ 2 + alpha ||w||_1
 
     Parameters
     ----------
@@ -607,9 +605,9 @@ class ElasticNet(LinearModel, RegressorMixin):
     The optimization objective for Elastic net is:
 
     .. math::
-        (1 / (2 * n_"samples")) * ||y - X w||_2 ^ 2
-        + tt"l1_ratio" * alpha * sum_(j=1)^(n_"features") |w_j|
-        + (1 - tt"l1_ratio") * alpha / 2 sum_(j=1)^(n_"features") w_j ^ 2
+        1 / (2 xx n_"samples") norm(y - X w)_2 ^ 2
+        + tt"l1_ratio" xx alpha ||w||_1
+        + (1 - tt"l1_ratio") xx alpha/2 ||w||_2 ^ 2
 
     Parameters
     ----------
@@ -761,11 +759,12 @@ class MCPRegression(LinearModel, RegressorMixin):
     The optimization objective for MCPRegression is, with :math:`x >= 0`:
 
     .. math::
-        pen(x) = {(alpha * x - x^2 / (2 * gamma), if x <= gamma * alpha),
-                  (gamma * alpha^2 / 2       , if x > gamma * alpha):}
+        "pen"(x) = {(alpha x - x^2 / (2 gamma), if x <= alpha gamma),
+                    (gamma alpha^2 / 2        , if x > alpha gamma):}
 
     .. math::
-        obj = (1 / (2 * n_"samples")) * ||y - X w||_2 ^ 2 + pen(|w_j|)
+        "obj" = 1 / (2 xx n_"samples") norm(y - X w)_2 ^ 2
+              + sum_(j=1)^(n_"features") "pen"(|w_j|)
 
     For more details see
     `Coordinate descent algorithms for nonconvex penalized regression,
@@ -917,8 +916,8 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
 
     The optimization objective for sparse Logistic regression is:
 
-    .. math:: 1 / n_"samples" * sum_(i=1)^(n_"samples") log(1 + exp(-y_i x_i^T w))
-        + alpha * ||w||_1
+    .. math:: 1 / n_"samples" sum_(i=1)^(n_"samples") log(1 + exp(-y_i x_i^T w))
+        + alpha ||w||_1
 
     Parameters
     ----------
@@ -1054,8 +1053,8 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
 
     The optimization objective for LinearSVC is:
 
-    .. math:: C * \sum_(i=1)^(n_"samples") max(0, 1 - y_i beta^T X[i, :])
-        + 1 / 2 * ||beta||^2
+    .. math:: C xx sum_(i=1)^(n_"samples") max(0, 1 - y_i beta^T X[i, :])
+        + 1/2 ||beta||_2 ^ 2
 
     i.e. hinge datafit loss (non-smooth) + l2 regularization (smooth)
 
@@ -1165,7 +1164,7 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
 
     The optimization objective for MultiTaskLasso is:
 
-    .. math:: (1 / (2 * n_"samples")) * ||y - X W||_2 ^ 2 + alpha * ||W||_(21)
+    .. math:: 1 / (2 xx n_"samples") norm(y - X W)_2 ^ 2 + alpha norm(W_(21)
 
     Parameters
     ----------

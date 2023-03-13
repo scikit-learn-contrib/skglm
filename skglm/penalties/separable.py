@@ -216,8 +216,8 @@ class MCPenalty(BasePenalty):
     With :math:`x >= 0`:
 
     .. math::
-        "pen"(x) = {(alpha * x - x^2 / (2 * gamma), if x =< gamma * alpha),
-                    (gamma * alpha^2 / 2          , if x > gamma * alpha):}
+        "pen"(x) = {(alpha x - x^2 / (2 gamma), if x =< alpha gamma),
+                    (gamma alpha^2 / 2        , if x > alpha gamma):}
     .. math::
         "value" = sum_(j=1)^(n_"features") "pen"(abs(w_j))
     """

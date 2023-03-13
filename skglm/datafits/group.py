@@ -11,7 +11,7 @@ class QuadraticGroup(BaseDatafit):
 
     The datafit reads:
 
-    .. math:: (1 / (2 * n_"samples")) * ||y - X w||^2_2
+    .. math:: 1 / (2 xx n_"samples") norm(y - X w)_2 ^ 2
 
     Attributes
     ----------
@@ -79,7 +79,7 @@ class LogisticGroup(Logistic):
 
     The datafit reads:
 
-    .. math:: (1 / n_"samples") * sum_(i=1)^(n_"samples") log(1 + exp(-y_i * (Xw)_i))
+    .. math:: 1 / n_"samples" sum_(i=1)^(n_"samples") log(1 + exp(-y_i (Xw)_i))
 
     Attributes
     ----------

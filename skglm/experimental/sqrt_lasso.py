@@ -78,7 +78,7 @@ class SqrtLasso(LinearModel, RegressorMixin):
 
     The optimization objective for square root Lasso is:
 
-    .. math:: norm(y - X w)_2 + alpha * norm(w)_1
+    .. math:: norm(y - X w)_2 + alpha ||w||_1
 
     Parameters
     ----------

@@ -12,7 +12,7 @@ class Quadratic(BaseDatafit):
 
     The datafit reads:
 
-    .. math:: (1 / (2 * n_"samples")) * ||y - X w||_2 ^ 2
+    .. math:: 1 / (2  n_"samples") norm(y - X w)_2 ^ 2
 
     Attributes
     ----------
@@ -118,7 +118,7 @@ class Logistic(BaseDatafit):
 
     The datafit reads:
 
-    .. math:: (1 / n_"samples") * \sum_(i=1)^(n_"samples") log(1 + exp(-y_i * (Xw)_i))
+    .. math:: 1 / n_"samples" \sum_(i=1)^(n_"samples") log(1 + exp(-y_i (Xw)_i))
 
     Attributes
     ----------
@@ -209,7 +209,7 @@ class QuadraticSVC(BaseDatafit):
 
     The datafit reads:
 
-    .. math:: 1 / 2 * ||(y X)^T w||_2 ^ 2
+    .. math:: 1/2 norm((y X)^T w)_2 ^ 2
 
     Attributes
     ----------
@@ -296,13 +296,13 @@ class Huber(BaseDatafit):
 
     The datafit reads:
 
-    .. math:: (1 / n_"samples") * sum_(i=1)^(n_"samples") f(y_i - (Xw)_i)
+    .. math:: 1 / n_"samples" sum_(i=1)^(n_"samples") f(y_i - (Xw)_i)
 
     where :math:`f` is the Huber function:
 
     .. math::
-        f(x) = {(1 / 2 * x^2,                 if x <= delta),
-                (delta * |x| - 1/2 * delta^2, if x > delta):}
+        f(x) = {(1/2 x^2                   , if x <= delta),
+                (delta abs(x) - 1/2 delta^2, if x > delta):}
 
     Attributes
     ----------
@@ -425,7 +425,7 @@ class Poisson(BaseDatafit):
 
     The datafit reads:
 
-    .. math:: (1/n_"samples") * sum_(i=1)^(n_"samples") (exp((Xw)_i) - y_i * (Xw)_i)
+    .. math:: 1 / n_"samples" sum_(i=1)^(n_"samples") (exp((Xw)_i) - y_i (Xw)_i)
 
     Note:
     ----
@@ -496,7 +496,7 @@ class Gamma(BaseDatafit):
 
     .. math::
         1 / n_"samples" \sum_(i=1)^(n_"samples")
-        ((Xw)_i + y_i * exp(-(Xw)_i) - 1 - log(y_i))
+        ((Xw)_i + y_i exp(-(Xw)_i) - 1 - log(y_i))
 
     Note:
     ----

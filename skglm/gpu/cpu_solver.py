@@ -6,7 +6,7 @@ from skglm.gpu.utils.host_utils import compute_obj, eval_opt_crit
 
 class CPUSolver:
 
-    def __init__(self, max_iter=1000,  verbose=0):
+    def __init__(self, max_iter=1000, verbose=0):
         self.max_iter = max_iter
         self.verbose = verbose
 
@@ -20,7 +20,7 @@ class CPUSolver:
 
         step = 1 / lipschitz
 
-        # init vars in device
+        # init vars
         w = np.zeros(n_features)
         old_w = np.zeros(n_features)
         mid_w = np.zeros(n_features)

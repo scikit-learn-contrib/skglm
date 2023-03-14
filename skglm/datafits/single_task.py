@@ -12,7 +12,7 @@ class Quadratic(BaseDatafit):
 
     The datafit reads:
 
-    .. math:: 1 / (2  n_"samples") norm(y - X w)_2 ^ 2
+    .. math:: 1 / (2  n_"samples") ||y - Xw||_2 ^ 2
 
     Attributes
     ----------
@@ -209,7 +209,7 @@ class QuadraticSVC(BaseDatafit):
 
     The datafit reads:
 
-    .. math:: 1/2 norm((y X)^T w)_2 ^ 2
+    .. math:: 1/2 ||(yX)^T w||_2 ^ 2
 
     Attributes
     ----------

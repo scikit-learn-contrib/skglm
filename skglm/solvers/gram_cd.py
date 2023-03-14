@@ -15,7 +15,7 @@ class GramCD(BaseSolver):
 
     It minimizes:
 
-    .. math:: 1 / (2 xx n_"samples") norm(y - Xw)^2 + "penalty"(w)
+    .. math:: 1 / (2 xx n_"samples") ||y - Xw||^2 + "penalty"(w)
 
     which can be rewritten as:
 

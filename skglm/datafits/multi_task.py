@@ -10,7 +10,7 @@ class QuadraticMultiTask(BaseMultitaskDatafit):
 
     The datafit reads:
 
-    .. math: 1 / (2 xx n_"samples") norm(Y - X W)_F ^ 2
+    .. math: 1 / (2 xx n_"samples") ||Y - XW||_F ^ 2
 
     Attributes
     ----------

@@ -11,7 +11,7 @@ class QuadraticGroup(BaseDatafit):
 
     The datafit reads:
 
-    .. math:: 1 / (2 xx n_"samples") norm(y - X w)_2 ^ 2
+    .. math:: 1 / (2 xx n_"samples") ||y - Xw||_2 ^ 2
 
     Attributes
     ----------

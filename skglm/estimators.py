@@ -295,7 +295,7 @@ class Lasso(LinearModel, RegressorMixin):
     The optimization objective for Lasso is:
 
     .. math::
-        1 / (2 xx n_"samples")  norm(y - Xw)_2 ^ 2 + alpha ||w||_1
+        1 / (2 xx n_"samples")  ||y - Xw||_2 ^ 2 + alpha ||w||_1
 
     Parameters
     ----------
@@ -442,7 +442,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
     The optimization objective for WeightedLasso is:
 
     .. math::
-        1 / (2 xx n_"samples") norm(y - X w)_2 ^ 2 + alpha ||w||_1
+        1 / (2 xx n_"samples") ||y - Xw||_2 ^ 2 + alpha ||w||_1
 
     Parameters
     ----------
@@ -605,7 +605,7 @@ class ElasticNet(LinearModel, RegressorMixin):
     The optimization objective for Elastic net is:
 
     .. math::
-        1 / (2 xx n_"samples") norm(y - X w)_2 ^ 2
+        1 / (2 xx n_"samples") ||y - Xw||_2 ^ 2
         + tt"l1_ratio" xx alpha ||w||_1
         + (1 - tt"l1_ratio") xx alpha/2 ||w||_2 ^ 2
 
@@ -763,7 +763,7 @@ class MCPRegression(LinearModel, RegressorMixin):
                     (gamma alpha^2 / 2        , if x > alpha gamma):}
 
     .. math::
-        "obj" = 1 / (2 xx n_"samples") norm(y - X w)_2 ^ 2
+        "obj" = 1 / (2 xx n_"samples") ||y - Xw||_2 ^ 2
               + sum_(j=1)^(n_"features") "pen"(|w_j|)
 
     For more details see
@@ -1063,7 +1063,7 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
     The dual optimization problem of SVC is:
 
     .. math::
-        1/2 norm((y X)^T w)_2 ^ 2
+        1/2 ||(yX)^T w||_2 ^ 2
         - \sum_(i=1)^(n_"samples") w_i
         + \sum_(i=1)^(n_"samples") [0 <= w_i <= C]
 
@@ -1164,7 +1164,7 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
 
     The optimization objective for MultiTaskLasso is:
 
-    .. math:: 1 / (2 xx n_"samples") norm(y - X W)_2 ^ 2 + alpha norm(W)_(21)
+    .. math:: 1 / (2 xx n_"samples") ||y - XW||_2 ^ 2 + alpha ||W||_(21)
 
     Parameters
     ----------

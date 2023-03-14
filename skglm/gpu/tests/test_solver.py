@@ -3,10 +3,7 @@ import pytest
 import numpy as np
 from numpy.linalg import norm
 
-from skglm.gpu.cpu_solver import CPUSolver
-from skglm.gpu.cupy_solver import CupySolver
-from skglm.gpu.jax_solver import JaxSolver
-from skglm.gpu.numba_solver import NumbaSolver
+from skglm.gpu.solvers import CPUSolver, CupySolver, JaxSolver, NumbaSolver
 
 from skglm.gpu.utils.host_utils import eval_opt_crit
 

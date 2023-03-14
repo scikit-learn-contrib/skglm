@@ -3,8 +3,7 @@ import time
 import numpy as np
 from numpy.linalg import norm
 
-from skglm.gpu.numba_solver import NumbaSolver
-from skglm.gpu.cpu_solver import CPUSolver
+from skglm.gpu.solvers import NumbaSolver, CPUSolver
 
 from skglm.gpu.utils.host_utils import compute_obj, eval_opt_crit
 

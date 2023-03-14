@@ -1164,7 +1164,7 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
 
     The optimization objective for MultiTaskLasso is:
 
-    .. math:: 1 / (2 xx n_"samples") norm(y - X W)_2 ^ 2 + alpha norm(W_(21)
+    .. math:: 1 / (2 xx n_"samples") norm(y - X W)_2 ^ 2 + alpha norm(W)_(21)
 
     Parameters
     ----------

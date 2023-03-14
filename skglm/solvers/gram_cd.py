@@ -19,7 +19,7 @@ class GramCD(BaseSolver):
 
     which can be rewritten as:
 
-    .. math:: (w^T Q w) / (2 xx n_"samples") - (q^T w) / n_"samples" + "penalty"(w)
+    .. math:: 1 / (2 xx n_"samples") w^T Q w - 1 / n_"samples" q^T w + "penalty"(w)
 
     where:
 

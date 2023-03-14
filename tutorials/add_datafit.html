@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" />
 
-    <!-- Generated with Sphinx 5.3.0 and Furo 2022.12.07 -->
+    <!-- Generated with Sphinx 6.1.3 and Furo 2022.12.07 -->
         <title>How to add a custom datafit - skglm 0.3.dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=91d0f0d1c444bdcb17a68e833c7a53903343c195" />
@@ -261,15 +261,15 @@
 <p>Motivated by generalized linear models but not limited to it, <code class="docutils literal notranslate"><span class="pre">skglm</span></code> solves problems of the form</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
-\[\hat{\beta} \in
+`\hat{\beta} \in
 \arg\min_{\beta \in \mathbb{R}^p}
 F(X\beta) + \Omega(\beta)
 := \sum_{i=1}^n f_i([X\beta]_i) + \sum_{j=1}^p \Omega_j(\beta_j)
-\enspace .\]</div>
+\ .`</div>
 </div>
-<p>Here, <span class="math notranslate nohighlight">\(X \in \mathbb{R}^{n \times p}\)</span> denotes the design matrix with <span class="math notranslate nohighlight">\(n\)</span> samples and <span class="math notranslate nohighlight">\(p\)</span> features,
-and <span class="math notranslate nohighlight">\(\beta \in \mathbb{R}^p\)</span> is the coefficient vector.</p>
-<p>skglm can solve any problems of this form with arbitrary smooth datafit <span class="math notranslate nohighlight">\(F\)</span> and arbitrary penalty <span class="math notranslate nohighlight">\(\Omega\)</span> whose proximal operator can be evaluated explicitly, by defining two classes: a <code class="docutils literal notranslate"><span class="pre">Penalty</span></code> and a <code class="docutils literal notranslate"><span class="pre">Datafit</span></code>.</p>
+<p>Here, <span class="math notranslate nohighlight">`X \in \mathbb{R}^{n \times p}`</span> denotes the design matrix with <span class="math notranslate nohighlight">`n`</span> samples and <span class="math notranslate nohighlight">`p`</span> features,
+and <span class="math notranslate nohighlight">`\beta \in \mathbb{R}^p`</span> is the coefficient vector.</p>
+<p>skglm can solve any problems of this form with arbitrary smooth datafit <span class="math notranslate nohighlight">`F`</span> and arbitrary penalty <span class="math notranslate nohighlight">`\Omega`</span> whose proximal operator can be evaluated explicitly, by defining two classes: a <code class="docutils literal notranslate"><span class="pre">Penalty</span></code> and a <code class="docutils literal notranslate"><span class="pre">Datafit</span></code>.</p>
 <p>They can then be passed to a <a class="reference internal" href="../generated/skglm.GeneralizedLinearEstimator.html#skglm.GeneralizedLinearEstimator" title="skglm.GeneralizedLinearEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeneralizedLinearEstimator</span></code></a>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">clf</span> <span class="o">=</span> <span class="n">GeneralizedLinearEstimator</span><span class="p">(</span>
    <span class="n">MyDatafit</span><span class="p">(),</span>
@@ -286,59 +286,59 @@ As an example, we show how to implement the Poisson datafit in skglm.</p>
 <section id="a-case-in-point-defining-poisson-datafit">
 <h1>A case in point: defining Poisson datafit<a class="headerlink" href="#a-case-in-point-defining-poisson-datafit" title="Permalink to this heading">#</a></h1>
 <p>First, this requires deriving some quantities used by the solvers like the gradient or the Hessian matrix of the datafit.
-With <span class="math notranslate nohighlight">\(y \in \mathbb{R}^n\)</span> the target vector, the Poisson datafit reads</p>
+With <span class="math notranslate nohighlight">`y \in \mathbb{R}^n`</span> the target vector, the Poisson datafit reads</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
-\[f(X\beta) = \frac{1}{n}\sum_{i=1}^n \exp([X\beta]_i) - y_i[X\beta]_i
-\enspace .\]</div>
+`f(X\beta) = \frac{1}{n}\sum_{i=1}^n \exp([X\beta]_i) - y_i[X\beta]_i
+\ .`</div>
 </div>
-<p>Let’s define some useful quantities to simplify our computations. For <span class="math notranslate nohighlight">\(z \in \mathbb{R}^n\)</span> and <span class="math notranslate nohighlight">\(\beta \in \mathbb{R}^p\)</span>,</p>
+<p>Let’s define some useful quantities to simplify our computations. For <span class="math notranslate nohighlight">`z \in \mathbb{R}^n`</span> and <span class="math notranslate nohighlight">`\beta \in \mathbb{R}^p`</span>,</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
-\[f(z) = \sum_{i=1}^n f_i(z_i)  \qquad  F(\beta) = f(X\beta)
-\enspace .\]</div>
+`f(z) = \sum_{i=1}^n f_i(z_i)  \qquad  F(\beta) = f(X\beta)
+\ .`</div>
 </div>
-<p>Computing the gradient of <span class="math notranslate nohighlight">\(F\)</span> and its Hessian matrix yields</p>
+<p>Computing the gradient of <span class="math notranslate nohighlight">`F`</span> and its Hessian matrix yields</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
-\[\nabla F(\beta) = X^{\top} \underbrace{\nabla f(X\beta)}_\textrm{raw grad} \qquad \nabla^2 F(\beta) = X^{\top} \underbrace{\nabla^2 f(X\beta)}_\textrm{raw hessian} X
-\enspace .\]</div>
+`\nabla F(\beta) = X^{\top} \underbrace{\nabla f(X\beta)}_&quot;raw grad&quot; \qquad \nabla^2 F(\beta) = X^{\top} \underbrace{\nabla^2 f(X\beta)}_&quot;raw hessian&quot; X
+\ .`</div>
 </div>
 <p>Besides, it directly follows that</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
-\[\nabla f(z) = (f_i'(z_i))_{1 \leq i \leq n} \qquad \nabla^2 f(z) = \textrm{diag}(f_i''(z_i))_{1 \leq i \leq n}
-\enspace .\]</div>
+`\nabla f(z) = (f_i^'(z_i))_{1 \leq i \leq n} \qquad \nabla^2 f(z) = &quot;diag&quot;(f_i^('')(z_i))_{1 \leq i \leq n}
+\ .`</div>
 </div>
 <p>We can now apply these definitions to the Poisson datafit:</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
-\[f_i(z_i) = \frac{1}{n} \left(\exp(z_i) - y_iz_i\right)
-\enspace .\]</div>
+`f_i(z_i) = \frac{1}{n} \left(\exp(z_i) - y_iz_i\right)
+\ .`</div>
 </div>
 <p>Therefore,</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
-\[f_i'(z_i) = \frac{1}{n}(\exp(z_i) - y_i) \qquad f_i''(z_i) = \frac{1}{n}\exp(z_i)
-\enspace .\]</div>
+`f_i^('')(z_i) = \frac{1}{n}(\exp(z_i) - y_i) \qquad f^''_i(z_i) = \frac{1}{n}\exp(z_i)
+\ .`</div>
 </div>
 <p>Computing <code class="docutils literal notranslate"><span class="pre">raw_grad</span></code> and <code class="docutils literal notranslate"><span class="pre">raw_hessian</span></code> for the Poisson datafit yields</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
-\[\nabla f(X\beta) = \frac{1}{n}(\exp([X\beta]_i) - y_i)_{1 \leq i \leq n} \qquad \nabla^2 f(X\beta) = \frac{1}{n}\textrm{diag}(\exp([X\beta]_i))_{1 \leq i \leq n}
-\enspace .\]</div>
+`\nabla f(X\beta) = \frac{1}{n}(\exp([X\beta]_i) - y_i)_{1 \leq i \leq n} \qquad \nabla^2 f(X\beta) = \frac{1}{n}&quot;diag&quot;(\exp([X\beta]_i))_{1 \leq i \leq n}
+\ .`</div>
 </div>
 <p>Both <code class="docutils literal notranslate"><span class="pre">raw_grad</span></code> and <code class="docutils literal notranslate"><span class="pre">raw_hessian</span></code> are methods used by the <code class="docutils literal notranslate"><span class="pre">ProxNewton</span></code> solver.
 But other optimizers require different methods to be implemented. For instance, <code class="docutils literal notranslate"><span class="pre">AndersonCD</span></code> uses the <code class="docutils literal notranslate"><span class="pre">gradient_scalar</span></code> method:
-it is the derivative of the datafit with respect to the <span class="math notranslate nohighlight">\(j\)</span>-th coordinate of <span class="math notranslate nohighlight">\(\beta\)</span>.</p>
+it is the derivative of the datafit with respect to the <span class="math notranslate nohighlight">`j`</span>-th coordinate of <span class="math notranslate nohighlight">`\beta`</span>.</p>
 <p>For the Poisson datafit, this yields</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
-\[\frac{\partial F(\beta)}{\partial \beta_j} = \frac{1}{n}
+`\frac{\partial F(\beta)}{\partial \beta_j} = \frac{1}{n}
   \sum_{i=1}^n X_{i,j} \left(
      \exp([X\beta]_i) - y
   \right)
-  \enspace .\]</div>
+  \ .`</div>
 </div>
 <p>When implementing these quantities in the <code class="docutils literal notranslate"><span class="pre">Poisson</span></code> datafit class, this gives:</p>
 <p>Note that we have not initialized any quantities in the <code class="docutils literal notranslate"><span class="pre">initialize</span></code> method.
@@ -386,15 +386,13 @@ This implies that a step size is not known in advance and a line search has to b
     </aside>
   </div>
 </div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/clipboard.min.js"></script>
     <script src="../_static/copybutton.js"></script>
-    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script>window.MathJax = {"loader": {"load": ["input/asciimath"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/scripts/asciimath-defines.js"></script>
     </body>
 </html>

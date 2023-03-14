@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="skglm.experimental.IterativeReweightedL1" href="skglm.experimental.IterativeReweightedL1.html" /><link rel="prev" title="skglm.experimental.SqrtLasso" href="skglm.experimental.SqrtLasso.html" />
 
-    <!-- Generated with Sphinx 5.3.0 and Furo 2022.12.07 -->
+    <!-- Generated with Sphinx 6.1.3 and Furo 2022.12.07 -->
         <title>skglm.experimental.PDCD_WS - skglm 0.3.dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=91d0f0d1c444bdcb17a68e833c7a53903343c195" />
@@ -260,32 +260,31 @@
 <h1>skglm.experimental.PDCD_WS<a class="headerlink" href="#skglm-experimental-pdcd-ws" title="Permalink to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="skglm.experimental.PDCD_WS">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.experimental.</span></span><span class="sig-name descname"><span class="pre">PDCD_WS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_epochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dual_init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/07045ff/skglm/experimental/pdcd_ws.py#L12"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.experimental.PDCD_WS" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.experimental.</span></span><span class="sig-name descname"><span class="pre">PDCD_WS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_epochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dual_init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/eee3223/skglm/experimental/pdcd_ws.py#L12"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.experimental.PDCD_WS" title="Permalink to this definition">#</a></dt>
 <dd><p>Primal-Dual Coordinate Descent solver with working sets.</p>
 <p>It solves</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
-\[\min_w F(Xw) + G(w)\]</div>
+`\min_w F(Xw) + G(w)`</div>
 </div>
 <p>using a primal-dual method on the saddle point problem</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
-\[\min_w \max_z \langle Xw, z \rangle + G(w) - F^*(z)\]</div>
+`min_w max_z (:Xw, z:) + G(w) - F^**(z)`</div>
 </div>
-<p>where <span class="math notranslate nohighlight">\(F\)</span> is the datafit term (<span class="math notranslate nohighlight">\(F^*\)</span> its Fenchel conjugate)
-and <span class="math notranslate nohighlight">\(G\)</span> is the penalty term.</p>
+<p>where <span class="math notranslate nohighlight">`F`</span> is the datafit term (<span class="math notranslate nohighlight">`F^**`</span> its Fenchel conjugate)
+and <span class="math notranslate nohighlight">`G`</span> is the penalty term.</p>
 <p>The datafit is required to be convex and proximable. Also, the penalty
 is required to be convex, separable, and proximable.</p>
-<p>The solver is an adaptation of algorithm [1] to working sets [2].
+<p>The solver is an adaptation of algorithm <a class="reference internal" href="#r427605d878be-1" id="id1">[1]</a> to working sets <a class="reference internal" href="#r427605d878be-2" id="id2">[2]</a>.
 The working sets are built using a fixed point distance strategy
 where each feature is assigned a score based how much its coefficient varies
 when performing a primal update</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
-\[\mathrm{score}_j = \lvert w_j -
-\mathrm{prox}_{\tau_j, G_j}(w_j - \tau_j \langle X_j, z \rangle) \rvert\]</div>
+`&quot;score&quot;_j = abs(w_j - &quot;prox&quot;_(tau_j, G_j)(w_j - tau_j (:X_j, z:)))`</div>
 </div>
-<p>where <span class="math notranslate nohighlight">\(\tau_j\)</span> is the primal step associated with the j-th feature.</p>
+<p>where <span class="math notranslate nohighlight">`tau_j`</span> is the primal step associated with the j-th feature.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -309,7 +308,7 @@ If <code class="docutils literal notranslate"><span class="pre">None</span></cod
 <p class="rubric">References</p>
 <div role="list" class="citation-list">
 <div class="citation" id="r427605d878be-1" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
 <p>Olivier Fercoq and Pascal Bianchi,
 “A Coordinate-Descent Primal-Dual Algorithm with Large Step Size and Possibly
 Nonseparable Functions”, SIAM Journal on Optimization, 2020,
@@ -317,7 +316,7 @@ Nonseparable Functions”, SIAM Journal on Optimization, 2020,
 code: <a class="reference external" href="https://github.com/Badr-MOUFAD/Fercoq-Bianchi-solver">https://github.com/Badr-MOUFAD/Fercoq-Bianchi-solver</a></p>
 </div>
 <div class="citation" id="r427605d878be-2" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
 <p>Bertrand, Q. and Klopfenstein, Q. and Bannier, P.-A. and Gidel, G.
 and Massias, M.
 “Beyond L1: Faster and Better Sparse Models with skglm”, NeurIPS, 2022
@@ -326,7 +325,7 @@ and Massias, M.
 </div>
 <dl class="py method">
 <dt class="sig sig-object py" id="skglm.experimental.PDCD_WS.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_epochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dual_init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/07045ff/skglm/experimental/pdcd_ws.py#L82"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.experimental.PDCD_WS.__init__" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_epochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dual_init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/eee3223/skglm/experimental/pdcd_ws.py#L81"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.experimental.PDCD_WS.__init__" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
@@ -425,15 +424,13 @@ and Massias, M.
     </aside>
   </div>
 </div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/clipboard.min.js"></script>
     <script src="../_static/copybutton.js"></script>
-    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script>window.MathJax = {"loader": {"load": ["input/asciimath"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/scripts/asciimath-defines.js"></script>
     </body>
 </html>

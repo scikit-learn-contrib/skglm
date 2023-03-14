@@ -23,7 +23,7 @@ Examples Gallery
 .. only:: html
 
   .. image:: /auto_examples/images/thumb/sphx_glr_plot_pen_prox_thumb.png
-    :alt: Value and proximal operators of penalties
+    :alt:
 
   :ref:`sphx_glr_auto_examples_plot_pen_prox.py`
 
@@ -40,7 +40,7 @@ Examples Gallery
 .. only:: html
 
   .. image:: /auto_examples/images/thumb/sphx_glr_plot_lasso_vs_weighted_thumb.png
-    :alt: Comparison of Lasso and Weighted Lasso
+    :alt:
 
   :ref:`sphx_glr_auto_examples_plot_lasso_vs_weighted.py`
 
@@ -57,7 +57,7 @@ Examples Gallery
 .. only:: html
 
   .. image:: /auto_examples/images/thumb/sphx_glr_plot_zero_weights_lasso_thumb.png
-    :alt: Weighted Lasso with some zero weights
+    :alt:
 
   :ref:`sphx_glr_auto_examples_plot_zero_weights_lasso.py`
 
@@ -74,7 +74,7 @@ Examples Gallery
 .. only:: html
 
   .. image:: /auto_examples/images/thumb/sphx_glr_plot_logreg_various_penalties_thumb.png
-    :alt: Logistic regression with Elastic net and minimax concave penalties
+    :alt:
 
   :ref:`sphx_glr_auto_examples_plot_logreg_various_penalties.py`
 
@@ -91,7 +91,7 @@ Examples Gallery
 .. only:: html
 
   .. image:: /auto_examples/images/thumb/sphx_glr_plot_reweighted_l1_thumb.png
-    :alt: Timing comparison between direct prox computation and reweighting
+    :alt:
 
   :ref:`sphx_glr_auto_examples_plot_reweighted_l1.py`
 
@@ -108,7 +108,7 @@ Examples Gallery
 .. only:: html
 
   .. image:: /auto_examples/images/thumb/sphx_glr_plot_compare_time_thumb.png
-    :alt: Timing comparison with scikit-learn for Lasso
+    :alt:
 
   :ref:`sphx_glr_auto_examples_plot_compare_time.py`
 
@@ -125,7 +125,7 @@ Examples Gallery
 .. only:: html
 
   .. image:: /auto_examples/images/thumb/sphx_glr_plot_sparse_recovery_thumb.png
-    :alt: Sparse recovery with non-convex penalties
+    :alt:
 
   :ref:`sphx_glr_auto_examples_plot_sparse_recovery.py`
 

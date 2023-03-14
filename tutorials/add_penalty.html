@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" />
 
-    <!-- Generated with Sphinx 5.3.0 and Furo 2022.12.07 -->
+    <!-- Generated with Sphinx 6.1.3 and Furo 2022.12.07 -->
         <title>How to add a custom penalty - skglm 0.3.dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=91d0f0d1c444bdcb17a68e833c7a53903343c195" />
@@ -264,41 +264,40 @@
 </section>
 <section id="a-case-in-point-defining-l1-penalty">
 <h1>A case in point: defining L1 penalty<a class="headerlink" href="#a-case-in-point-defining-l1-penalty" title="Permalink to this heading">#</a></h1>
-<p>We detail how the <span class="math notranslate nohighlight">\(\ell_1\)</span> penalty is implemented in skglm.
-For a vector <span class="math notranslate nohighlight">\(\beta \in \mathbb{R}^p\)</span>, the <span class="math notranslate nohighlight">\(\ell_1\)</span> penalty is defined as follows:</p>
+<p>We detail how the <span class="math notranslate nohighlight">`\ell_1`</span> penalty is implemented in skglm.
+For a vector <span class="math notranslate nohighlight">`\beta \in \mathbb{R}^p`</span>, the <span class="math notranslate nohighlight">`\ell_1`</span> penalty is defined as follows:</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
-\[\lvert\lvert \beta \rvert\rvert_1 = \sum_{i=1}^p |\beta _i| \enspace .\]</div>
+`|| \beta ||_1 = \sum_{i=1}^p |\beta _i| \ .`</div>
 </div>
-<p>The regularization level is controlled by the hyperparameter <span class="math notranslate nohighlight">\(\lambda \in \mathbb{R}^+\)</span>, that is defined and initialized in the constructor of the class.</p>
+<p>The regularization level is controlled by the hyperparameter <span class="math notranslate nohighlight">`\lambda \in bb(R)^+`</span>, that is defined and initialized in the constructor of the class.</p>
 <p>The method <code class="docutils literal notranslate"><span class="pre">get_spec</span></code> allows to strongly type the attributes of the penalty object, thus allowing Numba to JIT-compile the class.
-It should return an iterable of tuples, the first element being the name of the attribute, the second its Numba type (e.g. <cite>float64</cite>, <cite>bool_</cite>).
+It should return an iterable of tuples, the first element being the name of the attribute, the second its Numba type (e.g. <code class="docutils literal notranslate"><span class="pre">float64</span></code>, <code class="docutils literal notranslate"><span class="pre">bool_</span></code>).
 Additionally, a penalty should implement <code class="docutils literal notranslate"><span class="pre">params_to_dict</span></code>, a helper method to get all the parameters of a penalty returned in a dictionary.</p>
-<p>To optimize an objective with a given penalty, skglm needs at least the proximal operator of the penalty applied to the <span class="math notranslate nohighlight">\(j\)</span>-th coordinate.
+<p>To optimize an objective with a given penalty, skglm needs at least the proximal operator of the penalty applied to the <span class="math notranslate nohighlight">`j`</span>-th coordinate.
 For the <code class="docutils literal notranslate"><span class="pre">L1</span></code> penalty, it is the well-known soft-thresholding operator:</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
-\[\textrm{ST}(\beta , \lambda) = \mathrm{max}(0, \lvert \beta \rvert - \lambda) \mathrm{sgn}(\beta) \enspace .\]</div>
+`&quot;ST&quot;(\beta , \lambda) = &quot;max&quot;(0, |\beta| - \lambda) &quot;sgn&quot;(\beta)\ .`</div>
 </div>
-<p>Note that skglm expects the threshold level to be the regularization hyperparameter <span class="math notranslate nohighlight">\(\lambda \in \mathbb{R}^+\)</span> <strong>scaled by</strong> the stepsize.</p>
+<p>Note that skglm expects the threshold level to be the regularization hyperparameter <span class="math notranslate nohighlight">`\lambda \in \mathbb{R}^+`</span> <strong>scaled by</strong> the stepsize.</p>
 <p>Besides, by default all solvers in skglm have <code class="docutils literal notranslate"><span class="pre">ws_strategy</span></code> turned on to <code class="docutils literal notranslate"><span class="pre">subdiff</span></code>.
 This means that the optimality conditions (thus the stopping criterion) is computed using the method <code class="docutils literal notranslate"><span class="pre">subdiff_distance</span></code> of the penalty.
 If not implemented, the user should set <code class="docutils literal notranslate"><span class="pre">ws_strategy</span></code> to <code class="docutils literal notranslate"><span class="pre">fixpoint</span></code>.</p>
-<p>For the <span class="math notranslate nohighlight">\(\ell_1\)</span> penalty, the distance of the negative gradient of the datafit <span class="math notranslate nohighlight">\(F\)</span> to the subdifferential of the penalty reads</p>
+<p>For the <span class="math notranslate nohighlight">`\ell_1`</span> penalty, the distance of the negative gradient of the datafit <span class="math notranslate nohighlight">`F`</span> to the subdifferential of the penalty reads</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
-\[\begin{split}\mathrm{dist}(-\nabla_j F(\beta), \partial |\beta_j|) = \begin{cases}
-     \mathrm{max}(0, \lvert -\nabla_j F(\beta) \rvert - \lambda) \\
-     \lvert -\nabla_j F(\beta) - \lambda \mathrm{sgn}(\beta_j) \lvert \\
- \end{cases}
-\enspace .\end{split}\]</div>
+`&quot;dist&quot;(-\nabla_j F(\beta), \partial |\beta_j|) =
+     {(&quot;max&quot;(0, | -\nabla_j F(\beta) | - \lambda),),
+      (| -\nabla_j F(\beta) - \lambda &quot;sgn&quot;(\beta_j) |,):}
+\ .`</div>
 </div>
 <p>The method <code class="docutils literal notranslate"><span class="pre">is_penalized</span></code> returns a binary mask with the penalized features.
-For the <span class="math notranslate nohighlight">\(\ell_1\)</span> penalty, all the coefficients are penalized.
+For the <span class="math notranslate nohighlight">`\ell_1`</span> penalty, all the coefficients are penalized.
 Finally, <code class="docutils literal notranslate"><span class="pre">generalized_support</span></code> returns the generalized support of the penalty for some coefficient vector <code class="docutils literal notranslate"><span class="pre">w</span></code>.
-It is typically the non-zero coefficients of the solution vector for <span class="math notranslate nohighlight">\(\ell_1\)</span>.</p>
-<p>Optionally, a penalty might implement <code class="docutils literal notranslate"><span class="pre">alpha_max</span></code> which returns the smallest <span class="math notranslate nohighlight">\(\lambda\)</span> for which the optimal solution is a null vector.
-Note that since <code class="docutils literal notranslate"><span class="pre">lambda</span></code> is a reserved keyword in Python, <code class="docutils literal notranslate"><span class="pre">alpha</span></code> in skglm codebase corresponds to <span class="math notranslate nohighlight">\(\lambda\)</span>.</p>
+It is typically the non-zero coefficients of the solution vector for <span class="math notranslate nohighlight">`\ell_1`</span>.</p>
+<p>Optionally, a penalty might implement <code class="docutils literal notranslate"><span class="pre">alpha_max</span></code> which returns the smallest <span class="math notranslate nohighlight">`\lambda`</span> for which the optimal solution is a null vector.
+Note that since <code class="docutils literal notranslate"><span class="pre">lambda</span></code> is a reserved keyword in Python, <code class="docutils literal notranslate"><span class="pre">alpha</span></code> in skglm codebase corresponds to <span class="math notranslate nohighlight">`\lambda`</span>.</p>
 <p>When putting all together, this gives the implementation of the <code class="docutils literal notranslate"><span class="pre">L1</span></code> penalty:</p>
 </section>
 
@@ -341,15 +340,13 @@ Note that since <code class="docutils literal notranslate"><span class="pre">lam
     </aside>
   </div>
 </div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/clipboard.min.js"></script>
     <script src="../_static/copybutton.js"></script>
-    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script>window.MathJax = {"loader": {"load": ["input/asciimath"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/scripts/asciimath-defines.js"></script>
     </body>
 </html>

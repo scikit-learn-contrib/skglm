@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Tutorials" href="tutorials/tutorials.html" /><link rel="prev" title="skglm" href="index.html" />
 
-    <!-- Generated with Sphinx 5.3.0 and Furo 2022.12.07 -->
+    <!-- Generated with Sphinx 6.1.3 and Furo 2022.12.07 -->
         <title>Getting started - skglm 0.3.dev documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=91d0f0d1c444bdcb17a68e833c7a53903343c195" />
@@ -262,9 +262,9 @@
 <p>This page provides a starter example to get familiar with <code class="docutils literal notranslate"><span class="pre">skglm</span></code> and explore some of its features.</p>
 <p>In the first section, we fit a Lasso estimator on a high dimensional
 toy dataset (number of features is largely greater than the number of samples). Linear models don’t generalize well
-for unseen dataset. By adding a penalty, <span class="math notranslate nohighlight">\(\ell_1\)</span> penalty, we can train estimator that overcome this drawback.</p>
+for unseen dataset. By adding a penalty, <span class="math notranslate nohighlight">`\ell_1`</span> penalty, we can train estimator that overcome this drawback.</p>
 <p>The last section, we explore other combinations of datafit and penalty to create a custom estimator that achieves a lower prediction error,
-in the sequel <span class="math notranslate nohighlight">\(\ell_1\)</span> Huber regression. We show that <code class="docutils literal notranslate"><span class="pre">skglm</span></code> is perfectly adapted to these experiments thanks to its modular design.</p>
+in the sequel <span class="math notranslate nohighlight">`\ell_1`</span> Huber regression. We show that <code class="docutils literal notranslate"><span class="pre">skglm</span></code> is perfectly adapted to these experiments thanks to its modular design.</p>
 <p>Beforehand, make sure that you have already installed <code class="docutils literal notranslate"><span class="pre">skglm</span></code></p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># using pip</span>
 pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>skglm
@@ -313,15 +313,15 @@ The subsequent fits will achieve top speed since Numba compilation is cached.</p
 Check the <a class="reference internal" href="api.html#estimators"><span class="std std-ref">API</span></a> for more information about the available estimators.</p>
 </section>
 <section id="fitting-ell-1-huber-regression">
-<h2>Fitting <span class="math notranslate nohighlight">\(\ell_1\)</span> Huber regression<a class="headerlink" href="#fitting-ell-1-huber-regression" title="Permalink to this heading">#</a></h2>
+<h2>Fitting <span class="math notranslate nohighlight">`\ell_1`</span> Huber regression<a class="headerlink" href="#fitting-ell-1-huber-regression" title="Permalink to this heading">#</a></h2>
 <p>Suppose that the latter dataset contains outliers and we would like to mitigate their effects on the learned coefficients
-while having an estimator that generalizes well to unseen data. Ideally, we would like to fit a <span class="math notranslate nohighlight">\(\ell_1\)</span> Huber regressor.</p>
+while having an estimator that generalizes well to unseen data. Ideally, we would like to fit a <span class="math notranslate nohighlight">`\ell_1`</span> Huber regressor.</p>
 <p><code class="docutils literal notranslate"><span class="pre">skglm</span></code> offers high flexibility to compose custom estimators. Through a simple API, it is possible to combine any
 <code class="docutils literal notranslate"><span class="pre">skglm</span></code> <a class="reference internal" href="api.html#datafits"><span class="std std-ref">datafit</span></a> and <a class="reference internal" href="api.html#penalties"><span class="std std-ref">penalty</span></a>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(\ell_1\)</span> regularization is not supported in <code class="docutils literal notranslate"><span class="pre">scikit-learn</span></code> for HuberRegressor</p></li>
+<li><p><span class="math notranslate nohighlight">`\ell_1`</span> regularization is not supported in <code class="docutils literal notranslate"><span class="pre">scikit-learn</span></code> for HuberRegressor</p></li>
 </ul>
 </div>
 <p>Let’s explore how to achieve that.</p>
@@ -445,7 +445,7 @@ and <a class="reference internal" href="tutorials/add_penalty.html#how-to-add-cu
             <ul>
 <li><a class="reference internal" href="#">Getting started</a><ul>
 <li><a class="reference internal" href="#fitting-a-lasso-estimator">Fitting a Lasso estimator</a></li>
-<li><a class="reference internal" href="#fitting-ell-1-huber-regression">Fitting <span class="math notranslate nohighlight">\(\ell_1\)</span> Huber regression</a><ul>
+<li><a class="reference internal" href="#fitting-ell-1-huber-regression">Fitting <span class="math notranslate nohighlight">`\ell_1`</span> Huber regression</a><ul>
 <li><a class="reference internal" href="#generate-corrupt-data">Generate corrupt data</a></li>
 </ul>
 </li>
@@ -461,15 +461,13 @@ and <a class="reference internal" href="tutorials/add_penalty.html#how-to-add-cu
     </aside>
   </div>
 </div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/scripts/furo.js"></script>
     <script src="_static/clipboard.min.js"></script>
     <script src="_static/copybutton.js"></script>
-    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script>window.MathJax = {"loader": {"load": ["input/asciimath"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/scripts/asciimath-defines.js"></script>
     </body>
 </html>

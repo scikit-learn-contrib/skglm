@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="skglm.MultiTaskLasso" href="skglm.MultiTaskLasso.html" /><link rel="prev" title="skglm.SparseLogisticRegression" href="skglm.SparseLogisticRegression.html" />
 
-    <!-- Generated with Sphinx 5.3.0 and Furo 2022.12.07 -->
+    <!-- Generated with Sphinx 6.1.3 and Furo 2022.12.07 -->
         <title>skglm.MCPRegression - skglm 0.3.dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=91d0f0d1c444bdcb17a68e833c7a53903343c195" />
@@ -260,25 +260,29 @@
 <h1>skglm.MCPRegression<a class="headerlink" href="#skglm-mcpregression" title="Permalink to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="skglm.MCPRegression">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.</span></span><span class="sig-name descname"><span class="pre">MCPRegression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_epochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warm_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ws_strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'subdiff'</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/07045ff/skglm/estimators.py#L747"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.MCPRegression" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.</span></span><span class="sig-name descname"><span class="pre">MCPRegression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_epochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warm_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ws_strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'subdiff'</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/eee3223/skglm/estimators.py#L756"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.MCPRegression" title="Permalink to this definition">#</a></dt>
 <dd><p>Linear regression with MCP penalty estimator.</p>
-<p>The optimization objective for MCPRegression is, with x &gt;= 0:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pen</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">x</span> <span class="o">-</span> <span class="n">x</span><span class="o">^</span><span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">gamma</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span> <span class="o">=&lt;</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">alpha</span>
-         <span class="n">gamma</span> <span class="o">*</span> <span class="n">alpha</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="mi">2</span>        <span class="k">if</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">alpha</span>
-
-<span class="n">obj</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n_samples</span><span class="p">))</span> <span class="o">*</span> <span class="o">||</span><span class="n">y</span> <span class="o">-</span> <span class="n">X</span> <span class="n">w</span><span class="o">||^</span><span class="mi">2_2</span> <span class="o">+</span> <span class="n">pen</span><span class="p">(</span><span class="o">|</span><span class="n">w_j</span><span class="o">|</span><span class="p">)</span>
-</pre></div>
+<p>The optimization objective for MCPRegression is, with <span class="math notranslate nohighlight">`x &gt;= 0`</span>:</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`&quot;pen&quot;(x) = {(alpha x - x^2 / (2 gamma), if x &lt;= alpha gamma),
+            (gamma alpha^2 / 2        , if x &gt; alpha gamma):}`</div>
+</div>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`&quot;obj&quot; = 1 / (2 xx n_&quot;samples&quot;) ||y - Xw||_2 ^ 2
+      + sum_(j=1)^(n_&quot;features&quot;) &quot;pen&quot;(|w_j|)`</div>
 </div>
 <p>For more details see
-Coordinate descent algorithms for nonconvex penalized regression,
-with applications to biological feature selection, Breheny and Huang.</p>
+<a class="reference external" href="https://doi.org/10.1214/10-aoas388">Coordinate descent algorithms for nonconvex penalized regression,
+with applications to biological feature selection, Breheny and Huang</a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>alpha</strong><span class="classifier">float, optional</span></dt><dd><p>Penalty strength.</p>
 </dd>
-<dt><strong>gamma</strong><span class="classifier">float, default=3</span></dt><dd><p>If gamma = 1, the prox of MCP is a hard thresholding.
-If gamma = np.inf it is a soft thresholding.
+<dt><strong>gamma</strong><span class="classifier">float, default=3</span></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">gamma</span> <span class="pre">=</span> <span class="pre">1</span></code>, the prox of MCP is a hard thresholding.
+If <code class="docutils literal notranslate"><span class="pre">gamma</span> <span class="pre">=</span> <span class="pre">np.inf</span></code> it is a soft thresholding.
 Should be larger than (or equal to) 1.</p>
 </dd>
 <dt><strong>max_iter</strong><span class="classifier">int, optional</span></dt><dd><p>The maximum number of iterations (subproblem definitions).</p>
@@ -293,7 +297,7 @@ Should be larger than (or equal to) 1.</p>
 </dd>
 <dt><strong>fit_intercept</strong><span class="classifier">bool, optional (default=True)</span></dt><dd><p>Whether or not to fit an intercept.</p>
 </dd>
-<dt><strong>warm_start</strong><span class="classifier">bool, optional (default=False)</span></dt><dd><p>When set to True, reuse the solution of the previous call to fit as
+<dt><strong>warm_start</strong><span class="classifier">bool, optional (default=False)</span></dt><dd><p>When set to <code class="docutils literal notranslate"><span class="pre">True</span></code>, reuse the solution of the previous call to fit as
 initialization, otherwise, just erase the previous solution.</p>
 </dd>
 <dt><strong>ws_strategy</strong><span class="classifier">str</span></dt><dd><p>The score used to build the working set. Can be <code class="docutils literal notranslate"><span class="pre">fixpoint</span></code> or <code class="docutils literal notranslate"><span class="pre">subdiff</span></code>.</p>
@@ -311,7 +315,7 @@ initialization, otherwise, just erase the previous solution.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Attributes<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>coef_</strong><span class="classifier">array, shape (n_features,)</span></dt><dd><p>parameter vector (w in the cost function formula)</p>
+<dt><strong>coef_</strong><span class="classifier">array, shape (n_features,)</span></dt><dd><p>parameter vector (<span class="math notranslate nohighlight">`w`</span> in the cost function formula)</p>
 </dd>
 <dt><strong>sparse_coef_</strong><span class="classifier">scipy.sparse matrix, shape (n_features, 1)</span></dt><dd><p><code class="docutils literal notranslate"><span class="pre">sparse_coef_</span></code> is a readonly property derived from <code class="docutils literal notranslate"><span class="pre">coef_</span></code></p>
 </dd>
@@ -324,7 +328,7 @@ initialization, otherwise, just erase the previous solution.</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="skglm.MCPRegression.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_epochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warm_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ws_strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'subdiff'</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/07045ff/skglm/estimators.py#L815"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.MCPRegression.__init__" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_epochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warm_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ws_strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'subdiff'</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/eee3223/skglm/estimators.py#L828"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.MCPRegression.__init__" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
@@ -438,13 +442,13 @@ initialization, otherwise, just erase the previous solution.</p>
     </aside>
   </div>
 </div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/clipboard.min.js"></script>
     <script src="../_static/copybutton.js"></script>
+    <script>window.MathJax = {"loader": {"load": ["input/asciimath"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/scripts/asciimath-defines.js"></script>
     </body>
 </html>

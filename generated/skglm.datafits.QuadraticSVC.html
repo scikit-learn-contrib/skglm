@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="skglm.solvers.AndersonCD" href="skglm.solvers.AndersonCD.html" /><link rel="prev" title="skglm.datafits.QuadraticGroup" href="skglm.datafits.QuadraticGroup.html" />
 
-    <!-- Generated with Sphinx 5.3.0 and Furo 2022.12.07 -->
+    <!-- Generated with Sphinx 6.1.3 and Furo 2022.12.07 -->
         <title>skglm.datafits.QuadraticSVC - skglm 0.3.dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=91d0f0d1c444bdcb17a68e833c7a53903343c195" />
@@ -260,25 +260,28 @@
 <h1>skglm.datafits.QuadraticSVC<a class="headerlink" href="#skglm-datafits-quadraticsvc" title="Permalink to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="skglm.datafits.QuadraticSVC">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">QuadraticSVC</span></span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/07045ff/skglm/datafits/single_task.py#L207"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.QuadraticSVC" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">QuadraticSVC</span></span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/eee3223/skglm/datafits/single_task.py#L207"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.QuadraticSVC" title="Permalink to this definition">#</a></dt>
 <dd><p>A Quadratic SVC datafit used for classification tasks.</p>
 <p>The datafit reads:</p>
-<p>1 / 2 * ||(y X).T w||^2_2</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`1/2 ||(yX)^T w||_2 ^ 2`</div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Attributes<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>lipschitz</strong><span class="classifier">array, shape (n_features,)</span></dt><dd><p>The coordinatewise gradient Lipschitz constants.
-Equal to norm(yXT, axis=0) ** 2.</p>
+Equal to <code class="docutils literal notranslate"><span class="pre">norm(yXT,</span> <span class="pre">axis=0)</span> <span class="pre">**</span> <span class="pre">2</span></code>.</p>
 </dd>
 <dt><strong>global_lipschitz</strong><span class="classifier">float</span></dt><dd><p>Global Lipschitz constant. Equal to
-norm(yXT, ord=2) ** 2.</p>
+<code class="docutils literal notranslate"><span class="pre">norm(yXT,</span> <span class="pre">ord=2)</span> <span class="pre">**</span> <span class="pre">2</span></code>.</p>
 </dd>
 </dl>
 </dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="skglm.datafits.QuadraticSVC.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/07045ff/skglm/datafits/single_task.py#L230"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.QuadraticSVC.__init__" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/eee3223/skglm/datafits/single_task.py#L230"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.QuadraticSVC.__init__" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
@@ -404,13 +407,13 @@ norm(yXT, ord=2) ** 2.</p>
     </aside>
   </div>
 </div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/clipboard.min.js"></script>
     <script src="../_static/copybutton.js"></script>
+    <script>window.MathJax = {"loader": {"load": ["input/asciimath"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/scripts/asciimath-defines.js"></script>
     </body>
 </html>

@@ -162,7 +162,7 @@ class BlockSCAD(BasePenalty):
 
     Notes
     -----
-    With :math:`W_j` the j-th row of W, the penalty is:
+    With :math:`W_j` the j-th row of math:`W`, the penalty is:
 
     .. math::
         "pen"(||W_j||) = {

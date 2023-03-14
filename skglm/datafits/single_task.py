@@ -12,7 +12,7 @@ class Quadratic(BaseDatafit):
 
     The datafit reads:
 
-    .. math:: 1 / (2  n_"samples") ||y - Xw||_2 ^ 2
+    .. math:: 1 / (2 xx  n_"samples") ||y - Xw||_2 ^ 2
 
     Attributes
     ----------
@@ -427,8 +427,8 @@ class Poisson(BaseDatafit):
 
     .. math:: 1 / n_"samples" sum_(i=1)^(n_"samples") (exp((Xw)_i) - y_i (Xw)_i)
 
-    Note:
-    ----
+    Notes
+    -----
     The class is jit compiled at fit time using Numba compiler.
     This allows for faster computations.
     """
@@ -498,8 +498,8 @@ class Gamma(BaseDatafit):
         1 / n_"samples" \sum_(i=1)^(n_"samples")
         ((Xw)_i + y_i exp(-(Xw)_i) - 1 - log(y_i))
 
-    Note:
-    ----
+    Notes
+    -----
     The class is jit compiled at fit time using Numba compiler.
     This allows for faster computations.
     """

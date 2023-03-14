@@ -232,9 +232,12 @@ class BlockSCAD(BasePenalty):
 class WeightedGroupL2(BasePenalty):
     r"""Weighted Group L2 penalty.
 
-    The penalty reads::
+    The penalty reads
 
-        \sum_{g} weights[g] * ||w_g||_2
+    .. math::
+        sum_{g=1}^{n_"groups"} "weights"_g xx ||w_{[g]}||
+
+    with :math:`w_{[g]}` being the coefficients of the g-th group.
 
     Attributes
     ----------

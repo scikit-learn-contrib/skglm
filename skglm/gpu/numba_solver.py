@@ -28,7 +28,7 @@ class NumbaSolver:
         step = 1 / lipschitz
 
         # number of block to use along each axis when calling kernel
-        n_blocks_axis_0, n_blocks_axis_1 = [math.ceil(n / N_THREADS) for n in X.shape]
+        n_blocks_axis_0, n_blocks_axis_1 = (math.ceil(n / N_THREADS) for n in X.shape)
 
         # transfer to device
         X_gpu = cuda.to_device(X)
@@ -104,7 +104,7 @@ def _compute_minus_residual(X_gpu, y_gpu, w, out):
 
 @cuda.jit
 def _compute_grad(X_gpu, minus_residual, out):
-    # compute: out=X.T @ minus_residual
+    # compute: out = X.T @ minus_residual
     j = cuda.grid(1)
 
     n_samples, n_features = X_gpu.shape

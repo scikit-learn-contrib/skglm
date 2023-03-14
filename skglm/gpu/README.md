@@ -13,10 +13,10 @@ git checkout skglm-gpu
 2. create then activate``conda`` environnement
 ```shell
 # create
-conda create -n another-skglm-gpu python=3.7
+conda create -n skglm-gpu python=3.7
 
 # activate env
-conda activate another-skglm-gpu
+conda activate skglm-gpu
 ```
 
 3. install ``skglm`` in editable mode

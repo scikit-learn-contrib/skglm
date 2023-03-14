@@ -76,9 +76,9 @@ class SqrtQuadratic(BaseDatafit):
 class SqrtLasso(LinearModel, RegressorMixin):
     """Square root Lasso estimator based on Prox Newton solver.
 
-    The optimization objective for square root Lasso is::
+    The optimization objective for square root Lasso is:
 
-        |y - X w||_2 + alpha * ||w||_1
+    .. math:: ||y - Xw||_2 + alpha ||w||_1
 
     Parameters
     ----------

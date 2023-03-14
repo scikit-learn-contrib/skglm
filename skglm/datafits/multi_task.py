@@ -8,9 +8,9 @@ from skglm.datafits.base import BaseMultitaskDatafit
 class QuadraticMultiTask(BaseMultitaskDatafit):
     """Quadratic datafit used for multi-task regression.
 
-    The datafit reads::
+    The datafit reads:
 
-    (1 / (2 * n_samples)) * ||Y - X W||^2_F
+    .. math: 1 / (2 xx n_"samples") ||Y - XW||_F ^ 2
 
     Attributes
     ----------
@@ -19,7 +19,7 @@ class QuadraticMultiTask(BaseMultitaskDatafit):
 
     lipschitz : array, shape (n_features,)
         The coordinatewise gradient Lipschitz constants. Equal to
-        norm(X, axis=0) ** 2 / n_samples.
+        ``norm(X, axis=0) ** 2 / n_samples``.
     """
 
     def __init__(self):

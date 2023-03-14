@@ -22,20 +22,20 @@ We detail how the :math:`\ell_1` penalty is implemented in skglm.
 For a vector :math:`\beta \in \mathbb{R}^p`, the :math:`\ell_1` penalty is defined as follows:
 
 .. math::
-   \lvert\lvert \beta \rvert\rvert_1 = \sum_{i=1}^p |\beta _i| \enspace .
+   || \beta ||_1 = \sum_{i=1}^p |\beta _i| \ .
 
 
-The regularization level is controlled by the hyperparameter :math:`\lambda \in \mathbb{R}^+`, that is defined and initialized in the constructor of the class.
+The regularization level is controlled by the hyperparameter :math:`\lambda \in bb(R)^+`, that is defined and initialized in the constructor of the class.
 
 The method ``get_spec`` allows to strongly type the attributes of the penalty object, thus allowing Numba to JIT-compile the class.
-It should return an iterable of tuples, the first element being the name of the attribute, the second its Numba type (e.g. `float64`, `bool_`).
+It should return an iterable of tuples, the first element being the name of the attribute, the second its Numba type (e.g. ``float64``, ``bool_``).
 Additionally, a penalty should implement ``params_to_dict``, a helper method to get all the parameters of a penalty returned in a dictionary.
 
 To optimize an objective with a given penalty, skglm needs at least the proximal operator of the penalty applied to the :math:`j`-th coordinate.
 For the ``L1`` penalty, it is the well-known soft-thresholding operator:
 
 .. math::
-    \textrm{ST}(\beta , \lambda) = \mathrm{max}(0, \lvert \beta \rvert - \lambda) \mathrm{sgn}(\beta) \enspace .
+    "ST"(\beta , \lambda) = "max"(0, |\beta| - \lambda) "sgn"(\beta)\ .
 
 
 Note that skglm expects the threshold level to be the regularization hyperparameter :math:`\lambda \in \mathbb{R}^+` **scaled by** the stepsize.
@@ -48,11 +48,10 @@ If not implemented, the user should set ``ws_strategy`` to ``fixpoint``.
 For the :math:`\ell_1` penalty, the distance of the negative gradient of the datafit :math:`F` to the subdifferential of the penalty reads
 
 .. math::
-   \mathrm{dist}(-\nabla_j F(\beta), \partial |\beta_j|) = \begin{cases}
-        \mathrm{max}(0, \lvert -\nabla_j F(\beta) \rvert - \lambda) \\
-        \lvert -\nabla_j F(\beta) - \lambda \mathrm{sgn}(\beta_j) \lvert \\
-    \end{cases}
-   \enspace .
+   "dist"(-\nabla_j F(\beta), \partial |\beta_j|) =
+        {("max"(0, | -\nabla_j F(\beta) | - \lambda),),
+         (| -\nabla_j F(\beta) - \lambda "sgn"(\beta_j) |,):}
+   \ .
 
 
 The method ``is_penalized`` returns a binary mask with the penalized features.

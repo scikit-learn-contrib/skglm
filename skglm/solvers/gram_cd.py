@@ -9,18 +9,21 @@ from skglm.utils.anderson import AndersonAcceleration
 class GramCD(BaseSolver):
     r"""Coordinate descent solver keeping the gradients up-to-date with Gram updates.
 
-    This solver should be used when n_features < n_samples, and computes the
-    (n_features, n_features) Gram matrix which comes with an overhead. It is  only
-    suited to Quadratic datafits.
+    This solver should be used when ``n_features`` < ``n_samples``, and computes the
+    (``n_features``, ``n_features``) Gram matrix which comes with an overhead. It is
+    only suited to Quadratic datafits.
 
-    It minimizes::
-        1 / (2*n_samples) * norm(y - Xw)**2 + penalty(w)
+    It minimizes:
 
-    which can be rewritten as::
-        w.T @ Q @ w / (2*n_samples) - q.T @ w / n_samples + penalty(w)
+    .. math:: 1 / (2 xx n_"samples") ||y - Xw||^2 + "penalty"(w)
 
-    where::
-        Q = X.T @ X (gram matrix), and q = X.T @ y
+    which can be rewritten as:
+
+    .. math:: 1 / (2 xx n_"samples") w^T Q w - 1 / n_"samples" q^T w + "penalty"(w)
+
+    where:
+
+    .. math:: Q = X^T X " (gram matrix),  and " q = X^T y
 
     Attributes
     ----------
@@ -29,14 +32,14 @@ class GramCD(BaseSolver):
 
     w_init : array, shape (n_features,), default None
         Initial value of coefficients.
-        If set to None, a zero vector is used instead.
+        If set to ``None``, a zero vector is used instead.
 
     use_acc : bool, default True
-        Extrapolate the iterates based on the past 5 iterates if set to True.
+        Extrapolate the iterates based on the past 5 iterates if set to ``True``.
 
     greedy_cd : bool, default True
         Use a greedy strategy to select features to update in coordinate descent epochs
-        if set to True. A cyclic strategy is used otherwise.
+        if set to ``True``. A cyclic strategy is used otherwise.
 
     tol : float, default 1e-4
         Tolerance for convergence.

@@ -163,20 +163,22 @@ class GeneralizedLinearEstimator(LinearModel):
     Parameters
     ----------
     datafit : instance of BaseDatafit, optional
-        Datafit. If None, `datafit` is initialized as a ``Quadratic`` datafit.
-        ``datafit`` is replaced by a JIT-compiled instance when calling fit.
+        Datafit. If ``None``, ``datafit`` is initialized as a :class:`.Quadratic`
+        datafit.  ``datafit`` is replaced by a JIT-compiled instance when calling fit.
 
     penalty : instance of BasePenalty, optional
-        Penalty. If None, `penalty` is initialized as a ``L1`` penalty.
-        ``penalty`` is replaced by a JIT-compiled instance when calling fit.
+        Penalty. If ``None``, ``penalty`` is initialized as a :class:`.L1` penalty.
+        ``penalty`` is replaced by a JIT-compiled instance when
+        calling fit.
 
     solver : instance of BaseSolver, optional
-        Solver. If None, ``solver`` is initialized as an ``AndersonCD`` solver.
+        Solver. If ``None``, ``solver`` is initialized as an :class:`.AndersonCD`
+        solver.
 
     Attributes
     ----------
     coef_ : array, shape (n_features,) or (n_features, n_tasks)
-        parameter array (w in the cost function formula)
+        parameter array (:math:`w` in the cost function formula)
 
     sparse_coef_ : scipy.sparse matrix, shape (n_features, 1) or (n_features, n_tasks)
         ``sparse_coef_`` is a readonly property derived from ``coef_``
@@ -290,9 +292,10 @@ class GeneralizedLinearEstimator(LinearModel):
 class Lasso(LinearModel, RegressorMixin):
     r"""Lasso estimator based on Celer solver and primal extrapolation.
 
-    The optimization objective for Lasso is::
+    The optimization objective for Lasso is:
 
-        (1 / (2 * n_samples)) * ||y - X w||^2_2 + alpha * \sum_j |w_j|
+    .. math::
+        1 / (2 xx n_"samples")  ||y - Xw||_2 ^ 2 + alpha ||w||_1
 
     Parameters
     ----------
@@ -321,16 +324,16 @@ class Lasso(LinearModel, RegressorMixin):
         Whether or not to fit an intercept.
 
     warm_start : bool, optional (default=False)
-        When set to True, reuse the solution of the previous call to fit as
+        When set to ``True``, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
 
     ws_strategy : str
-        The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
+        The score used to build the working set. Can be ``"fixpoint"`` or ``"subdiff"``.
 
     Attributes
     ----------
     coef_ : array, shape (n_features,)
-        parameter vector (w in the cost function formula)
+        parameter vector (:math:`w` in the cost function formula)
 
     sparse_coef_ : scipy.sparse matrix, shape (n_features, 1)
         ``sparse_coef_`` is a readonly property derived from ``coef_``
@@ -400,7 +403,8 @@ class Lasso(LinearModel, RegressorMixin):
             Grid of alpha.
 
         coef_init : array, shape (n_features,), optional
-            If warm_start is enabled, the optimization problem restarts from coef_init.
+            If warm_start is enabled, the optimization problem restarts from
+            ``coef_init``.
 
         return_n_iter : bool
             Returns the number of iterations along the path.
@@ -420,7 +424,8 @@ class Lasso(LinearModel, RegressorMixin):
             Value of stopping criterion at convergence along the path.
 
         n_iters : array, shape (n_alphas,), optional
-            The number of iterations along the path. If return_n_iter is set to `True`.
+            The number of iterations along the path. If return_n_iter is set to
+            ``True``.
         """
         penalty = compiled_clone(L1(self.alpha, self.positive))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
@@ -434,9 +439,10 @@ class Lasso(LinearModel, RegressorMixin):
 class WeightedLasso(LinearModel, RegressorMixin):
     r"""WeightedLasso estimator based on Celer solver and primal extrapolation.
 
-    The optimization objective for WeightedLasso is::
+    The optimization objective for WeightedLasso is:
 
-        (1 / (2 * n_samples)) * ||y - X w||^2_2 + alpha * \sum_j weights_j |w_j|
+    .. math::
+        1 / (2 xx n_"samples") ||y - Xw||_2 ^ 2 + alpha ||w||_1
 
     Parameters
     ----------
@@ -445,7 +451,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
 
     weights : array, shape (n_features,), optional (default=None)
         Positive weights used in the L1 penalty part of the Lasso
-        objective. If None, weights equal to 1 are used.
+        objective. If ``None``, weights equal to 1 are used.
 
     max_iter : int, optional
         The maximum number of iterations (subproblem definitions).
@@ -469,7 +475,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
         Whether or not to fit an intercept.
 
     warm_start : bool, optional (default=False)
-        When set to True, reuse the solution of the previous call to fit as
+        When set to ``True``, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
 
     ws_strategy : str
@@ -478,7 +484,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
     Attributes
     ----------
     coef_ : array, shape (n_features,)
-        parameter vector (w in the cost function formula)
+        parameter vector (:math:`w` in the cost function formula)
 
     sparse_coef_ : scipy.sparse matrix, shape (n_features, 1)
         ``sparse_coef_`` is a readonly property derived from ``coef_``
@@ -596,10 +602,12 @@ class WeightedLasso(LinearModel, RegressorMixin):
 class ElasticNet(LinearModel, RegressorMixin):
     r"""Elastic net estimator.
 
-    The optimization objective for Elastic net is::
+    The optimization objective for Elastic net is:
 
-        (1 / (2 * n_samples)) * ||y - X w||^2_2 + l1_ratio * alpha * sum_j |w_j| \
-        + (1 - l1_ratio) * alpha / 2 sum_j w_j ** 2
+    .. math::
+        1 / (2 xx n_"samples") ||y - Xw||_2 ^ 2
+        + tt"l1_ratio" xx alpha ||w||_1
+        + (1 - tt"l1_ratio") xx alpha/2 ||w||_2 ^ 2
 
     Parameters
     ----------
@@ -634,7 +642,7 @@ class ElasticNet(LinearModel, RegressorMixin):
         Whether or not to fit an intercept.
 
     warm_start : bool, optional (default=False)
-        When set to True, reuse the solution of the previous call to fit as
+        When set to ``True``, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
 
     ws_strategy : str
@@ -643,7 +651,7 @@ class ElasticNet(LinearModel, RegressorMixin):
     Attributes
     ----------
     coef_ : array, shape (n_features,)
-        parameter vector (w in the cost function formula)
+        parameter vector (:math:`w` in the cost function formula)
 
     sparse_coef_ : scipy.sparse matrix, shape (n_features, 1)
         ``sparse_coef_`` is a readonly property derived from ``coef_``
@@ -710,7 +718,8 @@ class ElasticNet(LinearModel, RegressorMixin):
             Value of stopping criterion at convergence along the path.
 
         n_iters : array, shape (n_alphas,), optional
-            The number of iterations along the path. If return_n_iter is set to `True`.
+            The number of iterations along the path. If return_n_iter is set to
+            ``True``.
         """
         penalty = compiled_clone(L1_plus_L2(self.alpha, self.l1_ratio, self.positive))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
@@ -747,16 +756,20 @@ class ElasticNet(LinearModel, RegressorMixin):
 class MCPRegression(LinearModel, RegressorMixin):
     r"""Linear regression with MCP penalty estimator.
 
-    The optimization objective for MCPRegression is, with x >= 0::
+    The optimization objective for MCPRegression is, with :math:`x >= 0`:
 
-        pen(x) = alpha * x - x^2 / (2 * gamma) if x =< gamma * alpha
-                 gamma * alpha ** 2 / 2        if x > gamma * alpha
+    .. math::
+        "pen"(x) = {(alpha x - x^2 / (2 gamma), if x <= alpha gamma),
+                    (gamma alpha^2 / 2        , if x > alpha gamma):}
 
-        obj = (1 / (2 * n_samples)) * ||y - X w||^2_2 + pen(|w_j|)
+    .. math::
+        "obj" = 1 / (2 xx n_"samples") ||y - Xw||_2 ^ 2
+              + sum_(j=1)^(n_"features") "pen"(|w_j|)
 
     For more details see
-    Coordinate descent algorithms for nonconvex penalized regression,
-    with applications to biological feature selection, Breheny and Huang.
+    `Coordinate descent algorithms for nonconvex penalized regression,
+    with applications to biological feature selection, Breheny and Huang
+    <https://doi.org/10.1214/10-aoas388>`_.
 
     Parameters
     ----------
@@ -764,8 +777,8 @@ class MCPRegression(LinearModel, RegressorMixin):
         Penalty strength.
 
     gamma : float, default=3
-        If gamma = 1, the prox of MCP is a hard thresholding.
-        If gamma = np.inf it is a soft thresholding.
+        If ``gamma = 1``, the prox of MCP is a hard thresholding.
+        If ``gamma = np.inf`` it is a soft thresholding.
         Should be larger than (or equal to) 1.
 
     max_iter : int, optional
@@ -787,7 +800,7 @@ class MCPRegression(LinearModel, RegressorMixin):
         Whether or not to fit an intercept.
 
     warm_start : bool, optional (default=False)
-        When set to True, reuse the solution of the previous call to fit as
+        When set to ``True``, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
 
     ws_strategy : str
@@ -796,7 +809,7 @@ class MCPRegression(LinearModel, RegressorMixin):
     Attributes
     ----------
     coef_ : array, shape (n_features,)
-        parameter vector (w in the cost function formula)
+        parameter vector (:math:`w` in the cost function formula)
 
     sparse_coef_ : scipy.sparse matrix, shape (n_features, 1)
         ``sparse_coef_`` is a readonly property derived from ``coef_``
@@ -842,7 +855,8 @@ class MCPRegression(LinearModel, RegressorMixin):
             Grid of alpha.
 
         coef_init : array, shape (n_features,), optional
-            If warm_start is enabled, the optimization problem restarts from coef_init.
+            If warm start is enabled, the optimization problem restarts from
+            ``coef_init``.
 
         return_n_iter : bool
             Returns the number of iterations along the path.
@@ -862,7 +876,8 @@ class MCPRegression(LinearModel, RegressorMixin):
             Value of stopping criterion at convergence along the path.
 
         n_iters : array, shape (n_alphas,), optional
-            The number of iterations along the path. If return_n_iter is set to `True`.
+            The number of iterations along the path. If return_n_iter is set to
+            ``True``.
         """
         penalty = compiled_clone(MCPenalty(self.alpha, self.gamma))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
@@ -899,9 +914,10 @@ class MCPRegression(LinearModel, RegressorMixin):
 class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
     r"""Sparse Logistic regression estimator.
 
-    The optimization objective for sparse Logistic regression is::
+    The optimization objective for sparse Logistic regression is:
 
-        mean(log(1 + exp(-y_i x_i^T w))) + alpha * ||w||_1
+    .. math:: 1 / n_"samples" sum_(i=1)^(n_"samples") log(1 + exp(-y_i x_i^T w))
+        + alpha ||w||_1
 
     Parameters
     ----------
@@ -924,7 +940,7 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         Whether or not to fit an intercept.
 
     warm_start : bool, optional (default=False)
-        When set to True, reuse the solution of the previous call to fit as
+        When set to ``True``, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
 
     Attributes
@@ -935,7 +951,7 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
     coef_ : ndarray, shape (1, n_features) or (n_classes, n_features)
         Coefficient of the features in the decision function.
 
-        `coef_` is of shape (1, n_features) when the given problem is binary.
+        ``coef_`` is of shape (1, n_features) when the given problem is binary.
 
     intercept_ :  ndarray, shape (1,) or (n_classes,)
         constant term in decision function. Not handled yet.
@@ -990,7 +1006,7 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
-            Vector to be scored, where `n_samples` is the number of samples and
+            Vector to be scored, where ``n_samples`` is the number of samples and
             `n_features` is the number of features.
 
         Returns
@@ -1008,7 +1024,7 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
                 """Probability estimation for OvR logistic regression.
 
                 Positive class probabilities are computed as
-                1. / (1. + np.exp(-self.decision_function(X)));
+                ``1. / (1. + np.exp(-self.decision_function(X)))``;
                 multiclass is handled by normalizing that over all classes.
                 """
                 prob = self.decision_function(X)
@@ -1035,20 +1051,25 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
 class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
     r"""LinearSVC estimator, with hinge loss.
 
-    The optimization objective for LinearSVC is::
+    The optimization objective for LinearSVC is:
 
-        C * \sum_i max(0, 1 - y_i beta.T X[i, :]) + 1 / 2 * ||beta||^2
+    .. math:: C xx sum_(i=1)^(n_"samples") max(0, 1 - y_i beta^T X[i, :])
+        + 1/2 ||beta||_2 ^ 2
 
     i.e. hinge datafit loss (non-smooth) + l2 regularization (smooth)
 
     To solve this, we solve the dual optimization problem to stay in our
     framework of smooth datafit and non-smooth penalty.
-    The dual optimization problem of SVC is::
+    The dual optimization problem of SVC is:
 
-        1 / 2 * ||(y X).T w||^2_2 - \sum_i w_i + \sum_i ind(0 <= w_i <= C)
+    .. math::
+        1/2 ||(yX)^T w||_2 ^ 2
+        - \sum_(i=1)^(n_"samples") w_i
+        + \sum_(i=1)^(n_"samples") [0 <= w_i <= C]
 
-    The primal-dual relation is given by::
-        w = \sum_i y_i * w_i * X[i, :]
+    The primal-dual relation is given by:
+
+    .. math:: w = \sum_(i=1)^(n_"samples") y_i w_i X[i, :]
 
     Parameters
     ----------
@@ -1075,7 +1096,7 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
         Whether or not to fit an intercept.
 
     warm_start : bool, optional (default=False)
-        When set to True, reuse the solution of the previous call to fit as
+        When set to ``True``, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
 
     ws_strategy : str
@@ -1084,7 +1105,7 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
     Attributes
     ----------
     coef_ : array, shape (n_features,)
-        parameter vector (w in the cost function formula)
+        parameter vector (:math:`w` in the cost function formula)
 
     sparse_coef_ : scipy.sparse matrix, shape (n_features, 1)
         ``sparse_coef_`` is a readonly property derived from ``coef_``
@@ -1141,9 +1162,9 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
 class MultiTaskLasso(LinearModel, RegressorMixin):
     r"""MultiTaskLasso estimator.
 
-    The optimization objective for MultiTaskLasso is::
+    The optimization objective for MultiTaskLasso is:
 
-        (1 / (2 * n_samples)) * ||y - X W||^2_2 + alpha * ||W||_{21}
+    .. math:: 1 / (2 xx n_"samples") ||y - XW||_2 ^ 2 + alpha ||W||_(21)
 
     Parameters
     ----------
@@ -1151,7 +1172,7 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
         Regularization strength (constant that multiplies the L21 penalty).
 
     copy_X : bool, optional (default=True)
-        If True, X will be copied; else, it may be overwritten.
+        If ``True``, X will be copied; else, it may be overwritten.
 
     max_iter : int, optional
         The maximum number of iterations (subproblem definitions).
@@ -1172,7 +1193,7 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
         Whether or not to fit an intercept.
 
     warm_start : bool, optional (default=False)
-        When set to True, reuse the solution of the previous call to fit as
+        When set to ``True``, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
 
     ws_strategy : str
@@ -1181,7 +1202,7 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
     Attributes
     ----------
     coef_ : array, shape (n_features,)
-        parameter vector (w in the cost function formula)
+        parameter vector (:math:`w` in the cost function formula)
 
     sparse_coef_ : scipy.sparse matrix, shape (n_features, 1)
         ``sparse_coef_`` is a readonly property derived from ``coef_``
@@ -1281,7 +1302,8 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
             Grid of alpha.
 
         coef_init : array, shape (n_features,), optional
-            If warm_start is enabled, the optimization problem restarts from coef_init.
+            If warm start is enabled, the optimization problem restarts from
+            ``coef_init``.
 
         return_n_iter : bool
             Returns the number of iterations along the path.
@@ -1301,7 +1323,8 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
             Value of stopping criterion at convergence along the path.
 
         n_iters : array, shape (n_alphas,), optional
-            The number of iterations along the path. If return_n_iter is set to `True`.
+            The number of iterations along the path. If return_n_iter is set to
+            ``True``.
         """
         datafit = compiled_clone(QuadraticMultiTask(), to_float32=X.dtype == np.float32)
         penalty = compiled_clone(L2_1(self.alpha))

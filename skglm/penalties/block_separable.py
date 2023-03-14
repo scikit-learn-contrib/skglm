@@ -158,16 +158,22 @@ class BlockMCPenalty(BasePenalty):
 
 
 class BlockSCAD(BasePenalty):
-    """Block Smoothly Clipped Absolute Deviation.
+    r"""Block Smoothly Clipped Absolute Deviation.
 
     Notes
     -----
-    With W_j the j-th row of W, the penalty is:
-        pen(||W_j||) = alpha * ||W_j||               if ||W_j|| =< alpha
-                       (2 * gamma * alpha * ||W_j|| - ||W_j|| ** 2 - alpha ** 2) \
-                           / (2 * (gamma - 1))       if alpha < ||W_j|| < alpha * gamma
-                       (alpha **2 * (gamma + 1)) / 2 if ||W_j|| > gamma * alpha
-        value = sum_{j=1}^{n_features} pen(||W_j||)
+    With :math:`W_j` the j-th row of math:`W`, the penalty is:
+
+    .. math::
+        "pen"(||W_j||) = {
+            (alpha ||W_j||            , if \ \ \ \ \ \ \ \ \ \ ||W_j|| <= alpha),
+            ((2 alpha gamma ||W_j|| - ||W_j||^2 - alpha^2) / (2 (gamma - 1))
+                                      , if       alpha  \ \  < ||W_j|| <= alpha gamma),
+            ((alpha^2 (gamma + 1)) / 2, if       alpha gamma < ||W_j||)
+        :}
+
+    .. math::
+        "value" = sum_(j=1)^(n_"features") "pen"(||W_j||)
     """
 
     def __init__(self, alpha, gamma):
@@ -226,9 +232,12 @@ class BlockSCAD(BasePenalty):
 class WeightedGroupL2(BasePenalty):
     r"""Weighted Group L2 penalty.
 
-    The penalty reads::
+    The penalty reads
 
-        \sum_{g} weights[g] * ||w_g||_2
+    .. math::
+        sum_{g=1}^{n_"groups"} "weights"_g xx ||w_{[g]}||
+
+    with :math:`w_{[g]}` being the coefficients of the g-th group.
 
     Attributes
     ----------

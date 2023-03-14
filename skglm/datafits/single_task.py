@@ -10,9 +10,9 @@ from skglm.utils.sparse_ops import spectral_norm
 class Quadratic(BaseDatafit):
     """Quadratic datafit.
 
-    The datafit reads::
+    The datafit reads:
 
-    (1 / (2 * n_samples)) * ||y - X w||^2_2
+    .. math:: 1 / (2 xx  n_"samples") ||y - Xw||_2 ^ 2
 
     Attributes
     ----------
@@ -22,11 +22,11 @@ class Quadratic(BaseDatafit):
 
     lipschitz : array, shape (n_features,)
         The coordinatewise gradient Lipschitz constants. Equal to
-        norm(X, axis=0) ** 2 / n_samples.
+        ``norm(X, axis=0) ** 2 / n_samples``.
 
     global_lipschitz : float
         Global Lipschitz constant. Equal to
-        norm(X, ord=2) ** 2 / n_samples.
+        ``norm(X, ord=2) ** 2 / n_samples``.
 
     Note
     ----
@@ -116,19 +116,19 @@ def sigmoid(x):
 class Logistic(BaseDatafit):
     r"""Logistic datafit with labels in {-1, 1}.
 
-    The datafit reads::
+    The datafit reads:
 
-    (1 / n_samples) * \sum_i log(1 + exp(-y_i * Xw_i))
+    .. math:: 1 / n_"samples" \sum_(i=1)^(n_"samples") log(1 + exp(-y_i (Xw)_i))
 
     Attributes
     ----------
     lipschitz : array, shape (n_features,)
         The coordinatewise gradient Lipschitz constants. Equal to
-        norm(X, axis=0) ** 2 / (4 * n_samples).
+        ``norm(X, axis=0) ** 2 / (4 * n_samples)``.
 
     global_lipschitz : float
         Global Lipschitz constant. Equal to
-        norm(X, ord=2) ** 2 / (4 * n_samples).
+        ``norm(X, ord=2) ** 2 / (4 * n_samples)``.
 
     Note
     ----
@@ -207,19 +207,19 @@ class Logistic(BaseDatafit):
 class QuadraticSVC(BaseDatafit):
     """A Quadratic SVC datafit used for classification tasks.
 
-    The datafit reads::
+    The datafit reads:
 
-    1 / 2 * ||(y X).T w||^2_2
+    .. math:: 1/2 ||(yX)^T w||_2 ^ 2
 
     Attributes
     ----------
     lipschitz : array, shape (n_features,)
         The coordinatewise gradient Lipschitz constants.
-        Equal to norm(yXT, axis=0) ** 2.
+        Equal to ``norm(yXT, axis=0) ** 2``.
 
     global_lipschitz : float
         Global Lipschitz constant. Equal to
-        norm(yXT, ord=2) ** 2.
+        ``norm(yXT, ord=2) ** 2``.
 
     Note
     ----
@@ -294,15 +294,15 @@ class QuadraticSVC(BaseDatafit):
 class Huber(BaseDatafit):
     """Huber datafit.
 
-    The datafit reads::
+    The datafit reads:
 
-    (1 / n_samples) * sum_{i=1}^{n_samples} f(y_i - Xw_i)
+    .. math:: 1 / n_"samples" sum_(i=1)^(n_"samples") f(y_i - (Xw)_i)
 
-    where f is the Huber function:
+    where :math:`f` is the Huber function:
 
-    f(x) =
-    1 / 2 * x^2                      if x <= delta
-    delta * |x| - 1/2 * delta^2      if x > delta
+    .. math::
+        f(x) = {(1/2 x^2                   , if x <= delta),
+                (delta abs(x) - 1/2 delta^2, if x > delta):}
 
     Attributes
     ----------
@@ -311,11 +311,11 @@ class Huber(BaseDatafit):
 
     lipschitz : array, shape (n_features,)
         The coordinatewise gradient Lipschitz constants. Equal to
-        norm(X, axis=0) ** 2 / n_samples.
+        ``norm(X, axis=0) ** 2 / n_samples``.
 
     global_lipschitz : float
         Global Lipschitz constant. Equal to
-        norm(X, ord=2) ** 2 / n_samples.
+        ``norm(X, ord=2) ** 2 / n_samples``.
 
     Note
     ----
@@ -423,12 +423,12 @@ class Huber(BaseDatafit):
 class Poisson(BaseDatafit):
     r"""Poisson datafit.
 
-    The datafit reads::
+    The datafit reads:
 
-    (1 / n_samples) * \sum_i (exp(Xw_i) - y_i * Xw_i)
+    .. math:: 1 / n_"samples" sum_(i=1)^(n_"samples") (exp((Xw)_i) - y_i (Xw)_i)
 
-    Note:
-    ----
+    Notes
+    -----
     The class is jit compiled at fit time using Numba compiler.
     This allows for faster computations.
     """
@@ -492,12 +492,14 @@ class Poisson(BaseDatafit):
 class Gamma(BaseDatafit):
     r"""Gamma datafit.
 
-    The datafit reads::
+    The datafit reads:
 
-    (1 / n_samples) * \sum_i (Xw_i + y_i * exp(-Xw_i) - 1 - log(y_i))
+    .. math::
+        1 / n_"samples" \sum_(i=1)^(n_"samples")
+        ((Xw)_i + y_i exp(-(Xw)_i) - 1 - log(y_i))
 
-    Note:
-    ----
+    Notes
+    -----
     The class is jit compiled at fit time using Numba compiler.
     This allows for faster computations.
     """

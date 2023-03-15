@@ -48,7 +48,7 @@ class NumbaSolver:
 
             # inplace update of minus residual
             _compute_minus_residual[n_blocks_axis_0, N_THREADS](
-                X_gpu, y_gpu, w, minus_residual)
+                X_gpu, y_gpu, mid_w, minus_residual)
 
             # inplace update of grad
             _compute_grad[n_blocks_axis_1, N_THREADS](

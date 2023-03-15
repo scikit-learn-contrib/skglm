@@ -1,31 +1,39 @@
 import time
+import warnings
 
 import numpy as np
 from numpy.linalg import norm
+
+from benchopt.datasets import make_correlated_data
 
 from skglm.gpu.solvers import NumbaSolver, CPUSolver
 
 from skglm.gpu.utils.host_utils import compute_obj, eval_opt_crit
 
+from numba.core.errors import NumbaPerformanceWarning
+warnings.filterwarnings('ignore', category=NumbaPerformanceWarning)
 
-random_state = 1265
+
+random_state = 27
 n_samples, n_features = 10_000, 500
 reg = 1e-2
 
 # generate dummy data
 rng = np.random.RandomState(random_state)
-X = rng.randn(n_samples, n_features)
-y = rng.randn(n_samples)
+
+X, y, _ = make_correlated_data(n_samples, n_features, random_state=rng)
 
 
 # set lambda
 lmbd_max = norm(X.T @ y, ord=np.inf)
 lmbd = reg * lmbd_max
 
+max_iter = 0
+
 # cache numba compilation
 NumbaSolver(verbose=0, max_iter=2).solve(X, y, lmbd)
 
-solver_gpu = NumbaSolver()
+solver_gpu = NumbaSolver(verbose=1, max_iter=max_iter)
 # solve problem
 start = time.perf_counter()
 w_gpu = solver_gpu.solve(X, y, lmbd)
@@ -37,7 +45,7 @@ print("gpu time: ", end - start)
 # cache numba compilation
 CPUSolver(max_iter=2).solve(X, y, lmbd)
 
-solver_cpu = CPUSolver()
+solver_cpu = CPUSolver(verbose=1, max_iter=max_iter)
 start = time.perf_counter()
 w_cpu = solver_cpu.solve(X, y, lmbd)
 end = time.perf_counter()

@@ -35,10 +35,14 @@ class NumbaSolver:
         y_gpu = cuda.to_device(y)
 
         # init vars on device
-        w = cuda.device_array(n_features)
-        old_w = cuda.device_array(n_features)
-        mid_w = cuda.device_array(n_features)
+        # CAUTION: should be init with specific values
+        # otherwise, stale values in GPU memory are used
+        w = cuda.to_device(np.zeros(n_features))
+        mid_w = cuda.to_device(np.zeros(n_features))
+        old_w = cuda.to_device(np.zeros(n_features))
 
+        # needn't to be init with values as theses are
+        # they store results of computation
         grad = cuda.device_array(n_features)
         minus_residual = cuda.device_array(n_samples)
 
@@ -46,15 +50,18 @@ class NumbaSolver:
 
         for it in range(self.max_iter):
 
-            # inplace update of minus residual
+            # inplace update of minus_residual
+            # minus_residual = X_gpu @ mid_w - y_gpu
             _compute_minus_residual[n_blocks_axis_0, N_THREADS](
                 X_gpu, y_gpu, mid_w, minus_residual)
 
             # inplace update of grad
+            # grad = X_gpu @ minus_residual
             _compute_grad[n_blocks_axis_1, N_THREADS](
                 X_gpu, minus_residual, grad)
 
             # inplace update of w
+            # w = ST(mid_w - step * grad, step * lmbd)
             _forward_backward[n_blocks_axis_1, N_THREADS](
                 mid_w, grad, step, lmbd, w)
 
@@ -70,6 +77,7 @@ class NumbaSolver:
 
             # extrapolate
             coef = (t_old - 1) / t_new
+            # mid_w = w + coef * (w - old_w)
             _extrapolate[n_blocks_axis_1, N_THREADS](
                 w, old_w, coef, mid_w)
 
@@ -86,7 +94,7 @@ class NumbaSolver:
 
 
 @cuda.jit
-def _compute_minus_residual(X_gpu, y_gpu, w, out):
+def _compute_minus_residual(X_gpu, y_gpu, mid_w, out):
     # compute: out = X_gpu @ w - y_gpu
     i = cuda.grid(1)
 
@@ -96,7 +104,7 @@ def _compute_minus_residual(X_gpu, y_gpu, w, out):
 
     tmp = 0.
     for j in range(n_features):
-        tmp += X_gpu[i, j] * w[j]
+        tmp += X_gpu[i, j] * mid_w[j]
     tmp -= y_gpu[i]
 
     out[i] = tmp

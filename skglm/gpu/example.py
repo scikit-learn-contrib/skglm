@@ -22,24 +22,26 @@ y = rng.randn(n_samples)
 lmbd_max = norm(X.T @ y, ord=np.inf)
 lmbd = reg * lmbd_max
 
-solver = NumbaSolver(verbose=0)
-solver.max_iter = 10
-solver.solve(X, y, lmbd)
+# cache numba compilation
+NumbaSolver(verbose=0, max_iter=2).solve(X, y, lmbd)
 
+solver_gpu = NumbaSolver()
 # solve problem
 start = time.perf_counter()
-solver.max_iter = 1000
-w_gpu = solver.solve(X, y, lmbd)
+w_gpu = solver_gpu.solve(X, y, lmbd)
 end = time.perf_counter()
 
 print("gpu time: ", end - start)
 
 
+# cache numba compilation
+CPUSolver(max_iter=2).solve(X, y, lmbd)
+
 solver_cpu = CPUSolver()
 start = time.perf_counter()
 w_cpu = solver_cpu.solve(X, y, lmbd)
 end = time.perf_counter()
-print("sklearn time: ", end - start)
+print("cpu time: ", end - start)
 
 
 print(

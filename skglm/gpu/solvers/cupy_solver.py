@@ -1,10 +1,14 @@
 import cupy as cp
-import numpy as np
+import cupyx.scipy.sparse as cpx
 
+import numpy as np
+from scipy import sparse
+
+from skglm.gpu.solvers.base import BaseFistaSolver
 from skglm.gpu.utils.host_utils import compute_obj, eval_opt_crit
 
 
-class CupySolver:
+class CupySolver(BaseFistaSolver):
 
     def __init__(self, max_iter=1000, verbose=0):
         self.max_iter = max_iter
@@ -14,14 +18,16 @@ class CupySolver:
         n_samples, n_features = X.shape
 
         # compute step
-        lipschitz = np.linalg.norm(X, ord=2) ** 2
+        lipschitz = CupySolver.get_lipschitz_cst(X)
         if lipschitz == 0.:
             return np.zeros(n_features)
 
         step = 1 / lipschitz
 
+        is_X_sparse = sparse.issparse(X)
+
         # transfer to device
-        X_gpu = cp.array(X)
+        X_gpu = cp.array(X) if not is_X_sparse else cpx.csr_matrix(X)
         y_gpu = cp.array(y)
 
         # init vars in device
@@ -35,7 +41,7 @@ class CupySolver:
         for it in range(self.max_iter):
 
             # compute grad
-            cp.dot(X_gpu.T, X_gpu @ mid_w - y_gpu, out=grad)
+            grad = X_gpu.T @ (X_gpu @ mid_w - y_gpu)
 
             # forward / backward: w = ST(mid_w - step * grad, step * lmbd)
             mid_w = mid_w - step * grad

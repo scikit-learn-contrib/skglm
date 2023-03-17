@@ -1,10 +1,12 @@
 import numpy as np
 
+from skglm.gpu.solvers.base import BaseFistaSolver
+
 from skglm.utils.prox_funcs import ST_vec
 from skglm.gpu.utils.host_utils import compute_obj, eval_opt_crit
 
 
-class CPUSolver:
+class CPUSolver(BaseFistaSolver):
 
     def __init__(self, max_iter=1000, verbose=0):
         self.max_iter = max_iter
@@ -14,7 +16,7 @@ class CPUSolver:
         n_samples, n_features = X.shape
 
         # compute step
-        lipschitz = np.linalg.norm(X, ord=2) ** 2
+        lipschitz = CPUSolver.get_lipschitz_cst(X)
         if lipschitz == 0.:
             return np.zeros(n_features)
 

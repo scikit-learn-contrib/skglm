@@ -2,7 +2,7 @@ import numpy as np
 from numba import float64
 from numba.types import bool_
 
-from skglm.penalties.base import BasePenalty
+from skglm.penalties.base import BasePenalty, overload_with_l2
 from skglm.utils.prox_funcs import (
     ST, box_proj, prox_05, prox_2_3, prox_SCAD, value_SCAD, prox_MCP, value_MCP)
 
@@ -65,6 +65,12 @@ class L1(BasePenalty):
     def alpha_max(self, gradient0):
         """Return penalization value for which 0 is solution."""
         return np.max(np.abs(gradient0))
+
+
+# To add support of L2 regularization, one needs to decorate the penalty
+@overload_with_l2
+class _TestL1(L1):
+    pass
 
 
 class L1_plus_L2(BasePenalty):

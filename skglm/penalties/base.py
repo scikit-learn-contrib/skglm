@@ -63,7 +63,7 @@ class BasePenalty():
         r"""Return a mask which is True for coefficients in the generalized support."""
 
 
-def overload_with_l2(cls):
+def overload_with_l2(klass):
     """Decorate a penalty class to add L2 regularization.
 
     The resulting penalty reads
@@ -74,21 +74,21 @@ def overload_with_l2(cls):
 
     Parameters
     ----------
-    cls: Penalty class
+    klass : Penalty class
         The penalty class to be overloaded with L2 regularization.
 
-    Return
-    ------
-    cls: Penalty class
+    Returns
+    -------
+    klass : Penalty class
         Penalty overloaded with L2 regularization.
     """
     # keep ref to original methods
-    cls_constructor = cls.__init__
-    cls_prox_1d = cls.prox_1d
-    cls_value = cls.value
-    cls_subdiff_distance = cls. subdiff_distance
-    cls_params_to_dict = cls.params_to_dict
-    cls_get_spec = cls.get_spec
+    cls_constructor = klass.__init__
+    cls_prox_1d = klass.prox_1d
+    cls_value = klass.value
+    cls_subdiff_distance = klass. subdiff_distance
+    cls_params_to_dict = klass.params_to_dict
+    cls_get_spec = klass.get_spec
 
     # implement new methods
     def __init__(self, *args, l2_regularization=0., **kwargs):
@@ -123,11 +123,11 @@ def overload_with_l2(cls):
                     **cls_params_to_dict(self))
 
     # override methods
-    cls.__init__ = __init__
-    cls.value = value
-    cls.prox_1d = prox_1d
-    cls.subdiff_distance = subdiff_distance
-    cls.get_spec = get_spec
-    cls.params_to_dict = params_to_dict
+    klass.__init__ = __init__
+    klass.value = value
+    klass.prox_1d = prox_1d
+    klass.subdiff_distance = subdiff_distance
+    klass.get_spec = get_spec
+    klass.params_to_dict = params_to_dict
 
-    return cls
+    return klass

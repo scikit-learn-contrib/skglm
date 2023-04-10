@@ -12,21 +12,21 @@ import jax.numpy as jnp  # noqa
 # if not, amplifies rounding errors.
 jax.config.update("jax_enable_x64", True)  # noqa
 
-from skglm.gpu.utils.host_utils import compute_obj, eval_opt_crit  # noqa
+from skglm.gpu.solvers.base import BaseFistaSolver, BaseQuadratic, BaseL1  # noqa
 
 
-class JaxSolver:
+class JaxSolver(BaseFistaSolver):
 
     def __init__(self, max_iter=1000, use_auto_diff=True, verbose=0):
         self.max_iter = max_iter
         self.use_auto_diff = use_auto_diff
         self.verbose = verbose
 
-    def solve(self, X, y, lmbd):
+    def solve(self, X, y, datafit, penalty):
         n_samples, n_features = X.shape
 
         # compute step
-        lipschitz = np.linalg.norm(X, ord=2) ** 2
+        lipschitz = datafit.get_lipschitz_cst(X)
         if lipschitz == 0.:
             return np.zeros(n_features)
 
@@ -38,7 +38,7 @@ class JaxSolver:
 
         # get grad func of datafit
         if self.use_auto_diff:
-            grad_quad_loss = jax.grad(_quad_loss)
+            auto_grad = jax.jit(jax.grad(datafit.value, argnums=-1))
 
         # init vars in device
         w = jnp.zeros(n_features)
@@ -52,19 +52,25 @@ class JaxSolver:
 
             # compute grad
             if self.use_auto_diff:
-                grad = grad_quad_loss(mid_w, X_gpu, y_gpu)
+                grad = auto_grad(X_gpu, y_gpu, mid_w)
             else:
-                grad = jnp.dot(X_gpu.T, jnp.dot(X_gpu, mid_w) - y_gpu)
+                grad = datafit.gradient(X_gpu, y_gpu, mid_w)
 
             # forward / backward
-            mid_w = mid_w - step * grad
-            w = jnp.sign(mid_w) * jnp.maximum(jnp.abs(mid_w) - step * lmbd, 0.)
+            val = mid_w - step * grad
+            w = penalty.prox(val, step)
 
             if self.verbose:
-                w_cpu = np.asarray(w, dtype=np.float64)
+                p_obj = datafit.value(X_gpu, y_gpu, w) + penalty.value(w)
 
-                p_obj = compute_obj(X, y, lmbd, w_cpu)
-                opt_crit = eval_opt_crit(X, y, lmbd, w_cpu)
+                if self.use_auto_diff:
+                    grad = auto_grad(X_gpu, y_gpu, w)
+                else:
+                    grad = datafit.gradient(X_gpu, y_gpu, w)
+
+                w_cpu = np.asarray(w, dtype=np.float64)
+                grad_cpu = np.asarray(grad, dtype=np.float64)
+                opt_crit = penalty.max_subdiff_distance(w_cpu, grad_cpu)
 
                 print(
                     f"Iteration {it:4}: p_obj={p_obj:.8f}, opt crit={opt_crit:.4e}"
@@ -84,6 +90,18 @@ class JaxSolver:
         return w_cpu
 
 
-def _quad_loss(w, X_gpu, y_gpu):
-    pred_y = jnp.dot(X_gpu, w)
-    return 0.5 * jnp.sum((y_gpu - pred_y) ** 2)
+class QuadraticJax(BaseQuadratic):
+
+    def value(self, X_gpu, y_gpu, w):
+        n_samples = X_gpu.shape[0]
+        return jnp.sum((jnp.dot(X_gpu, w) - y_gpu) ** 2) / (2. * n_samples)
+
+    def gradient(self, X_gpu, y_gpu, w):
+        n_samples = X_gpu.shape[0]
+        return jnp.dot(X_gpu.T, jnp.dot(X_gpu, w) - y_gpu) / n_samples
+
+
+class L1Jax(BaseL1):
+
+    def prox(self, value, stepsize):
+        return jnp.sign(value) * jnp.maximum(jnp.abs(value) - stepsize * self.alpha, 0.)

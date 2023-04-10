@@ -5,11 +5,11 @@ from numba import njit
 
 
 def compute_obj(X, y, lmbd, w):
-    return 0.5 * norm(y - X @ w) ** 2 + lmbd * norm(w, ord=1)
+    return norm(y - X @ w) ** 2 / (2 * len(y)) + lmbd * norm(w, ord=1)
 
 
 def eval_opt_crit(X, y, lmbd, w):
-    grad = X.T @ (X @ w - y)
+    grad = X.T @ (X @ w - y) / len(y)
     opt_crit = _compute_dist_subdiff(w, grad, lmbd)
 
     return opt_crit

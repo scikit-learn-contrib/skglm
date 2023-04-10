@@ -17,9 +17,9 @@ class BaseFistaSolver:
 
 class BaseQuadratic:
 
-    def value(self, X, y, w):
+    def value(self, X, y, w, Xw):
         """parameters are numpy/scipy arrays."""
-        return ((y - X @ w) ** 2).sum() / len(y)
+        return ((y - X @ w) ** 2).sum() / (2 * len(y))
 
     def gradient(self, X, y, w, Xw):
         return X.T @ (Xw - y) / len(y)
@@ -38,11 +38,14 @@ class BaseL1:
     def __init__(self, alpha):
         self.alpha = alpha
 
+    def value(self, w):
+        return self.alpha * np.abs(w).sum()
+
     def prox(self, value, stepsize):
         return ST_vec(value, self.alpha * stepsize)
 
     def max_subdiff_distance(self, w, grad):
-        return BaseL1._compute_dist_subdiff(w, grad, self.alpha)
+        return BaseL1._compute_max_subdiff_distance(w, grad, self.alpha)
 
     @staticmethod
     @njit("f8(f8[:], f8[:], f8)")

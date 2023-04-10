@@ -14,7 +14,7 @@ def test_compute_obj():
 
     p_obj = compute_obj(X, y, lmbd, w)
 
-    np.testing.assert_array_equal(p_obj, 0.5 * 20 + 10. * 6)
+    np.testing.assert_array_equal(p_obj, 20 / (2 * 3) + 10. * 6)
 
 
 def test_eval_optimality():
@@ -26,7 +26,7 @@ def test_eval_optimality():
     lmbd = 1.
 
     estimator = Lasso(
-        alpha=lmbd / n_samples, fit_intercept=False, tol=1e-9
+        alpha=lmbd, fit_intercept=False, tol=1e-9
     ).fit(X, y)
 
     np.testing.assert_allclose(

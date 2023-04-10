@@ -4,8 +4,7 @@ import cupyx.scipy.sparse as cpx
 import numpy as np
 from scipy import sparse
 
-from skglm.gpu.solvers.base import BaseFistaSolver
-from skglm.gpu.utils.host_utils import compute_obj, eval_opt_crit
+from skglm.gpu.solvers.base import BaseFistaSolver, BaseL1
 
 
 class CupySolver(BaseFistaSolver):
@@ -14,11 +13,11 @@ class CupySolver(BaseFistaSolver):
         self.max_iter = max_iter
         self.verbose = verbose
 
-    def solve(self, X, y, lmbd):
+    def solve(self, X, y, datafit, penalty):
         n_samples, n_features = X.shape
 
         # compute step
-        lipschitz = CupySolver.get_lipschitz_cst(X)
+        lipschitz = datafit.get_lipschitz_cst(X)
         if lipschitz == 0.:
             return np.zeros(n_features)
 
@@ -41,17 +40,18 @@ class CupySolver(BaseFistaSolver):
         for it in range(self.max_iter):
 
             # compute grad
-            grad = X_gpu.T @ (X_gpu @ mid_w - y_gpu)
+            grad = datafit.gradient(X_gpu, y_gpu, mid_w, X_gpu @ mid_w)
 
-            # forward / backward: w = ST(mid_w - step * grad, step * lmbd)
-            mid_w = mid_w - step * grad
-            w = cp.sign(mid_w) * cp.maximum(cp.abs(mid_w) - step * lmbd, 0.)
+            # forward / backward
+            w = penalty.prox(mid_w - step * grad, step)
 
             if self.verbose:
                 w_cpu = cp.asnumpy(w)
 
-                p_obj = compute_obj(X, y, lmbd, w_cpu)
-                opt_crit = eval_opt_crit(X, y, lmbd, w_cpu)
+                p_obj = datafit.value(X, y, w, X @ w) + penalty.value(w)
+
+                grad = datafit.gradient(X, y, mid_w, X @ mid_w)
+                opt_crit = penalty.max_subdiff_distance(w, grad)
 
                 print(
                     f"Iteration {it:4}: p_obj={p_obj:.8f}, opt crit={opt_crit:.4e}"
@@ -69,3 +69,9 @@ class CupySolver(BaseFistaSolver):
         w_cpu = cp.asnumpy(w)
 
         return w_cpu
+
+
+class L1CuPy(BaseL1):
+
+    def prox(self, value, stepsize):
+        return cp.sign(value) * cp.maximum(cp.abs(value) - stepsize * self.alpha, 0.)

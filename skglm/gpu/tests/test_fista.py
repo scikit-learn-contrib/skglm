@@ -8,11 +8,14 @@ from numpy.linalg import norm
 from skglm.gpu.solvers import CPUSolver
 from skglm.gpu.solvers.base import BaseQuadratic, BaseL1
 
+from skglm.gpu.solvers.cupy_solver import CupySolver, L1CuPy
+
 from skglm.gpu.utils.host_utils import eval_opt_crit
 
 
 @pytest.mark.parametrize("solver, datafit_cls, penalty_cls",
-                         [(CPUSolver(), BaseQuadratic, BaseL1)])
+                         [(CPUSolver(), BaseQuadratic, BaseL1),
+                          (CupySolver(), BaseQuadratic, L1CuPy)])
 @pytest.mark.parametrize("sparse_X", [True, False])
 def test_solves(sparse_X, solver, datafit_cls, penalty_cls):
     random_state = 1265

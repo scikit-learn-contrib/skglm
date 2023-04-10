@@ -25,7 +25,7 @@ class BaseQuadratic:
         return X.T @ (Xw - y) / len(y)
 
     def get_lipschitz_cst(self, X):
-        n_samples = len(X)
+        n_samples = X.shape[0]
 
         if sparse.issparse(X):
             return spicy_linalg.svds(X, k=1)[1][0] ** 2 / n_samples

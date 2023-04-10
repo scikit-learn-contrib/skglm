@@ -43,13 +43,13 @@ class CupySolver(BaseFistaSolver):
             grad = datafit.gradient(X_gpu, y_gpu, mid_w, X_gpu @ mid_w)
 
             # forward / backward
-            w = penalty.prox(mid_w - step * grad, step)
+            val = mid_w - step * grad
+            w = penalty.prox(val, step)
 
             if self.verbose:
-                w_cpu = cp.asnumpy(w)
-
                 p_obj = datafit.value(X_gpu, y_gpu, w, X_gpu @ w) + penalty.value(w)
 
+                w_cpu = cp.asnumpy(w)
                 grad = datafit.gradient(X, y, w_cpu, X @ w_cpu)
                 opt_crit = penalty.max_subdiff_distance(w_cpu, grad)
 

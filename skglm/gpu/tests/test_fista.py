@@ -9,15 +9,21 @@ from skglm.gpu.solvers import CPUSolver
 from skglm.gpu.solvers.base import BaseQuadratic, BaseL1
 
 from skglm.gpu.solvers.cupy_solver import CupySolver, L1CuPy
+from skglm.gpu.solvers.jax_solver import JaxSolver, QuadraticJax, L1Jax
 
 from skglm.gpu.utils.host_utils import eval_opt_crit
 
 
 @pytest.mark.parametrize("solver, datafit_cls, penalty_cls",
                          [(CPUSolver(), BaseQuadratic, BaseL1),
-                          (CupySolver(), BaseQuadratic, L1CuPy)])
+                          (CupySolver(), BaseQuadratic, L1CuPy),
+                          (JaxSolver(use_auto_diff=True), QuadraticJax, L1Jax),
+                          (JaxSolver(use_auto_diff=False), QuadraticJax, L1Jax)])
 @pytest.mark.parametrize("sparse_X", [True, False])
 def test_solves(sparse_X, solver, datafit_cls, penalty_cls):
+    if sparse_X and isinstance(solver, JaxSolver):
+        pytest.xfail(reason="Sparse X is still not yet supported")
+
     random_state = 1265
     n_samples, n_features = 100, 30
     reg = 1e-2
@@ -26,7 +32,7 @@ def test_solves(sparse_X, solver, datafit_cls, penalty_cls):
     rng = np.random.RandomState(random_state)
     if sparse_X:
         X = sparse.rand(n_samples, n_features, density=0.1,
-                        format="csr", random_state=rng)
+                        format="csc", random_state=rng)
     else:
         X = rng.randn(n_samples, n_features)
     y = rng.randn(n_samples)

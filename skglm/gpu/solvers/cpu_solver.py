@@ -1,9 +1,5 @@
 import numpy as np
-
 from skglm.gpu.solvers.base import BaseFistaSolver
-
-from skglm.utils.prox_funcs import ST_vec
-from skglm.gpu.utils.host_utils import compute_obj, eval_opt_crit
 
 
 class CPUSolver(BaseFistaSolver):
@@ -12,11 +8,11 @@ class CPUSolver(BaseFistaSolver):
         self.max_iter = max_iter
         self.verbose = verbose
 
-    def solve(self, X, y, lmbd):
+    def solve(self, X, y, datafit, penalty):
         n_samples, n_features = X.shape
 
         # compute step
-        lipschitz = CPUSolver.get_lipschitz_cst(X)
+        lipschitz = datafit.get_lipschitz_cst(X)
         if lipschitz == 0.:
             return np.zeros(n_features)
 
@@ -33,15 +29,16 @@ class CPUSolver(BaseFistaSolver):
         for it in range(self.max_iter):
 
             # compute grad
-            grad = X.T @ (X @ mid_w - y)
+            grad = datafit.gradient(X, y, mid_w, X @ mid_w)
 
             # forward / backward
-            mid_w = mid_w - step * grad
-            w = ST_vec(mid_w, step * lmbd)
+            w = penalty.prox(mid_w - step * grad, step)
 
             if self.verbose:
-                p_obj = compute_obj(X, y, lmbd, w)
-                opt_crit = eval_opt_crit(X, y, lmbd, w)
+                p_obj = datafit.value(X, y, w, X @ w) + penalty.value(w)
+
+                grad = datafit.gradient(X, y, mid_w, X @ mid_w)
+                opt_crit = penalty.max_subdiff_distance(self, w, grad)
 
                 print(
                     f"Iteration {it:4}: p_obj={p_obj:.8f}, opt crit={opt_crit:.4e}"

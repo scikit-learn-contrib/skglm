@@ -38,7 +38,7 @@ class CPUSolver(BaseFistaSolver):
                 p_obj = datafit.value(X, y, w, X @ w) + penalty.value(w)
 
                 grad = datafit.gradient(X, y, mid_w, X @ mid_w)
-                opt_crit = penalty.max_subdiff_distance(self, w, grad)
+                opt_crit = penalty.max_subdiff_distance(w, grad)
 
                 print(
                     f"Iteration {it:4}: p_obj={p_obj:.8f}, opt crit={opt_crit:.4e}"

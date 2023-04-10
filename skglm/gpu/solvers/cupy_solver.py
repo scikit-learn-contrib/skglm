@@ -48,10 +48,10 @@ class CupySolver(BaseFistaSolver):
             if self.verbose:
                 w_cpu = cp.asnumpy(w)
 
-                p_obj = datafit.value(X, y, w, X @ w) + penalty.value(w)
+                p_obj = datafit.value(X_gpu, y_gpu, w, X_gpu @ w) + penalty.value(w)
 
-                grad = datafit.gradient(X, y, mid_w, X @ mid_w)
-                opt_crit = penalty.max_subdiff_distance(w, grad)
+                grad = datafit.gradient(X, y, w_cpu, X @ w_cpu)
+                opt_crit = penalty.max_subdiff_distance(w_cpu, grad)
 
                 print(
                     f"Iteration {it:4}: p_obj={p_obj:.8f}, opt crit={opt_crit:.4e}"

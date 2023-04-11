@@ -12,6 +12,9 @@ import jax.numpy as jnp  # noqa
 # if not, amplifies rounding errors.
 jax.config.update("jax_enable_x64", True)  # noqa
 
+from scipy import sparse  # noqa
+from jax.experimental import sparse as jax_sparse  # noqa
+
 from skglm.gpu.solvers.base import BaseFistaSolver, BaseQuadratic, BaseL1  # noqa
 
 
@@ -33,7 +36,14 @@ class JaxSolver(BaseFistaSolver):
         step = 1 / lipschitz
 
         # transfer to device
-        X_gpu = jnp.asarray(X)
+        if sparse.issparse(X):
+            # sparse matrices are still an experimental features in jax
+            # matrix operation are supported only for COO matrices but missing
+            # for CSC, CSR. hence working with COO in the wait for a new Jax release
+            # that adds support for these features
+            X_gpu = jax_sparse.BCOO.from_scipy_sparse(X)
+        else:
+            X_gpu = jnp.asarray(X)
         y_gpu = jnp.asarray(y)
 
         # get grad func of datafit
@@ -94,11 +104,11 @@ class QuadraticJax(BaseQuadratic):
 
     def value(self, X_gpu, y_gpu, w):
         n_samples = X_gpu.shape[0]
-        return jnp.sum((jnp.dot(X_gpu, w) - y_gpu) ** 2) / (2. * n_samples)
+        return jnp.sum((X_gpu @ w - y_gpu) ** 2) / (2. * n_samples)
 
     def gradient(self, X_gpu, y_gpu, w):
         n_samples = X_gpu.shape[0]
-        return jnp.dot(X_gpu.T, jnp.dot(X_gpu, w) - y_gpu) / n_samples
+        return X_gpu.T @ (X_gpu @ w - y_gpu) / n_samples
 
 
 class L1Jax(BaseL1):

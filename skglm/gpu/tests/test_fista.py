@@ -21,9 +21,6 @@ from skglm.gpu.utils.host_utils import eval_opt_crit
                           (JaxSolver(use_auto_diff=False), QuadraticJax, L1Jax)])
 @pytest.mark.parametrize("sparse_X", [True, False])
 def test_solves(sparse_X, solver, datafit_cls, penalty_cls):
-    if sparse_X and isinstance(solver, JaxSolver):
-        pytest.xfail(reason="Sparse X is still not yet supported")
-
     random_state = 1265
     n_samples, n_features = 100, 30
     reg = 1e-2

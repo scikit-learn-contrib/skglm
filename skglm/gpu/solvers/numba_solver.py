@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import numba
 from numba import cuda
 
 from skglm.gpu.solvers.base import BaseL1, BaseQuadratic, BaseFistaSolver
@@ -108,6 +109,50 @@ class QuadraticNumba(BaseQuadratic):
             X_gpu, y_gpu, w, minus_residual)
 
         _compute_grad[n_blocks_axis_1, MAX_1DIM_BLOCK](X_gpu, minus_residual, out)
+
+    def gradient_2(self, X_gpu, y_gpu, w, out):
+        minus_residual = cuda.device_array(X_gpu.shape[0])
+
+        grid_dim = tuple(math.ceil(X_gpu.shape[idx] / MAX_2DIM_BLOCK[idx])
+                         for idx in range(2))
+
+        _compute_minus_residual_2[grid_dim, MAX_2DIM_BLOCK](
+            X_gpu, y_gpu, w, minus_residual)
+
+        n_blocks_axis_1 = math.ceil(X_gpu.shape[1] / MAX_1DIM_BLOCK[0])
+        _compute_grad[n_blocks_axis_1, MAX_1DIM_BLOCK](X_gpu, minus_residual, out)
+
+
+@cuda.jit
+def _compute_minus_residual_2(X_gpu, y_gpu, w, out):
+    i, j = cuda.grid(2)
+
+    n_samples, n_features = X_gpu.shape
+    if i >= n_samples or j >= n_features:
+        return
+
+    t_i, t_j = cuda.threadIdx.x, cuda.threadIdx.y
+    sub_shape = MAX_2DIM_BLOCK  # cuda.blockDim.x, cuda.blockDim.y
+
+    sub_X = cuda.shared.array(shape=sub_shape, dtype=numba.f8)
+    sub_y = cuda.shared.array(shape=sub_shape[0], dtype=numba.f8)
+    sub_w = cuda.shared.array(shape=sub_shape[1], dtype=numba.f8)
+
+    # load data in shared memory
+    sub_X[t_i, t_j] = X_gpu[i, j]
+    sub_y[t_i] = y_gpu[i]
+    sub_w[t_j] = w[j]
+
+    cuda.syncthreads()
+
+    tmp = 0.
+    for k in range(sub_shape[1]):
+        tmp += sub_X[t_i, k] * sub_w[k]
+    tmp -= sub_y[t_i]
+
+    cuda.syncthreads()
+
+    out[i] += tmp
 
 
 class L1Numba(BaseL1):

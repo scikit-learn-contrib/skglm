@@ -2,33 +2,40 @@ import math
 import numpy as np
 from numba import cuda
 
+from skglm.gpu.solvers.base import BaseL1, BaseQuadratic, BaseFistaSolver
 
-from skglm.gpu.utils.host_utils import compute_obj, eval_opt_crit
+import warnings
+from numba.core.errors import NumbaPerformanceWarning
+
+warnings.filterwarnings("ignore", category=NumbaPerformanceWarning)
 
 
-# max number of threads that one block could contain
-# https://forums.developer.nvidia.com/t/maximum-number-of-threads-on-thread-block/46392
-N_THREADS = 1024
+# Built from GPU properties
+# Refer to utils to get GPU properties
+MAX_1DIM_BLOCK = (1024,)
+MAX_2DIM_BLOCK = (32, 32)
+MAX_1DIM_GRID = (65535,)
+MAX_2DIM_GRID = (65535, 65535)
 
 
-class NumbaSolver:
+class NumbaSolver(BaseFistaSolver):
 
     def __init__(self, max_iter=1000, verbose=0):
         self.max_iter = max_iter
         self.verbose = verbose
 
-    def solve(self, X, y, lmbd):
+    def solve(self, X, y, datafit, penalty):
         n_samples, n_features = X.shape
 
         # compute step
-        lipschitz = np.linalg.norm(X, ord=2) ** 2
+        lipschitz = datafit.get_lipschitz_cst(X)
         if lipschitz == 0.:
             return np.zeros(n_features)
 
         step = 1 / lipschitz
 
-        # number of block to use along each axis when calling kernel
-        n_blocks_axis_0, n_blocks_axis_1 = (math.ceil(n / N_THREADS) for n in X.shape)
+        # number of block to use along features-axis when launching kernel
+        n_blocks_axis_1 = math.ceil(X.shape[1] / MAX_1DIM_BLOCK[0])
 
         # transfer to device
         X_gpu = cuda.to_device(X)
@@ -41,35 +48,30 @@ class NumbaSolver:
         mid_w = cuda.to_device(np.zeros(n_features))
         old_w = cuda.to_device(np.zeros(n_features))
 
-        # needn't to be init with values as theses are
-        # they store results of computation
+        # needn't to be init with values as it stores results of computation
         grad = cuda.device_array(n_features)
-        minus_residual = cuda.device_array(n_samples)
 
         t_old, t_new = 1, 1
 
         for it in range(self.max_iter):
 
-            # inplace update of minus_residual
-            # minus_residual = X_gpu @ mid_w - y_gpu
-            _compute_minus_residual[n_blocks_axis_0, N_THREADS](
-                X_gpu, y_gpu, mid_w, minus_residual)
-
             # inplace update of grad
-            # grad = X_gpu @ minus_residual
-            _compute_grad[n_blocks_axis_1, N_THREADS](
-                X_gpu, minus_residual, grad)
+            datafit.gradient(X_gpu, y_gpu, mid_w, grad)
+
+            _forward[n_blocks_axis_1, MAX_1DIM_BLOCK](mid_w, grad, step, mid_w)
 
             # inplace update of w
-            # w = ST(mid_w - step * grad, step * lmbd)
-            _forward_backward[n_blocks_axis_1, N_THREADS](
-                mid_w, grad, step, lmbd, w)
+            penalty.prox(mid_w, step, w)
 
             if self.verbose:
                 w_cpu = w.copy_to_host()
 
-                p_obj = compute_obj(X, y, lmbd, w_cpu)
-                opt_crit = eval_opt_crit(X, y, lmbd, w_cpu)
+                p_obj = datafit.value(X, y, w_cpu, X @ w_cpu) + penalty.value(w_cpu)
+
+                datafit.gradient(X_gpu, y_gpu, w, grad)
+                grad_cpu = grad.copy_to_host()
+
+                opt_crit = penalty.max_subdiff_distance(w_cpu, grad_cpu)
 
                 print(
                     f"Iteration {it:4}: p_obj={p_obj:.8f}, opt crit={opt_crit:.4e}"
@@ -78,7 +80,7 @@ class NumbaSolver:
             # extrapolate
             coef = (t_old - 1) / t_new
             # mid_w = w + coef * (w - old_w)
-            _extrapolate[n_blocks_axis_1, N_THREADS](
+            _extrapolate[n_blocks_axis_1, MAX_1DIM_BLOCK](
                 w, old_w, coef, mid_w)
 
             # update FISTA vars
@@ -93,8 +95,32 @@ class NumbaSolver:
         return w_cpu
 
 
+class QuadraticNumba(BaseQuadratic):
+
+    def gradient(self, X_gpu, y_gpu, w, out):
+        minus_residual = cuda.device_array(X_gpu.shape[0])
+
+        n_blocks_axis_0, n_blocks_axis_1 = (math.ceil(n / MAX_1DIM_BLOCK[0])
+                                            for n in X_gpu.shape)
+
+        _compute_minus_residual[n_blocks_axis_0, MAX_1DIM_BLOCK](
+            X_gpu, y_gpu, w, minus_residual)
+
+        _compute_grad[n_blocks_axis_1, MAX_1DIM_BLOCK](X_gpu, minus_residual, out)
+
+
+class L1Numba(BaseL1):
+
+    def prox(self, value, stepsize, out):
+        level = stepsize * self.alpha
+
+        n_blocks = math.ceil(value.shape[0] / MAX_1DIM_BLOCK[0])
+
+        _ST_vec[n_blocks, MAX_1DIM_BLOCK](value, level, out)
+
+
 @cuda.jit
-def _compute_minus_residual(X_gpu, y_gpu, mid_w, out):
+def _compute_minus_residual(X_gpu, y_gpu, w, out):
     # compute: out = X_gpu @ w - y_gpu
     i = cuda.grid(1)
 
@@ -104,7 +130,7 @@ def _compute_minus_residual(X_gpu, y_gpu, mid_w, out):
 
     tmp = 0.
     for j in range(n_features):
-        tmp += X_gpu[i, j] * mid_w[j]
+        tmp += X_gpu[i, j] * w[j]
     tmp -= y_gpu[i]
 
     out[i] = tmp
@@ -121,34 +147,40 @@ def _compute_grad(X_gpu, minus_residual, out):
 
     tmp = 0.
     for i in range(n_samples):
-        tmp += X_gpu[i, j] * minus_residual[i]
+        tmp += X_gpu[i, j] * minus_residual[i] / X_gpu.shape[0]
 
     out[j] = tmp
 
 
 @cuda.jit
-def _forward_backward(mid_w, grad, step, lmbd, out):
-    # forward: mid_w = mid_w - step * grad
-    # backward: w = ST_vec(mid_w, step * lmbd)
+def _forward(mid_w, grad, step, out):
     j = cuda.grid(1)
 
     n_features = len(mid_w)
     if j >= n_features:
         return
 
-    # forward
-    tmp = mid_w[j] - step * grad[j]
+    out[j] = mid_w[j] - step * grad[j]
 
-    # backward
-    level = step * lmbd
-    if abs(tmp) <= level:
-        tmp = 0.
-    elif tmp > level:
-        tmp = tmp - level
+
+@cuda.jit
+def _ST_vec(value, level, out):
+    j = cuda.grid(1)
+
+    n_features = value.shape[0]
+    if j >= n_features:
+        return
+
+    value_j = value[j]
+
+    if abs(value_j) <= level:
+        value_j = 0.
+    elif value_j > level:
+        value_j = value_j - level
     else:
-        tmp = tmp + level
+        value_j = value_j + level
 
-    out[j] = tmp
+    out[j] = value_j
 
 
 @cuda.jit

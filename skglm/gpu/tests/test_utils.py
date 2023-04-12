@@ -1,5 +1,6 @@
 import numpy as np
 from skglm.gpu.utils.host_utils import compute_obj, eval_opt_crit
+from skglm.gpu.utils.device_utils import get_device_properties
 
 from sklearn.linear_model import Lasso
 
@@ -33,3 +34,9 @@ def test_eval_optimality():
         eval_opt_crit(X, y, lmbd, estimator.coef_), 0.,
         atol=1e-9
     )
+
+
+def test_device_props():
+    # check it runs and result is a dict
+    dev_props = get_device_properties()
+    np.testing.assert_equal(type(dev_props), dict)

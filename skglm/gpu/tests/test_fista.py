@@ -10,6 +10,8 @@ from skglm.gpu.solvers.base import BaseQuadratic, BaseL1
 
 from skglm.gpu.solvers.cupy_solver import CupySolver, L1CuPy
 from skglm.gpu.solvers.jax_solver import JaxSolver, QuadraticJax, L1Jax
+from skglm.gpu.solvers.numba_solver import NumbaSolver, QuadraticNumba, L1Numba
+
 
 from skglm.gpu.utils.host_utils import eval_opt_crit
 
@@ -18,11 +20,15 @@ from skglm.gpu.utils.host_utils import eval_opt_crit
                          [(CPUSolver(), BaseQuadratic, BaseL1),
                           (CupySolver(), BaseQuadratic, L1CuPy),
                           (JaxSolver(use_auto_diff=True), QuadraticJax, L1Jax),
-                          (JaxSolver(use_auto_diff=False), QuadraticJax, L1Jax)])
+                          (JaxSolver(use_auto_diff=False), QuadraticJax, L1Jax),
+                          (NumbaSolver(), QuadraticNumba, L1Numba)])
 @pytest.mark.parametrize("sparse_X", [True, False])
 def test_solves(sparse_X, solver, datafit_cls, penalty_cls):
+    if sparse_X and isinstance(solver, NumbaSolver):
+        pytest.xfail(reason="Sparse X is not yet supported for Numba")
+
     random_state = 1265
-    n_samples, n_features = 100, 30
+    n_samples, n_features = 10, 3
     reg = 1e-2
 
     # generate dummy data

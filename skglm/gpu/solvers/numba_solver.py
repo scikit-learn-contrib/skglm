@@ -58,6 +58,7 @@ class NumbaSolver(BaseFistaSolver):
             # inplace update of grad
             datafit.gradient(X_gpu, y_gpu, mid_w, grad)
 
+            # inplace update of mid_w
             _forward[n_blocks_axis_1, MAX_1DIM_BLOCK](mid_w, grad, step, mid_w)
 
             # inplace update of w

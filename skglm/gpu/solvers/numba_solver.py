@@ -83,7 +83,7 @@ class NumbaSolver(BaseFistaSolver):
 
                 p_obj = datafit.value(X, y, w_cpu, X @ w_cpu) + penalty.value(w_cpu)
 
-                datafit.gradient(X_gpu, y_gpu, w, grad)
+                datafit.sparse_gradient(*X_gpu_bundles, y_gpu, w, grad)
                 grad_cpu = grad.copy_to_host()
 
                 opt_crit = penalty.max_subdiff_distance(w_cpu, grad_cpu)
@@ -181,9 +181,8 @@ class QuadraticNumba(BaseQuadratic):
         if j >= n_features:
             return
 
-        stride_x = cuda.gridDim.x * cuda.blockDim.x
-        for jj in range(j, n_samples, stride_x):
-            cuda.atomic.add(out, jj, -y_gpu[jj])
+        for jj in range(j, n_samples, n_features):
+            cuda.atomic.sub(out, jj, y_gpu[jj])
 
         for idx in range(X_gpu_indptr[j], X_gpu_indptr[j+1]):
             i = X_gpu_indices[idx]
@@ -195,14 +194,14 @@ class QuadraticNumba(BaseQuadratic):
                              minus_residual, out):
         j = cuda.grid(1)
 
-        n_features = X_gpu_shape[1]
+        n_samples, n_features = X_gpu_shape
         if j >= n_features:
             return
 
         tmp = 0.
         for idx in range(X_gpu_indptr[j], X_gpu_indptr[j+1]):
             i = X_gpu_indices[idx]
-            tmp += X_gpu_data[idx] * minus_residual[i]
+            tmp += X_gpu_data[idx] * minus_residual[i] / n_samples
 
         out[j] = tmp
 

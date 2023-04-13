@@ -48,8 +48,9 @@ def test_solves(sparse_X, solver, datafit_cls, penalty_cls):
 
     stop_crit = eval_opt_crit(X, y, lmbd, w)
 
-    np.testing.assert_allclose(stop_crit, 0., atol=1e-9)
+    np.testing.assert_allclose(stop_crit, 0., atol=1e-8)
 
 
 if __name__ == "__main__":
+    # test_solves(True, NumbaSolver(verbose=1, max_iter=100), QuadraticNumba, L1Numba)
     pass

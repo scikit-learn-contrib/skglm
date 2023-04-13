@@ -28,7 +28,7 @@ def test_solves(sparse_X, solver, datafit_cls, penalty_cls):
         pytest.xfail(reason="Sparse X is not yet supported for Numba")
 
     random_state = 1265
-    n_samples, n_features = 10, 3
+    n_samples, n_features = 100, 30
     reg = 1e-2
 
     # generate dummy data

@@ -1,6 +1,5 @@
 import math
 import numpy as np
-import numba
 from numba import cuda
 
 from skglm.gpu.solvers.base import BaseL1, BaseQuadratic, BaseFistaSolver
@@ -12,7 +11,7 @@ warnings.filterwarnings("ignore", category=NumbaPerformanceWarning)
 
 
 # Built from GPU properties
-# Refer to utils to get GPU properties
+# Refer to `utils` to get GPU properties
 MAX_1DIM_BLOCK = (1024,)
 MAX_2DIM_BLOCK = (32, 32)
 MAX_1DIM_GRID = (65535,)
@@ -105,47 +104,44 @@ class QuadraticNumba(BaseQuadratic):
         n_blocks_axis_0, n_blocks_axis_1 = (math.ceil(n / MAX_1DIM_BLOCK[0])
                                             for n in X_gpu.shape)
 
-        _compute_minus_residual[n_blocks_axis_0, MAX_1DIM_BLOCK](
+        QuadraticNumba._compute_minus_residual[n_blocks_axis_0, MAX_1DIM_BLOCK](
             X_gpu, y_gpu, w, minus_residual)
 
-        _compute_grad[n_blocks_axis_1, MAX_1DIM_BLOCK](X_gpu, minus_residual, out)
+        QuadraticNumba._compute_grad[n_blocks_axis_1, MAX_1DIM_BLOCK](
+            X_gpu, minus_residual, out)
 
-    def gradient_2(self, X_gpu, y_gpu, w, out):
-        minus_residual = cuda.device_array(X_gpu.shape[0])
+    @staticmethod
+    @cuda.jit
+    def _compute_minus_residual(X_gpu, y_gpu, w, out):
+        # compute: out = X_gpu @ w - y_gpu
+        i = cuda.grid(1)
 
-        grid_dim = tuple(math.ceil(X_gpu.shape[idx] / MAX_2DIM_BLOCK[idx])
-                         for idx in range(2))
+        n_samples, n_features = X_gpu.shape
+        if i >= n_samples:
+            return
 
-        _compute_minus_residual_2[grid_dim, MAX_2DIM_BLOCK](
-            X_gpu, y_gpu, w, minus_residual)
+        tmp = 0.
+        for j in range(n_features):
+            tmp += X_gpu[i, j] * w[j]
+        tmp -= y_gpu[i]
 
-        n_blocks_axis_1 = math.ceil(X_gpu.shape[1] / MAX_1DIM_BLOCK[0])
-        _compute_grad[n_blocks_axis_1, MAX_1DIM_BLOCK](X_gpu, minus_residual, out)
+        out[i] = tmp
 
+    @staticmethod
+    @cuda.jit
+    def _compute_grad(X_gpu, minus_residual, out):
+        # compute: out = X.T @ minus_residual
+        j = cuda.grid(1)
 
-@cuda.jit
-def _compute_minus_residual_2(X_gpu, y_gpu, w, out):
-    i, j = cuda.grid(2)
-    n_samples, n_features = X_gpu.shape
+        n_samples, n_features = X_gpu.shape
+        if j >= n_features:
+            return
 
-    stride_x = cuda.gridDim.x * cuda.blockDim.x
-    stride_y = cuda.gridDim.y * cuda.blockDim.y
-    t_i, t_j = cuda.threadIdx.x, cuda.threadIdx.y
+        tmp = 0.
+        for i in range(n_samples):
+            tmp += X_gpu[i, j] * minus_residual[i] / X_gpu.shape[0]
 
-    sub_shape = MAX_2DIM_BLOCK
-    sub_X = cuda.shared.array(shape=sub_shape, dtype=numba.f8)
-    sub_w = cuda.shared.array(shape=sub_shape[1], dtype=numba.f8)
-
-    for ii in range(i, n_samples, stride_x):
-        for jj in range(j, n_features, stride_y):
-
-            # load data in shared memory
-            sub_X[t_i, t_j] = X_gpu[ii, jj]
-            sub_w[t_j] = w[jj]
-
-            cuda.syncthreads()
-
-            cuda.atomic.add(out, ii, sub_X[t_i, t_j] * sub_w[t_j])
+        out[j] = tmp
 
 
 class L1Numba(BaseL1):
@@ -155,42 +151,30 @@ class L1Numba(BaseL1):
 
         n_blocks = math.ceil(value.shape[0] / MAX_1DIM_BLOCK[0])
 
-        _ST_vec[n_blocks, MAX_1DIM_BLOCK](value, level, out)
+        L1Numba._ST_vec[n_blocks, MAX_1DIM_BLOCK](value, level, out)
+
+    @staticmethod
+    @cuda.jit
+    def _ST_vec(value, level, out):
+        j = cuda.grid(1)
+
+        n_features = value.shape[0]
+        if j >= n_features:
+            return
+
+        value_j = value[j]
+
+        if abs(value_j) <= level:
+            value_j = 0.
+        elif value_j > level:
+            value_j = value_j - level
+        else:
+            value_j = value_j + level
+
+        out[j] = value_j
 
 
-@cuda.jit
-def _compute_minus_residual(X_gpu, y_gpu, w, out):
-    # compute: out = X_gpu @ w - y_gpu
-    i = cuda.grid(1)
-
-    n_samples, n_features = X_gpu.shape
-    if i >= n_samples:
-        return
-
-    tmp = 0.
-    for j in range(n_features):
-        tmp += X_gpu[i, j] * w[j]
-    tmp -= y_gpu[i]
-
-    out[i] = tmp
-
-
-@cuda.jit
-def _compute_grad(X_gpu, minus_residual, out):
-    # compute: out = X.T @ minus_residual
-    j = cuda.grid(1)
-
-    n_samples, n_features = X_gpu.shape
-    if j >= n_features:
-        return
-
-    tmp = 0.
-    for i in range(n_samples):
-        tmp += X_gpu[i, j] * minus_residual[i] / X_gpu.shape[0]
-
-    out[j] = tmp
-
-
+# solver kernels
 @cuda.jit
 def _forward(mid_w, grad, step, out):
     j = cuda.grid(1)
@@ -200,26 +184,6 @@ def _forward(mid_w, grad, step, out):
         return
 
     out[j] = mid_w[j] - step * grad[j]
-
-
-@cuda.jit
-def _ST_vec(value, level, out):
-    j = cuda.grid(1)
-
-    n_features = value.shape[0]
-    if j >= n_features:
-        return
-
-    value_j = value[j]
-
-    if abs(value_j) <= level:
-        value_j = 0.
-    elif value_j > level:
-        value_j = value_j - level
-    else:
-        value_j = value_j + level
-
-    out[j] = value_j
 
 
 @cuda.jit

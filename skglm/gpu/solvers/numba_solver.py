@@ -126,33 +126,26 @@ class QuadraticNumba(BaseQuadratic):
 @cuda.jit
 def _compute_minus_residual_2(X_gpu, y_gpu, w, out):
     i, j = cuda.grid(2)
-
     n_samples, n_features = X_gpu.shape
-    if i >= n_samples or j >= n_features:
-        return
 
+    stride_x = cuda.gridDim.x * cuda.blockDim.x
+    stride_y = cuda.gridDim.y * cuda.blockDim.y
     t_i, t_j = cuda.threadIdx.x, cuda.threadIdx.y
-    sub_shape = MAX_2DIM_BLOCK  # cuda.blockDim.x, cuda.blockDim.y
 
+    sub_shape = MAX_2DIM_BLOCK
     sub_X = cuda.shared.array(shape=sub_shape, dtype=numba.f8)
-    sub_y = cuda.shared.array(shape=sub_shape[0], dtype=numba.f8)
     sub_w = cuda.shared.array(shape=sub_shape[1], dtype=numba.f8)
 
-    # load data in shared memory
-    sub_X[t_i, t_j] = X_gpu[i, j]
-    sub_y[t_i] = y_gpu[i]
-    sub_w[t_j] = w[j]
+    for ii in range(i, n_samples, stride_x):
+        for jj in range(j, n_features, stride_y):
 
-    cuda.syncthreads()
+            # load data in shared memory
+            sub_X[t_i, t_j] = X_gpu[ii, jj]
+            sub_w[t_j] = w[jj]
 
-    tmp = 0.
-    for k in range(sub_shape[1]):
-        tmp += sub_X[t_i, k] * sub_w[k]
-    tmp -= sub_y[t_i]
+            cuda.syncthreads()
 
-    cuda.syncthreads()
-
-    out[i] += tmp
+            cuda.atomic.add(out, ii, sub_X[t_i, t_j] * sub_w[t_j])
 
 
 class L1Numba(BaseL1):

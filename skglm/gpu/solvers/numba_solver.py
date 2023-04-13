@@ -2,6 +2,8 @@ import math
 import numpy as np
 from numba import cuda
 
+from scipy import sparse
+
 from skglm.gpu.solvers.base import BaseL1, BaseQuadratic, BaseFistaSolver
 
 import warnings
@@ -26,6 +28,7 @@ class NumbaSolver(BaseFistaSolver):
 
     def solve(self, X, y, datafit, penalty):
         n_samples, n_features = X.shape
+        X_is_sparse = sparse.issparse(X)
 
         # compute step
         lipschitz = datafit.get_lipschitz_cst(X)
@@ -38,7 +41,15 @@ class NumbaSolver(BaseFistaSolver):
         n_blocks_axis_1 = math.ceil(X.shape[1] / MAX_1DIM_BLOCK[0])
 
         # transfer to device
-        X_gpu = cuda.to_device(X)
+        if X_is_sparse:
+            X_gpu_bundles = (
+                cuda.to_device(X.data),
+                cuda.to_device(X.indptr),
+                cuda.to_device(X.indices),
+                X.shape,
+            )
+        else:
+            X_gpu = cuda.to_device(X)
         y_gpu = cuda.to_device(y)
 
         # init vars on device
@@ -56,7 +67,10 @@ class NumbaSolver(BaseFistaSolver):
         for it in range(self.max_iter):
 
             # inplace update of grad
-            datafit.gradient(X_gpu, y_gpu, mid_w, grad)
+            if X_is_sparse:
+                datafit.sparse_gradient(*X_gpu_bundles, y_gpu, mid_w, grad)
+            else:
+                datafit.gradient(X_gpu, y_gpu, mid_w, grad)
 
             # inplace update of mid_w
             _forward[n_blocks_axis_1, MAX_1DIM_BLOCK](mid_w, grad, step, mid_w)
@@ -110,6 +124,20 @@ class QuadraticNumba(BaseQuadratic):
         QuadraticNumba._compute_grad[n_blocks_axis_1, MAX_1DIM_BLOCK](
             X_gpu, minus_residual, out)
 
+    def sparse_gradient(self, X_gpu_data, X_gpu_indptr, X_gpu_indices, X_gpu_shape,
+                        y_gpu, w, out):
+        minus_residual = cuda.device_array(X_gpu_shape[0])
+
+        n_blocks = math.ceil(X_gpu_shape[1] / MAX_1DIM_BLOCK[0])
+
+        QuadraticNumba._sparse_compute_minus_residual[n_blocks, MAX_1DIM_BLOCK](
+            X_gpu_data, X_gpu_indptr, X_gpu_indices, X_gpu_shape,
+            y_gpu, w, minus_residual)
+
+        QuadraticNumba._sparse_compute_grad[n_blocks, MAX_1DIM_BLOCK](
+            X_gpu_data, X_gpu_indptr, X_gpu_indices, X_gpu_shape,
+            minus_residual, out)
+
     @staticmethod
     @cuda.jit
     def _compute_minus_residual(X_gpu, y_gpu, w, out):
@@ -140,6 +168,41 @@ class QuadraticNumba(BaseQuadratic):
         tmp = 0.
         for i in range(n_samples):
             tmp += X_gpu[i, j] * minus_residual[i] / X_gpu.shape[0]
+
+        out[j] = tmp
+
+    @staticmethod
+    @cuda.jit
+    def _sparse_compute_minus_residual(X_gpu_data, X_gpu_indptr, X_gpu_indices,
+                                       X_gpu_shape, y_gpu, w, out):
+        j = cuda.grid(1)
+
+        n_samples, n_features = X_gpu_shape
+        if j >= n_features:
+            return
+
+        stride_x = cuda.gridDim.x * cuda.blockDim.x
+        for jj in range(j, n_samples, stride_x):
+            cuda.atomic.add(out, jj, -y_gpu[jj])
+
+        for idx in range(X_gpu_indptr[j], X_gpu_indptr[j+1]):
+            i = X_gpu_indices[idx]
+            cuda.atomic.add(out, i, w[j] * X_gpu_data[idx])
+
+    @staticmethod
+    @cuda.jit
+    def _sparse_compute_grad(X_gpu_data, X_gpu_indptr, X_gpu_indices, X_gpu_shape,
+                             minus_residual, out):
+        j = cuda.grid(1)
+
+        n_features = X_gpu_shape[1]
+        if j >= n_features:
+            return
+
+        tmp = 0.
+        for idx in range(X_gpu_indptr[j], X_gpu_indptr[j+1]):
+            i = X_gpu_indices[idx]
+            tmp += X_gpu_data[idx] * minus_residual[i]
 
         out[j] = tmp
 

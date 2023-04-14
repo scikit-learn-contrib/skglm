@@ -24,9 +24,6 @@ from skglm.gpu.utils.host_utils import eval_opt_crit
                           (NumbaSolver(), QuadraticNumba, L1Numba)])
 @pytest.mark.parametrize("sparse_X", [True, False])
 def test_solves(sparse_X, solver, datafit_cls, penalty_cls):
-    if sparse_X and isinstance(solver, NumbaSolver):
-        pytest.xfail(reason="Sparse X is not yet supported for Numba")
-
     random_state = 1265
     n_samples, n_features = 100, 30
     reg = 1e-2
@@ -52,5 +49,4 @@ def test_solves(sparse_X, solver, datafit_cls, penalty_cls):
 
 
 if __name__ == "__main__":
-    # test_solves(True, NumbaSolver(verbose=1, max_iter=100), QuadraticNumba, L1Numba)
     pass

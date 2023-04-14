@@ -37,7 +37,7 @@ class CPUSolver(BaseFistaSolver):
             if self.verbose:
                 p_obj = datafit.value(X, y, w, X @ w) + penalty.value(w)
 
-                grad = datafit.gradient(X, y, mid_w, X @ mid_w)
+                grad = datafit.gradient(X, y, w, X @ w)
                 opt_crit = penalty.max_subdiff_distance(w, grad)
 
                 print(

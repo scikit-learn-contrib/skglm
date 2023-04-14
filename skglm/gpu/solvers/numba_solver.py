@@ -83,7 +83,10 @@ class NumbaSolver(BaseFistaSolver):
 
                 p_obj = datafit.value(X, y, w_cpu, X @ w_cpu) + penalty.value(w_cpu)
 
-                datafit.sparse_gradient(*X_gpu_bundles, y_gpu, w, grad)
+                if X_is_sparse:
+                    datafit.sparse_gradient(*X_gpu_bundles, y_gpu, w, grad)
+                else:
+                    datafit.gradient(X_gpu, y_gpu, w, grad)
                 grad_cpu = grad.copy_to_host()
 
                 opt_crit = penalty.max_subdiff_distance(w_cpu, grad_cpu)
@@ -126,7 +129,7 @@ class QuadraticNumba(BaseQuadratic):
 
     def sparse_gradient(self, X_gpu_data, X_gpu_indptr, X_gpu_indices, X_gpu_shape,
                         y_gpu, w, out):
-        minus_residual = cuda.device_array(X_gpu_shape[0])
+        minus_residual = cuda.to_device(np.zeros(X_gpu_shape[0]))
 
         n_blocks = math.ceil(X_gpu_shape[1] / MAX_1DIM_BLOCK[0])
 

@@ -148,15 +148,16 @@ class QuadraticNumba(BaseQuadratic):
         i = cuda.grid(1)
 
         n_samples, n_features = X_gpu.shape
-        if i >= n_samples:
-            return
+        stride_x = cuda.gridDim.x * cuda.blockDim.x
 
-        tmp = 0.
-        for j in range(n_features):
-            tmp += X_gpu[i, j] * w[j]
-        tmp -= y_gpu[i]
+        for ii in range(i, n_samples, stride_x):
 
-        out[i] = tmp
+            tmp = 0.
+            for j in range(n_features):
+                tmp += X_gpu[ii, j] * w[j]
+            tmp -= y_gpu[ii]
+
+            out[ii] = tmp
 
     @staticmethod
     @cuda.jit
@@ -165,14 +166,15 @@ class QuadraticNumba(BaseQuadratic):
         j = cuda.grid(1)
 
         n_samples, n_features = X_gpu.shape
-        if j >= n_features:
-            return
+        stride_y = cuda.gridDim.x * cuda.blockDim.x
 
-        tmp = 0.
-        for i in range(n_samples):
-            tmp += X_gpu[i, j] * minus_residual[i] / n_samples
+        for jj in range(j, n_features, stride_y):
 
-        out[j] = tmp
+            tmp = 0.
+            for i in range(n_samples):
+                tmp += X_gpu[i, jj] * minus_residual[i] / n_samples
+
+            out[jj] = tmp
 
     @staticmethod
     @cuda.jit

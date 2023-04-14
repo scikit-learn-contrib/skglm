@@ -224,19 +224,19 @@ class L1Numba(BaseL1):
         j = cuda.grid(1)
 
         n_features = value.shape[0]
-        if j >= n_features:
-            return
+        stride_y = cuda.gridDim.x * cuda.blockDim.x
 
-        value_j = value[j]
+        for jj in range(j, n_features, stride_y):
+            value_j = value[jj]
 
-        if abs(value_j) <= level:
-            value_j = 0.
-        elif value_j > level:
-            value_j = value_j - level
-        else:
-            value_j = value_j + level
+            if abs(value_j) <= level:
+                value_j = 0.
+            elif value_j > level:
+                value_j = value_j - level
+            else:
+                value_j = value_j + level
 
-        out[j] = value_j
+            out[jj] = value_j
 
 
 # solver kernels

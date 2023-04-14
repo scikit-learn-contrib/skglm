@@ -26,8 +26,8 @@ class PytorchSolver(BaseFistaSolver):
 
         # transfer data
         selected_device = torch.device("cuda")
-        X_gpu = torch.tensor(X, requires_grad=False, device=selected_device)
-        y_gpu = torch.tensor(y, requires_grad=False, device=selected_device)
+        X_gpu = torch.tensor(X, device=selected_device)
+        y_gpu = torch.tensor(y, device=selected_device)
 
         # init vars
         w = torch.zeros(n_features, dtype=torch.float64, device=selected_device)
@@ -50,7 +50,7 @@ class PytorchSolver(BaseFistaSolver):
 
             # forward / backward
             with torch.no_grad():
-                w = penalty.prox(mid_w - grad, step)
+                w = penalty.prox(mid_w - step * grad, step)
 
             if self.verbose:
                 # transfer back to host
@@ -96,6 +96,9 @@ class QuadraticPytorch(BaseQuadratic):
 
     def value(self, X, y, w):
         return ((y - X @ w) ** 2).sum() / (2 * len(y))
+
+    def gradient(self, X, y, w):
+        return X.T @ (X @ w - y) / X.shape[0]
 
 
 class L1Pytorch(BaseL1):

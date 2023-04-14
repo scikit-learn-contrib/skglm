@@ -11,19 +11,27 @@ from skglm.gpu.solvers.base import BaseQuadratic, BaseL1
 from skglm.gpu.solvers.jax_solver import JaxSolver, QuadraticJax, L1Jax
 from skglm.gpu.solvers.cupy_solver import CupySolver, QuadraticCuPy, L1CuPy
 from skglm.gpu.solvers.numba_solver import NumbaSolver, QuadraticNumba, L1Numba
-
+from skglm.gpu.solvers.pytorch_solver import PytorchSolver, QuadraticPytorch, L1Pytorch
 
 from skglm.gpu.utils.host_utils import eval_opt_crit
 
 
-@pytest.mark.parametrize("solver, datafit_cls, penalty_cls",
-                         [(CPUSolver(), BaseQuadratic, BaseL1),
-                          (CupySolver(), QuadraticCuPy, L1CuPy),
-                          (JaxSolver(use_auto_diff=True), QuadraticJax, L1Jax),
-                          (JaxSolver(use_auto_diff=False), QuadraticJax, L1Jax),
-                          (NumbaSolver(), QuadraticNumba, L1Numba)])
 @pytest.mark.parametrize("sparse_X", [True, False])
-def test_solves(sparse_X, solver, datafit_cls, penalty_cls):
+@pytest.mark.parametrize(
+    "solver, datafit_cls, penalty_cls",
+    [
+        (CPUSolver(), BaseQuadratic, BaseL1),
+        (CupySolver(), QuadraticCuPy, L1CuPy),
+        (JaxSolver(use_auto_diff=True), QuadraticJax, L1Jax),
+        (JaxSolver(use_auto_diff=False), QuadraticJax, L1Jax),
+        (PytorchSolver(use_auto_diff=True), QuadraticPytorch, L1Pytorch),
+        (PytorchSolver(use_auto_diff=False), QuadraticPytorch, L1Pytorch),
+        (NumbaSolver(), QuadraticNumba, L1Numba)
+    ])
+def test_solves(solver, datafit_cls, penalty_cls, sparse_X):
+    if sparse_X and isinstance(solver, PytorchSolver):
+        pytest.xfail(reason="Sparse data still not yet supported")
+
     random_state = 1265
     n_samples, n_features = 100, 30
     reg = 1e-2

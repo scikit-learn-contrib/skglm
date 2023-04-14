@@ -181,15 +181,19 @@ class QuadraticNumba(BaseQuadratic):
         j = cuda.grid(1)
 
         n_samples, n_features = X_gpu_shape
-        if j >= n_features:
-            return
+        stride_y = cuda.gridDim.x * cuda.blockDim.x
 
-        for jj in range(j, n_samples, n_features):
-            cuda.atomic.sub(out, jj, y_gpu[jj])
+        for jj in range(j, n_features, stride_y):
 
-        for idx in range(X_gpu_indptr[j], X_gpu_indptr[j+1]):
-            i = X_gpu_indices[idx]
-            cuda.atomic.add(out, i, w[j] * X_gpu_data[idx])
+            # out -= y_gpu
+            # small hack to perform this operation using
+            # the (features) threads instead of launching others
+            for idx in range(jj, n_samples, n_features):
+                cuda.atomic.sub(out, idx, y_gpu[idx])
+
+            for idx in range(X_gpu_indptr[jj], X_gpu_indptr[jj+1]):
+                i = X_gpu_indices[idx]
+                cuda.atomic.add(out, i, w[jj] * X_gpu_data[idx])
 
     @staticmethod
     @cuda.jit
@@ -198,15 +202,15 @@ class QuadraticNumba(BaseQuadratic):
         j = cuda.grid(1)
 
         n_samples, n_features = X_gpu_shape
-        if j >= n_features:
-            return
+        stride_y = cuda.gridDim.x * cuda.blockDim.x
 
-        tmp = 0.
-        for idx in range(X_gpu_indptr[j], X_gpu_indptr[j+1]):
-            i = X_gpu_indices[idx]
-            tmp += X_gpu_data[idx] * minus_residual[i] / n_samples
+        for jj in range(j, n_features, stride_y):
+            tmp = 0.
+            for idx in range(X_gpu_indptr[jj], X_gpu_indptr[jj+1]):
+                i = X_gpu_indices[idx]
+                tmp += X_gpu_data[idx] * minus_residual[i] / n_samples
 
-        out[j] = tmp
+            out[jj] = tmp
 
 
 class L1Numba(BaseL1):

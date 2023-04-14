@@ -129,6 +129,8 @@ class QuadraticNumba(BaseQuadratic):
 
     def sparse_gradient(self, X_gpu_data, X_gpu_indptr, X_gpu_indices, X_gpu_shape,
                         y_gpu, w, out):
+        # init as zero as it is used in the computation
+        # otherwise stale values on GPU are used
         minus_residual = cuda.to_device(np.zeros(X_gpu_shape[0]))
 
         n_blocks = math.ceil(X_gpu_shape[1] / MAX_1DIM_BLOCK[0])
@@ -152,6 +154,7 @@ class QuadraticNumba(BaseQuadratic):
 
         for ii in range(i, n_samples, stride_x):
 
+            # out[ii] = X_gpu[i, :] @ w - y_gpu
             tmp = 0.
             for j in range(n_features):
                 tmp += X_gpu[ii, j] * w[j]
@@ -170,6 +173,7 @@ class QuadraticNumba(BaseQuadratic):
 
         for jj in range(j, n_features, stride_y):
 
+            # out[jj] = X_gpu[:, jj] @ minus_residual / n_samples
             tmp = 0.
             for i in range(n_samples):
                 tmp += X_gpu[i, jj] * minus_residual[i] / n_samples
@@ -193,6 +197,7 @@ class QuadraticNumba(BaseQuadratic):
             for idx in range(jj, n_samples, n_features):
                 cuda.atomic.sub(out, idx, y_gpu[idx])
 
+            # out[i] = w[jj] * X_gpu[:, jj]
             for idx in range(X_gpu_indptr[jj], X_gpu_indptr[jj+1]):
                 i = X_gpu_indices[idx]
                 cuda.atomic.add(out, i, w[jj] * X_gpu_data[idx])
@@ -207,6 +212,8 @@ class QuadraticNumba(BaseQuadratic):
         stride_y = cuda.gridDim.x * cuda.blockDim.x
 
         for jj in range(j, n_features, stride_y):
+
+            # out[jj] = X_gpu[:, jj] @ minus_residual / n_samples
             tmp = 0.
             for idx in range(X_gpu_indptr[jj], X_gpu_indptr[jj+1]):
                 i = X_gpu_indices[idx]
@@ -232,6 +239,7 @@ class L1Numba(BaseL1):
         n_features = value.shape[0]
         stride_y = cuda.gridDim.x * cuda.blockDim.x
 
+        # out = ST(value, level)
         for jj in range(j, n_features, stride_y):
             value_j = value[jj]
 
@@ -253,17 +261,18 @@ def _forward(mid_w, grad, step, out):
     n_features = mid_w.shape[0]
     stride_y = cuda.gridDim.x * cuda.blockDim.x
 
+    # out = mid_w - step * grad
     for jj in range(j, n_features, stride_y):
         out[jj] = mid_w[jj] - step * grad[jj]
 
 
 @cuda.jit
 def _extrapolate(w, old_w, coef, out):
-    # compute: out = w + coef * (w - old_w)
     j = cuda.grid(1)
 
     n_features = w.shape[0]
     stride_y = cuda.gridDim.x * cuda.blockDim.x
 
+    # out = w + coef * (w - old_w)
     for jj in range(j, n_features, stride_y):
         out[jj] = w[jj] + coef * (w[jj] - old_w[jj])

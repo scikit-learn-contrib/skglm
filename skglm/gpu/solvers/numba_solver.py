@@ -170,7 +170,7 @@ class QuadraticNumba(BaseQuadratic):
 
         tmp = 0.
         for i in range(n_samples):
-            tmp += X_gpu[i, j] * minus_residual[i] / X_gpu.shape[0]
+            tmp += X_gpu[i, j] * minus_residual[i] / n_samples
 
         out[j] = tmp
 

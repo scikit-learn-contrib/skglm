@@ -244,11 +244,11 @@ class L1Numba(BaseL1):
 def _forward(mid_w, grad, step, out):
     j = cuda.grid(1)
 
-    n_features = len(mid_w)
-    if j >= n_features:
-        return
+    n_features = mid_w.shape[0]
+    stride_y = cuda.gridDim.x * cuda.blockDim.x
 
-    out[j] = mid_w[j] - step * grad[j]
+    for jj in range(j, n_features, stride_y):
+        out[jj] = mid_w[jj] - step * grad[jj]
 
 
 @cuda.jit
@@ -256,8 +256,8 @@ def _extrapolate(w, old_w, coef, out):
     # compute: out = w + coef * (w - old_w)
     j = cuda.grid(1)
 
-    n_features = len(w)
-    if j >= n_features:
-        return
+    n_features = w.shape[0]
+    stride_y = cuda.gridDim.x * cuda.blockDim.x
 
-    out[j] = w[j] + coef * (w[j] - old_w[j])
+    for jj in range(j, n_features, stride_y):
+        out[jj] = w[jj] + coef * (w[jj] - old_w[jj])

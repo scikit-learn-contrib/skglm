@@ -4,7 +4,7 @@ import cupyx.scipy.sparse as cpx
 import numpy as np
 from scipy import sparse
 
-from skglm.gpu.solvers.base import BaseFistaSolver, BaseL1
+from skglm.gpu.solvers.base import BaseFistaSolver, BaseL1, BaseQuadratic
 
 
 class CupySolver(BaseFistaSolver):
@@ -69,6 +69,10 @@ class CupySolver(BaseFistaSolver):
         w_cpu = cp.asnumpy(w)
 
         return w_cpu
+
+
+class QuadraticCuPy(BaseQuadratic):
+    pass
 
 
 class L1CuPy(BaseL1):

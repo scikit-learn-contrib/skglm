@@ -8,8 +8,8 @@ from numpy.linalg import norm
 from skglm.gpu.solvers import CPUSolver
 from skglm.gpu.solvers.base import BaseQuadratic, BaseL1
 
-from skglm.gpu.solvers.cupy_solver import CupySolver, L1CuPy
 from skglm.gpu.solvers.jax_solver import JaxSolver, QuadraticJax, L1Jax
+from skglm.gpu.solvers.cupy_solver import CupySolver, QuadraticCuPy, L1CuPy
 from skglm.gpu.solvers.numba_solver import NumbaSolver, QuadraticNumba, L1Numba
 
 
@@ -18,7 +18,7 @@ from skglm.gpu.utils.host_utils import eval_opt_crit
 
 @pytest.mark.parametrize("solver, datafit_cls, penalty_cls",
                          [(CPUSolver(), BaseQuadratic, BaseL1),
-                          (CupySolver(), BaseQuadratic, L1CuPy),
+                          (CupySolver(), QuadraticCuPy, L1CuPy),
                           (JaxSolver(use_auto_diff=True), QuadraticJax, L1Jax),
                           (JaxSolver(use_auto_diff=False), QuadraticJax, L1Jax),
                           (NumbaSolver(), QuadraticNumba, L1Numba)])

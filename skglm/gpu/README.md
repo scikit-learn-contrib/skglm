@@ -27,7 +27,10 @@ pip install skglm -e .
 4. install dependencies
 ```shell
 # cupy
-conda conda install -c conda-forge cupy cudatoolkit=11.5
+conda install -c conda-forge cupy cudatoolkit=11.5
+
+# pytorch
+pip install torch
 
 # jax
 conda install jaxlib=*=*cuda* jax cuda-nvcc -c conda-forge -c nvidia

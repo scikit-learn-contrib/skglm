@@ -5,6 +5,8 @@ from scipy import sparse
 import numpy as np
 from numpy.linalg import norm
 
+from skglm.estimators import Lasso
+
 from skglm.gpu.solvers import CPUSolver
 from skglm.gpu.solvers.base import BaseQuadratic, BaseL1
 
@@ -13,7 +15,7 @@ from skglm.gpu.solvers.cupy_solver import CupySolver, QuadraticCuPy, L1CuPy
 from skglm.gpu.solvers.numba_solver import NumbaSolver, QuadraticNumba, L1Numba
 from skglm.gpu.solvers.pytorch_solver import PytorchSolver, QuadraticPytorch, L1Pytorch
 
-from skglm.gpu.utils.host_utils import eval_opt_crit
+from skglm.gpu.utils.host_utils import eval_opt_crit, compute_obj
 
 
 @pytest.mark.parametrize("sparse_X", [True, False])
@@ -50,10 +52,15 @@ def test_solves(solver, datafit_cls, penalty_cls, sparse_X):
     lmbd = reg * lmbd_max
 
     w = solver.solve(X, y, datafit_cls(), penalty_cls(lmbd))
+    estimator = Lasso(alpha=lmbd, fit_intercept=False).fit(X, y)
 
     stop_crit = eval_opt_crit(X, y, lmbd, w)
 
     np.testing.assert_allclose(stop_crit, 0., atol=1e-8)
+    np.testing.assert_allclose(
+        compute_obj(X, y, lmbd, estimator.coef_),
+        compute_obj(X, y, lmbd, w),
+    )
 
 
 if __name__ == "__main__":

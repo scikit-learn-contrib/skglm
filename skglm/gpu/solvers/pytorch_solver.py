@@ -17,6 +17,14 @@ class PytorchSolver(BaseFistaSolver):
         n_samples, n_features = X.shape
         X_is_sparse = sparse.issparse(X)
 
+        if X_is_sparse and not self.use_auto_diff:
+            error_message = (
+                "PyTorch doesn't support the operation `M.T @ vec`"
+                "for sparse matrices. Use `use_auto_diff=True`"
+            )
+
+            raise ValueError(error_message)
+
         # compute step
         lipschitz = datafit.get_lipschitz_cst(X)
         if lipschitz == 0.:

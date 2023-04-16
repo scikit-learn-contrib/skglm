@@ -26,7 +26,14 @@ class PytorchSolver(BaseFistaSolver):
 
         # transfer data
         selected_device = torch.device("cuda")
-        X_gpu = torch.tensor(X, device=selected_device)
+        if X_is_sparse:
+            X_gpu = torch.sparse_csc_tensor(
+                X.indptr, X.indices, X.data, X.shape,
+                dtype=torch.float64,
+                device=selected_device
+            )
+        else:
+            X_gpu = torch.tensor(X, device=selected_device)
         y_gpu = torch.tensor(y, device=selected_device)
 
         # init vars

@@ -29,9 +29,6 @@ from skglm.gpu.utils.host_utils import eval_opt_crit
         (NumbaSolver(), QuadraticNumba, L1Numba)
     ])
 def test_solves(solver, datafit_cls, penalty_cls, sparse_X):
-    if sparse_X and isinstance(solver, PytorchSolver):
-        pytest.xfail(reason="Sparse data still not yet supported")
-
     random_state = 1265
     n_samples, n_features = 100, 30
     reg = 1e-2

@@ -27,7 +27,6 @@ class QuadraticMultiTask(BaseMultitaskDatafit):
 
     def get_spec(self):
         spec = (
-            ('XtY', float64[:, :]),
             ('lipschitz', float64[:]),
         )
         return spec
@@ -37,7 +36,6 @@ class QuadraticMultiTask(BaseMultitaskDatafit):
 
     def initialize(self, X, Y):
         """Compute optimization quantities before fitting on X and Y."""
-        self.XtY = X.T @ Y
         n_samples, n_features = X.shape
         self.lipschitz = np.zeros(n_features)
         for j in range(n_features):
@@ -45,20 +43,16 @@ class QuadraticMultiTask(BaseMultitaskDatafit):
 
     def initialize_sparse(self, X_data, X_indptr, X_indices, Y):
         """Pre-computations before fitting on X and Y, when X is sparse."""
-        n_samples, n_tasks = Y.shape
+        n_samples = Y.shape[0]
         n_features = len(X_indptr) - 1
-        self.XtY = np.zeros((n_features, n_tasks))
         self.lipschitz = np.zeros(n_features)
+
         for j in range(n_features):
             nrm2 = 0.
-            xtY = np.zeros(n_tasks)
             for idx in range(X_indptr[j], X_indptr[j + 1]):
                 nrm2 += X_data[idx] ** 2
-                for t in range(n_tasks):
-                    xtY[t] += X_data[idx] * Y[X_indices[idx], t]
 
             self.lipschitz[j] = nrm2 / n_samples
-            self.XtY[j, :] = xtY
 
     def value(self, Y, W, XW):
         """Value of datafit at matrix W."""
@@ -68,28 +62,32 @@ class QuadraticMultiTask(BaseMultitaskDatafit):
     def gradient_j(self, X, Y, W, XW, j):
         """Gradient with respect to j-th coordinate of W."""
         n_samples = X.shape[0]
-        return (X[:, j] @ XW - self.XtY[j, :]) / n_samples
+        return (X[:, j] @ (XW - Y)) / n_samples
 
     def gradient_j_sparse(self, X_data, X_indptr, X_indices, Y, XW, j):
         """Gradient with respect to j-th coordinate of W when X is sparse."""
         n_samples, n_tasks = Y.shape
-        XjTXW = np.zeros(n_tasks)
-        for t in range(n_tasks):
-            for i in range(X_indptr[j], X_indptr[j+1]):
-                XjTXW[t] += X_data[i] * XW[X_indices[i], t]
-        return (XjTXW - self.XtY[j, :]) / n_samples
+        grad_j = np.zeros(n_tasks)
+
+        for i in range(X_indptr[j], X_indptr[j+1]):
+            grad_j += X_data[i] * (XW[X_indices[i]] - Y[i]) / n_samples
+
+        return grad_j
 
     def full_grad_sparse(self, X_data, X_indptr, X_indices, Y, XW):
         """Compute the full gradient when X is sparse."""
-        n_features = X_indptr.shape[0] - 1
         n_samples, n_tasks = Y.shape
+        n_features = X_indptr.shape[0] - 1
+
+        XW_minus_Y = XW - Y
         grad = np.zeros((n_features, n_tasks))
+
         for j in range(n_features):
-            XjTXW = np.zeros(n_tasks)
-            for t in range(n_tasks):
-                for i in range(X_indptr[j], X_indptr[j+1]):
-                    XjTXW[t] += X_data[i] * XW[X_indices[i], t]
-            grad[j, :] = (XjTXW - self.XtY[j, :]) / n_samples
+            grad_j = np.zeros(n_tasks)
+            for i in range(X_indptr[j], X_indptr[j+1]):
+                grad_j += X_data[i] * XW_minus_Y[X_indices[i]] / n_samples
+            grad[j, :] = grad_j
+
         return grad
 
     def intercept_update_step(self, Y, XW):

@@ -39,7 +39,6 @@ class Quadratic(BaseDatafit):
 
     def get_spec(self):
         spec = (
-            ('Xty', float64[:]),
             ('lipschitz', float64[:]),
             ('global_lipschitz', float64),
         )
@@ -49,7 +48,6 @@ class Quadratic(BaseDatafit):
         return dict()
 
     def initialize(self, X, y):
-        self.Xty = X.T @ y
         n_features = X.shape[1]
 
         self.lipschitz = np.zeros(n_features, dtype=X.dtype)
@@ -58,18 +56,14 @@ class Quadratic(BaseDatafit):
 
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
         n_features = len(X_indptr) - 1
-        self.Xty = np.zeros(n_features, dtype=X_data.dtype)
 
         self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
         for j in range(n_features):
             nrm2 = 0.
-            xty = 0
             for idx in range(X_indptr[j], X_indptr[j + 1]):
                 nrm2 += X_data[idx] ** 2
-                xty += X_data[idx] * y[X_indices[idx]]
 
             self.lipschitz[j] = nrm2 / len(y)
-            self.Xty[j] = xty
 
     def init_global_lipschitz(self, X, y):
         self.global_lipschitz = norm(X, ord=2) ** 2 / len(y)
@@ -82,24 +76,31 @@ class Quadratic(BaseDatafit):
         return np.sum((y - Xw) ** 2) / (2 * len(Xw))
 
     def gradient_scalar(self, X, y, w, Xw, j):
-        return (X[:, j] @ Xw - self.Xty[j]) / len(Xw)
+        return (X[:, j] @ (Xw - y)) / len(Xw)
 
     def gradient_scalar_sparse(self, X_data, X_indptr, X_indices, y, Xw, j):
-        XjTXw = 0.
-        for i in range(X_indptr[j], X_indptr[j+1]):
-            XjTXw += X_data[i] * Xw[X_indices[i]]
-        return (XjTXw - self.Xty[j]) / len(Xw)
+        grad_j = 0.
+        n_samples = Xw.shape[0]
 
-    def full_grad_sparse(
-            self, X_data, X_indptr, X_indices, y, Xw):
-        n_features = X_indptr.shape[0] - 1
+        for i in range(X_indptr[j], X_indptr[j+1]):
+            row_i = X_indices[i]
+            grad_j += X_data[i] * (Xw[row_i] - y[row_i]) / n_samples
+
+        return grad_j
+
+    def full_grad_sparse(self, X_data, X_indptr, X_indices, y, Xw):
         n_samples = y.shape[0]
+        n_features = X_indptr.shape[0] - 1
+
+        Xw_minus_y = Xw - y
         grad = np.zeros(n_features, dtype=Xw.dtype)
+
         for j in range(n_features):
-            XjTXw = 0.
+            grad_j = 0.
             for i in range(X_indptr[j], X_indptr[j + 1]):
-                XjTXw += X_data[i] * Xw[X_indices[i]]
-            grad[j] = (XjTXw - self.Xty[j]) / n_samples
+                grad_j += X_data[i] * Xw_minus_y[X_indices[i]] / n_samples
+            grad[j] = grad_j
+
         return grad
 
     def intercept_update_step(self, y, Xw):

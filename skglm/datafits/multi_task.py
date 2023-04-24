@@ -70,7 +70,8 @@ class QuadraticMultiTask(BaseMultitaskDatafit):
         grad_j = np.zeros(n_tasks)
 
         for i in range(X_indptr[j], X_indptr[j+1]):
-            grad_j += X_data[i] * (XW[X_indices[i]] - Y[i]) / n_samples
+            row_i = X_indices[i]
+            grad_j += X_data[i] * (XW[row_i] - Y[row_i]) / n_samples
 
         return grad_j
 

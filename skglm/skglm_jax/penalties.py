@@ -1,3 +1,6 @@
+from functools import partial
+
+import jax
 import jax.numpy as jnp
 
 
@@ -14,6 +17,7 @@ class L1Jax:
         shifted_value = jnp.abs(value) - stepsize * self.alpha
         return jnp.sign(value) * jnp.maximum(shifted_value, 0.)
 
+    @partial(jax.jit, static_argnums=(0,))
     def subdiff_dist(self, w, grad, ws):
         dist = jnp.zeros(len(ws))
 
@@ -21,10 +25,12 @@ class L1Jax:
             w_j = w[j]
             grad_j = grad[j]
 
-            if w_j == 0.:
-                dist_j = max(abs(grad_j) - self.alpha, 0.)
-            else:
-                dist_j = abs(grad_j + jnp.sign(w_j) * self.alpha)
+            dist_j = jax.lax.cond(
+                w_j == 0.,
+                lambda w_j, grad_j, alpha: jnp.maximum(jnp.abs(grad_j) - alpha, 0.),
+                lambda w_j, grad_j, alpha: jnp.abs(grad_j + jnp.sign(w_j) * alpha),
+                w_j, grad_j, self.alpha
+            )
 
             dist = dist.at[idx].set(dist_j)
 

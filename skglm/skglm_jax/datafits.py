@@ -1,4 +1,3 @@
-import jax.numpy as jnp
 from jax.numpy.linalg import norm as jnorm
 
 
@@ -16,13 +15,7 @@ class QuadraticJax:
     def gradient_ws(self, X, y, w, Xw, ws):
         n_samples = X.shape[0]
         Xw_minus_y = Xw - y
-        grad_ws = jnp.zeros(len(ws))
-
-        for idx, j in enumerate(ws):
-            grad_j = X[:, j] @ Xw_minus_y / n_samples
-            grad_ws = grad_ws.at[idx].set(grad_j)
-
-        return grad_ws
+        return X[:, ws].T @ (Xw_minus_y / n_samples)
 
     def get_features_lipschitz_cst(self, X, y):
         n_samples = X.shape[0]

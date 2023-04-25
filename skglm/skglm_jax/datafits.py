@@ -9,13 +9,13 @@ class QuadraticJax:
         n_samples = X.shape[0]
         return ((X @ w - y) ** 2).sum() / (2. * n_samples)
 
-    def gradient_1d(self, X, y, w, j):
+    def gradient_1d(self, X, y, w, Xw, j):
         n_samples = X.shape[0]
-        return X[:, j] @ (X @ w - y) / n_samples
+        return X[:, j] @ (Xw - y) / n_samples
 
-    def gradient_ws(self, X, y, w, ws):
+    def gradient_ws(self, X, y, w, Xw, ws):
         n_samples = X.shape[0]
-        Xw_minus_y = X @ w - y
+        Xw_minus_y = Xw - y
         grad_ws = jnp.zeros(len(ws))
 
         for idx, j in enumerate(ws):

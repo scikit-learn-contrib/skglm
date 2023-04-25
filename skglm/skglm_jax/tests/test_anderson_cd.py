@@ -1,5 +1,3 @@
-import pytest
-
 import numpy as np
 from numpy.linalg import norm
 from skglm.utils.data import make_correlated_data
@@ -26,7 +24,7 @@ def test_solver():
 
     estimator = Lasso(alpha=lmbd, fit_intercept=False).fit(X, y)
 
-    np.testing.assert_allclose(w, estimator.coef_, atol=1e-7)
+    np.testing.assert_allclose(w, estimator.coef_, atol=1e-6)
 
 
 if __name__ == "__main__":

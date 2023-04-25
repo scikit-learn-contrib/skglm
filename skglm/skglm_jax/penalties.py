@@ -2,6 +2,7 @@ import jax.numpy as jnp
 
 
 class L1Jax:
+    """alpha ||w||_1"""
 
     def __init__(self, alpha):
         self.alpha = alpha
@@ -25,6 +26,6 @@ class L1Jax:
             else:
                 dist_j = abs(grad_j + jnp.sign(w_j) * self.alpha)
 
-            dist[idx] = dist_j
+            dist = dist.at[idx].set(dist_j)
 
         return dist

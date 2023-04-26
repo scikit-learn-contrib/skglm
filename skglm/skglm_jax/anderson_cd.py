@@ -24,8 +24,8 @@ class AndersonCD:
 
         for it in range(self.max_iter):
 
-            w, Xw = AndersonCD._cd_epoch(X, y, w, Xw, all_features, lipschitz,
-                                         datafit, penalty)
+            w, Xw = self._cd_epoch(X, y, w, Xw, all_features, lipschitz,
+                                   datafit, penalty)
 
             if self.verbose:
                 p_obj = datafit.value(X, y, w) + penalty.value(w)
@@ -42,11 +42,11 @@ class AndersonCD:
 
     def _transfer_to_device(self, X, y):
         # TODO: other checks
+        # - skip if they are already jax array
         return jnp.asarray(X), jnp.asarray(y)
 
-    @staticmethod
-    @partial(jax.jit, static_argnums=(-2, -1))
-    def _cd_epoch(X, y, w, Xw, ws, lipschitz, datafit, penalty):
+    @partial(jax.jit, static_argnums=(0, -2, -1))
+    def _cd_epoch(self, X, y, w, Xw, ws, lipschitz, datafit, penalty):
         for j in ws:
 
             # Null columns of X would break this functions

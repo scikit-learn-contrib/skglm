@@ -10,7 +10,7 @@ from skglm.estimators import Lasso
 
 
 def test_solver():
-    n_samples, n_features = 100, 10
+    n_samples, n_features = 100, 200
     random_state = 135
 
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=random_state)
@@ -20,7 +20,7 @@ def test_solver():
 
     datafit = QuadraticJax()
     penalty = L1Jax(lmbd)
-    w = AndersonCD(max_iter=30, verbose=1).solve(X, y, datafit, penalty)
+    w = AndersonCD(max_iter=30, verbose=1, p0=2).solve(X, y, datafit, penalty)
 
     estimator = Lasso(alpha=lmbd, fit_intercept=False).fit(X, y)
 

@@ -1,7 +1,7 @@
-from functools import partial
-
 import jax
 import jax.numpy as jnp
+
+from skglm.skglm_jax.utils import jax_jit_method
 
 
 class L1Jax:
@@ -17,7 +17,7 @@ class L1Jax:
         shifted_value = jnp.abs(value) - stepsize * self.alpha
         return jnp.sign(value) * jnp.maximum(shifted_value, 0.)
 
-    @partial(jax.jit, static_argnums=(0,))
+    @jax_jit_method
     def subdiff_dist(self, w, grad, ws):
         dist = jnp.zeros(len(ws))
 

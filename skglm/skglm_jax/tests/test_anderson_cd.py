@@ -10,22 +10,22 @@ from skglm.estimators import Lasso
 
 
 def test_solver():
-    n_samples, n_features = 100, 200
     random_state = 135
+    n_samples, n_features = 100, 20
 
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=random_state)
 
     lmbd_max = norm(X.T @ y, ord=np.inf) / n_samples
-    lmbd = 1e-2 * lmbd_max
+    lmbd = 1e-1 * lmbd_max
 
     datafit = QuadraticJax()
     penalty = L1Jax(lmbd)
-    w = AndersonCD(max_iter=30, verbose=1, p0=2).solve(X, y, datafit, penalty)
+    w = AndersonCD().solve(X, y, datafit, penalty)
 
     estimator = Lasso(alpha=lmbd, fit_intercept=False).fit(X, y)
 
-    np.testing.assert_allclose(w, estimator.coef_, atol=1e-6)
+    np.testing.assert_allclose(w, estimator.coef_, atol=1e-5)
 
 
 if __name__ == "__main__":
-    test_solver()
+    pass

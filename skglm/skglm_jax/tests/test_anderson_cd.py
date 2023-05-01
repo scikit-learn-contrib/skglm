@@ -20,7 +20,7 @@ def test_solver():
 
     datafit = QuadraticJax()
     penalty = L1Jax(lmbd)
-    w = AndersonCD().solve(X, y, datafit, penalty)
+    w = AndersonCD(verbose=1).solve(X, y, datafit, penalty)
 
     estimator = Lasso(alpha=lmbd, fit_intercept=False).fit(X, y)
 
@@ -28,4 +28,5 @@ def test_solver():
 
 
 if __name__ == "__main__":
+    test_solver()
     pass

@@ -19,22 +19,33 @@ class L1Jax:
 
     @jax_jit_method
     def subdiff_dist_ws(self, w, grad_ws, ws):
-        dist = jnp.zeros(len(ws))
+        n_features = w.shape[0]
+        dist = jnp.empty(n_features)
 
-        for idx, j in enumerate(ws):
+        for j, in_ws in enumerate(ws):
             w_j = w[j]
-            grad_j = grad_ws[idx]
+            grad_j = grad_ws[j]
 
             dist_j = jax.lax.cond(
-                w_j == 0.,
-                lambda w_j, grad_j, alpha: jnp.maximum(jnp.abs(grad_j) - alpha, 0.),
-                lambda w_j, grad_j, alpha: jnp.abs(grad_j + jnp.sign(w_j) * alpha),
-                w_j, grad_j, self.alpha
+                in_ws,
+                self._compute_subdiff_dist_j,
+                lambda w_j, grad_j: 0.,
+                *(w_j, grad_j)
             )
 
-            dist = dist.at[idx].set(dist_j)
+            dist = dist.at[j].set(dist_j)
 
         return dist
 
     def generalized_support(self, w):
         return w != 0.
+
+    @jax_jit_method
+    def _compute_subdiff_dist_j(self, w_j, grad_j):
+        dist_j = jax.lax.cond(
+            w_j == 0.,
+            lambda w_j, grad_j, alpha: jnp.maximum(jnp.abs(grad_j) - alpha, 0.),
+            lambda w_j, grad_j, alpha: jnp.abs(grad_j + jnp.sign(w_j) * alpha),
+            *(w_j, grad_j, self.alpha)
+        )
+        return dist_j

@@ -2,6 +2,7 @@ from functools import partial
 
 import jax
 import jax.numpy as jnp
+
 from skglm.skglm_jax.datafits import QuadraticJax
 from skglm.skglm_jax.penalties import L1Jax
 
@@ -25,7 +26,7 @@ class AndersonCD:
 
         w = jnp.zeros(n_features)
         Xw = jnp.zeros(n_samples)
-        all_features = jnp.arange(n_features)
+        all_features = jnp.full(n_features, fill_value=True, dtype=bool)
 
         for it in range(self.max_iter):
 
@@ -51,7 +52,11 @@ class AndersonCD:
                 max(2 * gsupp_size, self.p0),
                 n_features
             )
-            ws = jnp.argsort(scores)[-ws_size:]
+
+            ws = jnp.full(n_features, fill_value=False, dtype=bool)
+            ws_features = jnp.argsort(scores)[-ws_size:]
+            ws = ws.at[ws_features].set(True)
+
             tol_in = AndersonCD.EPS_TOL * stop_crit
 
             w, Xw = self._solve_sub_problem(X, y, w, Xw, ws, lipschitz, tol_in,
@@ -87,23 +92,35 @@ class AndersonCD:
 
     @partial(jax.jit, static_argnums=(0, -2, -1))
     def _cd_epoch(self, X, y, w, Xw, ws, lipschitz, datafit, penalty):
-        for j in ws:
+        for j, in_ws in enumerate(ws):
 
-            # Null columns of X would break this functions
-            # as their corresponding lipschitz is 0
-            # TODO: implement condition using lax
-            # if lipschitz[j] == 0.:
-            #     continue
+            w, Xw = jax.lax.cond(
+                in_ws,
+                lambda X, y, w, Xw, j, lipschitz: self._cd_epoch_j(X, y, w, Xw, j, lipschitz, datafit, penalty),  # noqa
+                lambda X, y, w, Xw, j, lipschitz: (w, Xw),
+                *(X, y, w, Xw, j, lipschitz)
+            )
 
-            step = 1 / lipschitz[j]
+        return w, Xw
 
-            grad_j = datafit.gradient_1d(X, y, w, Xw, j)
-            next_w_j = penalty.prox_1d(w[j] - step * grad_j, step)
+    @partial(jax.jit, static_argnums=(0, -2, -1))
+    def _cd_epoch_j(self, X, y, w, Xw, j, lipschitz, datafit, penalty):
 
-            delta_w_j = next_w_j - w[j]
+        # Null columns of X would break this functions
+        # as their corresponding lipschitz is 0
+        # TODO: implement condition using lax
+        # if lipschitz[j] == 0.:
+        #     continue
 
-            w = w.at[j].set(next_w_j)
-            Xw = Xw + delta_w_j * X[:, j]
+        step = 1 / lipschitz[j]
+
+        grad_j = datafit.gradient_1d(X, y, w, Xw, j)
+        next_w_j = penalty.prox_1d(w[j] - step * grad_j, step)
+
+        delta_w_j = next_w_j - w[j]
+
+        w = w.at[j].set(next_w_j)
+        Xw = Xw + delta_w_j * X[:, j]
 
         return w, Xw
 

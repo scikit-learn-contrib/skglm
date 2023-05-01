@@ -5,17 +5,20 @@ import jax.numpy as jnp
 
 from skglm.skglm_jax.datafits import QuadraticJax
 from skglm.skglm_jax.penalties import L1Jax
+from skglm.skglm_jax.utils import JaxAA
 
 
 class AndersonCD:
 
     EPS_TOL = 0.3
 
-    def __init__(self, max_iter=100, max_epochs=100, tol=1e-6, p0=10, verbose=0):
+    def __init__(self, max_iter=100, max_epochs=100, tol=1e-6, p0=10,
+                 use_acc=True, verbose=0):
         self.max_iter = max_iter
         self.max_epochs = max_epochs
         self.tol = tol
         self.p0 = p0
+        self.use_acc = use_acc
         self.verbose = verbose
 
     def solve(self, X, y, datafit: QuadraticJax, penalty: L1Jax):
@@ -67,10 +70,16 @@ class AndersonCD:
     def _solve_sub_problem(self, X, y, w, Xw, ws, lipschitz, tol_in,
                            datafit, penalty):
 
+        if self.use_acc:
+            accelerator = JaxAA(K=5)
+
         for epoch in range(self.max_epochs):
 
             w, Xw = self._cd_epoch(X, y, w, Xw, ws, lipschitz,
                                    datafit, penalty)
+
+            if self.use_acc:
+                w, Xw = accelerator.extrapolate(w, Xw)
 
             # check convergence
             grad_ws = datafit.gradient_ws(X, y, w, Xw, ws)

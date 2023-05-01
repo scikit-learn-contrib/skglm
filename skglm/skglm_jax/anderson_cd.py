@@ -1,6 +1,7 @@
 from functools import partial
 
 import jax
+import numpy as np
 import jax.numpy as jnp
 
 from skglm.skglm_jax.datafits import QuadraticJax
@@ -65,7 +66,8 @@ class AndersonCD:
             w, Xw = self._solve_sub_problem(X, y, w, Xw, ws, lipschitz, tol_in,
                                             datafit, penalty)
 
-        return w
+        w_cpu = np.asarray(w)
+        return w_cpu
 
     def _solve_sub_problem(self, X, y, w, Xw, ws, lipschitz, tol_in,
                            datafit, penalty):

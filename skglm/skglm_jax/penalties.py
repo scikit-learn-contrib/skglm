@@ -17,6 +17,9 @@ class L1Jax:
         shifted_value = jnp.abs(value) - stepsize * self.alpha
         return jnp.sign(value) * jnp.maximum(shifted_value, 0.)
 
+    def prox(self, value, stepsize):
+        return self.prox_1d(value, stepsize)
+
     @jax_jit_method
     def subdiff_dist_ws(self, w, grad_ws, ws):
         n_features = w.shape[0]

@@ -38,3 +38,11 @@ class QuadraticJax:
     def get_features_lipschitz_cst(self, X, y):
         n_samples = X.shape[0]
         return jnorm(X, ord=2, axis=0) ** 2 / n_samples
+
+    def get_global_lipschitz_cst(self, X, y):
+        n_samples = X.shape[0]
+        return jnorm(X, ord=2) ** 2 / n_samples
+
+    def gradient(self, X, y, w):
+        n_samples = X.shape[0]
+        return X.T @ (X @ w - y) / n_samples

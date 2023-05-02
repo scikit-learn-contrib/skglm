@@ -14,7 +14,7 @@ class AndersonCD:
     EPS_TOL = 0.3
 
     def __init__(self, max_iter=100, max_epochs=100, tol=1e-6, p0=10,
-                 use_acc=True, verbose=0):
+                 use_acc=False, verbose=0):
         self.max_iter = max_iter
         self.max_epochs = max_epochs
         self.tol = tol

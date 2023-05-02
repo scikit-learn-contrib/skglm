@@ -18,7 +18,7 @@ from skglm.estimators import Lasso
                Fista(use_auto_diff=False)])
 def test_solver(solver):
     random_state = 135
-    n_samples, n_features = 50, 10
+    n_samples, n_features = 10_000, 100
 
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=random_state)
 
@@ -35,5 +35,11 @@ def test_solver(solver):
 
 
 if __name__ == "__main__":
-    test_solver(Fista())
+    import time
+
+    start = time.perf_counter()
+    test_solver(AndersonCD(verbose=2))
+    end = time.perf_counter()
+
+    print("Elapsed time:", end - start)
     pass

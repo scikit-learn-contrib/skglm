@@ -544,3 +544,41 @@ class Gamma(BaseDatafit):
 
     def intercept_update_self(self, y, Xw):
         pass
+
+
+class Cox(BaseDatafit):
+
+    def __init__(self):
+        pass
+
+    def get_spec(self):
+        return (
+            ('B', float64[:, :]),
+        )
+
+    def params_to_dict(self):
+        return dict(B=self.B)
+
+    def value(self, y, w, Xw):
+        tm, s = y
+        return -(s @ Xw) + s @ np.log(self.B @ np.exp(Xw))
+
+    def raw_grad(self, y, Xw):
+        """Compute gradient of datafit w.r.t. ``Xw``."""
+        tm, s = y
+        exp_Xw = np.exp(Xw)
+        B_exp_Xw = self.B @ exp_Xw
+
+        return -s + (exp_Xw[:, None] * self.B.T) @ (s / B_exp_Xw)
+
+    def raw_hessian(self, y, Xw):
+        """Compute Hessian of datafit w.r.t. ``Xw``."""
+        tm, s = y
+        exp_Xw = np.exp(Xw)
+        B_exp_Xw = self.B @ exp_Xw
+
+        return exp_Xw * (self.B.T @ (s / B_exp_Xw))
+
+    def initialize(self, X, y):
+        tm, s = y
+        self.B = (tm >= tm[:, None]).astype(X.dtype)

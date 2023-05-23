@@ -561,23 +561,32 @@ class Cox(BaseDatafit):
 
     def value(self, y, w, Xw):
         tm, s = y
-        return -(s @ Xw) + s @ np.log(self.B @ np.exp(Xw))
+        n_samples = Xw.shape[0]
+
+        out = -(s @ Xw) + s @ np.log(self.B @ np.exp(Xw))
+        return out / n_samples
 
     def raw_grad(self, y, Xw):
         """Compute gradient of datafit w.r.t. ``Xw``."""
         tm, s = y
+        n_samples = Xw.shape[0]
+
         exp_Xw = np.exp(Xw)
         B_exp_Xw = self.B @ exp_Xw
 
-        return -s + (exp_Xw[:, None] * self.B.T) @ (s / B_exp_Xw)
+        out = -s + (exp_Xw[:, None] * self.B.T) @ (s / B_exp_Xw)
+        return out / n_samples
 
     def raw_hessian(self, y, Xw):
         """Compute Hessian of datafit w.r.t. ``Xw``."""
         tm, s = y
+        n_samples = Xw.shape[0]
+
         exp_Xw = np.exp(Xw)
         B_exp_Xw = self.B @ exp_Xw
 
-        return exp_Xw * (self.B.T @ (s / B_exp_Xw))
+        out = exp_Xw * (self.B.T @ (s / B_exp_Xw))
+        return out / n_samples
 
     def initialize(self, X, y):
         tm, s = y

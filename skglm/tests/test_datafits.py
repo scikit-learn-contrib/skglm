@@ -144,4 +144,5 @@ def test_cox():
 
 
 if __name__ == '__main__':
+    test_cox()
     pass

@@ -16,13 +16,18 @@ from sklearn.utils.estimator_checks import check_estimator
 
 from scipy.sparse import csc_matrix, issparse
 
-from skglm.utils.data import make_correlated_data
+from skglm.utils.data import make_correlated_data, make_dummy_survival_data
 from skglm.estimators import (
     GeneralizedLinearEstimator, Lasso, MultiTaskLasso, WeightedLasso, ElasticNet,
     MCPRegression, SparseLogisticRegression, LinearSVC)
-from skglm.datafits import Logistic, Quadratic, QuadraticSVC, QuadraticMultiTask
+from skglm.datafits import Logistic, Quadratic, QuadraticSVC, QuadraticMultiTask, Cox
 from skglm.penalties import L1, IndicatorBox, L1_plus_L2, MCPenalty, WeightedL1
 from skglm.solvers import AndersonCD
+
+import pandas as pd
+from lifelines import CoxPHFitter
+from skglm.solvers import ProxNewton
+from skglm.utils.jit_compilation import compiled_clone
 
 
 n_samples = 50
@@ -162,6 +167,50 @@ def test_mtl_path():
     coef_ours = MultiTaskLasso(fit_intercept=fit_intercept, tol=1e-14).path(
         X, Y, alphas, max_iter=10)[1][:, :X.shape[1]]
     np.testing.assert_allclose(coef_ours, coef_sk, rtol=1e-5)
+
+
+def test_CoxEstimator():
+    reg = 1e-2
+    n_samples, n_features = 100, 30
+
+    tm, s, X = make_dummy_survival_data(n_samples, n_features)
+
+    # compute alpha_max
+    B = (tm >= tm[:, None]).astype(X.dtype)
+    grad_0 = -s + B.T @ (s / np.sum(B, axis=1))
+    alpha_max = norm(X.T @ grad_0, ord=np.inf) / n_samples
+
+    alpha = reg * alpha_max
+
+    datafit = compiled_clone(Cox())
+    penalty = compiled_clone(L1(alpha))
+
+    datafit.initialize(X, (tm, s))
+
+    w, _, _ = ProxNewton(fit_intercept=False).solve(
+        X, (tm, s), datafit, penalty
+    )
+
+    # fit lifeline estimator
+    df = pd.DataFrame(
+        np.hstack((tm[:, None], s[:, None], X))
+    )
+
+    estimator = CoxPHFitter(penalizer=n_samples * alpha, l1_ratio=1.)
+    estimator.fit(df, duration_col=0, event_col=1, fit_options={
+                  "max_steps": 10_000, "precision": 1e-12})
+    w_ll = estimator.params_.values
+
+    np.testing.assert_allclose(
+        w, w_ll, atol=1e-6
+    )
+
+    p_obj_skglm = datafit.value((tm, s), w, X @ w) + penalty.value(w)
+    p_obj_ll = datafit.value((tm, s), w_ll, X @ w_ll) + penalty.value(w_ll)
+
+    np.testing.assert_allclose(
+        p_obj_skglm, p_obj_ll, atol=1e-6
+    )
 
 
 # Test if GeneralizedLinearEstimator returns the correct coefficients

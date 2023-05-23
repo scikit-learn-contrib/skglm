@@ -180,3 +180,13 @@ def _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights):
             norm(X[:, grp_g_indices].T @ y) / (n_samples * weights[g])
         )
     return alpha_max
+
+
+def make_dummy_survival_data(n_samples, n_features, random_state=1265):
+    rng = np.random.RandomState(random_state)
+
+    X = rng.randn(n_samples, n_features).astype(float, order='F')
+    tm = rng.choice(10 * n_samples, size=n_samples, replace=True).astype(float)
+    s = rng.choice(2, size=n_samples).astype(float)
+
+    return tm, s, X

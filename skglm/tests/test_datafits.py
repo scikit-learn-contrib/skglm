@@ -4,11 +4,12 @@ import pytest
 from sklearn.linear_model import HuberRegressor
 from numpy.testing import assert_allclose, assert_array_less
 
-from skglm.datafits import Huber, Logistic, Poisson, Gamma
+from skglm.datafits import Huber, Logistic, Poisson, Gamma, Cox
 from skglm.penalties import L1, WeightedL1
 from skglm.solvers import AndersonCD, ProxNewton
 from skglm import GeneralizedLinearEstimator
 from skglm.utils.data import make_correlated_data
+from skglm.utils.jit_compilation import compiled_clone
 
 
 @pytest.mark.parametrize('fit_intercept', [False, True])
@@ -112,6 +113,34 @@ def test_gamma():
     ).fit(X, y)
 
     np.testing.assert_allclose(clf.coef_, gamma_results.params, rtol=1e-6)
+
+
+def test_cox():
+    rng = np.random.RandomState(1265)
+    n_samples, n_features = 10, 30
+
+    # generate data
+    X = rng.randn(n_samples, n_features)
+    tm = rng.choice(n_samples*n_features, size=n_samples, replace=True).astype(float)
+    s = rng.choice(2, size=n_samples).astype(float)
+    y = (tm, s)
+
+    # generate dummy w, Xw
+    w = rng.randn(n_features)
+    Xw = rng.randn(n_samples)
+
+    # check datafit
+    cox_df = compiled_clone(Cox())
+
+    cox_df.initialize(X, (tm, s))
+    cox_df.value(y, w, Xw)
+
+    np.testing.assert_array_equal(
+        cox_df.raw_grad(y, Xw).shape, (n_samples,)
+    )
+    np.testing.assert_array_equal(
+        cox_df.raw_hessian(y, Xw).shape, (n_samples,)
+    )
 
 
 if __name__ == '__main__':

@@ -553,11 +553,11 @@ class Cox(BaseDatafit):
 
     def get_spec(self):
         return (
-            ('B', float64[:, :]),
+            ('B', float64[:, ::1]),
         )
 
     def params_to_dict(self):
-        return dict(B=self.B)
+        return dict()
 
     def value(self, y, w, Xw):
         tm, s = y

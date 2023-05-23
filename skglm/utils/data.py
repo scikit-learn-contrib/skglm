@@ -186,7 +186,7 @@ def make_dummy_survival_data(n_samples, n_features, random_state=1265):
     rng = np.random.RandomState(random_state)
 
     X = rng.randn(n_samples, n_features).astype(float, order='F')
-    tm = rng.choice(10 * n_samples, size=n_samples, replace=True).astype(float)
+    tm = rng.choice(10 * n_samples, size=n_samples, replace=False).astype(float)
     s = rng.choice(2, size=n_samples).astype(float)
 
     return tm, s, X

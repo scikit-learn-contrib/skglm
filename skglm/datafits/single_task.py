@@ -547,6 +547,40 @@ class Gamma(BaseDatafit):
 
 
 class Cox(BaseDatafit):
+    r"""Cox datafit for survival analysis with Breslow estimate.
+
+    The datafit reads [1]
+
+    .. math::
+
+        1 / n_"samples" \sum_(i=1)^(n_"samples") -s_i \langle x_i, w \rangle
+        + \log (\sum_(j | y_j \geq y_i) e^{\langle x_i, w \rangle})
+
+    where :math:`s_i` indicates the sample censorship and :math:`tm`
+    is the vector recording the time of event occurrences.
+
+    Defining the matrix :math:`B` with
+    :math:`B_{i,j} = 1` if  :math:`tm_j \geq tm_i` and :math:`0` otherwise,
+    the datafit can be rewritten in the following compact form
+
+    .. math::
+
+        1 / n_"samples" \langle s, Xw \rangle
+        + 1 / n_"samples" \langle s, \log B e^{Xw} \rangle
+
+
+    Attributes
+    ----------
+    B : array-like, shape (n_samples, n_samples)
+        Matrix where every ``(i, j)`` entry (row, column) equals ``1``
+        if ``tm[j] >= tm[i]`` and `0` otherwise. This matrix is initialized
+        using ``.initialize`` method.
+
+    References
+    ----------
+    .. [1] DY Lin. On the breslow estimator.
+           Lifetime data analysis, 13:471–480, 2007.
+    """
 
     def __init__(self):
         pass
@@ -560,6 +594,7 @@ class Cox(BaseDatafit):
         return dict()
 
     def value(self, y, w, Xw):
+        """computes the value of the datafit."""
         tm, s = y
         n_samples = Xw.shape[0]
 
@@ -589,5 +624,6 @@ class Cox(BaseDatafit):
         return out / n_samples
 
     def initialize(self, X, y):
+        """Initializes the datafit attributes."""
         tm, s = y
         self.B = (tm >= tm[:, None]).astype(X.dtype)

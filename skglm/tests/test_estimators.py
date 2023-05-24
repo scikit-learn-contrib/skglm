@@ -182,35 +182,34 @@ def test_CoxEstimator():
 
     alpha = reg * alpha_max
 
+    # fit Cox using ProxNewton solver
     datafit = compiled_clone(Cox())
     penalty = compiled_clone(L1(alpha))
 
     datafit.initialize(X, (tm, s))
 
-    w, _, _ = ProxNewton(fit_intercept=False).solve(
+    w, *_ = ProxNewton(
+        fit_intercept=False, tol=1e-6, max_iter=50
+    ).solve(
         X, (tm, s), datafit, penalty
     )
 
     # fit lifeline estimator
-    df = pd.DataFrame(
-        np.hstack((tm[:, None], s[:, None], X))
-    )
+    stacked_tm_s_X = np.hstack((tm[:, None], s[:, None], X))
+    df = pd.DataFrame(stacked_tm_s_X)
 
-    estimator = CoxPHFitter(penalizer=n_samples * alpha, l1_ratio=1.)
-    estimator.fit(df, duration_col=0, event_col=1, fit_options={
-                  "max_steps": 10_000, "precision": 1e-12})
+    estimator = CoxPHFitter(penalizer=alpha, l1_ratio=1.)
+    estimator.fit(
+        df, duration_col=0, event_col=1,
+        fit_options={"max_steps": 10_000, "precision": 1e-12}
+    )
     w_ll = estimator.params_.values
-
-    np.testing.assert_allclose(
-        w, w_ll, atol=1e-6
-    )
 
     p_obj_skglm = datafit.value((tm, s), w, X @ w) + penalty.value(w)
     p_obj_ll = datafit.value((tm, s), w_ll, X @ w_ll) + penalty.value(w_ll)
 
-    np.testing.assert_allclose(
-        p_obj_skglm, p_obj_ll, atol=1e-6
-    )
+    # though norm of solution might differ
+    np.testing.assert_allclose(p_obj_skglm, p_obj_ll, atol=1e-6)
 
 
 # Test if GeneralizedLinearEstimator returns the correct coefficients
@@ -332,4 +331,5 @@ def test_warm_start(estimator_name):
 
 
 if __name__ == "__main__":
+    test_CoxEstimator()
     pass

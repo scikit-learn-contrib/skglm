@@ -14,13 +14,11 @@ from lifelines import CoxPHFitter
 
 
 # generate data
-# reg = 1e-2
-# reg = 1  # same solution
-reg = 0.1
+reg = 1e-2
 n_samples, n_features = 100, 30
 
 tm, s, X = make_dummy_survival_data(n_samples, n_features)
-X /= norm(X, axis=0)
+
 
 # compute alpha_max
 B = (tm >= tm[:, None]).astype(X.dtype)
@@ -35,7 +33,7 @@ penalty = compiled_clone(L1(alpha))
 
 datafit.initialize(X, (tm, s))
 
-w, _, _ = ProxNewton(fit_intercept=False).solve(
+w, _, _ = ProxNewton(fit_intercept=False, tol=1e-9, max_iter=100).solve(
     X, (tm, s), datafit, penalty
 )
 
@@ -44,14 +42,15 @@ df = pd.DataFrame(
     np.hstack((tm[:, None], s[:, None], X))
 )
 
-estimator = CoxPHFitter(penalizer=n_samples * alpha, l1_ratio=1.)
+estimator = CoxPHFitter(penalizer=alpha, l1_ratio=1.)
 estimator.fit(
     df,
     duration_col=0,
     event_col=1,
+    show_progress=True,
     fit_options={
-        "max_steps": 10_000, "precision": 1e-12
-    }
+        "max_steps": 100_000, "precision": 1e-12
+    },
 )
 w_ll = estimator.params_.values
 
@@ -64,6 +63,6 @@ p_obj_ll = datafit.value((tm, s), w_ll, X @ w_ll) + penalty.value(w_ll)
 
 print("norm w_ll", norm(w_ll))  # is zero, should not be because reg < 1
 
-# print("ours", p_obj_skglm)
-# print("them", p_obj_ll)
-# print("diff p_obj:", p_obj_skglm - p_obj_ll)
+print("ours", p_obj_skglm)
+print("them", p_obj_ll)
+print("diff p_obj:", p_obj_skglm - p_obj_ll)

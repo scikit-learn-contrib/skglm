@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.linalg import norm
 from sklearn.utils import check_random_state
+from sklearn.preprocessing import StandardScaler
 
 
 def make_correlated_data(
@@ -189,4 +190,5 @@ def make_dummy_survival_data(n_samples, n_features, random_state=1265):
     tm = rng.choice(10 * n_samples, size=n_samples, replace=False).astype(float)
     s = rng.choice(2, size=n_samples).astype(float)
 
+    X = StandardScaler().fit_transform(X)
     return tm, s, X

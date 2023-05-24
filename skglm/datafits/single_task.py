@@ -602,7 +602,12 @@ class Cox(BaseDatafit):
         return out / n_samples
 
     def raw_grad(self, y, Xw):
-        """Compute gradient of datafit w.r.t. ``Xw``."""
+        r"""Compute gradient of datafit w.r.t. ``Xw``.
+
+        The raw gradient reads
+
+            (-s + exp_Xw * (B.T @ (s / B @ exp_Xw)) / n_samples
+        """
         tm, s = y
         n_samples = Xw.shape[0]
 
@@ -613,7 +618,12 @@ class Cox(BaseDatafit):
         return out / n_samples
 
     def raw_hessian(self, y, Xw):
-        """Compute Hessian of datafit w.r.t. ``Xw``."""
+        """Compute a diagonal approximation of the datafit's Hessian w.r.t. ``Xw``.
+
+        The diagonal approximation reads
+
+            exp_Xw * (B.T @ s / B_exp_Xw) / n_samples
+        """
         tm, s = y
         n_samples = Xw.shape[0]
 

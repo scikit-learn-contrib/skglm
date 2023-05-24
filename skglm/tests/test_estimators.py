@@ -25,7 +25,6 @@ from skglm.penalties import L1, IndicatorBox, L1_plus_L2, MCPenalty, WeightedL1
 from skglm.solvers import AndersonCD
 
 import pandas as pd
-from lifelines import CoxPHFitter
 from skglm.solvers import ProxNewton
 from skglm.utils.jit_compilation import compiled_clone
 
@@ -170,6 +169,14 @@ def test_mtl_path():
 
 
 def test_CoxEstimator():
+    try:
+        from lifelines import CoxPHFitter
+    except ModuleNotFoundError:
+        pytest.xfail(
+            "Testing Cox Estimator requires `lifelines` packages\n"
+            "Run `pip install lifelines`"
+        )
+
     reg = 1e-2
     n_samples, n_features = 100, 30
 

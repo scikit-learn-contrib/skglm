@@ -636,4 +636,6 @@ class Cox(BaseDatafit):
     def initialize(self, X, y):
         """Initialize the datafit attributes."""
         tm, s = y
-        self.B = (tm >= tm[:, None]).astype(X.dtype)
+
+        tm_as_col = tm.reshape((-1, 1))
+        self.B = (tm >= tm_as_col).astype(X.dtype)

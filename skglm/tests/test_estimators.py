@@ -179,8 +179,10 @@ def test_CoxEstimator():
 
     reg = 1e-2
     n_samples, n_features = 100, 30
+    random_state = 1265
 
-    tm, s, X = make_dummy_survival_data(n_samples, n_features, normalize=True)
+    tm, s, X = make_dummy_survival_data(n_samples, n_features,
+                                        normalize=True, random_state=random_state)
 
     # compute alpha_max
     B = (tm >= tm[:, None]).astype(X.dtype)

@@ -123,6 +123,52 @@ def make_correlated_data(
         return X, Y, w_true
 
 
+def make_dummy_survival_data(n_samples, n_features, normalize=False, random_state=None):
+    """Generate a random dataset for survival analysis.
+
+    The design matrix ``X`` is generated according to standard normal,
+    the vector of time is chosen uniformly from ``[0, 10 * n_samples]``
+    without replacement, and the vector of censorship is drawn from a Bernoulli
+    with parameter 0.5.
+
+    Parameters
+    ----------
+    n_samples : int
+        Number of samples in the design matrix.
+
+    n_features : int
+        Number of features in the design matrix.
+
+    normalize : bool, default=False
+        If ``True``, features are centered and divided by their
+        standard deviation.
+
+    random_state : int, default=None
+        Determines random number generation for data generation.
+
+    Returns
+    -------
+    tm : array-like, shape (n_samples,)
+        The vector of recording the time of event occurrences
+
+    s : array-like, shape (n_samples,)
+        The vector of indicating samples censorship
+
+    X : array-like, shape (n_samples, n_features)
+        Matrix of predictors
+    """
+    rng = np.random.RandomState(random_state)
+
+    X = rng.randn(n_samples, n_features).astype(float, order='F')
+    tm = rng.choice(10 * n_samples, size=n_samples, replace=False).astype(float)
+    s = rng.choice(2, size=n_samples).astype(float)
+
+    if normalize:
+        X = StandardScaler().fit_transform(X)
+
+    return tm, s, X
+
+
 def grp_converter(groups, n_features):
     """Create group partition and group indices.
 
@@ -181,16 +227,3 @@ def _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights):
             norm(X[:, grp_g_indices].T @ y) / (n_samples * weights[g])
         )
     return alpha_max
-
-
-def make_dummy_survival_data(n_samples, n_features, normalize=False, random_state=1265):
-    rng = np.random.RandomState(random_state)
-
-    X = rng.randn(n_samples, n_features).astype(float, order='F')
-    tm = rng.choice(10 * n_samples, size=n_samples, replace=False).astype(float)
-    s = rng.choice(2, size=n_samples).astype(float)
-
-    if normalize:
-        X = StandardScaler().fit_transform(X)
-
-    return tm, s, X

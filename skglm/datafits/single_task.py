@@ -594,7 +594,7 @@ class Cox(BaseDatafit):
         return dict()
 
     def value(self, y, w, Xw):
-        """computes the value of the datafit."""
+        """Compute the value of the datafit."""
         tm, s = y
         n_samples = Xw.shape[0]
 
@@ -634,6 +634,6 @@ class Cox(BaseDatafit):
         return out / n_samples
 
     def initialize(self, X, y):
-        """Initializes the datafit attributes."""
+        """Initialize the datafit attributes."""
         tm, s = y
         self.B = (tm >= tm[:, None]).astype(X.dtype)

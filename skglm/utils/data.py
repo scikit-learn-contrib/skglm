@@ -183,12 +183,14 @@ def _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights):
     return alpha_max
 
 
-def make_dummy_survival_data(n_samples, n_features, random_state=1265):
+def make_dummy_survival_data(n_samples, n_features, normalize=False, random_state=1265):
     rng = np.random.RandomState(random_state)
 
     X = rng.randn(n_samples, n_features).astype(float, order='F')
     tm = rng.choice(10 * n_samples, size=n_samples, replace=False).astype(float)
     s = rng.choice(2, size=n_samples).astype(float)
 
-    X = StandardScaler().fit_transform(X)
+    if normalize:
+        X = StandardScaler().fit_transform(X)
+
     return tm, s, X

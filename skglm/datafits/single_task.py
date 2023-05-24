@@ -614,7 +614,7 @@ class Cox(BaseDatafit):
         exp_Xw = np.exp(Xw)
         B_exp_Xw = self.B @ exp_Xw
 
-        out = -s + (exp_Xw[:, None] * self.B.T) @ (s / B_exp_Xw)
+        out = -s + exp_Xw * (self.B.T @ (s / B_exp_Xw))
         return out / n_samples
 
     def raw_hessian(self, y, Xw):

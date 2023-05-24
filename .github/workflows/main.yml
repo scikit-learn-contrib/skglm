@@ -26,6 +26,6 @@ jobs:
         pip install .
         pip install statsmodels cvxopt
         pip install git+https://github.com/jolars/pyslope.git
-        pip install lifeline
+        pip install lifelines
     - name: Test with pytest
       run: pytest -v skglm/

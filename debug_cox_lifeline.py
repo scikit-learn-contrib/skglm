@@ -14,10 +14,10 @@ from lifelines import CoxPHFitter
 
 
 # generate data
-reg = 1e-2
-n_samples, n_features = 100, 30
+reg = 0.05
+n_samples, n_features = 200, 300
 
-tm, s, X = make_dummy_survival_data(n_samples, n_features)
+tm, s, X = make_dummy_survival_data(n_samples, n_features, random_state=0)
 
 
 # compute alpha_max
@@ -61,7 +61,7 @@ p_obj_skglm = datafit.value((tm, s), w, X @ w) + penalty.value(w)
 p_obj_ll = datafit.value((tm, s), w_ll, X @ w_ll) + penalty.value(w_ll)
 
 
-print("norm w_ll", norm(w_ll))  # is zero, should not be because reg < 1
+print("norm w_ll", norm(w_ll))
 
 print("ours", p_obj_skglm)
 print("them", p_obj_ll)

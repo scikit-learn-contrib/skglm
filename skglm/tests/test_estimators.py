@@ -369,7 +369,7 @@ if __name__ == "__main__":
     datafit.initialize(X, (tm, s))
 
     w, *_ = ProxNewton(
-        fit_intercept=False, tol=1e-6, max_iter=, verbose=1,
+        fit_intercept=False, tol=1e-6, max_iter=50, verbose=1,
     ).solve(
         X, (tm, s), datafit, penalty
     )

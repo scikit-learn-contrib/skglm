@@ -15,7 +15,7 @@ class ProxNewton(BaseSolver):
     p0 : int, default 10
         Minimum number of features to be included in the working set.
 
-    max_iter : int, default 20
+    max_iter : int, default 50
         Maximum number of outer iterations.
 
     max_pn_iter : int, default 1000
@@ -44,7 +44,7 @@ class ProxNewton(BaseSolver):
         code: https://github.com/tbjohns/BlitzL1
     """
 
-    def __init__(self, p0=10, max_iter=20, max_pn_iter=1000, tol=1e-4,
+    def __init__(self, p0=10, max_iter=50, max_pn_iter=1000, tol=1e-4,
                  fit_intercept=True, warm_start=False, verbose=0):
         self.p0 = p0
         self.max_iter = max_iter
@@ -242,7 +242,7 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
 
     # see _descent_direction() comment
     past_grads = np.zeros(len(ws))
-    X_delta_w_ws = np.zeros(len(y))
+    X_delta_w_ws = np.zeros(Xw_epoch.shape[0])
     ws_intercept = np.append(ws, -1) if fit_intercept else ws
     w_ws = w_epoch[ws_intercept]
 

@@ -618,9 +618,9 @@ class Cox(BaseDatafit):
         return out / n_samples
 
     def raw_hessian(self, y, Xw):
-        """Compute a diagonal approximation of the datafit's Hessian w.r.t. ``Xw``.
+        """Compute a diagonal upper bound of the datafit's Hessian w.r.t. ``Xw``.
 
-        The diagonal approximation reads
+        The diagonal upper bound reads
 
             exp_Xw * (B.T @ s / B_exp_Xw) / n_samples
         """
@@ -639,3 +639,10 @@ class Cox(BaseDatafit):
 
         tm_as_col = tm.reshape((-1, 1))
         self.B = (tm >= tm_as_col).astype(X.dtype)
+
+    def initialize_sparse(self, X_data, X_indptr, X_indices, y):
+        """Initialize the datafit attributes in sparse dataset case."""
+        tm, s = y
+
+        tm_as_col = tm.reshape((-1, 1))
+        self.B = (tm >= tm_as_col).astype(X_data.dtype)

@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.sparse
 from numpy.linalg import norm
 from sklearn.utils import check_random_state
 from sklearn.preprocessing import StandardScaler
@@ -123,13 +124,13 @@ def make_correlated_data(
         return X, Y, w_true
 
 
-def make_dummy_survival_data(n_samples, n_features, normalize=False, random_state=None):
+def make_dummy_survival_data(n_samples, n_features, normalize=False,
+                             X_density=1., random_state=None):
     """Generate a random dataset for survival analysis.
 
-    The design matrix ``X`` is generated according to standard normal,
-    the vector of time is chosen uniformly from ``[0, 10 * n_samples]``
-    without replacement, and the vector of censorship is drawn from a Bernoulli
-    with parameter 0.5.
+    The design matrix ``X`` is generated according to standard normal, the vector of
+    time ``tm`` is chosen uniformly from ``[0, 10 * n_samples]`` without replacement,
+    and the vector of censorship ``s`` is drawn from a Bernoulli with parameter 0.5.
 
     Parameters
     ----------
@@ -141,7 +142,11 @@ def make_dummy_survival_data(n_samples, n_features, normalize=False, random_stat
 
     normalize : bool, default=False
         If ``True``, features are centered and divided by their
-        standard deviation.
+        standard deviation. This argument is ineffective when ``X_density < 1``.
+
+    X_density : float, default=1
+        The density, proportion of non zero elements, of the design matrix ``X``.
+        X_density must be in ``(0, 1]``.
 
     random_state : int, default=None
         Determines random number generation for data generation.
@@ -155,15 +160,20 @@ def make_dummy_survival_data(n_samples, n_features, normalize=False, random_stat
         The vector of indicating samples censorship
 
     X : array-like, shape (n_samples, n_features)
-        Matrix of predictors
+        The matrix of predictors. If ``density < 1``, a CSC sparse matrix is returned.
     """
     rng = np.random.RandomState(random_state)
 
-    X = rng.randn(n_samples, n_features).astype(float, order='F')
+    if X_density == 1.:
+        X = rng.randn(n_samples, n_features).astype(float, order='F')
+    else:
+        X = scipy.sparse.rand(
+            n_samples, n_features, density=X_density, format="csc", dtype=float)
+
     tm = rng.choice(10 * n_samples, size=n_samples, replace=False).astype(float)
     s = rng.choice(2, size=n_samples).astype(float)
 
-    if normalize:
+    if normalize and X_density == 1.:
         X = StandardScaler().fit_transform(X)
 
     return tm, s, X

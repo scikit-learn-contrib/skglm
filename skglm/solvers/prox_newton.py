@@ -1,7 +1,11 @@
+import warnings
+
 import numpy as np
 from numba import njit
 from scipy.sparse import issparse
 from skglm.solvers.base import BaseSolver
+
+from sklearn.exceptions import ConvergenceWarning
 
 
 EPS_TOL = 0.3
@@ -158,6 +162,13 @@ class ProxNewton(BaseSolver):
 
             p_obj = datafit.value(y, w, Xw) + penalty.value(w)
             p_objs_out.append(p_obj)
+        else:
+            warnings.warn(
+                f"`ProxNewton` did not converge for tol={self.tol:.3e} "
+                f"and max_iter={self.max_iter}.\n"
+                "Consider increasing `max_iter` and/or `tol`.",
+                category=ConvergenceWarning
+            )
         return w, np.asarray(p_objs_out), stop_crit
 
 

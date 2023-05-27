@@ -129,8 +129,8 @@ def make_dummy_survival_data(n_samples, n_features, normalize=False,
     """Generate a random dataset for survival analysis.
 
     The design matrix ``X`` is generated according to standard normal, the vector of
-    time ``tm`` is chosen uniformly from ``[0, 10 * n_samples]`` without replacement,
-    and the vector of censorship ``s`` is drawn from a Bernoulli with parameter 0.5.
+    time ``tm`` is chosen according to a Weibull(1, 1) (aka. Exponential), and the
+    vector of censorship ``s`` is drawn from a Bernoulli with parameter ``0.5``.
 
     Parameters
     ----------
@@ -170,7 +170,7 @@ def make_dummy_survival_data(n_samples, n_features, normalize=False,
         X = scipy.sparse.rand(
             n_samples, n_features, density=X_density, format="csc", dtype=float)
 
-    tm = rng.choice(10 * n_samples, size=n_samples, replace=False).astype(float)
+    tm = rng.weibull(a=1, size=n_samples)
     s = rng.choice(2, size=n_samples).astype(float)
 
     if normalize and X_density == 1.:

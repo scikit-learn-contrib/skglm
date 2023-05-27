@@ -370,5 +370,4 @@ def test_warm_start(estimator_name):
 
 
 if __name__ == "__main__":
-    test_CoxEstimator_sparse()
     pass

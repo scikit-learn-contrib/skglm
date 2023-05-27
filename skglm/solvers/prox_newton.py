@@ -1,7 +1,11 @@
+import warnings
+
 import numpy as np
 from numba import njit
 from scipy.sparse import issparse
 from skglm.solvers.base import BaseSolver
+
+from sklearn.exceptions import ConvergenceWarning
 
 
 EPS_TOL = 0.3
@@ -158,6 +162,13 @@ class ProxNewton(BaseSolver):
 
             p_obj = datafit.value(y, w, Xw) + penalty.value(w)
             p_objs_out.append(p_obj)
+        else:
+            warnings.warn(
+                f"`ProxNewton` did not converge for tol={self.tol:.3e} "
+                f"and max_iter={self.max_iter}.\n"
+                "Consider increasing `max_iter` and/or `tol`.",
+                category=ConvergenceWarning
+            )
         return w, np.asarray(p_objs_out), stop_crit
 
 
@@ -242,7 +253,7 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
 
     # see _descent_direction() comment
     past_grads = np.zeros(len(ws))
-    X_delta_w_ws = np.zeros(len(y))
+    X_delta_w_ws = np.zeros(Xw_epoch.shape[0])
     ws_intercept = np.append(ws, -1) if fit_intercept else ws
     w_ws = w_epoch[ws_intercept]
 

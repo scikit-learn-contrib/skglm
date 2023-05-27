@@ -221,6 +221,36 @@ def test_CoxEstimator():
     np.testing.assert_allclose(p_obj_skglm, p_obj_ll, atol=1e-6)
 
 
+def test_CoxEstimator_sparse():
+    reg = 1e-2
+    n_samples, n_features = 100, 30
+    X_density, random_state = 0.5, 1265
+
+    tm, s, X = make_dummy_survival_data(n_samples, n_features, X_density=X_density,
+                                        random_state=random_state)
+
+    # compute alpha_max
+    B = (tm >= tm[:, None]).astype(X.dtype)
+    grad_0 = -s + B.T @ (s / np.sum(B, axis=1))
+    alpha_max = norm(X.T @ grad_0, ord=np.inf) / n_samples
+
+    alpha = reg * alpha_max
+
+    # fit Cox using ProxNewton solver
+    datafit = compiled_clone(Cox())
+    penalty = compiled_clone(L1(alpha))
+
+    datafit.initialize_sparse(X.data, X.indptr, X.indices, (tm, s))
+
+    *_, stop_crit = ProxNewton(
+        fit_intercept=False, tol=1e-6, max_iter=50
+    ).solve(
+        X, (tm, s), datafit, penalty
+    )
+
+    np.testing.assert_allclose(stop_crit, 0., atol=1e-6)
+
+
 # Test if GeneralizedLinearEstimator returns the correct coefficients
 @pytest.mark.parametrize("Datafit, Penalty, Estimator, pen_args", [
     (Quadratic, L1, Lasso, [alpha]),
@@ -340,4 +370,5 @@ def test_warm_start(estimator_name):
 
 
 if __name__ == "__main__":
+    test_CoxEstimator_sparse()
     pass

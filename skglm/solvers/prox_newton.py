@@ -19,7 +19,7 @@ class ProxNewton(BaseSolver):
     p0 : int, default 10
         Minimum number of features to be included in the working set.
 
-    max_iter : int, default 50
+    max_iter : int, default 20
         Maximum number of outer iterations.
 
     max_pn_iter : int, default 1000
@@ -48,7 +48,7 @@ class ProxNewton(BaseSolver):
         code: https://github.com/tbjohns/BlitzL1
     """
 
-    def __init__(self, p0=10, max_iter=50, max_pn_iter=1000, tol=1e-4,
+    def __init__(self, p0=10, max_iter=20, max_pn_iter=1000, tol=1e-4,
                  fit_intercept=True, warm_start=False, verbose=0):
         self.p0 = p0
         self.max_iter = max_iter

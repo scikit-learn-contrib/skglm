@@ -1,6 +1,8 @@
 import numpy as np
+import scipy.sparse
 from numpy.linalg import norm
 from sklearn.utils import check_random_state
+from sklearn.preprocessing import StandardScaler
 
 
 def make_correlated_data(
@@ -120,6 +122,61 @@ def make_correlated_data(
         return X, Y.flatten(), w_true.flatten()
     else:
         return X, Y, w_true
+
+
+def make_dummy_survival_data(n_samples, n_features, normalize=False,
+                             X_density=1., random_state=None):
+    """Generate a random dataset for survival analysis.
+
+    The design matrix ``X`` is generated according to standard normal, the vector of
+    time ``tm`` is chosen according to a Weibull(1, 1) (aka. Exponential), and the
+    vector of censorship ``s`` is drawn from a Bernoulli with parameter ``0.5``.
+
+    Parameters
+    ----------
+    n_samples : int
+        Number of samples in the design matrix.
+
+    n_features : int
+        Number of features in the design matrix.
+
+    normalize : bool, default=False
+        If ``True``, features are centered and divided by their
+        standard deviation. This argument is ineffective when ``X_density < 1``.
+
+    X_density : float, default=1
+        The density, proportion of non zero elements, of the design matrix ``X``.
+        X_density must be in ``(0, 1]``.
+
+    random_state : int, default=None
+        Determines random number generation for data generation.
+
+    Returns
+    -------
+    tm : array-like, shape (n_samples,)
+        The vector of recording the time of event occurrences
+
+    s : array-like, shape (n_samples,)
+        The vector of indicating samples censorship
+
+    X : array-like, shape (n_samples, n_features)
+        The matrix of predictors. If ``density < 1``, a CSC sparse matrix is returned.
+    """
+    rng = np.random.RandomState(random_state)
+
+    if X_density == 1.:
+        X = rng.randn(n_samples, n_features).astype(float, order='F')
+    else:
+        X = scipy.sparse.rand(
+            n_samples, n_features, density=X_density, format="csc", dtype=float)
+
+    tm = rng.weibull(a=1, size=n_samples)
+    s = rng.choice(2, size=n_samples).astype(float)
+
+    if normalize and X_density == 1.:
+        X = StandardScaler().fit_transform(X)
+
+    return tm, s, X
 
 
 def grp_converter(groups, n_features):

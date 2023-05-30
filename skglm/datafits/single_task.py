@@ -544,3 +544,105 @@ class Gamma(BaseDatafit):
 
     def intercept_update_self(self, y, Xw):
         pass
+
+
+class Cox(BaseDatafit):
+    r"""Cox datafit for survival analysis with Breslow estimate.
+
+    The datafit reads [1]
+
+    .. math::
+
+        1 / n_"samples" \sum_(i=1)^(n_"samples") -s_i \langle x_i, w \rangle
+        + \log (\sum_(j | y_j \geq y_i) e^{\langle x_i, w \rangle})
+
+    where :math:`s_i` indicates the sample censorship and :math:`tm`
+    is the vector recording the time of event occurrences.
+
+    Defining the matrix :math:`B` with
+    :math:`B_{i,j} = 1` if  :math:`tm_j \geq tm_i` and :math:`0` otherwise,
+    the datafit can be rewritten in the following compact form
+
+    .. math::
+
+        1 / n_"samples" \langle s, Xw \rangle
+        + 1 / n_"samples" \langle s, \log B e^{Xw} \rangle
+
+
+    Attributes
+    ----------
+    B : array-like, shape (n_samples, n_samples)
+        Matrix where every ``(i, j)`` entry (row, column) equals ``1``
+        if ``tm[j] >= tm[i]`` and `0` otherwise. This matrix is initialized
+        using the ``.initialize`` method.
+
+    References
+    ----------
+    .. [1] DY Lin. On the Breslow estimator.
+           Lifetime data analysis, 13:471–480, 2007.
+    """
+
+    def __init__(self):
+        pass
+
+    def get_spec(self):
+        return (
+            ('B', float64[:, ::1]),
+        )
+
+    def params_to_dict(self):
+        return dict()
+
+    def value(self, y, w, Xw):
+        """Compute the value of the datafit."""
+        tm, s = y
+        n_samples = Xw.shape[0]
+
+        out = -(s @ Xw) + s @ np.log(self.B @ np.exp(Xw))
+        return out / n_samples
+
+    def raw_grad(self, y, Xw):
+        r"""Compute gradient of datafit w.r.t. ``Xw``.
+
+        The raw gradient reads
+
+            (-s + exp_Xw * (B.T @ (s / B @ exp_Xw)) / n_samples
+        """
+        tm, s = y
+        n_samples = Xw.shape[0]
+
+        exp_Xw = np.exp(Xw)
+        B_exp_Xw = self.B @ exp_Xw
+
+        out = -s + exp_Xw * (self.B.T @ (s / B_exp_Xw))
+        return out / n_samples
+
+    def raw_hessian(self, y, Xw):
+        """Compute a diagonal upper bound of the datafit's Hessian w.r.t. ``Xw``.
+
+        The diagonal upper bound reads
+
+            exp_Xw * (B.T @ s / B_exp_Xw) / n_samples
+        """
+        tm, s = y
+        n_samples = Xw.shape[0]
+
+        exp_Xw = np.exp(Xw)
+        B_exp_Xw = self.B @ exp_Xw
+
+        out = exp_Xw * (self.B.T @ (s / B_exp_Xw))
+        return out / n_samples
+
+    def initialize(self, X, y):
+        """Initialize the datafit attributes."""
+        tm, s = y
+
+        tm_as_col = tm.reshape((-1, 1))
+        self.B = (tm >= tm_as_col).astype(X.dtype)
+
+    def initialize_sparse(self, X_data, X_indptr, X_indices, y):
+        """Initialize the datafit attributes in sparse dataset case."""
+        tm, s = y
+
+        tm_as_col = tm.reshape((-1, 1))
+        self.B = (tm >= tm_as_col).astype(X_data.dtype)

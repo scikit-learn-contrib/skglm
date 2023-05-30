@@ -16,13 +16,17 @@ from sklearn.utils.estimator_checks import check_estimator
 
 from scipy.sparse import csc_matrix, issparse
 
-from skglm.utils.data import make_correlated_data
+from skglm.utils.data import make_correlated_data, make_dummy_survival_data
 from skglm.estimators import (
     GeneralizedLinearEstimator, Lasso, MultiTaskLasso, WeightedLasso, ElasticNet,
     MCPRegression, SparseLogisticRegression, LinearSVC)
-from skglm.datafits import Logistic, Quadratic, QuadraticSVC, QuadraticMultiTask
+from skglm.datafits import Logistic, Quadratic, QuadraticSVC, QuadraticMultiTask, Cox
 from skglm.penalties import L1, IndicatorBox, L1_plus_L2, MCPenalty, WeightedL1
 from skglm.solvers import AndersonCD
+
+import pandas as pd
+from skglm.solvers import ProxNewton
+from skglm.utils.jit_compilation import compiled_clone
 
 
 n_samples = 50
@@ -162,6 +166,90 @@ def test_mtl_path():
     coef_ours = MultiTaskLasso(fit_intercept=fit_intercept, tol=1e-14).path(
         X, Y, alphas, max_iter=10)[1][:, :X.shape[1]]
     np.testing.assert_allclose(coef_ours, coef_sk, rtol=1e-5)
+
+
+def test_CoxEstimator():
+    try:
+        from lifelines import CoxPHFitter
+    except ModuleNotFoundError:
+        pytest.xfail(
+            "Testing Cox Estimator requires `lifelines` packages\n"
+            "Run `pip install lifelines`"
+        )
+
+    reg = 1e-2
+    # norms of solutions differ when n_features > n_samples
+    n_samples, n_features = 100, 30
+    random_state = 1265
+
+    tm, s, X = make_dummy_survival_data(n_samples, n_features,
+                                        normalize=True, random_state=random_state)
+
+    # compute alpha_max
+    B = (tm >= tm[:, None]).astype(X.dtype)
+    grad_0 = -s + B.T @ (s / np.sum(B, axis=1))
+    alpha_max = norm(X.T @ grad_0, ord=np.inf) / n_samples
+
+    alpha = reg * alpha_max
+
+    # fit Cox using ProxNewton solver
+    datafit = compiled_clone(Cox())
+    penalty = compiled_clone(L1(alpha))
+
+    datafit.initialize(X, (tm, s))
+
+    w, *_ = ProxNewton(
+        fit_intercept=False, tol=1e-6, max_iter=50
+    ).solve(
+        X, (tm, s), datafit, penalty
+    )
+
+    # fit lifeline estimator
+    stacked_tm_s_X = np.hstack((tm[:, None], s[:, None], X))
+    df = pd.DataFrame(stacked_tm_s_X)
+
+    estimator = CoxPHFitter(penalizer=alpha, l1_ratio=1.)
+    estimator.fit(
+        df, duration_col=0, event_col=1,
+        fit_options={"max_steps": 10_000, "precision": 1e-12}
+    )
+    w_ll = estimator.params_.values
+
+    p_obj_skglm = datafit.value((tm, s), w, X @ w) + penalty.value(w)
+    p_obj_ll = datafit.value((tm, s), w_ll, X @ w_ll) + penalty.value(w_ll)
+
+    # though norm of solution might differ
+    np.testing.assert_allclose(p_obj_skglm, p_obj_ll, atol=1e-6)
+
+
+def test_CoxEstimator_sparse():
+    reg = 1e-2
+    n_samples, n_features = 100, 30
+    X_density, random_state = 0.5, 1265
+
+    tm, s, X = make_dummy_survival_data(n_samples, n_features, X_density=X_density,
+                                        random_state=random_state)
+
+    # compute alpha_max
+    B = (tm >= tm[:, None]).astype(X.dtype)
+    grad_0 = -s + B.T @ (s / np.sum(B, axis=1))
+    alpha_max = norm(X.T @ grad_0, ord=np.inf) / n_samples
+
+    alpha = reg * alpha_max
+
+    # fit Cox using ProxNewton solver
+    datafit = compiled_clone(Cox())
+    penalty = compiled_clone(L1(alpha))
+
+    datafit.initialize_sparse(X.data, X.indptr, X.indices, (tm, s))
+
+    *_, stop_crit = ProxNewton(
+        fit_intercept=False, tol=1e-6, max_iter=50
+    ).solve(
+        X, (tm, s), datafit, penalty
+    )
+
+    np.testing.assert_allclose(stop_crit, 0., atol=1e-6)
 
 
 # Test if GeneralizedLinearEstimator returns the correct coefficients

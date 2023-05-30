@@ -136,6 +136,7 @@ def test_cox():
     cox_df.initialize(X, (tm, s))
     cox_df.value(y, w, Xw)
 
+    # check gradient
     np.testing.assert_allclose(
         scipy.optimize.check_grad(
             lambda x: cox_df.value(y, w, x),
@@ -146,9 +147,18 @@ def test_cox():
         0., atol=1e-7
     )
 
-    np.testing.assert_array_equal(
-        cox_df.raw_hessian(y, Xw).shape, (n_samples,)
+    # check hessian upper bound
+    # Hessian minus its upper bound must be negative semi definite
+    hess_upper_bound = np.diag(cox_df.raw_hessian(y, Xw))
+    hess = scipy.optimize.approx_fprime(
+        xk=Xw,
+        f=lambda x: cox_df.raw_grad(y, x),
     )
+
+    positive_eig = np.linalg.eigh(hess - hess_upper_bound)[0]
+    positive_eig = positive_eig[positive_eig >= 0.]
+
+    np.testing.assert_allclose(positive_eig, 0., atol=1e-9)
 
 
 if __name__ == '__main__':

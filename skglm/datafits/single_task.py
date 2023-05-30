@@ -622,8 +622,14 @@ class Cox(BaseDatafit):
 
         exp_Xw = np.exp(Xw)
         B_exp_Xw = self.B @ exp_Xw
+        if self.use_efron:
+            B_exp_Xw -= self._A_dot_vec(exp_Xw)
 
-        out = -s + exp_Xw * (self.B.T @ (s / B_exp_Xw))
+        s_over_B_exp_Xw = s / B_exp_Xw
+        out = -s + exp_Xw * (self.B.T @ (s_over_B_exp_Xw))
+        if self.use_efron:
+            out -= exp_Xw * self._AT_dot_vec(s_over_B_exp_Xw)
+
         return out / n_samples
 
     def raw_hessian(self, y, Xw):
@@ -638,8 +644,14 @@ class Cox(BaseDatafit):
 
         exp_Xw = np.exp(Xw)
         B_exp_Xw = self.B @ exp_Xw
+        if self.use_efron:
+            B_exp_Xw -= self._A_dot_vec(exp_Xw)
 
-        out = exp_Xw * (self.B.T @ (s / B_exp_Xw))
+        s_over_B_exp_Xw = s / B_exp_Xw
+        out = exp_Xw * (self.B.T @ (s_over_B_exp_Xw))
+        if self.use_efron:
+            out -= exp_Xw * self._AT_dot_vec(s_over_B_exp_Xw)
+
         return out / n_samples
 
     def initialize(self, X, y):

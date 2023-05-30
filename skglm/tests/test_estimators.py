@@ -168,7 +168,8 @@ def test_mtl_path():
     np.testing.assert_allclose(coef_ours, coef_sk, rtol=1e-5)
 
 
-def test_CoxEstimator():
+@pytest.mark.parametrize("use_efron", [True, False])
+def test_CoxEstimator(use_efron):
     try:
         from lifelines import CoxPHFitter
     except ModuleNotFoundError:
@@ -184,6 +185,11 @@ def test_CoxEstimator():
     tm, s, X = make_dummy_survival_data(n_samples, n_features,
                                         normalize=True, random_state=random_state)
 
+    # ensure to have tied observation to test Efron
+    if use_efron:
+        rng = np.random.RandomState(random_state)
+        tm = rng.choice(int(n_samples / 10), size=n_samples).astype(float)
+
     # compute alpha_max
     B = (tm >= tm[:, None]).astype(X.dtype)
     grad_0 = -s + B.T @ (s / np.sum(B, axis=1))
@@ -192,7 +198,7 @@ def test_CoxEstimator():
     alpha = reg * alpha_max
 
     # fit Cox using ProxNewton solver
-    datafit = compiled_clone(Cox())
+    datafit = compiled_clone(Cox(use_efron))
     penalty = compiled_clone(L1(alpha))
 
     datafit.initialize(X, (tm, s))
@@ -370,5 +376,4 @@ def test_warm_start(estimator_name):
 
 
 if __name__ == "__main__":
-    test_CoxEstimator()
     pass

@@ -178,6 +178,7 @@ def test_CoxEstimator():
         )
 
     reg = 1e-2
+    # norms of solutions differ when n_features > n_samples
     n_samples, n_features = 100, 30
     random_state = 1265
 

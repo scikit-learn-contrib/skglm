@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="skglm.penalties.WeightedGroupL2" href="skglm.penalties.WeightedGroupL2.html" /><link rel="prev" title="skglm.penalties.MCPenalty" href="skglm.penalties.MCPenalty.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="skglm.datafits.Gamma" href="skglm.datafits.Gamma.html" /><link rel="prev" title="skglm.penalties.SLOPE" href="skglm.penalties.SLOPE.html" />
 
     <!-- Generated with Sphinx 6.2.1 and Furo 2023.05.20 -->
-        <title>skglm.penalties.WeightedL1 - skglm 0.3.dev documentation</title>
+        <title>skglm.datafits.Cox - skglm 0.3.dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
@@ -195,12 +195,12 @@
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L1_plus_L2.html">skglm.penalties.L1_plus_L2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L2_3.html">skglm.penalties.L2_3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.MCPenalty.html">skglm.penalties.MCPenalty</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">skglm.penalties.WeightedL1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="skglm.penalties.WeightedL1.html">skglm.penalties.WeightedL1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.WeightedGroupL2.html">skglm.penalties.WeightedGroupL2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.SCAD.html">skglm.penalties.SCAD</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.BlockSCAD.html">skglm.penalties.BlockSCAD</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.SLOPE.html">skglm.penalties.SLOPE</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.datafits.Cox.html">skglm.datafits.Cox</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">skglm.datafits.Cox</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.datafits.Gamma.html">skglm.datafits.Gamma</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.datafits.Huber.html">skglm.datafits.Huber</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.datafits.Logistic.html">skglm.datafits.Logistic</a></li>
@@ -257,47 +257,84 @@
           </label>
         </div>
         <article role="main">
-          <section id="skglm-penalties-weightedl1">
-<h1>skglm.penalties.WeightedL1<a class="headerlink" href="#skglm-penalties-weightedl1" title="Permalink to this heading">#</a></h1>
+          <section id="skglm-datafits-cox">
+<h1>skglm.datafits.Cox<a class="headerlink" href="#skglm-datafits-cox" title="Permalink to this heading">#</a></h1>
 <dl class="py class">
-<dt class="sig sig-object py" id="skglm.penalties.WeightedL1">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.penalties.</span></span><span class="sig-name descname"><span class="pre">WeightedL1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/399dfc6/skglm/penalties/separable.py#L144"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.penalties.WeightedL1" title="Permalink to this definition">#</a></dt>
-<dd><p>Weighted L1 penalty.</p>
+<dt class="sig sig-object py" id="skglm.datafits.Cox">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">Cox</span></span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/399dfc6/skglm/datafits/single_task.py#L549"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.Cox" title="Permalink to this definition">#</a></dt>
+<dd><p>Cox datafit for survival analysis with Breslow estimate.</p>
+<p>The datafit reads [1]</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`1 / n_&quot;samples&quot; \sum_(i=1)^(n_&quot;samples&quot;) -s_i \langle x_i, w \rangle
++ \log (\sum_(j | y_j \geq y_i) e^{\langle x_i, w \rangle})`</div>
+</div>
+<p>where <span class="math notranslate nohighlight">`s_i`</span> indicates the sample censorship and <span class="math notranslate nohighlight">`tm`</span>
+is the vector recording the time of event occurrences.</p>
+<p>Defining the matrix <span class="math notranslate nohighlight">`B`</span> with
+<span class="math notranslate nohighlight">`B_{i,j} = 1`</span> if  <span class="math notranslate nohighlight">`tm_j \geq tm_i`</span> and <span class="math notranslate nohighlight">`0`</span> otherwise,
+the datafit can be rewritten in the following compact form</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`1 / n_&quot;samples&quot; \langle s, Xw \rangle
++ 1 / n_&quot;samples&quot; \langle s, \log B e^{Xw} \rangle`</div>
+</div>
+<p class="rubric">References</p>
+<div role="list" class="citation-list">
+<div class="citation" id="r945947f5a373-1" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
+<p>DY Lin. On the Breslow estimator.
+Lifetime data analysis, 13:471–480, 2007.</p>
+</div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>B</strong><span class="classifier">array-like, shape (n_samples, n_samples)</span></dt><dd><p>Matrix where every <code class="docutils literal notranslate"><span class="pre">(i,</span> <span class="pre">j)</span></code> entry (row, column) equals <code class="docutils literal notranslate"><span class="pre">1</span></code>
+if <code class="docutils literal notranslate"><span class="pre">tm[j]</span> <span class="pre">&gt;=</span> <span class="pre">tm[i]</span></code> and <cite>0</cite> otherwise. This matrix is initialized
+using the <code class="docutils literal notranslate"><span class="pre">.initialize</span></code> method.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="skglm.penalties.WeightedL1.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/399dfc6/skglm/penalties/separable.py#L147"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.penalties.WeightedL1.__init__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="skglm.datafits.Cox.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/399dfc6/skglm/datafits/single_task.py#L585"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.Cox.__init__" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#skglm.penalties.WeightedL1.__init__" title="skglm.penalties.WeightedL1.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(alpha, weights[, positive])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#skglm.datafits.Cox.__init__" title="skglm.datafits.Cox.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>()</p></td>
 <td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">alpha_max</span></code>(gradient0)</p></td>
-<td><p>Return penalization value for which 0 is solution.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">generalized_support</span></code>(w)</p></td>
-<td><p>Return a mask with non-zero coefficients.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_spec</span></code>()</p></td>
 <td><p>Specify the numba types of the class attributes.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_penalized</span></code>(n_features)</p></td>
-<td><p>Return a binary mask with the penalized features.</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient_scalar</span></code>(X, y, w, Xw, j)</p></td>
+<td><p>Gradient with respect to j-th coordinate of w.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient_scalar_sparse</span></code>(X_data, X_indptr, ...)</p></td>
+<td><p>Gradient with respect to j-th coordinate of w when X is sparse.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize</span></code>(X, y)</p></td>
+<td><p>Initialize the datafit attributes.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_sparse</span></code>(X_data, X_indptr, X_indices, y)</p></td>
+<td><p>Initialize the datafit attributes in sparse dataset case.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
 <td><p>Get the parameters to initialize an instance of the class.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">prox_1d</span></code>(value, stepsize, j)</p></td>
-<td><p>Compute the proximal operator of weighted L1 (weighted soft-thresholding).</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">raw_grad</span></code>(y, Xw)</p></td>
+<td><p>Compute gradient of datafit w.r.t.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">subdiff_distance</span></code>(w, grad, ws)</p></td>
-<td><p>Compute distance of negative gradient to the subdifferential at w.</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">raw_hessian</span></code>(y, Xw)</p></td>
+<td><p>Compute a diagonal upper bound of the datafit's Hessian w.r.t.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(w)</p></td>
-<td><p>Compute the weighted L1 penalty.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(y, w, Xw)</p></td>
+<td><p>Compute the value of the datafit.</p></td>
 </tr>
 </tbody>
 </table>
@@ -311,23 +348,23 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="skglm.penalties.WeightedGroupL2.html">
+          <a class="next-page" href="skglm.datafits.Gamma.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">skglm.penalties.WeightedGroupL2</div>
+                <div class="title">skglm.datafits.Gamma</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="skglm.penalties.MCPenalty.html">
+          <a class="prev-page" href="skglm.penalties.SLOPE.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">skglm.penalties.MCPenalty</div>
+                <div class="title">skglm.penalties.SLOPE</div>
                 
               </div>
             </a>
@@ -368,9 +405,9 @@
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">skglm.penalties.WeightedL1</a><ul>
-<li><a class="reference internal" href="#skglm.penalties.WeightedL1"><code class="docutils literal notranslate"><span class="pre">WeightedL1</span></code></a><ul>
-<li><a class="reference internal" href="#skglm.penalties.WeightedL1.__init__"><code class="docutils literal notranslate"><span class="pre">WeightedL1.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#">skglm.datafits.Cox</a><ul>
+<li><a class="reference internal" href="#skglm.datafits.Cox"><code class="docutils literal notranslate"><span class="pre">Cox</span></code></a><ul>
+<li><a class="reference internal" href="#skglm.datafits.Cox.__init__"><code class="docutils literal notranslate"><span class="pre">Cox.__init__()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -390,6 +427,8 @@
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/clipboard.min.js"></script>
     <script src="../_static/copybutton.js"></script>
+    <script>window.MathJax = {"loader": {"load": ["input/asciimath"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/scripts/asciimath-defines.js"></script>
     </body>
 </html>

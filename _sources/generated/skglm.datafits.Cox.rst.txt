@@ -1,0 +1,31 @@
+﻿skglm.datafits.Cox
+==================
+
+.. currentmodule:: skglm.datafits
+
+.. autoclass:: Cox
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Cox.__init__
+      ~Cox.get_spec
+      ~Cox.gradient_scalar
+      ~Cox.gradient_scalar_sparse
+      ~Cox.initialize
+      ~Cox.initialize_sparse
+      ~Cox.params_to_dict
+      ~Cox.raw_grad
+      ~Cox.raw_hessian
+      ~Cox.value
+   
+   
+
+   
+   
+   

@@ -664,9 +664,11 @@ class Cox(BaseDatafit):
 
         if self.use_efron:
             H_indices = np.argsort(y)
-            H_indptr = [0]
+            # filter out censored data
+            H_indices = H_indices[s[H_indices] != 0]
 
             # build H_indices
+            H_indptr = [0]
             count = 1
             for i in range(1, n_samples):
                 if y[H_indices[i-1]] == y[H_indices[i]]:

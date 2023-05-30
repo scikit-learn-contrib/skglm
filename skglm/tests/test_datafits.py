@@ -130,7 +130,7 @@ def test_cox():
     Xw = rng.randn(n_samples)
 
     # check datafit
-    cox_df = compiled_clone(Cox())
+    cox_df = compiled_clone(Cox(use_efron=True))
 
     cox_df.initialize(X, (tm, s))
     cox_df.value(y, w, Xw)

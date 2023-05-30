@@ -657,27 +657,31 @@ class Cox(BaseDatafit):
     def initialize(self, X, y):
         """Initialize the datafit attributes."""
         tm, s = y
-        n_samples = X.shape[0]
 
         tm_as_col = tm.reshape((-1, 1))
         self.B = (tm >= tm_as_col).astype(X.dtype)
 
         if self.use_efron:
-            H_indices = np.argsort(y)
+            H_indices = np.argsort(tm)
             # filter out censored data
             H_indices = H_indices[s[H_indices] != 0]
+            n_uncensored_samples = H_indices.shape[0]
 
-            # build H_indices
+            # build H_indptr
             H_indptr = [0]
             count = 1
-            for i in range(1, n_samples):
-                if y[H_indices[i-1]] == y[H_indices[i]]:
+            for i in range(1, n_uncensored_samples):
+                if tm[H_indices[i-1]] == tm[H_indices[i]]:
                     count += 1
                 else:
                     H_indptr.append(count + H_indptr[-1])
                     count = 1
-            H_indptr.append(n_samples)
+            H_indptr.append(n_uncensored_samples)
             H_indptr = np.asarray(H_indptr, dtype=np.int64)
+
+            # save in instance
+            self.H_indptr = H_indptr
+            self.H_indices = H_indices
 
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
         """Initialize the datafit attributes in sparse dataset case."""
@@ -688,10 +692,11 @@ class Cox(BaseDatafit):
 
     def _A_dot_vec(self, vec):
         out = np.zeros_like(vec)
+        n_H = self.H_indptr.shape[0] - 1
 
-        for idx in self.H_indptr:
-            current_H_idx = slice(self.H_indices[idx], self.H_indices[idx+1])
-            size_current_H = current_H_idx.stop - current_H_idx.start
+        for idx in range(n_H):
+            current_H_idx = self.H_indices[self.H_indptr[idx]: self.H_indptr[idx+1]]
+            size_current_H = current_H_idx.shape[0]
 
             sum_vec_H = np.sum(vec[current_H_idx])
             out[current_H_idx] = sum_vec_H * np.arange(size_current_H)
@@ -700,10 +705,11 @@ class Cox(BaseDatafit):
 
     def _AT_dot_vec(self, vec):
         out = np.zeros_like(vec)
+        n_H = self.H_indptr.shape[0] - 1
 
-        for idx in self.H_indptr:
-            current_H_idx = slice(self.H_indices[idx], self.H_indices[idx+1])
-            size_current_H = current_H_idx.stop - current_H_idx.start
+        for idx in range(n_H):
+            current_H_idx = self.H_indices[self.H_indptr[idx]: self.H_indptr[idx+1]]
+            size_current_H = current_H_idx.shape[0]
 
             weighted_sum_vec_H = vec[current_H_idx] @ np.arange(size_current_H)
             out[current_H_idx] = weighted_sum_vec_H * np.ones(size_current_H)

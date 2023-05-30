@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.optimize
 import pytest
 
 from sklearn.linear_model import HuberRegressor
@@ -135,9 +136,16 @@ def test_cox():
     cox_df.initialize(X, (tm, s))
     cox_df.value(y, w, Xw)
 
-    np.testing.assert_array_equal(
-        cox_df.raw_grad(y, Xw).shape, (n_samples,)
+    np.testing.assert_allclose(
+        scipy.optimize.check_grad(
+            lambda x: cox_df.value(y, w, x),
+            lambda x: cox_df.raw_grad(y, x),
+            x0=Xw,
+            seed=rng
+        ),
+        0., atol=1e-7
     )
+
     np.testing.assert_array_equal(
         cox_df.raw_hessian(y, Xw).shape, (n_samples,)
     )

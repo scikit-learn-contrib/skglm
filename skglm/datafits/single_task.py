@@ -685,7 +685,25 @@ class Cox(BaseDatafit):
         self.B = (tm >= tm_as_col).astype(X_data.dtype)
 
     def _A_dot_vec(self, vec):
-        return
+        out = np.zeros_like(vec)
+
+        for idx in self.H_indptr:
+            current_H_idx = slice(self.H_indices[idx], self.H_indices[idx+1])
+            size_current_H = current_H_idx.stop - current_H_idx.start
+
+            sum_vec_H = np.sum(vec[current_H_idx])
+            out[current_H_idx] = sum_vec_H * np.arange(size_current_H)
+
+        return out
 
     def _AT_dot_vec(self, vec):
-        return
+        out = np.zeros_like(vec)
+
+        for idx in self.H_indptr:
+            current_H_idx = slice(self.H_indices[idx], self.H_indices[idx+1])
+            size_current_H = current_H_idx.stop - current_H_idx.start
+
+            weighted_sum_vec_H = vec[current_H_idx] @ np.arange(size_current_H)
+            out[current_H_idx] = weighted_sum_vec_H * np.ones(size_current_H)
+
+        return out

@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.linalg import norm
 from numba import njit
-from numba import float64
+from numba import float64, int64, bool_
 
 from skglm.datafits.base import BaseDatafit
 from skglm.utils.sparse_ops import spectral_norm
@@ -582,16 +582,19 @@ class Cox(BaseDatafit):
            Lifetime data analysis, 13:471–480, 2007.
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, use_efron=False):
+        self.use_efron = use_efron
 
     def get_spec(self):
         return (
+            ('use_efron', bool_),
             ('B', float64[:, ::1]),
+            ('H_indptr', int64[:]),
+            ('H_indices', int64[:]),
         )
 
     def params_to_dict(self):
-        return dict()
+        return dict(use_efron=self.use_efron)
 
     def value(self, y, w, Xw):
         """Compute the value of the datafit."""
@@ -636,9 +639,25 @@ class Cox(BaseDatafit):
     def initialize(self, X, y):
         """Initialize the datafit attributes."""
         tm, s = y
+        n_samples = X.shape[0]
 
         tm_as_col = tm.reshape((-1, 1))
         self.B = (tm >= tm_as_col).astype(X.dtype)
+
+        if self.use_efron:
+            H_indices = np.argsort(y)
+            H_indptr = [0]
+
+            # build H_indices
+            count = 1
+            for i in range(1, n_samples):
+                if y[H_indices[i-1]] == y[H_indices[i]]:
+                    count += 1
+                else:
+                    H_indptr.append(count + H_indptr[-1])
+                    count = 1
+            H_indptr.append(n_samples)
+            H_indptr = np.asarray(H_indptr, dtype=np.int64)
 
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
         """Initialize the datafit attributes in sparse dataset case."""

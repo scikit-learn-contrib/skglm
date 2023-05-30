@@ -601,7 +601,13 @@ class Cox(BaseDatafit):
         tm, s = y
         n_samples = Xw.shape[0]
 
-        out = -(s @ Xw) + s @ np.log(self.B @ np.exp(Xw))
+        # compute inside log term
+        exp_Xw = np.exp(Xw)
+        B_exp_Xw = self.B @ exp_Xw
+        if self.use_efron:
+            B_exp_Xw -= self._A_dot_vec(exp_Xw)
+
+        out = -(s @ Xw) + s @ np.log(B_exp_Xw)
         return out / n_samples
 
     def raw_grad(self, y, Xw):
@@ -665,3 +671,9 @@ class Cox(BaseDatafit):
 
         tm_as_col = tm.reshape((-1, 1))
         self.B = (tm >= tm_as_col).astype(X_data.dtype)
+
+    def _A_dot_vec(self, vec):
+        return
+
+    def _AT_dot_vec(self, vec):
+        return

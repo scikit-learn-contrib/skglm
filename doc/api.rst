@@ -54,6 +54,7 @@ Datafits
 .. autosummary::
    :toctree: generated/
 
+   Cox
    Gamma
    Huber
    Logistic
@@ -62,7 +63,6 @@ Datafits
    Quadratic
    QuadraticGroup
    QuadraticSVC
-   Cox
 
 
 Solvers

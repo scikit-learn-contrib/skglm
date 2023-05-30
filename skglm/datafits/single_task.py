@@ -697,9 +697,10 @@ class Cox(BaseDatafit):
         for idx in range(n_H):
             current_H_idx = self.H_indices[self.H_indptr[idx]: self.H_indptr[idx+1]]
             size_current_H = current_H_idx.shape[0]
+            frac_range = np.arange(size_current_H, dtype=vec.dtype) / size_current_H
 
             sum_vec_H = np.sum(vec[current_H_idx])
-            out[current_H_idx] = sum_vec_H * np.arange(size_current_H)
+            out[current_H_idx] = sum_vec_H * frac_range
 
         return out
 
@@ -710,8 +711,9 @@ class Cox(BaseDatafit):
         for idx in range(n_H):
             current_H_idx = self.H_indices[self.H_indptr[idx]: self.H_indptr[idx+1]]
             size_current_H = current_H_idx.shape[0]
+            frac_range = np.arange(size_current_H, dtype=vec.dtype) / size_current_H
 
-            weighted_sum_vec_H = vec[current_H_idx] @ np.arange(size_current_H)
+            weighted_sum_vec_H = vec[current_H_idx] @ frac_range
             out[current_H_idx] = weighted_sum_vec_H * np.ones(size_current_H)
 
         return out

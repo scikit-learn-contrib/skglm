@@ -129,10 +129,8 @@ def make_dummy_survival_data(n_samples, n_features, normalize=False,
     """Generate a random dataset for survival analysis.
 
     The design matrix ``X`` is generated according to standard normal, the vector of
-    time ``tm`` is chosen according to a Weibull(1, 1) (aka. Exponential)
-    if ``with_ties=False`` and according to uniform in [0, n_samples / 10]
-    if ``with_ties=True``, and the vector of censorship ``s`` is drawn from
-    a Bernoulli with parameter ``0.5``.
+    time ``tm`` is chosen according to a Weibull(1, 1) (aka. Exponential), and the
+    vector of censorship ``s`` is drawn from a Bernoulli with parameter ``0.5``.
 
     Parameters
     ----------
@@ -179,7 +177,8 @@ def make_dummy_survival_data(n_samples, n_features, normalize=False,
     if not with_ties:
         tm = rng.weibull(a=1, size=n_samples)
     else:
-        tm = rng.choice(int(n_samples / 10), size=n_samples).astype(float)
+        unique_tm = rng.weibull(a=1, size=n_samples // 10 + 1)
+        tm = rng.choice(unique_tm, size=n_samples)
 
     s = rng.choice(2, size=n_samples).astype(float)
 

@@ -63,7 +63,6 @@ Datafits
    Quadratic
    QuadraticGroup
    QuadraticSVC
-   Cox
 
 
 Solvers

@@ -183,13 +183,8 @@ def test_CoxEstimator(use_efron):
     n_samples, n_features = 100, 30
     random_state = 1265
 
-    tm, s, X = make_dummy_survival_data(n_samples, n_features,
-                                        normalize=True, random_state=random_state)
-
-    # ensure to have tied observation to test Efron
-    if use_efron:
-        rng = np.random.RandomState(random_state)
-        tm = rng.choice(int(n_samples / 10), size=n_samples).astype(float)
+    tm, s, X = make_dummy_survival_data(n_samples, n_features, normalize=True,
+                                        with_ties=use_efron, random_state=random_state)
 
     # compute alpha_max
     B = (tm >= tm[:, None]).astype(X.dtype)
@@ -235,12 +230,7 @@ def test_CoxEstimator_sparse(use_efron):
     X_density, random_state = 0.5, 1265
 
     tm, s, X = make_dummy_survival_data(n_samples, n_features, X_density=X_density,
-                                        random_state=random_state)
-
-    # ensure to have tied observation to test Efron
-    if use_efron:
-        rng = np.random.RandomState(random_state)
-        tm = rng.choice(int(n_samples / 10), size=n_samples).astype(float)
+                                        with_ties=use_efron, random_state=random_state)
 
     # compute alpha_max
     B = (tm >= tm[:, None]).astype(X.dtype)

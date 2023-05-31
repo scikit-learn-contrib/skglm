@@ -125,12 +125,14 @@ def make_correlated_data(
 
 
 def make_dummy_survival_data(n_samples, n_features, normalize=False,
-                             X_density=1., random_state=None):
+                             X_density=1., with_ties=False, random_state=None):
     """Generate a random dataset for survival analysis.
 
     The design matrix ``X`` is generated according to standard normal, the vector of
-    time ``tm`` is chosen according to a Weibull(1, 1) (aka. Exponential), and the
-    vector of censorship ``s`` is drawn from a Bernoulli with parameter ``0.5``.
+    time ``tm`` is chosen according to a Weibull(1, 1) (aka. Exponential)
+    if ``with_ties=False`` and according to uniform in [0, n_samples / 10]
+    if ``with_ties=True``, and the vector of censorship ``s`` is drawn from
+    a Bernoulli with parameter ``0.5``.
 
     Parameters
     ----------
@@ -147,6 +149,10 @@ def make_dummy_survival_data(n_samples, n_features, normalize=False,
     X_density : float, default=1
         The density, proportion of non zero elements, of the design matrix ``X``.
         X_density must be in ``(0, 1]``.
+
+    with_ties : bool, default=False
+        Determine if the data contains tied observations: observations with the same
+        occurrences times ``tm``.
 
     random_state : int, default=None
         Determines random number generation for data generation.
@@ -170,7 +176,11 @@ def make_dummy_survival_data(n_samples, n_features, normalize=False,
         X = scipy.sparse.rand(
             n_samples, n_features, density=X_density, format="csc", dtype=float)
 
-    tm = rng.weibull(a=1, size=n_samples)
+    if not with_ties:
+        tm = rng.weibull(a=1, size=n_samples)
+    else:
+        tm = rng.choice(int(n_samples / 10), size=n_samples).astype(float)
+
     s = rng.choice(2, size=n_samples).astype(float)
 
     if normalize and X_density == 1.:

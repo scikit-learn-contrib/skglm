@@ -554,7 +554,7 @@ class Cox(BaseDatafit):
     .. math::
 
         1 / n_"samples" \sum_(i=1)^(n_"samples") -s_i \langle x_i, w \rangle
-        + \log (\sum_(j | y_j \geq y_i) e^{\langle x_i, w \rangle})
+        + s_i \log (\sum_(j | y_j \geq y_i) e^{\langle x_j, w \rangle})
 
     where :math:`s_i` indicates the sample censorship and :math:`tm`
     is the vector recording the time of event occurrences.

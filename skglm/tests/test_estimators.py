@@ -228,13 +228,19 @@ def test_CoxEstimator(use_efron):
     np.testing.assert_allclose(p_obj_skglm, p_obj_ll, atol=1e-6)
 
 
-def test_CoxEstimator_sparse():
+@pytest.mark.parametrize("use_efron", [True, False])
+def test_CoxEstimator_sparse(use_efron):
     reg = 1e-2
     n_samples, n_features = 100, 30
     X_density, random_state = 0.5, 1265
 
     tm, s, X = make_dummy_survival_data(n_samples, n_features, X_density=X_density,
                                         random_state=random_state)
+
+    # ensure to have tied observation to test Efron
+    if use_efron:
+        rng = np.random.RandomState(random_state)
+        tm = rng.choice(int(n_samples / 10), size=n_samples).astype(float)
 
     # compute alpha_max
     B = (tm >= tm[:, None]).astype(X.dtype)
@@ -244,7 +250,7 @@ def test_CoxEstimator_sparse():
     alpha = reg * alpha_max
 
     # fit Cox using ProxNewton solver
-    datafit = compiled_clone(Cox())
+    datafit = compiled_clone(Cox(use_efron))
     penalty = compiled_clone(L1(alpha))
 
     datafit.initialize_sparse(X.data, X.indptr, X.indices, (tm, s))

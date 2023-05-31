@@ -685,10 +685,9 @@ class Cox(BaseDatafit):
 
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
         """Initialize the datafit attributes in sparse dataset case."""
-        tm, s = y
-
-        tm_as_col = tm.reshape((-1, 1))
-        self.B = (tm >= tm_as_col).astype(X_data.dtype)
+        # initialize_sparse and initialize are have the same implementation
+        # small hack to avoid repetitive code: pass in X_data as only its dtype is used
+        self.initialize(X_data, y)
 
     def _A_dot_vec(self, vec):
         out = np.zeros_like(vec)

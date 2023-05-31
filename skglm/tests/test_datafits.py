@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.optimize
 import pytest
 
 from sklearn.linear_model import HuberRegressor
@@ -128,7 +129,7 @@ def test_cox(use_efron):
 
     # generate dummy w, Xw
     w = rng.randn(n_features)
-    Xw = rng.randn(n_samples)
+    Xw = X @ w
 
     # check datafit
     cox_df = compiled_clone(Cox(use_efron))
@@ -136,12 +137,37 @@ def test_cox(use_efron):
     cox_df.initialize(X, (tm, s))
     cox_df.value(y, w, Xw)
 
-    np.testing.assert_array_equal(
-        cox_df.raw_grad(y, Xw).shape, (n_samples,)
-    )
-    np.testing.assert_array_equal(
-        cox_df.raw_hessian(y, Xw).shape, (n_samples,)
-    )
+    # perform test 10 times to consider truncation errors
+    # due to usage of finite differences to evaluate grad and Hessian
+    for _ in range(10):
+
+        # generate dummy w, Xw
+        w = rng.randn(n_features)
+        Xw = X @ w
+
+        # check gradient
+        np.testing.assert_allclose(
+            scipy.optimize.check_grad(
+                lambda x: cox_df.value(y, w, x),
+                lambda x: cox_df.raw_grad(y, x),
+                x0=Xw,
+                seed=rng
+            ),
+            0., atol=1e-6
+        )
+
+        # check hessian upper bound
+        # Hessian minus its upper bound must be negative semi definite
+        hess_upper_bound = np.diag(cox_df.raw_hessian(y, Xw))
+        hess = scipy.optimize.approx_fprime(
+            xk=Xw,
+            f=lambda x: cox_df.raw_grad(y, x),
+        )
+
+        positive_eig = np.linalg.eigh(hess - hess_upper_bound)[0]
+        positive_eig = positive_eig[positive_eig >= 0.]
+
+        np.testing.assert_allclose(positive_eig, 0., atol=1e-6)
 
 
 if __name__ == '__main__':

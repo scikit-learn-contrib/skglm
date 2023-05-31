@@ -54,6 +54,7 @@ Datafits
 .. autosummary::
    :toctree: generated/
 
+   Cox
    Gamma
    Huber
    Logistic

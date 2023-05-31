@@ -574,11 +574,11 @@ class Cox(BaseDatafit):
     B : array-like, shape (n_samples, n_samples)
         Matrix where every ``(i, j)`` entry (row, column) equals ``1``
         if ``tm[j] >= tm[i]`` and `0` otherwise. This matrix is initialized
-        using ``.initialize`` method.
+        using the ``.initialize`` method.
 
     References
     ----------
-    .. [1] DY Lin. On the breslow estimator.
+    .. [1] DY Lin. On the Breslow estimator.
            Lifetime data analysis, 13:471–480, 2007.
     """
 

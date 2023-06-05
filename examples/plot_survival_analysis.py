@@ -101,13 +101,13 @@ stacked_tm_s_X = np.hstack((tm[:, None], s[:, None], X))
 df = pd.DataFrame(stacked_tm_s_X)
 
 # fit lifelines estimator
-estimator = CoxPHFitter(penalizer=alpha, l1_ratio=1.)
-estimator.fit(
+lifelines_estimator = CoxPHFitter(penalizer=alpha, l1_ratio=1.)
+lifelines_estimator.fit(
     df,
     duration_col=0,
     event_col=1
 )
-w_ll = estimator.params_.values
+w_ll = lifelines_estimator.params_.values
 
 # %%
 # Ideally the values of the objectives should the same, in other terms the difference
@@ -126,33 +126,113 @@ print(f"Difference solutions: {np.linalg.norm(w_sk - w_ll):.3e}")
 # Timing comparison
 # -----------------
 #
-# Now that we checked that both ``skglm`` and ``lifelines`` yield the same result,
-# let's compare their execution time
-import timeit
+# Now that we checked that both ``skglm`` and ``lifelines`` yield the same results,
+# let's compare their execution time.
+import time
+import warnings
 
-time_skglm = timeit.timeit(
-    lambda: solver.solve(X, (tm, s), datafit, penalty),
-    number=10
-)
-time_lifeline = timeit.timeit(
-    lambda: estimator.fit(df, duration_col=0, event_col=1),
-    number=10
-)
+# ignore warnings
+warnings.filterwarnings('ignore')
 
-# plot results
-fig, ax = plt.subplots()
+# where to save records
+records = {
+    "skglm": {
+        "times": [],
+        "objs": []
+    },
+    "lifelines": {
+        "times": [],
+        "objs": []
+    },
+}
 
-ax.bar(
-    x=["skglm", "lifelines"],
-    height=[time_skglm, time_lifeline],
-)
+max_runs = 50
 
-# set layout of bar plot
-ax.set_yscale('log')
-ax.set_ylabel("time in seconds")
-ax.set_title("Timing comparison")
+# time skglm
+for n_iter in range(1, max_runs + 1):
+    solver.max_iter = n_iter
 
-print(f"speed up ratio {time_lifeline / time_skglm:.0f}")
+    start = time.perf_counter()
+    w, *_ = solver.solve(
+        X, (tm, s),
+        datafit,
+        penalty
+    )
+    end = time.perf_counter()
+
+    records["skglm"]["objs"].append(
+        datafit.value((tm, s), w, X @ w) + penalty.value(w)
+    )
+    records["skglm"]["times"].append(end - start)
+
+
+# time lifelines
+for n_iter in range(1, max_runs + 1):
+    solver.max_iter = n_iter
+
+    start = time.perf_counter()
+    lifelines_estimator.fit(
+        df,
+        duration_col=0,
+        event_col=1,
+        fit_options={"max_steps": n_iter}
+    )
+    end = time.perf_counter()
+
+    w = lifelines_estimator.params_.values
+
+    records["lifelines"]["objs"].append(
+        datafit.value((tm, s), w, X @ w) + penalty.value(w)
+    )
+    records["lifelines"]["times"].append(end - start)
+
+
+# cast records as numpy array
+for idx, label in enumerate(("skglm", "lifelines")):
+    for metric in ("objs", "times"):
+        records[label][metric] = np.asarray(records[label][metric])
 
 # %%
-# Et voilà, that is more than x100 less time to get the same solution!
+# Plot the results
+
+# init figure
+fig, axes = plt.subplots(
+    2, 1,
+    tight_layout=True,
+    sharex=True,
+)
+
+optimal_obj = min(
+    records["skglm"]["objs"].min(),
+    records["lifelines"]["objs"].min(),
+)
+
+labels = ("skglm", "lifelines")
+colors = ("#1f77b4", "#d62728")
+
+# plot evolution of suboptimality
+for label, color in zip(labels, colors):
+    axes[0].plot(
+        records[label]["times"],
+        records["skglm"]["objs"] - optimal_obj,
+        label=label,
+        color=color,
+        marker='o',
+    )
+
+# plot total time
+axes[1].barh(
+    [0, 1],
+    [records[label]["times"][-1] for label in labels],
+    color=colors
+)
+axes[1].set_yticks([0, 1], labels=labels)
+
+
+# set figure layout
+axes[0].set_yscale('log')
+axes[0].set_xscale('log')
+axes[1].set_xscale('log')
+
+axes[0].set_ylabel("suboptimality")
+axes[1].set_xlabel("time in second")

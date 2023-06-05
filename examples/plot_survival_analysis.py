@@ -87,8 +87,7 @@ w_sk, *_ = solver.solve(
     datafit,
     penalty
 )
-import numpy as np
-print(np.linalg.norm(w_sk))
+
 # %%
 # Let's do the same with ``lifelines`` through its ``CoxPHFitter``
 # estimator and compare the objectives.
@@ -107,6 +106,7 @@ estimator.fit(
     event_col=1
 )
 w_ll = estimator.params_.values
+
 # %%
 # Ideally the values of the objectives should the same, in other terms the difference
 # must be close to zero.
@@ -119,6 +119,7 @@ print(f"Difference: {abs(obj_sk - obj_ll)}")
 # %%
 # We can do the same to check how close the two solutions are.
 print(f"Difference solutions: {np.linalg.norm(w_sk - w_ll):.3e}")
+
 # %%
 # Timing comparison
 # -----------------
@@ -150,5 +151,6 @@ ax.set_ylabel("time in seconds")
 ax.set_title("Timing comparison")
 
 print(f"speed up ratio {time_lifeline / time_skglm}")
+
 # %%
 # Et voilà, that is more than x100 speed up!

@@ -50,7 +50,7 @@ for idx, (dist, name) in enumerate(zip(dists, axes_title)):
     axes[idx].set_title(name)
 
 # format y axis
-axes[0].set_ylabel("density")
+axes[0].set_ylabel("count")
 
 # %%
 # Fit Cox Estimator
@@ -151,4 +151,4 @@ ax.set_title("Timing comparison")
 
 print(f"speed up ratio {time_lifeline / time_skglm}")
 # %%
-# Et voilà, that is more x100 speed up!
+# Et voilà, that is more than x100 speed up!

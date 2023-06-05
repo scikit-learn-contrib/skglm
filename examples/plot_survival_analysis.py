@@ -51,3 +51,71 @@ for idx, (dist, name) in enumerate(zip(dists, axes_title)):
 
 # format y axis
 axes[0].set_ylabel("density")
+
+# %%
+# Fit Cox Estimator
+# -----------------
+#
+# After generating the synthetic data, we can now fit a L1-Cox estimator.
+# Todo so, we need to combine a Cox datafit and and :math:`\ell_1` penalty
+# and solve the resulting problem using Proximal Newton solver ``ProxNewton``.
+# We set the intensity of the :math:`\ell_1` regularization to ``alpha=1e-3``.
+from skglm.datafits import Cox
+from skglm.penalties import L1
+from skglm.solvers import ProxNewton
+
+from skglm.utils.jit_compilation import compiled_clone
+
+# set intensity of regularization
+alpha = 1e-3
+
+# init datafit and penalty
+datafit = compiled_clone(Cox())
+penalty = compiled_clone(L1(alpha))
+
+datafit.initialize(X, (tm, s))
+
+# init solver
+solver = ProxNewton(
+    fit_intercept=False,
+    max_iter=50,
+)
+
+# solve the problem
+w_sk, *_ = solver.solve(
+    X, (tm, s),
+    datafit,
+    penalty
+)
+import numpy as np
+print(np.linalg.norm(w_sk))
+# %%
+# Let's do the same with ``lifelines`` through its ``CoxPHFitter``
+# estimator and compare the objectives.
+import numpy as np
+import pandas as pd
+from lifelines import CoxPHFitter
+
+# format data
+stacked_tm_s_X = np.hstack((tm[:, None], s[:, None], X))
+df = pd.DataFrame(stacked_tm_s_X)
+
+estimator = CoxPHFitter(penalizer=alpha, l1_ratio=1.)
+estimator.fit(
+    df,
+    duration_col=0,
+    event_col=1
+)
+w_ll = estimator.params_.values
+# %%
+# Ideally the values of the objectives should the same, in other terms the difference
+# must be close to zero.
+obj_sk = datafit.value((tm, s), w_sk, X @ w_sk) + penalty.value(w_sk)
+obj_ll = datafit.value((tm, s), w_ll, X @ w_ll) + penalty.value(w_ll)
+
+print(f"objective skglm: {obj_sk:.6f}")
+print(f"objective lifelines: {obj_ll:.6f}")
+print(f"Difference: {abs(obj_sk - obj_ll)}")
+# %%
+# We can do the same to check how close the two solutions are.
+print(f"Difference solutions: {np.linalg.norm(w_sk - w_ll):.3e}")

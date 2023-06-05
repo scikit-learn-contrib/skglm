@@ -137,18 +137,15 @@ warnings.filterwarnings('ignore')
 # where to save records
 records = {
     "skglm": {
-        "times": [],
-        "objs": []
+        "times": [], "objs": []
     },
     "lifelines": {
-        "times": [],
-        "objs": []
+        "times": [], "objs": []
     },
 }
 
-max_runs = 50
-
 # time skglm
+max_runs = 20
 for n_iter in range(1, max_runs + 1):
     solver.max_iter = n_iter
 
@@ -165,8 +162,8 @@ for n_iter in range(1, max_runs + 1):
     )
     records["skglm"]["times"].append(end - start)
 
-
 # time lifelines
+max_runs = 50
 for n_iter in range(1, max_runs + 1):
     solver.max_iter = n_iter
 
@@ -198,23 +195,20 @@ for idx, label in enumerate(("skglm", "lifelines")):
 # init figure
 fig, axes = plt.subplots(
     2, 1,
-    tight_layout=True,
     sharex=True,
-)
-
-optimal_obj = min(
-    records["skglm"]["objs"].min(),
-    records["lifelines"]["objs"].min(),
+    tight_layout=True,
 )
 
 labels = ("skglm", "lifelines")
 colors = ("#1f77b4", "#d62728")
 
+optimal_obj = min(records[label]["objs"].min() for label in labels)
+
 # plot evolution of suboptimality
 for label, color in zip(labels, colors):
     axes[0].plot(
         records[label]["times"],
-        records["skglm"]["objs"] - optimal_obj,
+        records[label]["objs"] - optimal_obj,
         label=label,
         color=color,
         marker='o',
@@ -235,4 +229,4 @@ axes[0].set_xscale('log')
 axes[1].set_xscale('log')
 
 axes[0].set_ylabel("suboptimality")
-axes[1].set_xlabel("time in second")
+axes[1].set_xlabel("time in seconds")

@@ -4,7 +4,8 @@
 ========================================================
 Comparison of lifelines with skglm for survival analysis
 ========================================================
-This example shows that skglm find the same solution as lifelines in 100 x less time.
+This example shows that ``skglm`` find the same solution as ``lifelines``
+in x100 less time.
 """
 
 # %%
@@ -99,6 +100,7 @@ from lifelines import CoxPHFitter
 stacked_tm_s_X = np.hstack((tm[:, None], s[:, None], X))
 df = pd.DataFrame(stacked_tm_s_X)
 
+# fit lifelines estimator
 estimator = CoxPHFitter(penalizer=alpha, l1_ratio=1.)
 estimator.fit(
     df,
@@ -115,7 +117,7 @@ obj_ll = datafit.value((tm, s), w_ll, X @ w_ll) + penalty.value(w_ll)
 
 print(f"objective skglm: {obj_sk:.6f}")
 print(f"objective lifelines: {obj_ll:.6f}")
-print(f"Difference: {abs(obj_sk - obj_ll)}")
+print(f"Difference: {abs(obj_sk - obj_ll):.6f}")
 # %%
 # We can do the same to check how close the two solutions are.
 print(f"Difference solutions: {np.linalg.norm(w_sk - w_ll):.3e}")
@@ -125,7 +127,7 @@ print(f"Difference solutions: {np.linalg.norm(w_sk - w_ll):.3e}")
 # -----------------
 #
 # Now that we checked that both ``skglm`` and ``lifelines`` yield the same result,
-# let compare their execution time
+# let's compare their execution time
 import timeit
 
 time_skglm = timeit.timeit(
@@ -150,7 +152,7 @@ ax.set_yscale('log')
 ax.set_ylabel("time in seconds")
 ax.set_title("Timing comparison")
 
-print(f"speed up ratio {time_lifeline / time_skglm}")
+print(f"speed up ratio {time_lifeline / time_skglm:.0f}")
 
 # %%
-# Et voilà, that is more than x100 speed up!
+# Et voilà, that is more than x100 less time to get the same solution!

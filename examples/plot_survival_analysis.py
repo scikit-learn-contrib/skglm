@@ -119,3 +119,36 @@ print(f"Difference: {abs(obj_sk - obj_ll)}")
 # %%
 # We can do the same to check how close the two solutions are.
 print(f"Difference solutions: {np.linalg.norm(w_sk - w_ll):.3e}")
+# %%
+# Timing comparison
+# -----------------
+#
+# Now that we checked that both ``skglm`` and ``lifelines`` yield the same result,
+# let compare their execution time
+import timeit
+
+time_skglm = timeit.timeit(
+    lambda: solver.solve(X, (tm, s), datafit, penalty),
+    number=10
+)
+time_lifeline = timeit.timeit(
+    lambda: estimator.fit(df, duration_col=0, event_col=1),
+    number=10
+)
+
+# plot results
+fig, ax = plt.subplots()
+
+ax.bar(
+    x=["skglm", "lifelines"],
+    height=[time_skglm, time_lifeline],
+)
+
+# set layout of bar plot
+ax.set_yscale('log')
+ax.set_ylabel("time in seconds")
+ax.set_title("Timing comparison")
+
+print(f"speed up ratio {time_lifeline / time_skglm}")
+# %%
+# Et voilà, that is more x100 speed up!

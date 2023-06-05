@@ -127,7 +127,9 @@ print(f"Difference solutions: {np.linalg.norm(w_sk - w_ll):.3e}")
 # -----------------
 #
 # Now that we checked that both ``skglm`` and ``lifelines`` yield the same results,
-# let's compare their execution time.
+# let's compare their execution time. To get the evolution of the suboptimality
+# (objective - optimal objective) we run both estimators
+# for increasing number iterations (steps).
 import time
 import warnings
 
@@ -224,3 +226,11 @@ axes[1].set_xscale('log')
 
 axes[0].set_ylabel("suboptimality")
 axes[1].set_xlabel("time in seconds")
+
+# speed up ratio
+speed_up = records["lifelines"]["times"][-1] / records["skglm"]["times"][-1]
+print(f"speed up ratio {speed_up:.0f}")
+
+# %%
+# According to printed ratio, using ``skglm`` we get the same result as ``lifelines``
+# with more than x100 less time.

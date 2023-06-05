@@ -136,12 +136,8 @@ warnings.filterwarnings('ignore')
 
 # where to save records
 records = {
-    "skglm": {
-        "times": [], "objs": []
-    },
-    "lifelines": {
-        "times": [], "objs": []
-    },
+    "skglm": {"times": [], "objs": []},
+    "lifelines": {"times": [], "objs": []},
 }
 
 # time skglm
@@ -153,7 +149,7 @@ for n_iter in range(1, max_runs + 1):
     w, *_ = solver.solve(
         X, (tm, s),
         datafit,
-        penalty
+        penalty,
     )
     end = time.perf_counter()
 
@@ -165,14 +161,12 @@ for n_iter in range(1, max_runs + 1):
 # time lifelines
 max_runs = 50
 for n_iter in range(1, max_runs + 1):
-    solver.max_iter = n_iter
-
     start = time.perf_counter()
     lifelines_estimator.fit(
         df,
         duration_col=0,
         event_col=1,
-        fit_options={"max_steps": n_iter}
+        fit_options={"max_steps": n_iter},
     )
     end = time.perf_counter()
 
@@ -214,11 +208,11 @@ for label, color in zip(labels, colors):
         marker='o',
     )
 
-# plot total time
+# plot total running time
 axes[1].barh(
     [0, 1],
     [records[label]["times"][-1] for label in labels],
-    color=colors
+    color=colors,
 )
 axes[1].set_yticks([0, 1], labels=labels)
 

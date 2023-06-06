@@ -112,7 +112,7 @@ print(f"Objective lifelines: {obj_ll:.6f}")
 print(f"Difference: {(obj_sk - obj_ll):.2e}")
 # %%
 # We can do the same to check how close the two solutions are.
-print(f"Difference in vectors: {np.linalg.norm(w_sk - w_ll):.3e}")
+print(f"Euclidean distance between solutions: {np.linalg.norm(w_sk - w_ll):.3e}")
 
 # %%
 # Timing comparison
@@ -121,7 +121,7 @@ print(f"Difference in vectors: {np.linalg.norm(w_sk - w_ll):.3e}")
 # Now that we checked that both ``skglm`` and ``lifelines`` yield the same results,
 # let's compare their execution time. To get the evolution of the suboptimality
 # (objective - optimal objective) we run both estimators with increasing number of
-# iterations (steps).
+# iterations.
 import time
 import warnings
 
@@ -173,13 +173,11 @@ for idx, label in enumerate(("skglm", "lifelines")):
         records[label][metric] = np.asarray(records[label][metric])
 
 # %%
-# Plot the results
+# Results
+# -------
 
-# init figure
 fig, ax = plt.subplots(1, 1, tight_layout=True, figsize=(6, 3))
-
 solvers = ("skglm", "lifelines")
-# colors = ("#1f77b4", "#d62728")
 
 optimal_obj = min(records[solver]["objs"].min() for solver in solvers)
 
@@ -195,13 +193,13 @@ ax.legend()
 ax.set_title("Time to fit a Cox model")
 
 ax.set_ylabel("objective suboptimality")
-ax.set_xlabel("time in seconds")
+_ = ax.set_xlabel("time in seconds")
 
 
 
 # %%
 # According to printed ratio, using ``skglm`` we get the same result as ``lifelines``
-# with more than x100 less time.
+# with more than x100 less time!
 speed_up = records["lifelines"]["times"][-1] / records["skglm"]["times"][-1]
 print(f"speed up ratio: {speed_up:.0f}")
 

@@ -4,45 +4,42 @@
 ========================================================
 Comparison of lifelines with skglm for survival analysis
 ========================================================
-This example shows that ``skglm`` find the same solution as ``lifelines``
-in x100 less time.
+This example shows that ``skglm`` fits a Cox model exactly as ``lifelines`` but with
+x100 less time.
 """
 
 # %%
 # Data
 # ----
 #
-# Let's first generate synthetic data using ``skglm`` data utils.
-# Let's start with generating synthetic data on which to run Cox estimator.
-# ``skglm`` exposes functions to generate dummy dataset among which
-# ``make_dummy_survival_data`` to generate data for survival analysis problems.
+# Let's first generate synthetic data on which to run the Cox estimator,
+# using ``skglm`` data utils.
 #
 from skglm.utils.data import make_dummy_survival_data
 
-n_samples, n_features = 1000, 100
+n_samples, n_features = 500, 100
 tm, s, X = make_dummy_survival_data(
     n_samples, n_features,
     normalize=True,
-    random_state=1235
+    random_state=0
 )
 
 # %%
 # The synthetic data has the following properties:
 #
-# * ``tm`` is the vector occurrences times which follows a Weibull(1) distribution
-# * ``s`` indicates the observations censorship and follows a Bernoulli(0.5)
-# * ``X`` the matrix of predictors generated using standard normal distribution
+# * ``tm`` is the vector of occurrence times which follows a Weibull(1) distribution
+# * ``s`` indicates the observations censorship and follows a Bernoulli(0.5) distribution
+# * ``X`` is the matrix of predictors, generated using standard normal distribution with Toeplitz covariance.
 #
-# Let's check this out through a histogram
+# Let's inspect the data quickly:
 import matplotlib.pyplot as plt
 
-# init figure
 fig, axes = plt.subplots(
     1, 3,
-    tight_layout=True
+    figsize=(6, 2),
+    tight_layout=True,
 )
 
-# plot histograms
 dists = (tm, s, X[:, 5])
 axes_title = ("times", "censorship", "fifth predictor")
 
@@ -50,48 +47,45 @@ for idx, (dist, name) in enumerate(zip(dists, axes_title)):
     axes[idx].hist(dist, bins="auto")
     axes[idx].set_title(name)
 
-# format y axis
-axes[0].set_ylabel("count")
+_ = axes[0].set_ylabel("count")
 
 # %%
-# Fit Cox Estimator
+# Fitting the Cox Estimator
 # -----------------
 #
-# After generating the synthetic data, we can now fit a L1-Cox estimator.
-# Todo so, we need to combine a Cox datafit and and :math:`\ell_1` penalty
-# and solve the resulting problem using Proximal Newton solver ``ProxNewton``.
-# We set the intensity of the :math:`\ell_1` regularization to ``alpha=1e-3``.
+# After generating the synthetic data, we can now fit a L1-regularized Cox estimator.
+# Todo so, we need to combine a Cox datafit and a :math:`\ell_1` penalty
+# and solve the resulting problem using skglm Proximal Newton solver ``ProxNewton``.
+# We set the intensity of the :math:`\ell_1` regularization to ``alpha=1e-2``.
 from skglm.datafits import Cox
 from skglm.penalties import L1
 from skglm.solvers import ProxNewton
 
 from skglm.utils.jit_compilation import compiled_clone
 
-# set intensity of regularization
-alpha = 1e-3
+# regularization intensity
+alpha = 1e-2
 
-# init datafit and penalty
+# skglm internals: init datafit and penalty
 datafit = compiled_clone(Cox())
 penalty = compiled_clone(L1(alpha))
 
 datafit.initialize(X, (tm, s))
 
 # init solver
-solver = ProxNewton(
-    fit_intercept=False,
-    max_iter=50,
-)
+solver = ProxNewton(fit_intercept=False, max_iter=50,)
 
 # solve the problem
-w_sk, *_ = solver.solve(
-    X, (tm, s),
-    datafit,
-    penalty
-)
+w_sk = solver.solve(X, (tm, s), datafit, penalty)[0]
 
 # %%
-# Let's do the same with ``lifelines`` through its ``CoxPHFitter``
-# estimator and compare the objectives.
+# For this data a regularization value a relatively sparse solution is found:
+print(f"Number of nonzero coefficients in solution: {(w_sk != 0).sum()} out of {len(w_sk)}.")
+
+
+# %%
+# Let's solve the problem with ``lifelines`` through its ``CoxPHFitter``
+# estimator and compare the objectives found by the two packages.
 import numpy as np
 import pandas as pd
 from lifelines import CoxPHFitter
@@ -101,8 +95,7 @@ stacked_tm_s_X = np.hstack((tm[:, None], s[:, None], X))
 df = pd.DataFrame(stacked_tm_s_X)
 
 # fit lifelines estimator
-lifelines_estimator = CoxPHFitter(penalizer=alpha, l1_ratio=1.)
-lifelines_estimator.fit(
+lifelines_estimator = CoxPHFitter(penalizer=alpha, l1_ratio=1.).fit(
     df,
     duration_col=0,
     event_col=1
@@ -110,17 +103,16 @@ lifelines_estimator.fit(
 w_ll = lifelines_estimator.params_.values
 
 # %%
-# Ideally the values of the objectives should the same, in other terms the difference
-# must be close to zero.
+# Check that both solvers find solutions having the same objective value:
 obj_sk = datafit.value((tm, s), w_sk, X @ w_sk) + penalty.value(w_sk)
 obj_ll = datafit.value((tm, s), w_ll, X @ w_ll) + penalty.value(w_ll)
 
-print(f"objective skglm: {obj_sk:.6f}")
-print(f"objective lifelines: {obj_ll:.6f}")
-print(f"Difference: {abs(obj_sk - obj_ll):.6f}")
+print(f"Objective skglm: {obj_sk:.6f}")
+print(f"Objective lifelines: {obj_ll:.6f}")
+print(f"Difference: {(obj_sk - obj_ll):.2e}")
 # %%
 # We can do the same to check how close the two solutions are.
-print(f"Difference solutions: {np.linalg.norm(w_sk - w_ll):.3e}")
+print(f"Difference in vectors: {np.linalg.norm(w_sk - w_ll):.3e}")
 
 # %%
 # Timing comparison
@@ -128,12 +120,11 @@ print(f"Difference solutions: {np.linalg.norm(w_sk - w_ll):.3e}")
 #
 # Now that we checked that both ``skglm`` and ``lifelines`` yield the same results,
 # let's compare their execution time. To get the evolution of the suboptimality
-# (objective - optimal objective) we run both estimators
-# for increasing number iterations (steps).
+# (objective - optimal objective) we run both estimators with increasing number of
+# iterations (steps).
 import time
 import warnings
 
-# ignore warnings
 warnings.filterwarnings('ignore')
 
 # where to save records
@@ -148,11 +139,7 @@ for n_iter in range(1, max_runs + 1):
     solver.max_iter = n_iter
 
     start = time.perf_counter()
-    w, *_ = solver.solve(
-        X, (tm, s),
-        datafit,
-        penalty,
-    )
+    w = solver.solve(X, (tm, s), datafit, penalty)[0]
     end = time.perf_counter()
 
     records["skglm"]["objs"].append(
@@ -162,7 +149,7 @@ for n_iter in range(1, max_runs + 1):
 
 # time lifelines
 max_runs = 50
-for n_iter in range(1, max_runs + 1):
+for n_iter in list(range(10)) + list(range(10, max_runs + 1, 5)):
     start = time.perf_counter()
     lifelines_estimator.fit(
         df,
@@ -189,48 +176,32 @@ for idx, label in enumerate(("skglm", "lifelines")):
 # Plot the results
 
 # init figure
-fig, axes = plt.subplots(
-    2, 1,
-    sharex=True,
-    tight_layout=True,
-)
+fig, ax = plt.subplots(1, 1, tight_layout=True, figsize=(6, 3))
 
-labels = ("skglm", "lifelines")
-colors = ("#1f77b4", "#d62728")
+solvers = ("skglm", "lifelines")
+# colors = ("#1f77b4", "#d62728")
 
-optimal_obj = min(records[label]["objs"].min() for label in labels)
+optimal_obj = min(records[solver]["objs"].min() for solver in solvers)
 
 # plot evolution of suboptimality
-for label, color in zip(labels, colors):
-    axes[0].plot(
-        records[label]["times"],
-        records[label]["objs"] - optimal_obj,
-        label=label,
-        color=color,
+for solver in solvers:
+    ax.semilogy(
+        records[solver]["times"],
+        records[solver]["objs"] - optimal_obj,
+        label=solver,
         marker='o',
     )
+ax.legend()
+ax.set_title("Time to fit a Cox model")
 
-# plot total running time
-axes[1].barh(
-    [0, 1],
-    [records[label]["times"][-1] for label in labels],
-    color=colors,
-)
-axes[1].set_yticks([0, 1], labels=labels)
+ax.set_ylabel("objective suboptimality")
+ax.set_xlabel("time in seconds")
 
 
-# set figure layout
-axes[0].set_yscale('log')
-axes[0].set_xscale('log')
-axes[1].set_xscale('log')
-
-axes[0].set_ylabel("suboptimality")
-axes[1].set_xlabel("time in seconds")
-
-# speed up ratio
-speed_up = records["lifelines"]["times"][-1] / records["skglm"]["times"][-1]
-print(f"speed up ratio {speed_up:.0f}")
 
 # %%
 # According to printed ratio, using ``skglm`` we get the same result as ``lifelines``
 # with more than x100 less time.
+speed_up = records["lifelines"]["times"][-1] / records["skglm"]["times"][-1]
+print(f"speed up ratio: {speed_up:.0f}")
+

@@ -22,3 +22,9 @@ Learn to add a custom penalty by implementing the :math:`\ell_1` penalty.
 -----------------------------------------------------------------
 
 Explore how ``skglm`` fits unpenalized intercept.
+
+
+:ref:`Mathematics behind Cox datafit <maths_cox_datafit>`
+-----------------------------------------------------------------
+
+Get details about Cox datafit equations.

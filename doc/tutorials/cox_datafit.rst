@@ -4,7 +4,7 @@
 Mathematic behind Cox datafit
 =============================
 
-This tutorial presents the mathematics behind Cox datafit using both estimate Breslow and Efron.
+This tutorial presents the mathematics behind Cox datafit using both Breslow and Efron estimate. 
 
 
 Problem setup
@@ -35,8 +35,15 @@ To get the expression of the Cox datafit, we refer to the expression of the nega
     .
 
 
-Ideally, we ought to have a more compact expression to ease gradient and Hessian derivation as well as leverage vectorization.
-For that we introduce the matrix :math:`mathbf{B} \in \mathbb{R}^{n \times n}` defined as :math:`\mathbf{B}_{i, j} = \mathbb{1}_{y_j \geq y_i} = 1, \text{ if } y_j \geq y_i \text{ and } 0 \text{ otherwise}`.
+Ideally, we ought to have a vectorized expression to ease gradient and Hessian derivation.
+
+.. note::
+
+    Having a vectorized expression would enable us to leverage ``Numpy`` broadcasting and vectorization
+    and gain in terms of efficiency.
+
+
+We introduce the matrix :math:`mathbf{B} \in \mathbb{R}^{n \times n}` defined as :math:`\mathbf{B}_{i, j} = \mathbb{1}_{y_j \geq y_i} = 1` if :math:`y_j \geq y_i` and :math:`0` otherwise.
 
 We notice that the first term in the sum can we rewritten as
 
@@ -63,6 +70,7 @@ where the :math:`\log` is performed element-wise. Therefore we deduce the expres
 We observe from this vectorized reformulation that Cox datafit depends only :math:`\mathbf{X}\beta`. On the one hand, this illustrate that it fits well the GLM framework. On the other, now on, we can focus the simplified function
 
 .. math::
+    :label: simple-function
 
     F(u) = -\langle s, u \rangle + \langle s, \log(\mathbf{B}e^u) \rangle
     ,
@@ -95,7 +103,12 @@ where the fraction and the square operations are performed element-wise.
 
 The Hessian, as it is, is costly to evaluate because of the right hand-side term. In particular, the latter involves a :math:`\mathcal{O}(n^3)` operation. We overcome this limitation by deriving a diagonal upper bound on the Hessian.
 
-We construct such an upper bound by noticing that: 1) the :math:`F` is convex and hence :math:`\nabla^2 F(u)` is positive semi-definite, and 2) the second terms is also positive semi-definite. Therefore, we have,
+We construct such an upper bound by noticing that
+
+#. The function :math:`F` is convex and hence :math:`\nabla^2 F(u)` is positive semi-definite
+#. The second term is positive semi-definite.
+
+Therefore, we have,
 
 .. math::
     :label: diagonal-upper-bound
@@ -105,6 +118,11 @@ We construct such an upper bound by noticing that: 1) the :math:`F` is convex an
 
 where the inequality applies on the eigenvalues.
 
+.. note::
+
+    Having a diagonal Hessian would reduce the cost of evaluating the Hessian to :math:`\mathcal{O}(n)` instead of :math:`\mathcal{O}(n^3)`.
+    A byproduct of that is also reducing the cost of evaluating matrix-vector operations involving the Hessian to :math:`\mathcal{O}(n)` instead
+    of :math:`\mathcal{O}(n^2)`.
 
 
 
@@ -167,6 +185,20 @@ By defining the matrix :math:`\mathbf{A}` with rows :math:`(a_i)_{i \in [n]}`, w
     .
 
 Algorithm 1 provides an efficient procedure to evaluate :math:`\mathbf{A}v` for some :math:`v` in :math:`\mathbb{R}^n`.
+
+
+Gradient and Hessian
+--------------------
+
+Now that we casted the Efron estimate in form similar to `<vectorized-cox-breslow>`_, the evaluation of gradient and the diagonal upper of the Hessian reduces to to subtracting a linear term. Algorithm  2 provides an efficient procedure to evaluate :math:`\mathbf{A}^\top v` for some :math:`v` in :math:`\mathbb{R}^n`.
+
+.. note::
+
+    We notice that the complexity of both algorithms is :math:`\mathcal{O}(n)` despite intervening a matrix multiplication.
+    This is due to the special structure of :math:`\mathbf{A}` which in the case of sorted observations has a block diagonal structure
+    with each block having equal columns.
+
+    Here is an illustration with sorted observations having group sizes of identical occurrences times :math:`3, 2, 1, 3` respectively
 
 
 Reference

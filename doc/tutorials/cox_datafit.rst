@@ -31,7 +31,7 @@ To get the expression of the Cox datafit, we refer to the expression of the nega
 .. math::
     :label: breslow-estimate
 
-    l(\beta) = \sum_{i=1}^{n} -s_i \langle x_i, \beta \rangle + s_i \log(\sum_{y_j \geq y_i} e^{\langle x_j, \beta \rangle})
+    l(\beta) = \frac{1}{n} \sum_{i=1}^{n} -s_i \langle x_i, \beta \rangle + s_i \log(\sum_{y_j \geq y_i} e^{\langle x_j, \beta \rangle})
     .
 
 
@@ -64,7 +64,7 @@ where the :math:`\log` is performed element-wise. Therefore we deduce the expres
 .. math::
     :label: vectorized-cox-breslow
 
-    l(\beta) =  -\langle s, \mathbf{X}\beta \rangle + \langle s, \log(\mathbf{B}e^{\mathbf{X}\beta}) \rangle
+    l(\beta) =  -\frac{1}{n} \langle s, \mathbf{X}\beta \rangle + \frac{1}{n} \langle s, \log(\mathbf{B}e^{\mathbf{X}\beta}) \rangle
     .
 
 We observe from this vectorized reformulation that Cox datafit depends only :math:`\mathbf{X}\beta`. On the one hand, this illustrate that it fits well the GLM framework. On the other, now on, we can focus the simplified function
@@ -72,7 +72,7 @@ We observe from this vectorized reformulation that Cox datafit depends only :mat
 .. math::
     :label: simple-function
 
-    F(u) = -\langle s, u \rangle + \langle s, \log(\mathbf{B}e^u) \rangle
+    F(u) = -\frac{1}{n} \langle s, u \rangle + \frac{1}{n} \langle s, \log(\mathbf{B}e^u) \rangle
     ,
 
 to derive the gradient and Hessian.
@@ -88,7 +88,7 @@ For some :math:`u \in \mathbb{R}^n`, The gradient is
 .. math::
     :label: raw-gradient
 
-    \nabla F(u) = -s + [\text{diag}(e^u)\mathbf{B}^\top] \frac{s}{\mathbf{B}e^u}
+    \nabla F(u) = -\frac{1}{n} s + \frac{1}{n} [\text{diag}(e^u)\mathbf{B}^\top] \frac{s}{\mathbf{B}e^u}
     ,
 
 and the Hessian reads
@@ -96,7 +96,7 @@ and the Hessian reads
 .. math::
     :label: raw-hessian
 
-    \nabla^2 F(u) = \text{diag}(e^u) \text{diag}(\mathbf{B}^\top \frac{s}{\mathbf{B}e^u}) - \text{diag}(e^u) \mathbf{B}^\top \text{diag}(\frac{s}{(\mathbf{B}e^u)^2})\mathbf{B}\text{diag}(e^u)
+    \nabla^2 F(u) = \frac{1}{n} \text{diag}(e^u) \text{diag}(\mathbf{B}^\top \frac{s}{\mathbf{B}e^u}) - \frac{1}{n} \text{diag}(e^u) \mathbf{B}^\top \text{diag}(\frac{s}{(\mathbf{B}e^u)^2})\mathbf{B}\text{diag}(e^u)
     ,
 
 where the fraction and the square operations are performed element-wise.
@@ -113,7 +113,7 @@ Therefore, we have,
 .. math::
     :label: diagonal-upper-bound
 
-    \nabla^2 F(u) \leq \text{diag}(e^u) \text{diag}(\mathbf{B}^\top \frac{s}{\mathbf{B}e^u})
+    \nabla^2 F(u) \leq \frac{1}{n} \text{diag}(e^u) \text{diag}(\mathbf{B}^\top \frac{s}{\mathbf{B}e^u})
     ,
 
 where the inequality applies on the eigenvalues.
@@ -148,7 +148,7 @@ Again, we refer to the expression of the negative log-likelihood according to Ef
 .. math::
     :label: efron-estimate
 
-    l(\beta) = \sum_{l=1}^{m} (
+    l(\beta) = \frac{1}{n} \sum_{l=1}^{m} (
         \sum_{i \in H_{i_l}} - \langle x_i, \beta \rangle 
         + \sum_{i \in H_{i_l}} \log(\sum_{y_j \geq y_{i_l}} e^{\langle x_j, \beta \rangle} - \frac{\#(i) - 1}{ |H_{i_l} |}\sum_{j \in H_{i_l}} e^{\langle x_j, \beta \rangle}))
     ,
@@ -181,7 +181,7 @@ By defining the matrix :math:`\mathbf{A}` with rows :math:`(a_i)_{i \in [n]}`, w
 .. math::
     :label: vectorized-cox-efron
 
-    l(\beta) =  -\langle s, \mathbf{X}\beta \rangle + \langle s, \log(\mathbf{B}e^{\mathbf{X}\beta} - \mathbf{A}e^{\mathbf{X}\beta}) \rangle
+    l(\beta) =  -\frac{1}{n} \langle s, \mathbf{X}\beta \rangle +\frac{1}{n} \langle s, \log(\mathbf{B}e^{\mathbf{X}\beta} - \mathbf{A}e^{\mathbf{X}\beta}) \rangle
     .
 
 Algorithm 1 provides an efficient procedure to evaluate :math:`\mathbf{A}v` for some :math:`v` in :math:`\mathbb{R}^n`.

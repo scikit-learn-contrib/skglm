@@ -26,7 +26,7 @@ Breslow estimate
 Datafit expression
 ------------------
 
-To get the expression of the Cox datafit, we refer to the expression of the negative log-likelihood according to Breslow estimate [1, Section 2]
+To get the expression of the Cox datafit, we refer to the expression of the negative log-likelihood according to Breslow estimate [`1`_, Section 2]
 
 .. math::
     :label: breslow-estimate
@@ -101,12 +101,12 @@ and the Hessian reads
 
 where the fraction and the square operations are performed element-wise.
 
-The Hessian, as it is, is costly to evaluate because of the right hand-side term. In particular, the latter involves a :math:`\mathcal{O}(n^3)` operation. We overcome this limitation by deriving a diagonal upper bound on the Hessian.
+The Hessian, as it is, is costly to evaluate because of the right hand-side term. In particular, the latter involves a :math:`\mathcal{O}(n^3)` operations. We overcome this limitation by deriving a diagonal upper bound on the Hessian.
 
 We construct such an upper bound by noticing that
 
-#. The function :math:`F` is convex and hence :math:`\nabla^2 F(u)` is positive semi-definite
-#. The second term is positive semi-definite.
+#. the function :math:`F` is convex and hence :math:`\nabla^2 F(u)` is positive semi-definite
+#. the second term is positive semi-definite.
 
 Therefore, we have,
 
@@ -143,7 +143,7 @@ We can define :math:`y_{i_1}, \ldots, y_{i_m}` the unique times, assumed to be i
     
 the set of uncensored observations with the same time :math:`y_{i_l}`.
 
-Again, we refer to the expression of the negative log-likelihood according to Efron estimate [2,  Section 6, equation (6.7)] to get the datafit formula
+Again, we refer to the expression of the negative log-likelihood according to Efron estimate [`2`_,  Section 6, equation (6.7)] to get the datafit formula
 
 .. math::
     :label: efron-estimate
@@ -187,8 +187,8 @@ By defining the matrix :math:`\mathbf{A}` with rows :math:`(a_i)_{i \in [n]}`, w
 Algorithm 1 provides an efficient procedure to evaluate :math:`\mathbf{A}v` for some :math:`v` in :math:`\mathbb{R}^n`.
 
 .. image:: /_static/images/cox-tutorial/A_dot_v.png
-    :align: center
     :width: 400
+    :align: center
     :alt: Algorithm 1 to evaluate A dot v
 
 
@@ -198,8 +198,8 @@ Gradient and Hessian
 Now that we casted the Efron estimate in form similar to `<vectorized-cox-breslow>`_, the evaluation of gradient and the diagonal upper of the Hessian reduces to to subtracting a linear term. Algorithm  2 provides an efficient procedure to evaluate :math:`\mathbf{A}^\top v` for some :math:`v` in :math:`\mathbb{R}^n`.
 
 .. image:: /_static/images/cox-tutorial/A_transpose_dot_v.png
-    :align: center
     :width: 400
+    :align: center
     :alt: Algorithm 1 to evaluate A transpose dot v
 
 .. note::
@@ -211,15 +211,17 @@ Now that we casted the Efron estimate in form similar to `<vectorized-cox-breslo
     Here is an illustration with sorted observations having group sizes of identical occurrences times :math:`3, 2, 1, 3` respectively
 
     .. image:: /_static/images/cox-tutorial/structure_matrix_A.png
-        :align: center
         :width: 300
+        :align: center
         :alt: Illustration of the structure of A when observations are sorted
 
 
 Reference
 =========
 
-[1] DY Lin. On the breslow estimator. Lifetime data analysis, 13:471–480, 2007.
+.. _1:
+[1] DY Lin. On the Breslow estimator. Lifetime data analysis, 13:471–480, 2007.
 
+.. _2:
 [2] Bradley Efron. The efficiency of cox’s likelihood function for censored data. Journal of the
 American statistical Association, 72(359):557–565, 1977.

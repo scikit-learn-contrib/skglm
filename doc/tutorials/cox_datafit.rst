@@ -186,11 +186,21 @@ By defining the matrix :math:`\mathbf{A}` with rows :math:`(a_i)_{i \in [n]}`, w
 
 Algorithm 1 provides an efficient procedure to evaluate :math:`\mathbf{A}v` for some :math:`v` in :math:`\mathbb{R}^n`.
 
+.. image:: /_static/images/cox-tutorial/A_dot_v.png
+    :align: center
+    :width: 400
+    :alt: Algorithm 1 to evaluate A dot v
+
 
 Gradient and Hessian
 --------------------
 
 Now that we casted the Efron estimate in form similar to `<vectorized-cox-breslow>`_, the evaluation of gradient and the diagonal upper of the Hessian reduces to to subtracting a linear term. Algorithm  2 provides an efficient procedure to evaluate :math:`\mathbf{A}^\top v` for some :math:`v` in :math:`\mathbb{R}^n`.
+
+.. image:: /_static/images/cox-tutorial/A_transpose_dot_v.png
+    :align: center
+    :width: 400
+    :alt: Algorithm 1 to evaluate A transpose dot v
 
 .. note::
 
@@ -199,6 +209,11 @@ Now that we casted the Efron estimate in form similar to `<vectorized-cox-breslo
     with each block having equal columns.
 
     Here is an illustration with sorted observations having group sizes of identical occurrences times :math:`3, 2, 1, 3` respectively
+
+    .. image:: /_static/images/cox-tutorial/structure_matrix_A.png
+        :align: center
+        :width: 300
+        :alt: Illustration of the structure of A when observations are sorted
 
 
 Reference

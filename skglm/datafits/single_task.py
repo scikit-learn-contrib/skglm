@@ -547,27 +547,14 @@ class Gamma(BaseDatafit):
 
 
 class Cox(BaseDatafit):
-    r"""Cox datafit for survival analysis with Breslow estimate.
+    r"""Cox datafit for survival analysis.
 
-    The datafit reads [1]
+    Refer to :ref:`<maths_cox_datafit>` for details.
 
-    .. math::
-
-        1 / n_"samples" \sum_(i=1)^(n_"samples") -s_i \langle x_i, w \rangle
-        + s_i \log (\sum_(j | y_j \geq y_i) e^{\langle x_j, w \rangle})
-
-    where :math:`s_i` indicates the sample censorship and :math:`tm`
-    is the vector recording the time of event occurrences.
-
-    Defining the matrix :math:`B` with
-    :math:`B_{i,j} = 1` if  :math:`tm_j \geq tm_i` and :math:`0` otherwise,
-    the datafit can be rewritten in the following compact form
-
-    .. math::
-
-        1 / n_"samples" \langle s, Xw \rangle
-        + 1 / n_"samples" \langle s, \log B e^{Xw} \rangle
-
+    Parameters
+    ----------
+    use_efron : bool, default=False
+        If ``True`` uses Efron estimate to handle tied observations.
 
     Attributes
     ----------
@@ -576,10 +563,14 @@ class Cox(BaseDatafit):
         if ``tm[j] >= tm[i]`` and `0` otherwise. This matrix is initialized
         using the ``.initialize`` method.
 
-    References
-    ----------
-    .. [1] DY Lin. On the Breslow estimator.
-           Lifetime data analysis, 13:471–480, 2007.
+    H_indices : array-like, shape (n_samples,)
+        Indices of observations with same occurrence times horizontally stacked
+        ``[group_1, group_2, ...]``. This array is initialized
+        when calling ``.initialize`` method when ``use_efron=True``.
+
+    H_indptr : array-like, (n_distinct_times + 1,)
+        Array where two consecutive elements delimits a group of observations
+        having the same occurrence times.
     """
 
     def __init__(self, use_efron=False):
@@ -613,9 +604,7 @@ class Cox(BaseDatafit):
     def raw_grad(self, y, Xw):
         r"""Compute gradient of datafit w.r.t. ``Xw``.
 
-        The raw gradient reads
-
-            (-s + exp_Xw * (B.T @ (s / B @ exp_Xw)) / n_samples
+        Refer to :ref:`<maths_cox_datafit>` equation 4 for details.
         """
         tm, s = y
         n_samples = Xw.shape[0]
@@ -635,9 +624,7 @@ class Cox(BaseDatafit):
     def raw_hessian(self, y, Xw):
         """Compute a diagonal upper bound of the datafit's Hessian w.r.t. ``Xw``.
 
-        The diagonal upper bound reads
-
-            exp_Xw * (B.T @ s / B_exp_Xw) / n_samples
+        Refer to :ref:`<maths_cox_datafit>` equation 6 for details.
         """
         tm, s = y
         n_samples = Xw.shape[0]
@@ -685,7 +672,7 @@ class Cox(BaseDatafit):
 
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
         """Initialize the datafit attributes in sparse dataset case."""
-        # initialize_sparse and initialize are have the same implementation
+        # initialize_sparse and initialize have the same implementation
         # small hack to avoid repetitive code: pass in X_data as only its dtype is used
         self.initialize(X_data, y)
 

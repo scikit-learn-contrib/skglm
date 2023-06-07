@@ -9,3 +9,4 @@ sphinx_copybutton
 sphinx-gallery
 pytest
 furo
+lifelines

@@ -55,7 +55,7 @@ whereas the second term
 where the :math:`\log` is performed element-wise. Therefore we deduce the expression of Cox datafit
 
 .. math::
-    :label: cox-datafit
+    :label: vectorized-cox-breslow
 
     l(\beta) =  -\langle s, \mathbf{X}\beta \rangle + \langle s, \log(\mathbf{B}e^{\mathbf{X}\beta}) \rangle
     .
@@ -103,7 +103,70 @@ We construct such an upper bound by noticing that: 1) the :math:`F` is convex an
     \nabla^2 F(u) \leq \text{diag}(e^u) \text{diag}(\mathbf{B}^\top \frac{s}{\mathbf{B}e^u})
     ,
 
-where the inequality apply on the eigenvalues.
+where the inequality applies on the eigenvalues.
+
+
+
+
+Efron estimate
+==============
+
+Datafit expression
+------------------
+
+Efron estimate refines Breslow by handling tied observations, *observations with identical occurrences' time*.
+We can define :math:`y_{i_1}, \ldots, y_{i_m}` the unique times, assumed to be in total :math:`m` and
+
+.. math::
+    :label: def-H
+    
+    H_{y_{i_l}} = \{ i \ | \ s_i = 1 \ ;\ y_i = y_{i_l} \}
+    ,
+    
+the set of uncensored observations with the same time :math:`y_{i_l}`.
+
+Again, we refer to the expression of the negative log-likelihood according to Efron estimate [2,  Section 6, equation (6.7)] to get the datafit formula
+
+.. math::
+    :label: efron-estimate
+
+    l(\beta) = \sum_{l=1}^{m} (
+        \sum_{i \in H_{i_l}} - \langle x_i, \beta \rangle 
+        + \sum_{i \in H_{i_l}} \log(\sum_{y_j \geq y_{i_l}} e^{\langle x_j, \beta \rangle} - \frac{\#(i) - 1}{ |H_{i_l} |}\sum_{j \in H_{i_l}} e^{\langle x_j, \beta \rangle}))
+    ,
+
+where :math:`| H_{i_l} |` stands for the cardinal of :math:`H_{i_l}`, and :math:`\#(i)` the index of observation :math:`i` in :math:`H_{i_l}`.
+
+Ideally, we would like to rewrite this expression like  `<vectorized-cox-breslow>`_ to leverage the established results about the gradient and Hessian. A closer look reveals what distinguishes both expressions is the presence of a double sum and a second term in the :math:`\log`.
+
+First, we can observe that :math:`\cup_{l=1}^{m} H_{i_l} = \{ i \ | \ s_i = 1 \}`, which enables fusing the two sums, for instance
+
+.. math::
+
+    \sum_{l=1}^{m}\sum_{i \in H_{i_l}} - \langle x_i, \beta \rangle = \sum_{i: s_i = 1} - \langle x_i, \beta \rangle = \sum_{i=1}^n -s_i \langle x_i, \beta \rangle = -\langle s, \mathbf{X}\beta \rangle
+    .
+
+On the other hand, the minus term within :math:`\log` can be rewritten as a linear term in :math:`mathbf{X}\beta`
+
+.. math::
+
+    - \frac{\#(i) - 1}{| H_{i_l} |}\sum_{j \in H_{i_l}} e^{\langle x_j, \beta \rangle} 
+        = \sum_{j=1}^{n} -\frac{\#(i) - 1}{| H_{i_l} |} \ \mathbb{1}_{j \in H_{i_l}} \ e^{\langle x_j, \beta \rangle}
+        = \sum_{j=1}^n a_{i,j} e^{\langle x_j, \beta \rangle}
+        = \langle a_i, e^{\mathbf{X}\beta} \rangle
+        ,
+
+where :math:`a_i` is a vector in :math:`\mathbb{R}^n` chosen accordingly to preform the linear operation.
+
+By defining the matrix :math:`\mathbf{A}` with rows :math:`(a_i)_{i \in [n]}`, we deduce the final expression
+
+.. math::
+    :label: vectorized-cox-efron
+
+    l(\beta) =  -\langle s, \mathbf{X}\beta \rangle + \langle s, \log(\mathbf{B}e^{\mathbf{X}\beta} - \mathbf{A}e^{\mathbf{X}\beta}) \rangle
+    .
+
+Algorithm 1 provides an efficient procedure to evaluate :math:`\mathbf{A}v` for some :math:`v` in :math:`\mathbb{R}^n`.
 
 
 Reference

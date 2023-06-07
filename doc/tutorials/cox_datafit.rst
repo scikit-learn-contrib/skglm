@@ -50,9 +50,9 @@ whereas the second term
 .. math::
 
     \sum_{i=1}^n s_i \log(\sum_{y_j \geq y_i} e^{\langle x_j, \beta \rangle}) = \sum_{i=1}^n s_i \log(\sum_{j=1}^n \mathbb{1}_{y_j \geq y_i} e^{\langle x_j, \beta \rangle}) = \langle s, \log(\mathbf{B}e^{\mathbf{X}\beta}) \rangle
-    .
+    ,
 
-Therefore we deduce the expression of Cox datafit
+where the :math:`\log` is performed element-wise. Therefore we deduce the expression of Cox datafit
 
 .. math::
     :label: cox-datafit
@@ -60,7 +60,7 @@ Therefore we deduce the expression of Cox datafit
     l(\beta) =  -\langle s, \mathbf{X}\beta \rangle + \langle s, \log(\mathbf{B}e^{\mathbf{X}\beta}) \rangle
     .
 
-We observe from this vectorized reformulation that Cox datafit depends only :math:`\mathbf{X}\beta`. On the one hand, this illustrate that it fit the GLM framework. On the other, we can focus now on the simplified function
+We observe from this vectorized reformulation that Cox datafit depends only :math:`\mathbf{X}\beta`. On the one hand, this illustrate that it fits well the GLM framework. On the other, now on, we can focus the simplified function
 
 .. math::
 
@@ -69,6 +69,41 @@ We observe from this vectorized reformulation that Cox datafit depends only :mat
 
 to derive the gradient and Hessian.
 
+
+Gradient and Hessian
+--------------------
+
+Now that we have a vectorized expression of the datafit, we can apply the chain rule to derive its gradient and Hessian.
+
+For some :math:`u \in \mathbb{R}^n`, The gradient is
+
+.. math::
+    :label: raw-gradient
+
+    \nabla F(u) = -s + [\text{diag}(e^u)\mathbf{B}^\top] \frac{s}{\mathbf{B}e^u}
+    ,
+
+and the Hessian reads
+
+.. math::
+    :label: raw-hessian
+
+    \nabla^2 F(u) = \text{diag}(e^u) \text{diag}(\mathbf{B}^\top \frac{s}{\mathbf{B}e^u}) - \text{diag}(e^u) \mathbf{B}^\top \text{diag}(\frac{s}{(\mathbf{B}e^u)^2})\mathbf{B}\text{diag}(e^u)
+    ,
+
+where the fraction and the square operations are performed element-wise.
+
+The Hessian, as it is, is costly to evaluate because of the right hand-side term. In particular, the latter involves a :math:`\mathcal{O}(n^3)` operation. We overcome this limitation by deriving a diagonal upper bound on the Hessian.
+
+We construct such an upper bound by noticing that: 1) the :math:`F` is convex and hence :math:`\nabla^2 F(u)` is positive semi-definite, and 2) the second terms is also positive semi-definite. Therefore, we have,
+
+.. math::
+    :label: diagonal-upper-bound
+
+    \nabla^2 F(u) \leq \text{diag}(e^u) \text{diag}(\mathbf{B}^\top \frac{s}{\mathbf{B}e^u})
+    ,
+
+where the inequality apply on the eigenvalues.
 
 
 Reference

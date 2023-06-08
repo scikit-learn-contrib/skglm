@@ -95,7 +95,12 @@ where the division and the square operations are performed element-wise.
 The Hessian, as it is, is costly to evaluate because of the right hand-side term.
 In particular, the latter involves a :math:`\mathcal{O}(n^3)` operations. We overcome this limitation by using a diagonal upper bound on the Hessian.
 
-We construct such an upper bound by noticing that the second term is positive semi-definite. Therefore, we have,
+We construct such an upper bound by noticing that 
+
+#. the function :math:`F` is convex and hence :math:`\nabla^2 F(u)` is positive semi-definite
+#. the second term is positive semi-definite
+
+Therefore, we have,
 
 .. math::
     :label: diagonal-upper-bound
@@ -103,7 +108,7 @@ We construct such an upper bound by noticing that the second term is positive se
     \nabla^2 F(u) \preceq  \frac{1}{n} \text{diag}(e^u) \text{diag}(\mathbf{B}^\top \frac{s}{\mathbf{B}e^u})
     ,
 
-where the inequality applies on the eigenvalues.
+where the inequality is the Loewner order on positive semi-definite matrices.
 
 .. note::
 

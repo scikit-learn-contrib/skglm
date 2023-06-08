@@ -266,3 +266,33 @@ print(f"Difference: {(obj_sk - obj_ll):.2e}")
 
 # Check that both solutions are close
 print(f"Euclidean distance between solutions: {np.linalg.norm(w_sk - w_ll):.3e}")
+
+# %%
+# Finally, let's compare timing of both solvers
+
+# time skglm
+start = time.perf_counter()
+solver.solve(X, (tm, s), datafit, penalty)[0]
+end = time.perf_counter()
+
+total_time_skglm = end - start
+
+# time lifelines
+lifelines_estimator = CoxPHFitter(penalizer=alpha, l1_ratio=1.)
+
+start = time.perf_counter()
+lifelines_estimator.fit(
+    df,
+    duration_col=0,
+    event_col=1
+)
+end = time.perf_counter()
+
+total_time_lifelines = end - start
+
+speed_up = total_time_lifelines / total_time_skglm
+print(f"speed up ratio: {speed_up:.0f}")
+
+# %%
+# As shown by the last line, we do preserve the x100 ratio speed up
+# even for the Efron estimate.

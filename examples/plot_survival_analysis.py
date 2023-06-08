@@ -217,9 +217,8 @@ tm, s, X = make_dummy_survival_data(
     random_state=0
 )
 
-# check data has tied observations
-print("Number of unique times", np.unique(tm))
-print("Number of samples", n_samples)
+# check the data has tied observations
+print(f"Number of unique times {len(np.unique(tm))} out of {n_samples}")
 
 # %%
 # It is straightforward to fit an :math:`\ell_1` Cox estimator with the Efron estimate.

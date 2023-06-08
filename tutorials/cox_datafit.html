@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Examples Gallery" href="../auto_examples/index.html" /><link rel="prev" title="Getting started" href="../getting_started.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" />
 
     <!-- Generated with Sphinx 6.2.1 and Furo 2023.05.20 -->
-        <title>Tutorials - skglm 0.3.dev documentation</title>
+        <title>Mathematic behind Cox datafit - skglm 0.3.dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
@@ -167,9 +167,9 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <ul class="current">
+  <ul>
 <li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting started</a></li>
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../auto_examples/index.html">Examples Gallery</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Examples Gallery</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../auto_examples/plot_pen_prox.html">Value and proximal operators of penalties</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../auto_examples/plot_lasso_vs_weighted.html">Comparison of Lasso and Weighted Lasso</a></li>
@@ -258,24 +258,161 @@
           </label>
         </div>
         <article role="main">
-          <section id="tutorials">
-<span id="id1"></span><h1>Tutorials<a class="headerlink" href="#tutorials" title="Permalink to this heading">#</a></h1>
-<hr class="docutils" />
-<section id="how-to-add-a-custom-datafit">
-<h2><a class="reference internal" href="add_datafit.html#how-to-add-custom-datafit"><span class="std std-ref">How to add a custom datafit</span></a><a class="headerlink" href="#how-to-add-a-custom-datafit" title="Permalink to this heading">#</a></h2>
-<p>Learn to add a custom datafit through a hands-on examples: Implementing a Poisson datafit.</p>
+          <section id="mathematic-behind-cox-datafit">
+<span id="maths-cox-datafit"></span><h1>Mathematic behind Cox datafit<a class="headerlink" href="#mathematic-behind-cox-datafit" title="Permalink to this heading">#</a></h1>
+<p>This tutorial presents the mathematics behind Cox datafit using both Breslow and Efron estimate.</p>
+<section id="problem-setup">
+<h2>Problem setup<a class="headerlink" href="#problem-setup" title="Permalink to this heading">#</a></h2>
+<p>Let’s consider a typical survival analysis setup with</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">`\mathbf{X} \in \mathbb{R}^{n \times p}`</span> is a matrix of <span class="math notranslate nohighlight">`p`</span> predictors and <span class="math notranslate nohighlight">`n`</span> samples <span class="math notranslate nohighlight">`x_i \in \mathbb{R}^p`</span></p></li>
+<li><p><span class="math notranslate nohighlight">`y \in \mathbb{R}^n`</span> a vector recording the time of events occurrences</p></li>
+<li><p><span class="math notranslate nohighlight">`s \in \{ 0, 1 \}^n`</span> a binary vector (observation censorship) where <span class="math notranslate nohighlight">`1`</span> means <em>event occurred</em></p></li>
+</ul>
+<p>where we are interested in estimating the coefficients <span class="math notranslate nohighlight">`\beta \in \mathbb{R}^p`</span> of the linear combination of predictors.</p>
+<p>We will start by establishing the Cox datafit using the Breslow estimate then extend to the case of tied observations through the Efron estimate.</p>
 </section>
-<section id="how-to-add-a-custom-penalty">
-<h2><a class="reference internal" href="add_penalty.html#how-to-add-custom-penalty"><span class="std std-ref">How to add a custom penalty</span></a><a class="headerlink" href="#how-to-add-a-custom-penalty" title="Permalink to this heading">#</a></h2>
-<p>Learn to add a custom penalty by implementing the <span class="math notranslate nohighlight">`\ell_1`</span> penalty.</p>
+<section id="breslow-estimate">
+<h2>Breslow estimate<a class="headerlink" href="#breslow-estimate" title="Permalink to this heading">#</a></h2>
+<section id="datafit-expression">
+<h3>Datafit expression<a class="headerlink" href="#datafit-expression" title="Permalink to this heading">#</a></h3>
+<p>To get the expression of the Cox datafit, we refer to the expression of the negative log-likelihood according to the Breslow estimate [<a class="reference internal" href="#id3">1</a>, Section 2]</p>
+<div class="math-wrapper docutils container" id="equation-breslow-estimate">
+<div class="math notranslate nohighlight" id="equation-breslow-estimate">
+<span class="eqno">(1)<a class="headerlink" href="#equation-breslow-estimate" title="Permalink to this equation">#</a></span>`l(\beta) = \frac{1}{n} \sum_{i=1}^{n} -s_i \langle x_i, \beta \rangle + s_i \log(\sum_{y_j \geq y_i} e^{\langle x_j, \beta \rangle})
+.`</div>
+</div>
+<p>To get compact expression, We introduce the matrix <span class="math notranslate nohighlight">`mathbf{B} \in \mathbb{R}^{n \times n}`</span> defined as <span class="math notranslate nohighlight">`\mathbf{B}_{i, j} = \mathbb{1}_{y_j \geq y_i} = 1`</span> if <span class="math notranslate nohighlight">`y_j \geq y_i`</span> and <span class="math notranslate nohighlight">`0`</span> otherwise.</p>
+<p>We notice the first term in <a class="reference internal" href="#equation-breslow-estimate">(1)</a> can be rewritten as</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`\sum_{i=1}^{n} -s_i \langle x_i, \beta \rangle = -\langle s, \mathbf{X}\beta \rangle
+,`</div>
+</div>
+<p>whereas the second term writes</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`\sum_{i=1}^n s_i \log(\sum_{y_j \geq y_i} e^{\langle x_j, \beta \rangle}) = \sum_{i=1}^n s_i \log(\sum_{j=1}^n \mathbb{1}_{y_j \geq y_i} e^{\langle x_j, \beta \rangle}) = \langle s, \log(\mathbf{B}e^{\mathbf{X}\beta}) \rangle
+,`</div>
+</div>
+<p>where the <span class="math notranslate nohighlight">`\log`</span> is applied element-wise. Therefore we deduce the expression of Cox datafit</p>
+<div class="math-wrapper docutils container" id="equation-vectorized-cox-breslow">
+<div class="math notranslate nohighlight" id="equation-vectorized-cox-breslow">
+<span class="eqno">(2)<a class="headerlink" href="#equation-vectorized-cox-breslow" title="Permalink to this equation">#</a></span>`l(\beta) =  -\frac{1}{n} \langle s, \mathbf{X}\beta \rangle + \frac{1}{n} \langle s, \log(\mathbf{B}e^{\mathbf{X}\beta}) \rangle
+.`</div>
+</div>
+<p>We observe from this vectorized reformulation that the Cox datafit only depends <span class="math notranslate nohighlight">`\mathbf{X}\beta`</span>. Hence, we can focus on the function</p>
+<div class="math-wrapper docutils container" id="equation-simple-function">
+<div class="math notranslate nohighlight" id="equation-simple-function">
+<span class="eqno">(3)<a class="headerlink" href="#equation-simple-function" title="Permalink to this equation">#</a></span>`F(u) = -\frac{1}{n} \langle s, u \rangle + \frac{1}{n} \langle s, \log(\mathbf{B}e^u) \rangle
+,`</div>
+</div>
+<p>to derive the gradient and Hessian.</p>
 </section>
-<section id="computation-of-the-intercept">
-<h2><a class="reference internal" href="intercept.html#maths-unpenalized-intercept"><span class="std std-ref">Computation of the intercept</span></a><a class="headerlink" href="#computation-of-the-intercept" title="Permalink to this heading">#</a></h2>
-<p>Explore how <code class="docutils literal notranslate"><span class="pre">skglm</span></code> fits an unpenalized intercept.</p>
+<section id="gradient-and-hessian">
+<h3>Gradient and Hessian<a class="headerlink" href="#gradient-and-hessian" title="Permalink to this heading">#</a></h3>
+<p>We apply the chain rule to derive the function <span class="math notranslate nohighlight">`F`</span> gradient and Hessian.
+For <span class="math notranslate nohighlight">`u \in \mathbb{R}^n`</span>, The gradient is</p>
+<div class="math-wrapper docutils container" id="equation-raw-gradient">
+<div class="math notranslate nohighlight" id="equation-raw-gradient">
+<span class="eqno">(4)<a class="headerlink" href="#equation-raw-gradient" title="Permalink to this equation">#</a></span>`\nabla F(u) = -\frac{1}{n} s + \frac{1}{n} [\text{diag}(e^u)\mathbf{B}^\top] \frac{s}{\mathbf{B}e^u}
+,`</div>
+</div>
+<p>and the Hessian reads</p>
+<div class="math-wrapper docutils container" id="equation-raw-hessian">
+<div class="math notranslate nohighlight" id="equation-raw-hessian">
+<span class="eqno">(5)<a class="headerlink" href="#equation-raw-hessian" title="Permalink to this equation">#</a></span>`\nabla^2 F(u) = \frac{1}{n} \text{diag}(e^u) \text{diag}(\mathbf{B}^\top \frac{s}{\mathbf{B}e^u}) - \frac{1}{n} \text{diag}(e^u) \mathbf{B}^\top \text{diag}(\frac{s}{(\mathbf{B}e^u)^2})\mathbf{B}\text{diag}(e^u)
+,`</div>
+</div>
+<p>where the division and the square operations are performed element-wise.</p>
+<p>The Hessian, as it is, is costly to evaluate because of the right hand-side term.
+In particular, the latter involves a <span class="math notranslate nohighlight">`\mathcal{O}(n^3)`</span> operations. We overcome this limitation by using a diagonal upper bound on the Hessian.</p>
+<p>We construct such an upper bound by noticing that</p>
+<ol class="arabic simple">
+<li><p>the function <span class="math notranslate nohighlight">`F`</span> is convex and hence <span class="math notranslate nohighlight">`\nabla^2 F(u)`</span> is positive semi-definite</p></li>
+<li><p>the second term is positive semi-definite</p></li>
+</ol>
+<p>Therefore, we have,</p>
+<div class="math-wrapper docutils container" id="equation-diagonal-upper-bound">
+<div class="math notranslate nohighlight" id="equation-diagonal-upper-bound">
+<span class="eqno">(6)<a class="headerlink" href="#equation-diagonal-upper-bound" title="Permalink to this equation">#</a></span>`\nabla^2 F(u) \preceq  \frac{1}{n} \text{diag}(e^u) \text{diag}(\mathbf{B}^\top \frac{s}{\mathbf{B}e^u})
+,`</div>
+</div>
+<p>where the inequality is the Loewner order on positive semi-definite matrices.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Having a diagonal Hessian reduces Hessian computational cost to <span class="math notranslate nohighlight">`\mathcal{O}(n)`</span> instead of <span class="math notranslate nohighlight">`\mathcal{O}(n^3)`</span>.
+It also reduces the Hessian-vector operations to <span class="math notranslate nohighlight">`\mathcal{O}(n)`</span> instead of <span class="math notranslate nohighlight">`\mathcal{O}(n^2)`</span>.</p>
+</div>
 </section>
-<section id="mathematics-behind-cox-datafit">
-<h2><a class="reference internal" href="cox_datafit.html#maths-cox-datafit"><span class="std std-ref">Mathematics behind Cox datafit</span></a><a class="headerlink" href="#mathematics-behind-cox-datafit" title="Permalink to this heading">#</a></h2>
-<p>Get details about Cox datafit equations.</p>
+</section>
+<section id="efron-estimate">
+<h2>Efron estimate<a class="headerlink" href="#efron-estimate" title="Permalink to this heading">#</a></h2>
+<section id="id1">
+<h3>Datafit expression<a class="headerlink" href="#id1" title="Permalink to this heading">#</a></h3>
+<p>Efron estimate refines Breslow by handling tied observations (observations with identical occurrences’ time).
+We can define <span class="math notranslate nohighlight">`y_{i_1}, \ldots, y_{i_m}`</span> the unique times, assumed to be in total <span class="math notranslate nohighlight">`m`</span> and</p>
+<div class="math-wrapper docutils container" id="equation-def-h">
+<div class="math notranslate nohighlight" id="equation-def-h">
+<span class="eqno">(7)<a class="headerlink" href="#equation-def-h" title="Permalink to this equation">#</a></span>`H_{y_{i_l}} = \{ i \ | \ s_i = 1 \ ;\ y_i = y_{i_l} \}
+,`</div>
+</div>
+<p>the set of uncensored observations with the same time <span class="math notranslate nohighlight">`y_{i_l}`</span>.</p>
+<p>Again, we refer to the expression of the negative log-likelihood according to Efron estimate [<a class="reference internal" href="#id4">2</a>,  Section 6, equation (6.7)] to get the datafit formula</p>
+<div class="math-wrapper docutils container" id="equation-efron-estimate">
+<div class="math notranslate nohighlight" id="equation-efron-estimate">
+<span class="eqno">(8)<a class="headerlink" href="#equation-efron-estimate" title="Permalink to this equation">#</a></span>`l(\beta) = \frac{1}{n} \sum_{l=1}^{m} (
+    \sum_{i \in H_{i_l}} - \langle x_i, \beta \rangle
+    + \sum_{i \in H_{i_l}} \log(\sum_{y_j \geq y_{i_l}} e^{\langle x_j, \beta \rangle} - \frac{\#(i) - 1}{ |H_{i_l} |}\sum_{j \in H_{i_l}} e^{\langle x_j, \beta \rangle}))
+,`</div>
+</div>
+<p>where <span class="math notranslate nohighlight">`| H_{i_l} |`</span> stands for the cardinal of <span class="math notranslate nohighlight">`H_{i_l}`</span>, and <span class="math notranslate nohighlight">`\#(i)`</span> the index of observation <span class="math notranslate nohighlight">`i`</span> in <span class="math notranslate nohighlight">`H_{i_l}`</span>.</p>
+<p>Ideally, we would like to rewrite this expression like  <a class="reference internal" href="#equation-vectorized-cox-breslow">(2)</a> to leverage the established results about the gradient and Hessian. A closer look reveals what distinguishes both expressions is the presence of a double sum and a second term in the <span class="math notranslate nohighlight">`\log`</span>.</p>
+<p>First, we can observe that <span class="math notranslate nohighlight">`\cup_{l=1}^{m} H_{i_l} = \{ i \ | \ s_i = 1 \}`</span>, which enables fusing the two sums, for instance</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`\sum_{l=1}^{m}\sum_{i \in H_{i_l}} - \langle x_i, \beta \rangle = \sum_{i: s_i = 1} - \langle x_i, \beta \rangle = \sum_{i=1}^n -s_i \langle x_i, \beta \rangle = -\langle s, \mathbf{X}\beta \rangle
+.`</div>
+</div>
+<p>On the other hand, the minus term within <span class="math notranslate nohighlight">`\log`</span> can be rewritten as a linear term in <span class="math notranslate nohighlight">`mathbf{X}\beta`</span></p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`- \frac{\#(i) - 1}{| H_{i_l} |}\sum_{j \in H_{i_l}} e^{\langle x_j, \beta \rangle}
+    = \sum_{j=1}^{n} -\frac{\#(i) - 1}{| H_{i_l} |} \ \mathbb{1}_{j \in H_{i_l}} \ e^{\langle x_j, \beta \rangle}
+    = \sum_{j=1}^n a_{i,j} e^{\langle x_j, \beta \rangle}
+    = \langle a_i, e^{\mathbf{X}\beta} \rangle
+    ,`</div>
+</div>
+<p>where <span class="math notranslate nohighlight">`a_i`</span> is a vector in <span class="math notranslate nohighlight">`\mathbb{R}^n`</span> chosen accordingly to preform the linear operation.</p>
+<p>By defining the matrix <span class="math notranslate nohighlight">`\mathbf{A}`</span> with rows <span class="math notranslate nohighlight">`(a_i)_{i \in [n]}`</span>, we deduce the final expression</p>
+<div class="math-wrapper docutils container" id="equation-vectorized-cox-efron">
+<div class="math notranslate nohighlight" id="equation-vectorized-cox-efron">
+<span class="eqno">(9)<a class="headerlink" href="#equation-vectorized-cox-efron" title="Permalink to this equation">#</a></span>`l(\beta) =  -\frac{1}{n} \langle s, \mathbf{X}\beta \rangle +\frac{1}{n} \langle s, \log(\mathbf{B}e^{\mathbf{X}\beta} - \mathbf{A}e^{\mathbf{X}\beta}) \rangle
+.`</div>
+</div>
+<p>Algorithm 1 provides an efficient procedure to evaluate <span class="math notranslate nohighlight">`\mathbf{A}v`</span> for some <span class="math notranslate nohighlight">`v`</span> in <span class="math notranslate nohighlight">`\mathbb{R}^n`</span>.</p>
+<a class="reference internal image-reference" href="../_images/A_dot_v.png"><img alt="Algorithm 1 to evaluate A dot v" class="align-center" src="../_images/A_dot_v.png" style="width: 400px;" /></a>
+</section>
+<section id="id2">
+<h3>Gradient and Hessian<a class="headerlink" href="#id2" title="Permalink to this heading">#</a></h3>
+<p>Now that we cast the Efron estimate in form similar to <a class="reference internal" href="#equation-vectorized-cox-breslow">(2)</a>, the evaluation of gradient and the diagonal upper of the Hessian reduces to subtracting a linear term.
+Algorithm  2 provides an efficient procedure to evaluate <span class="math notranslate nohighlight">`\mathbf{A}^\top v`</span> for some <span class="math notranslate nohighlight">`v`</span> in <span class="math notranslate nohighlight">`\mathbb{R}^n`</span>.</p>
+<a class="reference internal image-reference" href="../_images/A_transpose_dot_v.png"><img alt="Algorithm 1 to evaluate A transpose dot v" class="align-center" src="../_images/A_transpose_dot_v.png" style="width: 400px;" /></a>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We notice that the complexity of both algorithms is <span class="math notranslate nohighlight">`\mathcal{O}(n)`</span> despite involving a matrix multiplication.
+This is due to the special structure of <span class="math notranslate nohighlight">`\mathbf{A}`</span> which in the case of sorted observations has a block diagonal structure
+with each block having equal columns.</p>
+<p>Here is an illustration with sorted observations having group sizes of identical occurrences times <span class="math notranslate nohighlight">`3, 2, 1, 3`</span> respectively</p>
+<a class="reference internal image-reference" href="../_images/structure_matrix_A.png"><img alt="Illustration of the structure of A when observations are sorted" class="align-center" src="../_images/structure_matrix_A.png" style="width: 300px;" /></a>
+</div>
+</section>
+</section>
+<section id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this heading">#</a></h2>
+<p id="id3">[1] DY Lin. On the Breslow estimator. Lifetime data analysis, 13:471–480, 2007.</p>
+<p id="id4">[2] Bradley Efron. The efficiency of cox’s likelihood function for censored data. Journal of the
+American statistical Association, 72(359):557–565, 1977.</p>
 </section>
 </section>
 
@@ -284,26 +421,8 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="../auto_examples/index.html">
-              <div class="page-info">
-                <div class="context">
-                  <span>Next</span>
-                </div>
-                <div class="title">Examples Gallery</div>
-              </div>
-              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
-            </a>
-          <a class="prev-page" href="../getting_started.html">
-              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
-              <div class="page-info">
-                <div class="context">
-                  <span>Previous</span>
-                </div>
-                
-                <div class="title">Getting started</div>
-                
-              </div>
-            </a>
+          
+          
         </div>
         <div class="bottom-of-page">
           <div class="left-details">
@@ -341,11 +460,19 @@
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">Tutorials</a><ul>
-<li><a class="reference internal" href="#how-to-add-a-custom-datafit"><span class="xref std std-ref">How to add a custom datafit</span></a></li>
-<li><a class="reference internal" href="#how-to-add-a-custom-penalty"><span class="xref std std-ref">How to add a custom penalty</span></a></li>
-<li><a class="reference internal" href="#computation-of-the-intercept"><span class="xref std std-ref">Computation of the intercept</span></a></li>
-<li><a class="reference internal" href="#mathematics-behind-cox-datafit"><span class="xref std std-ref">Mathematics behind Cox datafit</span></a></li>
+<li><a class="reference internal" href="#">Mathematic behind Cox datafit</a><ul>
+<li><a class="reference internal" href="#problem-setup">Problem setup</a></li>
+<li><a class="reference internal" href="#breslow-estimate">Breslow estimate</a><ul>
+<li><a class="reference internal" href="#datafit-expression">Datafit expression</a></li>
+<li><a class="reference internal" href="#gradient-and-hessian">Gradient and Hessian</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#efron-estimate">Efron estimate</a><ul>
+<li><a class="reference internal" href="#id1">Datafit expression</a></li>
+<li><a class="reference internal" href="#id2">Gradient and Hessian</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#reference">Reference</a></li>
 </ul>
 </li>
 </ul>

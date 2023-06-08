@@ -168,7 +168,8 @@ def test_mtl_path():
     np.testing.assert_allclose(coef_ours, coef_sk, rtol=1e-5)
 
 
-def test_CoxEstimator():
+@pytest.mark.parametrize("use_efron", [True, False])
+def test_CoxEstimator(use_efron):
     try:
         from lifelines import CoxPHFitter
     except ModuleNotFoundError:
@@ -182,8 +183,8 @@ def test_CoxEstimator():
     n_samples, n_features = 100, 30
     random_state = 1265
 
-    tm, s, X = make_dummy_survival_data(n_samples, n_features,
-                                        normalize=True, random_state=random_state)
+    tm, s, X = make_dummy_survival_data(n_samples, n_features, normalize=True,
+                                        with_ties=use_efron, random_state=random_state)
 
     # compute alpha_max
     B = (tm >= tm[:, None]).astype(X.dtype)
@@ -193,7 +194,7 @@ def test_CoxEstimator():
     alpha = reg * alpha_max
 
     # fit Cox using ProxNewton solver
-    datafit = compiled_clone(Cox())
+    datafit = compiled_clone(Cox(use_efron))
     penalty = compiled_clone(L1(alpha))
 
     datafit.initialize(X, (tm, s))
@@ -222,13 +223,14 @@ def test_CoxEstimator():
     np.testing.assert_allclose(p_obj_skglm, p_obj_ll, atol=1e-6)
 
 
-def test_CoxEstimator_sparse():
+@pytest.mark.parametrize("use_efron", [True, False])
+def test_CoxEstimator_sparse(use_efron):
     reg = 1e-2
     n_samples, n_features = 100, 30
     X_density, random_state = 0.5, 1265
 
     tm, s, X = make_dummy_survival_data(n_samples, n_features, X_density=X_density,
-                                        random_state=random_state)
+                                        with_ties=use_efron, random_state=random_state)
 
     # compute alpha_max
     B = (tm >= tm[:, None]).astype(X.dtype)
@@ -238,7 +240,7 @@ def test_CoxEstimator_sparse():
     alpha = reg * alpha_max
 
     # fit Cox using ProxNewton solver
-    datafit = compiled_clone(Cox())
+    datafit = compiled_clone(Cox(use_efron))
     penalty = compiled_clone(L1(alpha))
 
     datafit.initialize_sparse(X.data, X.indptr, X.indices, (tm, s))

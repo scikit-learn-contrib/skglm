@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.linalg import norm
 from numba import njit
-from numba import float64
+from numba import float64, int64, bool_
 
 from skglm.datafits.base import BaseDatafit
 from skglm.utils.sparse_ops import spectral_norm
@@ -547,90 +547,100 @@ class Gamma(BaseDatafit):
 
 
 class Cox(BaseDatafit):
-    r"""Cox datafit for survival analysis with Breslow estimate.
+    r"""Cox datafit for survival analysis.
 
-    The datafit reads [1]
+    Refer to :ref:`Mathematics behind Cox datafit <maths_cox_datafit>` for details.
 
-    .. math::
-
-        1 / n_"samples" \sum_(i=1)^(n_"samples") -s_i \langle x_i, w \rangle
-        + \log (\sum_(j | y_j \geq y_i) e^{\langle x_i, w \rangle})
-
-    where :math:`s_i` indicates the sample censorship and :math:`tm`
-    is the vector recording the time of event occurrences.
-
-    Defining the matrix :math:`B` with
-    :math:`B_{i,j} = 1` if  :math:`tm_j \geq tm_i` and :math:`0` otherwise,
-    the datafit can be rewritten in the following compact form
-
-    .. math::
-
-        1 / n_"samples" \langle s, Xw \rangle
-        + 1 / n_"samples" \langle s, \log B e^{Xw} \rangle
-
+    Parameters
+    ----------
+    use_efron : bool, default=False
+        If ``True`` uses Efron estimate to handle tied observations.
 
     Attributes
     ----------
     B : array-like, shape (n_samples, n_samples)
         Matrix where every ``(i, j)`` entry (row, column) equals ``1``
-        if ``tm[j] >= tm[i]`` and `0` otherwise. This matrix is initialized
+        if ``tm[j] >= tm[i]`` and ``0`` otherwise. This matrix is initialized
         using the ``.initialize`` method.
 
-    References
-    ----------
-    .. [1] DY Lin. On the Breslow estimator.
-           Lifetime data analysis, 13:471–480, 2007.
+    H_indices : array-like, shape (n_samples,)
+        Indices of observations with the same occurrence times stacked horizontally
+        as ``[group_1, group_2, ...]``. This array is initialized
+        when calling ``.initialize`` method when ``use_efron=True``.
+
+    H_indptr : array-like, (np.unique(tm) + 1,)
+        Array where two consecutive elements delimits a group of observations
+        having the same occurrence times.
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, use_efron=False):
+        self.use_efron = use_efron
 
     def get_spec(self):
         return (
+            ('use_efron', bool_),
             ('B', float64[:, ::1]),
+            ('H_indptr', int64[:]),
+            ('H_indices', int64[:]),
         )
 
     def params_to_dict(self):
-        return dict()
+        return dict(use_efron=self.use_efron)
 
     def value(self, y, w, Xw):
         """Compute the value of the datafit."""
         tm, s = y
         n_samples = Xw.shape[0]
 
-        out = -(s @ Xw) + s @ np.log(self.B @ np.exp(Xw))
+        # compute inside log term
+        exp_Xw = np.exp(Xw)
+        B_exp_Xw = self.B @ exp_Xw
+        if self.use_efron:
+            B_exp_Xw -= self._A_dot_vec(exp_Xw)
+
+        out = -(s @ Xw) + s @ np.log(B_exp_Xw)
         return out / n_samples
 
     def raw_grad(self, y, Xw):
         r"""Compute gradient of datafit w.r.t. ``Xw``.
 
-        The raw gradient reads
-
-            (-s + exp_Xw * (B.T @ (s / B @ exp_Xw)) / n_samples
+        Refer to :ref:`Mathematics behind Cox datafit <maths_cox_datafit>`
+        equation 4 for details.
         """
         tm, s = y
         n_samples = Xw.shape[0]
 
         exp_Xw = np.exp(Xw)
         B_exp_Xw = self.B @ exp_Xw
+        if self.use_efron:
+            B_exp_Xw -= self._A_dot_vec(exp_Xw)
 
-        out = -s + exp_Xw * (self.B.T @ (s / B_exp_Xw))
+        s_over_B_exp_Xw = s / B_exp_Xw
+        out = -s + exp_Xw * (self.B.T @ (s_over_B_exp_Xw))
+        if self.use_efron:
+            out -= exp_Xw * self._AT_dot_vec(s_over_B_exp_Xw)
+
         return out / n_samples
 
     def raw_hessian(self, y, Xw):
         """Compute a diagonal upper bound of the datafit's Hessian w.r.t. ``Xw``.
 
-        The diagonal upper bound reads
-
-            exp_Xw * (B.T @ s / B_exp_Xw) / n_samples
+        Refer to :ref:`Mathematics behind Cox datafit <maths_cox_datafit>`
+        equation 6 for details.
         """
         tm, s = y
         n_samples = Xw.shape[0]
 
         exp_Xw = np.exp(Xw)
         B_exp_Xw = self.B @ exp_Xw
+        if self.use_efron:
+            B_exp_Xw -= self._A_dot_vec(exp_Xw)
 
-        out = exp_Xw * (self.B.T @ (s / B_exp_Xw))
+        s_over_B_exp_Xw = s / B_exp_Xw
+        out = exp_Xw * (self.B.T @ (s_over_B_exp_Xw))
+        if self.use_efron:
+            out -= exp_Xw * self._AT_dot_vec(s_over_B_exp_Xw)
+
         return out / n_samples
 
     def initialize(self, X, y):
@@ -640,9 +650,58 @@ class Cox(BaseDatafit):
         tm_as_col = tm.reshape((-1, 1))
         self.B = (tm >= tm_as_col).astype(X.dtype)
 
+        if self.use_efron:
+            H_indices = np.argsort(tm)
+            # filter out censored data
+            H_indices = H_indices[s[H_indices] != 0]
+            n_uncensored_samples = H_indices.shape[0]
+
+            # build H_indptr
+            H_indptr = [0]
+            count = 1
+            for i in range(1, n_uncensored_samples):
+                if tm[H_indices[i-1]] == tm[H_indices[i]]:
+                    count += 1
+                else:
+                    H_indptr.append(count + H_indptr[-1])
+                    count = 1
+            H_indptr.append(n_uncensored_samples)
+            H_indptr = np.asarray(H_indptr, dtype=np.int64)
+
+            # save in instance
+            self.H_indptr = H_indptr
+            self.H_indices = H_indices
+
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
         """Initialize the datafit attributes in sparse dataset case."""
-        tm, s = y
+        # initialize_sparse and initialize have the same implementation
+        # small hack to avoid repetitive code: pass in X_data as only its dtype is used
+        self.initialize(X_data, y)
 
-        tm_as_col = tm.reshape((-1, 1))
-        self.B = (tm >= tm_as_col).astype(X_data.dtype)
+    def _A_dot_vec(self, vec):
+        out = np.zeros_like(vec)
+        n_H = self.H_indptr.shape[0] - 1
+
+        for idx in range(n_H):
+            current_H_idx = self.H_indices[self.H_indptr[idx]: self.H_indptr[idx+1]]
+            size_current_H = current_H_idx.shape[0]
+            frac_range = np.arange(size_current_H, dtype=vec.dtype) / size_current_H
+
+            sum_vec_H = np.sum(vec[current_H_idx])
+            out[current_H_idx] = sum_vec_H * frac_range
+
+        return out
+
+    def _AT_dot_vec(self, vec):
+        out = np.zeros_like(vec)
+        n_H = self.H_indptr.shape[0] - 1
+
+        for idx in range(n_H):
+            current_H_idx = self.H_indices[self.H_indptr[idx]: self.H_indptr[idx+1]]
+            size_current_H = current_H_idx.shape[0]
+            frac_range = np.arange(size_current_H, dtype=vec.dtype) / size_current_H
+
+            weighted_sum_vec_H = vec[current_H_idx] @ frac_range
+            out[current_H_idx] = weighted_sum_vec_H * np.ones(size_current_H)
+
+        return out

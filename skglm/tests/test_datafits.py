@@ -116,7 +116,8 @@ def test_gamma():
     np.testing.assert_allclose(clf.coef_, gamma_results.params, rtol=1e-6)
 
 
-def test_cox():
+@pytest.mark.parametrize("use_efron", [True, False])
+def test_cox(use_efron):
     rng = np.random.RandomState(1265)
     n_samples, n_features = 10, 30
 
@@ -131,7 +132,7 @@ def test_cox():
     Xw = X @ w
 
     # check datafit
-    cox_df = compiled_clone(Cox())
+    cox_df = compiled_clone(Cox(use_efron))
 
     cox_df.initialize(X, (tm, s))
     cox_df.value(y, w, Xw)

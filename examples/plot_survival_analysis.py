@@ -80,8 +80,10 @@ w_sk = solver.solve(X, (tm, s), datafit, penalty)[0]
 
 # %%
 # For this data a regularization value a relatively sparse solution is found:
-print(f"Number of nonzero coefficients in solution: {(w_sk != 0).sum()} out of {len(w_sk)}.")
-
+print(
+    "Number of nonzero coefficients in solution: "
+    f"{(w_sk != 0).sum()} out of {len(w_sk)}."
+)
 
 # %%
 # Let's solve the problem with ``lifelines`` through its ``CoxPHFitter``

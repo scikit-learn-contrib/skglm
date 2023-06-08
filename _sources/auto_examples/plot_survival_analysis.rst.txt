@@ -126,7 +126,7 @@ We set the intensity of the :math:`\ell_1` regularization to ``alpha=1e-2``.
     datafit.initialize(X, (tm, s))
 
     # init solver
-    solver = ProxNewton(fit_intercept=False, max_iter=50,)
+    solver = ProxNewton(fit_intercept=False, max_iter=50)
 
     # solve the problem
     w_sk = solver.solve(X, (tm, s), datafit, penalty)[0]
@@ -142,12 +142,14 @@ We set the intensity of the :math:`\ell_1` regularization to ``alpha=1e-2``.
 
 For this data a regularization value a relatively sparse solution is found:
 
-.. GENERATED FROM PYTHON SOURCE LINES 83-86
+.. GENERATED FROM PYTHON SOURCE LINES 83-88
 
 .. code-block:: default
 
-    print(f"Number of nonzero coefficients in solution: {(w_sk != 0).sum()} out of {len(w_sk)}.")
-
+    print(
+        "Number of nonzero coefficients in solution: "
+        f"{(w_sk != 0).sum()} out of {len(w_sk)}."
+    )
 
 
 
@@ -162,12 +164,12 @@ For this data a regularization value a relatively sparse solution is found:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 87-89
+.. GENERATED FROM PYTHON SOURCE LINES 89-91
 
 Let's solve the problem with ``lifelines`` through its ``CoxPHFitter``
 estimator and compare the objectives found by the two packages.
 
-.. GENERATED FROM PYTHON SOURCE LINES 89-105
+.. GENERATED FROM PYTHON SOURCE LINES 91-107
 
 .. code-block:: default
 
@@ -194,11 +196,11 @@ estimator and compare the objectives found by the two packages.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 106-107
+.. GENERATED FROM PYTHON SOURCE LINES 108-109
 
 Check that both solvers find solutions having the same objective value:
 
-.. GENERATED FROM PYTHON SOURCE LINES 107-113
+.. GENERATED FROM PYTHON SOURCE LINES 109-115
 
 .. code-block:: default
 
@@ -223,11 +225,11 @@ Check that both solvers find solutions having the same objective value:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 114-115
+.. GENERATED FROM PYTHON SOURCE LINES 116-117
 
 We can do the same to check how close the two solutions are.
 
-.. GENERATED FROM PYTHON SOURCE LINES 115-117
+.. GENERATED FROM PYTHON SOURCE LINES 117-119
 
 .. code-block:: default
 
@@ -246,7 +248,7 @@ We can do the same to check how close the two solutions are.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 118-125
+.. GENERATED FROM PYTHON SOURCE LINES 120-127
 
 Timing comparison
 -----------------
@@ -256,7 +258,7 @@ let's compare their execution time. To get the evolution of the suboptimality
 (objective - optimal objective) we run both estimators with increasing number of
 iterations.
 
-.. GENERATED FROM PYTHON SOURCE LINES 125-175
+.. GENERATED FROM PYTHON SOURCE LINES 127-177
 
 .. code-block:: default
 
@@ -317,12 +319,12 @@ iterations.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 176-178
+.. GENERATED FROM PYTHON SOURCE LINES 178-180
 
 Results
 -------
 
-.. GENERATED FROM PYTHON SOURCE LINES 178-200
+.. GENERATED FROM PYTHON SOURCE LINES 180-200
 
 .. code-block:: default
 
@@ -345,8 +347,6 @@ Results
 
     ax.set_ylabel("objective suboptimality")
     _ = ax.set_xlabel("time in seconds")
-
-
 
 
 
@@ -380,15 +380,203 @@ with more than x100 less time!
 
  .. code-block:: none
 
-    speed up ratio: 732
+    speed up ratio: 651
 
 
 
+
+.. GENERATED FROM PYTHON SOURCE LINES 207-215
+
+Efron estimate
+--------------
+
+The previous results, namely closeness of solutions and timings,
+can be extended to the case of handling tied observation with the Efron estimate.
+
+Let's start by generating data with tied observations. This can be achieved
+by passing in a ``with_ties=True`` to ``make_dummy_survival_data`` function.
+
+.. GENERATED FROM PYTHON SOURCE LINES 215-225
+
+.. code-block:: default
+
+    tm, s, X = make_dummy_survival_data(
+        n_samples, n_features,
+        normalize=True,
+        with_ties=True,
+        random_state=0
+    )
+
+    # check the data has tied observations
+    print(f"Number of unique times {len(np.unique(tm))} out of {n_samples}")
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    Number of unique times 51 out of 500
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 226-228
+
+It is straightforward to fit an :math:`\ell_1` Cox estimator with the Efron estimate.
+We only need to pass in ``use_efron=True`` to the ``Cox`` datafit.
+
+.. GENERATED FROM PYTHON SOURCE LINES 228-237
+
+.. code-block:: default
+
+
+    # ensure using Efron estimate
+    datafit = compiled_clone(Cox(use_efron=True))
+    datafit.initialize(X, (tm, s))
+
+    # solve the problem
+    solver = ProxNewton(fit_intercept=False, max_iter=50)
+    w_sk = solver.solve(X, (tm, s), datafit, penalty)[0]
+
+
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 238-239
+
+Again a relatively sparse solution is found:
+
+.. GENERATED FROM PYTHON SOURCE LINES 239-244
+
+.. code-block:: default
+
+    print(
+        "Number of nonzero coefficients in solution: "
+        f"{(w_sk != 0).sum()} out of {len(w_sk)}."
+    )
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    Number of nonzero coefficients in solution: 82 out of 100.
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 245-246
+
+Let's do the same with ``lifelines`` and compare the results
+
+.. GENERATED FROM PYTHON SOURCE LINES 246-270
+
+.. code-block:: default
+
+
+    # format data
+    stacked_tm_s_X = np.hstack((tm[:, None], s[:, None], X))
+    df = pd.DataFrame(stacked_tm_s_X)
+
+    # fit lifelines estimator on the new data
+    lifelines_estimator = CoxPHFitter(penalizer=alpha, l1_ratio=1.).fit(
+        df,
+        duration_col=0,
+        event_col=1
+    )
+    w_ll = lifelines_estimator.params_.values
+
+    # Check that both solvers find solutions with the same objective value
+    obj_sk = datafit.value((tm, s), w_sk, X @ w_sk) + penalty.value(w_sk)
+    obj_ll = datafit.value((tm, s), w_ll, X @ w_ll) + penalty.value(w_ll)
+
+    print(f"Objective skglm: {obj_sk:.6f}")
+    print(f"Objective lifelines: {obj_ll:.6f}")
+    print(f"Difference: {(obj_sk - obj_ll):.2e}")
+
+    # Check that both solutions are close
+    print(f"Euclidean distance between solutions: {np.linalg.norm(w_sk - w_ll):.3e}")
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    Objective skglm: 2.501289
+    Objective lifelines: 2.501289
+    Difference: -1.59e-09
+    Euclidean distance between solutions: 4.046e-04
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 271-272
+
+Finally, let's compare the timings of both solvers
+
+.. GENERATED FROM PYTHON SOURCE LINES 272-297
+
+.. code-block:: default
+
+
+    # time skglm
+    start = time.perf_counter()
+    solver.solve(X, (tm, s), datafit, penalty)[0]
+    end = time.perf_counter()
+
+    total_time_skglm = end - start
+
+    # time lifelines
+    lifelines_estimator = CoxPHFitter(penalizer=alpha, l1_ratio=1.)
+
+    start = time.perf_counter()
+    lifelines_estimator.fit(
+        df,
+        duration_col=0,
+        event_col=1
+    )
+    end = time.perf_counter()
+
+    total_time_lifelines = end - start
+
+    # deduce speed up ratio
+    speed_up = total_time_lifelines / total_time_skglm
+    print(f"speed up ratio: {speed_up:.0f}")
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    speed up ratio: 543
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 298-300
+
+As shown by the last print, we still preserve the x100 ratio speed up
+even for the Efron estimate.
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  36.073 seconds)
+   **Total running time of the script:** ( 0 minutes  43.810 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_survival_analysis.py:

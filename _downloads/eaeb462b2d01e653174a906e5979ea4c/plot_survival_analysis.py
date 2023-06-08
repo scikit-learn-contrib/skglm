@@ -73,15 +73,17 @@ penalty = compiled_clone(L1(alpha))
 datafit.initialize(X, (tm, s))
 
 # init solver
-solver = ProxNewton(fit_intercept=False, max_iter=50,)
+solver = ProxNewton(fit_intercept=False, max_iter=50)
 
 # solve the problem
 w_sk = solver.solve(X, (tm, s), datafit, penalty)[0]
 
 # %%
 # For this data a regularization value a relatively sparse solution is found:
-print(f"Number of nonzero coefficients in solution: {(w_sk != 0).sum()} out of {len(w_sk)}.")
-
+print(
+    "Number of nonzero coefficients in solution: "
+    f"{(w_sk != 0).sum()} out of {len(w_sk)}."
+)
 
 # %%
 # Let's solve the problem with ``lifelines`` through its ``CoxPHFitter``
@@ -195,11 +197,103 @@ ax.set_title("Time to fit a Cox model")
 ax.set_ylabel("objective suboptimality")
 _ = ax.set_xlabel("time in seconds")
 
-
-
 # %%
 # According to printed ratio, using ``skglm`` we get the same result as ``lifelines``
 # with more than x100 less time!
 speed_up = records["lifelines"]["times"][-1] / records["skglm"]["times"][-1]
 print(f"speed up ratio: {speed_up:.0f}")
 
+# %%
+# Efron estimate
+# --------------
+#
+# The previous results, namely closeness of solutions and timings,
+# can be extended to the case of handling tied observation with the Efron estimate.
+#
+# Let's start by generating data with tied observations. This can be achieved
+# by passing in a ``with_ties=True`` to ``make_dummy_survival_data`` function.
+tm, s, X = make_dummy_survival_data(
+    n_samples, n_features,
+    normalize=True,
+    with_ties=True,
+    random_state=0
+)
+
+# check the data has tied observations
+print(f"Number of unique times {len(np.unique(tm))} out of {n_samples}")
+
+# %%
+# It is straightforward to fit an :math:`\ell_1` Cox estimator with the Efron estimate.
+# We only need to pass in ``use_efron=True`` to the ``Cox`` datafit.
+
+# ensure using Efron estimate
+datafit = compiled_clone(Cox(use_efron=True))
+datafit.initialize(X, (tm, s))
+
+# solve the problem
+solver = ProxNewton(fit_intercept=False, max_iter=50)
+w_sk = solver.solve(X, (tm, s), datafit, penalty)[0]
+
+# %%
+# Again a relatively sparse solution is found:
+print(
+    "Number of nonzero coefficients in solution: "
+    f"{(w_sk != 0).sum()} out of {len(w_sk)}."
+)
+
+# %%
+# Let's do the same with ``lifelines`` and compare the results
+
+# format data
+stacked_tm_s_X = np.hstack((tm[:, None], s[:, None], X))
+df = pd.DataFrame(stacked_tm_s_X)
+
+# fit lifelines estimator on the new data
+lifelines_estimator = CoxPHFitter(penalizer=alpha, l1_ratio=1.).fit(
+    df,
+    duration_col=0,
+    event_col=1
+)
+w_ll = lifelines_estimator.params_.values
+
+# Check that both solvers find solutions with the same objective value
+obj_sk = datafit.value((tm, s), w_sk, X @ w_sk) + penalty.value(w_sk)
+obj_ll = datafit.value((tm, s), w_ll, X @ w_ll) + penalty.value(w_ll)
+
+print(f"Objective skglm: {obj_sk:.6f}")
+print(f"Objective lifelines: {obj_ll:.6f}")
+print(f"Difference: {(obj_sk - obj_ll):.2e}")
+
+# Check that both solutions are close
+print(f"Euclidean distance between solutions: {np.linalg.norm(w_sk - w_ll):.3e}")
+
+# %%
+# Finally, let's compare the timings of both solvers
+
+# time skglm
+start = time.perf_counter()
+solver.solve(X, (tm, s), datafit, penalty)[0]
+end = time.perf_counter()
+
+total_time_skglm = end - start
+
+# time lifelines
+lifelines_estimator = CoxPHFitter(penalizer=alpha, l1_ratio=1.)
+
+start = time.perf_counter()
+lifelines_estimator.fit(
+    df,
+    duration_col=0,
+    event_col=1
+)
+end = time.perf_counter()
+
+total_time_lifelines = end - start
+
+# deduce speed up ratio
+speed_up = total_time_lifelines / total_time_skglm
+print(f"speed up ratio: {speed_up:.0f}")
+
+# %%
+# As shown by the last print, we still preserve the x100 ratio speed up
+# even for the Efron estimate.

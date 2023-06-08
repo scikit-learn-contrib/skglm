@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Sparse recovery with non-convex penalties" href="plot_sparse_recovery.html" /><link rel="prev" title="Timing comparison with scikit-learn for Lasso" href="plot_compare_time.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="API Documentation" href="../api.html" /><link rel="prev" title="Sparse recovery with non-convex penalties" href="plot_sparse_recovery.html" />
 
     <!-- Generated with Sphinx 6.2.1 and Furo 2023.05.20 -->
         <title>Comparison of lifelines with skglm for survival analysis - skglm 0.3.dev documentation</title>
@@ -177,8 +177,8 @@
 <li class="toctree-l2"><a class="reference internal" href="plot_logreg_various_penalties.html">Logistic regression with Elastic net and minimax concave penalties</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_reweighted_l1.html">Timing comparison between direct prox computation and reweighting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_compare_time.html">Timing comparison with scikit-learn for Lasso</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Comparison of lifelines with skglm for survival analysis</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_sparse_recovery.html">Sparse recovery with non-convex penalties</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Comparison of lifelines with skglm for survival analysis</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../api.html">API Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of API Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -329,14 +329,17 @@ We set the intensity of the <span class="math notranslate nohighlight">`\ell_1`<
 <span class="n">datafit</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">(</span><span class="n">tm</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
 
 <span class="c1"># init solver</span>
-<span class="n">solver</span> <span class="o">=</span> <a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class"><span class="n">ProxNewton</span></a><span class="p">(</span><span class="n">fit_intercept</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">50</span><span class="p">,)</span>
+<a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a> <span class="o">=</span> <a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class"><span class="n">ProxNewton</span></a><span class="p">(</span><span class="n">fit_intercept</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
 
 <span class="c1"># solve the problem</span>
-<span class="n">w_sk</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">(</span><span class="n">tm</span><span class="p">,</span> <span class="n">s</span><span class="p">),</span> <span class="n">datafit</span><span class="p">,</span> <span class="n">penalty</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">w_sk</span> <span class="o">=</span> <a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">(</span><span class="n">tm</span><span class="p">,</span> <span class="n">s</span><span class="p">),</span> <span class="n">datafit</span><span class="p">,</span> <span class="n">penalty</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>For this data a regularization value a relatively sparse solution is found:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of nonzero coefficients in solution: </span><span class="si">{</span><span class="p">(</span><span class="n">w_sk</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">}</span><span class="s2"> out of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">w_sk</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span>
+    <span class="s2">&quot;Number of nonzero coefficients in solution: &quot;</span>
+    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="p">(</span><span class="n">w_sk</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">}</span><span class="s2"> out of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">w_sk</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Number of nonzero coefficients in solution: 66 out of 100.
@@ -403,10 +406,10 @@ iterations.</p>
 <span class="c1"># time skglm</span>
 <span class="n">max_runs</span> <span class="o">=</span> <span class="mi">20</span>
 <span class="k">for</span> <span class="n">n_iter</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_runs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
-    <span class="n">solver</span><span class="o">.</span><span class="n">max_iter</span> <span class="o">=</span> <span class="n">n_iter</span>
+    <a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a><span class="o">.</span><span class="n">max_iter</span> <span class="o">=</span> <span class="n">n_iter</span>
 
     <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
-    <span class="n">w</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">(</span><span class="n">tm</span><span class="p">,</span> <span class="n">s</span><span class="p">),</span> <span class="n">datafit</span><span class="p">,</span> <span class="n">penalty</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">w</span> <span class="o">=</span> <a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">(</span><span class="n">tm</span><span class="p">,</span> <span class="n">s</span><span class="p">),</span> <span class="n">datafit</span><span class="p">,</span> <span class="n">penalty</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
 
     <span class="n">records</span><span class="p">[</span><span class="s2">&quot;skglm&quot;</span><span class="p">][</span><span class="s2">&quot;objs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
@@ -446,14 +449,14 @@ iterations.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 <span class="n">solvers</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;skglm&quot;</span><span class="p">,</span> <span class="s2">&quot;lifelines&quot;</span><span class="p">)</span>
 
-<span class="n">optimal_obj</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">records</span><span class="p">[</span><span class="n">solver</span><span class="p">][</span><span class="s2">&quot;objs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="k">for</span> <span class="n">solver</span> <span class="ow">in</span> <span class="n">solvers</span><span class="p">)</span>
+<span class="n">optimal_obj</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">records</span><span class="p">[</span><a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a><span class="p">][</span><span class="s2">&quot;objs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="k">for</span> <a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a> <span class="ow">in</span> <span class="n">solvers</span><span class="p">)</span>
 
 <span class="c1"># plot evolution of suboptimality</span>
-<span class="k">for</span> <span class="n">solver</span> <span class="ow">in</span> <span class="n">solvers</span><span class="p">:</span>
+<span class="k">for</span> <a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a> <span class="ow">in</span> <span class="n">solvers</span><span class="p">:</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">semilogy</span><span class="p">(</span>
-        <span class="n">records</span><span class="p">[</span><span class="n">solver</span><span class="p">][</span><span class="s2">&quot;times&quot;</span><span class="p">],</span>
-        <span class="n">records</span><span class="p">[</span><span class="n">solver</span><span class="p">][</span><span class="s2">&quot;objs&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">optimal_obj</span><span class="p">,</span>
-        <span class="n">label</span><span class="o">=</span><span class="n">solver</span><span class="p">,</span>
+        <span class="n">records</span><span class="p">[</span><a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a><span class="p">][</span><span class="s2">&quot;times&quot;</span><span class="p">],</span>
+        <span class="n">records</span><span class="p">[</span><a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a><span class="p">][</span><span class="s2">&quot;objs&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">optimal_obj</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a><span class="p">,</span>
         <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span>
     <span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
@@ -469,10 +472,114 @@ with more than x100 less time!</p>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;speed up ratio: </span><span class="si">{</span><span class="n">speed_up</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>speed up ratio: 732
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>speed up ratio: 651
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  36.073 seconds)</p>
+</section>
+<section id="efron-estimate">
+<h2>Efron estimate<a class="headerlink" href="#efron-estimate" title="Permalink to this heading">#</a></h2>
+<p>The previous results, namely closeness of solutions and timings,
+can be extended to the case of handling tied observation with the Efron estimate.</p>
+<p>Let’s start by generating data with tied observations. This can be achieved
+by passing in a <code class="docutils literal notranslate"><span class="pre">with_ties=True</span></code> to <code class="docutils literal notranslate"><span class="pre">make_dummy_survival_data</span></code> function.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tm</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">X</span> <span class="o">=</span> <span class="n">make_dummy_survival_data</span><span class="p">(</span>
+    <span class="n">n_samples</span><span class="p">,</span> <span class="n">n_features</span><span class="p">,</span>
+    <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">with_ties</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span>
+<span class="p">)</span>
+
+<span class="c1"># check the data has tied observations</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of unique times </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">tm</span><span class="p">))</span><span class="si">}</span><span class="s2"> out of </span><span class="si">{</span><span class="n">n_samples</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Number of unique times 51 out of 500
+</pre></div>
+</div>
+<p>It is straightforward to fit an <span class="math notranslate nohighlight">`\ell_1`</span> Cox estimator with the Efron estimate.
+We only need to pass in <code class="docutils literal notranslate"><span class="pre">use_efron=True</span></code> to the <code class="docutils literal notranslate"><span class="pre">Cox</span></code> datafit.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># ensure using Efron estimate</span>
+<span class="n">datafit</span> <span class="o">=</span> <span class="n">compiled_clone</span><span class="p">(</span><a href="../generated/skglm.datafits.Cox.html#skglm.datafits.Cox" title="skglm.datafits.Cox" class="sphx-glr-backref-module-skglm-datafits sphx-glr-backref-type-py-class"><span class="n">Cox</span></a><span class="p">(</span><span class="n">use_efron</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="n">datafit</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">(</span><span class="n">tm</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
+
+<span class="c1"># solve the problem</span>
+<a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a> <span class="o">=</span> <a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class"><span class="n">ProxNewton</span></a><span class="p">(</span><span class="n">fit_intercept</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+<span class="n">w_sk</span> <span class="o">=</span> <a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">(</span><span class="n">tm</span><span class="p">,</span> <span class="n">s</span><span class="p">),</span> <span class="n">datafit</span><span class="p">,</span> <span class="n">penalty</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Again a relatively sparse solution is found:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span>
+    <span class="s2">&quot;Number of nonzero coefficients in solution: &quot;</span>
+    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="p">(</span><span class="n">w_sk</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">}</span><span class="s2"> out of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">w_sk</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Number of nonzero coefficients in solution: 82 out of 100.
+</pre></div>
+</div>
+<p>Let’s do the same with <code class="docutils literal notranslate"><span class="pre">lifelines</span></code> and compare the results</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># format data</span>
+<span class="n">stacked_tm_s_X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">tm</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">s</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">X</span><span class="p">))</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">stacked_tm_s_X</span><span class="p">)</span>
+
+<span class="c1"># fit lifelines estimator on the new data</span>
+<span class="n">lifelines_estimator</span> <span class="o">=</span> <span class="n">CoxPHFitter</span><span class="p">(</span><span class="n">penalizer</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> <span class="n">l1_ratio</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">,</span>
+    <span class="n">duration_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">event_col</span><span class="o">=</span><span class="mi">1</span>
+<span class="p">)</span>
+<span class="n">w_ll</span> <span class="o">=</span> <span class="n">lifelines_estimator</span><span class="o">.</span><span class="n">params_</span><span class="o">.</span><span class="n">values</span>
+
+<span class="c1"># Check that both solvers find solutions with the same objective value</span>
+<span class="n">obj_sk</span> <span class="o">=</span> <span class="n">datafit</span><span class="o">.</span><span class="n">value</span><span class="p">((</span><span class="n">tm</span><span class="p">,</span> <span class="n">s</span><span class="p">),</span> <span class="n">w_sk</span><span class="p">,</span> <span class="n">X</span> <span class="o">@</span> <span class="n">w_sk</span><span class="p">)</span> <span class="o">+</span> <span class="n">penalty</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">w_sk</span><span class="p">)</span>
+<span class="n">obj_ll</span> <span class="o">=</span> <span class="n">datafit</span><span class="o">.</span><span class="n">value</span><span class="p">((</span><span class="n">tm</span><span class="p">,</span> <span class="n">s</span><span class="p">),</span> <span class="n">w_ll</span><span class="p">,</span> <span class="n">X</span> <span class="o">@</span> <span class="n">w_ll</span><span class="p">)</span> <span class="o">+</span> <span class="n">penalty</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">w_ll</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Objective skglm: </span><span class="si">{</span><span class="n">obj_sk</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Objective lifelines: </span><span class="si">{</span><span class="n">obj_ll</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Difference: </span><span class="si">{</span><span class="p">(</span><span class="n">obj_sk</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">obj_ll</span><span class="p">)</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Check that both solutions are close</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Euclidean distance between solutions: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">w_sk</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">w_ll</span><span class="p">)</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Objective skglm: 2.501289
+Objective lifelines: 2.501289
+Difference: -1.59e-09
+Euclidean distance between solutions: 4.046e-04
+</pre></div>
+</div>
+<p>Finally, let’s compare the timings of both solvers</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># time skglm</span>
+<span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+<a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">(</span><span class="n">tm</span><span class="p">,</span> <span class="n">s</span><span class="p">),</span> <span class="n">datafit</span><span class="p">,</span> <span class="n">penalty</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+
+<span class="n">total_time_skglm</span> <span class="o">=</span> <span class="n">end</span> <span class="o">-</span> <span class="n">start</span>
+
+<span class="c1"># time lifelines</span>
+<span class="n">lifelines_estimator</span> <span class="o">=</span> <span class="n">CoxPHFitter</span><span class="p">(</span><span class="n">penalizer</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> <span class="n">l1_ratio</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
+
+<span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+<span class="n">lifelines_estimator</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">,</span>
+    <span class="n">duration_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">event_col</span><span class="o">=</span><span class="mi">1</span>
+<span class="p">)</span>
+<span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+
+<span class="n">total_time_lifelines</span> <span class="o">=</span> <span class="n">end</span> <span class="o">-</span> <span class="n">start</span>
+
+<span class="c1"># deduce speed up ratio</span>
+<span class="n">speed_up</span> <span class="o">=</span> <span class="n">total_time_lifelines</span> <span class="o">/</span> <span class="n">total_time_skglm</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;speed up ratio: </span><span class="si">{</span><span class="n">speed_up</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>speed up ratio: 543
+</pre></div>
+</div>
+<p>As shown by the last print, we still preserve the x100 ratio speed up
+even for the Efron estimate.</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  43.810 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-survival-analysis-py">
 <div class="sphx-glr-download sphx-glr-download-python docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/eaeb462b2d01e653174a906e5979ea4c/plot_survival_analysis.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_survival_analysis.py</span></code></a></p>
@@ -490,23 +597,23 @@ with more than x100 less time!</p>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="plot_sparse_recovery.html">
+          <a class="next-page" href="../api.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Sparse recovery with non-convex penalties</div>
+                <div class="title">API Documentation</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="plot_compare_time.html">
+          <a class="prev-page" href="plot_sparse_recovery.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Timing comparison with scikit-learn for Lasso</div>
+                <div class="title">Sparse recovery with non-convex penalties</div>
                 
               </div>
             </a>
@@ -552,6 +659,7 @@ with more than x100 less time!</p>
 <li><a class="reference internal" href="#fitting-the-cox-estimator">Fitting the Cox Estimator</a></li>
 <li><a class="reference internal" href="#timing-comparison">Timing comparison</a></li>
 <li><a class="reference internal" href="#results">Results</a></li>
+<li><a class="reference internal" href="#efron-estimate">Efron estimate</a></li>
 </ul>
 </li>
 </ul>

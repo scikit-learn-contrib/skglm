@@ -73,7 +73,7 @@ penalty = compiled_clone(L1(alpha))
 datafit.initialize(X, (tm, s))
 
 # init solver
-solver = ProxNewton(fit_intercept=False, max_iter=50,)
+solver = ProxNewton(fit_intercept=False, max_iter=50)
 
 # solve the problem
 w_sk = solver.solve(X, (tm, s), datafit, penalty)[0]
@@ -205,10 +205,10 @@ print(f"speed up ratio: {speed_up:.0f}")
 # Efron estimate
 # ==============
 #
-# The previous results, namely closeness and timings, can be extended to the case
-# of handling tied observation with the Efron estimate.
+# The previous results, namely closeness of solutions and timings,
+# can be extended to the case of handling tied observation with the Efron estimate.
 #
-# Let's start by generating data with tied observation. This can be achieved
+# Let's start by generating data with tied observations. This can be achieved
 # by passing in a ``with_ties=True`` to ``make_dummy_survival_data`` function.
 tm, s, X = make_dummy_survival_data(
     n_samples, n_features,
@@ -225,12 +225,11 @@ print(f"Number of unique times {len(np.unique(tm))} out of {n_samples}")
 # We only need to pass in ``use_efron=True`` to the ``Cox`` datafit.
 
 # ensure using Efron estimate
-datafit.use_efron = True
-
-# re init datafit to consider Efron estimate and the new dataset
+datafit = compiled_clone(Cox(use_efron=True))
 datafit.initialize(X, (tm, s))
 
 # solve the problem
+solver = ProxNewton(fit_intercept=False, max_iter=50)
 w_sk = solver.solve(X, (tm, s), datafit, penalty)[0]
 
 # %%
@@ -241,7 +240,7 @@ print(
 )
 
 # %%
-# Let's do the same with ``lifelines`` and compare results
+# Let's do the same with ``lifelines`` and compare the results
 
 # format data
 stacked_tm_s_X = np.hstack((tm[:, None], s[:, None], X))
@@ -267,7 +266,7 @@ print(f"Difference: {(obj_sk - obj_ll):.2e}")
 print(f"Euclidean distance between solutions: {np.linalg.norm(w_sk - w_ll):.3e}")
 
 # %%
-# Finally, let's compare timing of both solvers
+# Finally, let's compare the timings of both solvers
 
 # time skglm
 start = time.perf_counter()
@@ -289,9 +288,10 @@ end = time.perf_counter()
 
 total_time_lifelines = end - start
 
+# deduce speed up ratio
 speed_up = total_time_lifelines / total_time_skglm
 print(f"speed up ratio: {speed_up:.0f}")
 
 # %%
-# As shown by the last line, we do preserve the x100 ratio speed up
+# As shown by the last print, we still preserve the x100 ratio speed up
 # even for the Efron estimate.

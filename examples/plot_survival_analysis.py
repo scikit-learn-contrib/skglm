@@ -203,7 +203,7 @@ print(f"speed up ratio: {speed_up:.0f}")
 
 # %%
 # Efron estimate
-# ==============
+# --------------
 #
 # The previous results, namely closeness of solutions and timings,
 # can be extended to the case of handling tied observation with the Efron estimate.

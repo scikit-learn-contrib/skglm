@@ -560,7 +560,7 @@ class Cox(BaseDatafit):
     ----------
     B : array-like, shape (n_samples, n_samples)
         Matrix where every ``(i, j)`` entry (row, column) equals ``1``
-        if ``tm[j] >= tm[i]`` and `0` otherwise. This matrix is initialized
+        if ``tm[j] >= tm[i]`` and ``0`` otherwise. This matrix is initialized
         using the ``.initialize`` method.
 
     H_indices : array-like, shape (n_samples,)
@@ -568,7 +568,7 @@ class Cox(BaseDatafit):
         as ``[group_1, group_2, ...]``. This array is initialized
         when calling ``.initialize`` method when ``use_efron=True``.
 
-    H_indptr : array-like, (n_distinct_times + 1,)
+    H_indptr : array-like, (np.unique(tm) + 1,)
         Array where two consecutive elements delimits a group of observations
         having the same occurrence times.
     """

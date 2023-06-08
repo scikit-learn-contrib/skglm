@@ -549,7 +549,7 @@ class Gamma(BaseDatafit):
 class Cox(BaseDatafit):
     r"""Cox datafit for survival analysis.
 
-    Refer to :ref:`<maths_cox_datafit>` for details.
+    Refer to :ref:`Mathematics behind Cox datafit <maths_cox_datafit>` for details.
 
     Parameters
     ----------
@@ -564,8 +564,8 @@ class Cox(BaseDatafit):
         using the ``.initialize`` method.
 
     H_indices : array-like, shape (n_samples,)
-        Indices of observations with same occurrence times horizontally stacked
-        ``[group_1, group_2, ...]``. This array is initialized
+        Indices of observations with the same occurrence times stacked horizontally
+        as ``[group_1, group_2, ...]``. This array is initialized
         when calling ``.initialize`` method when ``use_efron=True``.
 
     H_indptr : array-like, (n_distinct_times + 1,)
@@ -604,7 +604,8 @@ class Cox(BaseDatafit):
     def raw_grad(self, y, Xw):
         r"""Compute gradient of datafit w.r.t. ``Xw``.
 
-        Refer to :ref:`<maths_cox_datafit>` equation 4 for details.
+        Refer to :ref:`Mathematics behind Cox datafit <maths_cox_datafit>`
+        equation 4 for details.
         """
         tm, s = y
         n_samples = Xw.shape[0]
@@ -624,7 +625,8 @@ class Cox(BaseDatafit):
     def raw_hessian(self, y, Xw):
         """Compute a diagonal upper bound of the datafit's Hessian w.r.t. ``Xw``.
 
-        Refer to :ref:`<maths_cox_datafit>` equation 6 for details.
+        Refer to :ref:`Mathematics behind Cox datafit <maths_cox_datafit>`
+        equation 6 for details.
         """
         tm, s = y
         n_samples = Xw.shape[0]

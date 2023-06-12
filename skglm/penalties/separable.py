@@ -557,3 +557,34 @@ class PositiveConstraint(BasePenalty):
     def generalized_support(self, w):
         """Return a mask with non-zero coefficients."""
         return w != 0
+
+
+class L2(BasePenalty):
+    r""":math:`ell_2` penalty.
+
+    The penalty reads::
+
+    .. math::
+
+        \alpha xx \lVert w \rVert_2
+    """
+
+    def __init__(self, alpha):
+        self.alpha = alpha
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha)
+
+    def value(self, w):
+        """Compute the value of the L2 penalty."""
+        return self.alpha * (w ** 2).sum() / 2
+
+    def gradient(self, w):
+        """Compute the gradient of the L2 penalty."""
+        return self.alpha * w

@@ -36,6 +36,7 @@ Penalties
    IndicatorBox
    L0_5
    L1
+   L2
    L1_plus_L2
    L2_3
    MCPenalty

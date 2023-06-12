@@ -562,11 +562,11 @@ class PositiveConstraint(BasePenalty):
 class L2(BasePenalty):
     r""":math:`ell_2` penalty.
 
-    The penalty reads::
+    The penalty reads
 
     .. math::
 
-        \alpha xx \lVert w \rVert_2
+        \alpha / 2  ||w||_2^2
     """
 
     def __init__(self, alpha):

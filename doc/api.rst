@@ -78,6 +78,7 @@ Solvers
    GramCD
    GroupBCD
    GroupProxNewton
+   LBFGS
    MultiTaskBCD
    ProxNewton
 

@@ -10,7 +10,22 @@ from skglm.datafits import BaseDatafit
 
 
 class LBFGS(BaseSolver):
-    """A wrapper for scipy L-BFGS solver."""
+    """A wrapper for scipy L-BFGS solver.
+
+    Refer to `scipy L-BFGS-B <https://docs.scipy.org/doc/scipy/reference/optimize.
+    minimize-lbfgsb.html#optimize-minimize-lbfgsb>`_ documentation for details.
+
+    Parameters
+    ----------
+    max_iter : int, default 20
+        Maximum number of outer iterations.
+
+    tol : float, default 1e-4
+        Tolerance for convergence.
+
+    verbose : bool, default False
+        Amount of verbosity. 0/False is silent.
+    """
 
     def __init__(self, max_iter=50, tol=1e-4, verbose=False):
         self.max_iter = max_iter

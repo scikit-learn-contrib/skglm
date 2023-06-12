@@ -20,7 +20,7 @@ def test_lbfgs_L2_logreg():
 
     datafit = compiled_clone(Logistic())
     penalty = compiled_clone(L2(reg))
-    solver = LBFGS(verbose=1)
+    solver = LBFGS()
 
     w, *_ = solver.solve(X, y, datafit, penalty)
 

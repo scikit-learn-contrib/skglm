@@ -1,3 +1,6 @@
+import warnings
+from sklearn.exceptions import ConvergenceWarning
+
 import numpy as np
 import scipy.optimize
 from numpy.linalg import norm
@@ -60,6 +63,14 @@ class LBFGS(BaseSolver):
             ),
             callback=callback_post_iter,
         )
+
+        if not result.success:
+            warnings.warn(
+                f"`LBFGS` did not converge for tol={self.tol:.3e} "
+                f"and max_iter={self.max_iter}.\n"
+                "Consider increasing `max_iter` and/or `tol`.",
+                category=ConvergenceWarning
+            )
 
         w = result.x
         stop_crit = norm(result.jac)

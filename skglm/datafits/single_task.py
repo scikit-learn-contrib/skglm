@@ -182,6 +182,9 @@ class Logistic(BaseDatafit):
     def gradient_scalar(self, X, y, w, Xw, j):
         return (- X[:, j] @ (y * sigmoid(- y * Xw))) / len(y)
 
+    def gradient(self, X, y, Xw):
+        return X.T @ self.raw_grad(y, Xw)
+
     def full_grad_sparse(
             self, X_data, X_indptr, X_indices, y, Xw):
         n_features = X_indptr.shape[0] - 1

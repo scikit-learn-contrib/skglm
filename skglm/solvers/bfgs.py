@@ -25,7 +25,7 @@ class BFGS(BaseSolver):
 
         def jacobian_function(w):
             Xw = X @ w
-            datafit_grad = datafit.gradient(y, w, Xw)
+            datafit_grad = datafit.gradient(X, y, Xw)
             penalty_grad = penalty.gradient(w)
 
             return datafit_grad + penalty_grad
@@ -40,8 +40,8 @@ class BFGS(BaseSolver):
             x0=w,
             method="BFGS",
             options=dict(
-                gtol=self.tol,
                 maxiter=self.max_iter,
+                gtol=self.tol,
                 disp=self.verbose
             ),
             callback=lambda w_k: p_objs_out.append(objective_function(w_k))

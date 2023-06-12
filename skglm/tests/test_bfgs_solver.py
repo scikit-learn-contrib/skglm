@@ -20,7 +20,7 @@ def test_bfgs_L2_logreg():
 
     datafit = compiled_clone(Logistic())
     penalty = compiled_clone(L2(reg))
-    solver = BFGS()
+    solver = BFGS(verbose=1)
 
     w, *_ = solver.solve(X, y, datafit, penalty)
 
@@ -39,3 +39,4 @@ def test_bfgs_L2_logreg():
 
 if __name__ == "__main__":
     test_bfgs_L2_logreg()
+    pass

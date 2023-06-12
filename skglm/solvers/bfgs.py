@@ -30,9 +30,20 @@ class BFGS(BaseSolver):
 
             return datafit_grad + penalty_grad
 
-        def save_p_obj(w_k):
+        def callback_post_iter(w_k):
+            # save p_obj
             p_obj = objective_function(w_k)
             p_objs_out.append(p_obj)
+
+            if self.verbose:
+                grad = jacobian_function(w_k)
+                stop_crit = norm(grad)
+
+                it = len(p_objs_out)
+                print(
+                    f"Iteration {it}: {p_obj:.10f}, "
+                    f"stopping crit: {stop_crit:.2e}"
+                )
 
         n_features = X.shape[1]
         w = np.zeros(n_features) if w_init is None else w_init
@@ -45,10 +56,9 @@ class BFGS(BaseSolver):
             method="BFGS",
             options=dict(
                 maxiter=self.max_iter,
-                gtol=self.tol,
-                disp=self.verbose
+                gtol=self.tol
             ),
-            callback=save_p_obj,
+            callback=callback_post_iter,
         )
 
         w = result.x

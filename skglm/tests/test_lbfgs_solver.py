@@ -1,6 +1,6 @@
 import numpy as np
 
-from skglm.solvers import BFGS
+from skglm.solvers import LBFGS
 from skglm.penalties import L2
 from skglm.datafits import Logistic
 
@@ -10,7 +10,7 @@ from skglm.utils.data import make_correlated_data
 from skglm.utils.jit_compilation import compiled_clone
 
 
-def test_bfgs_L2_logreg():
+def test_lbfgs_L2_logreg():
     reg = 1.
     n_samples, n_features = 50, 10
 
@@ -20,7 +20,7 @@ def test_bfgs_L2_logreg():
 
     datafit = compiled_clone(Logistic())
     penalty = compiled_clone(L2(reg))
-    solver = BFGS(verbose=1)
+    solver = LBFGS(verbose=1)
 
     w, *_ = solver.solve(X, y, datafit, penalty)
 
@@ -38,5 +38,5 @@ def test_bfgs_L2_logreg():
 
 
 if __name__ == "__main__":
-    test_bfgs_L2_logreg()
+    test_lbfgs_L2_logreg()
     pass

@@ -6,8 +6,8 @@ from skglm.solvers import BaseSolver
 from skglm.datafits import BaseDatafit
 
 
-class BFGS(BaseSolver):
-    """A wrapper for scipy BFGS solver."""
+class LBFGS(BaseSolver):
+    """A wrapper for scipy L-BFGS solver."""
 
     def __init__(self, max_iter=50, tol=1e-4, verbose=False):
         self.max_iter = max_iter
@@ -53,7 +53,7 @@ class BFGS(BaseSolver):
             fun=objective_function,
             jac=jacobian_function,
             x0=w,
-            method="BFGS",
+            method="L-BFGS-B",
             options=dict(
                 maxiter=self.max_iter,
                 gtol=self.tol

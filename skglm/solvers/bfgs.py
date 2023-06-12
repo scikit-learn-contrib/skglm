@@ -30,8 +30,12 @@ class BFGS(BaseSolver):
 
             return datafit_grad + penalty_grad
 
+        def save_p_obj(w_k):
+            p_obj = objective_function(w_k)
+            p_objs_out.append(p_obj)
+
         n_features = X.shape[1]
-        w = np.zeros(n_features) if w_init is not None else w_init
+        w = np.zeros(n_features) if w_init is None else w_init
         p_objs_out = []
 
         result = scipy.optimize.minimize(
@@ -44,7 +48,7 @@ class BFGS(BaseSolver):
                 gtol=self.tol,
                 disp=self.verbose
             ),
-            callback=lambda w_k: p_objs_out.append(objective_function(w_k))
+            callback=save_p_obj,
         )
 
         w = result.x

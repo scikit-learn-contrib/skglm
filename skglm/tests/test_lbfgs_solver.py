@@ -18,11 +18,10 @@ def test_lbfgs_L2_logreg():
         n_samples, n_features, random_state=0)
     y = np.sign(y)
 
+    # fit L-BFGS
     datafit = compiled_clone(Logistic())
     penalty = compiled_clone(L2(reg))
-    solver = LBFGS()
-
-    w, *_ = solver.solve(X, y, datafit, penalty)
+    w, *_ = LBFGS().solve(X, y, datafit, penalty)
 
     # fit scikit learn
     estimator = LogisticRegression(
@@ -38,5 +37,4 @@ def test_lbfgs_L2_logreg():
 
 
 if __name__ == "__main__":
-    test_lbfgs_L2_logreg()
     pass

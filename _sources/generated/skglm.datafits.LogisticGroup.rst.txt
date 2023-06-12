@@ -16,6 +16,7 @@
       ~LogisticGroup.__init__
       ~LogisticGroup.full_grad_sparse
       ~LogisticGroup.get_spec
+      ~LogisticGroup.gradient
       ~LogisticGroup.gradient_g
       ~LogisticGroup.gradient_scalar
       ~LogisticGroup.gradient_scalar_sparse

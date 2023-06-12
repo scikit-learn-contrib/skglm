@@ -16,6 +16,7 @@
       ~Logistic.__init__
       ~Logistic.full_grad_sparse
       ~Logistic.get_spec
+      ~Logistic.gradient
       ~Logistic.gradient_scalar
       ~Logistic.gradient_scalar_sparse
       ~Logistic.init_global_lipschitz

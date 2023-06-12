@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="skglm.penalties.L2_3" href="skglm.penalties.L2_3.html" /><link rel="prev" title="skglm.penalties.L1" href="skglm.penalties.L1.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="skglm.penalties.L2" href="skglm.penalties.L2.html" /><link rel="prev" title="skglm.penalties.L1" href="skglm.penalties.L1.html" />
 
     <!-- Generated with Sphinx 6.2.1 and Furo 2023.05.20 -->
         <title>skglm.penalties.L1_plus_L2 - skglm 0.3.dev documentation</title>
@@ -194,6 +194,7 @@
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L0_5.html">skglm.penalties.L0_5</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L1.html">skglm.penalties.L1</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">skglm.penalties.L1_plus_L2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L2.html">skglm.penalties.L2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L2_3.html">skglm.penalties.L2_3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.MCPenalty.html">skglm.penalties.MCPenalty</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.WeightedL1.html">skglm.penalties.WeightedL1</a></li>
@@ -215,6 +216,7 @@
 <li class="toctree-l2"><a class="reference internal" href="skglm.solvers.GramCD.html">skglm.solvers.GramCD</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.solvers.GroupBCD.html">skglm.solvers.GroupBCD</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.solvers.GroupProxNewton.html">skglm.solvers.GroupProxNewton</a></li>
+<li class="toctree-l2"><a class="reference internal" href="skglm.solvers.LBFGS.html">skglm.solvers.LBFGS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.solvers.MultiTaskBCD.html">skglm.solvers.MultiTaskBCD</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.solvers.ProxNewton.html">skglm.solvers.ProxNewton</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.experimental.SqrtLasso.html">skglm.experimental.SqrtLasso</a></li>
@@ -262,11 +264,11 @@
 <h1>skglm.penalties.L1_plus_L2<a class="headerlink" href="#skglm-penalties-l1-plus-l2" title="Permalink to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="skglm.penalties.L1_plus_L2">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.penalties.</span></span><span class="sig-name descname"><span class="pre">L1_plus_L2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1_ratio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/395af5e/skglm/penalties/separable.py#L70"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.penalties.L1_plus_L2" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.penalties.</span></span><span class="sig-name descname"><span class="pre">L1_plus_L2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1_ratio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/0e5c938/skglm/penalties/separable.py#L70"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.penalties.L1_plus_L2" title="Permalink to this definition">#</a></dt>
 <dd><p><span class="math notranslate nohighlight">`ell_1 + ell_2`</span> penalty (aka ElasticNet penalty).</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skglm.penalties.L1_plus_L2.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1_ratio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/395af5e/skglm/penalties/separable.py#L73"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.penalties.L1_plus_L2.__init__" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1_ratio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/0e5c938/skglm/penalties/separable.py#L73"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.penalties.L1_plus_L2.__init__" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
@@ -312,12 +314,12 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="skglm.penalties.L2_3.html">
+          <a class="next-page" href="skglm.penalties.L2.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">skglm.penalties.L2_3</div>
+                <div class="title">skglm.penalties.L2</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>

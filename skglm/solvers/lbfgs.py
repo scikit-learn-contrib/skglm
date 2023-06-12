@@ -6,7 +6,6 @@ import scipy.optimize
 from numpy.linalg import norm
 
 from skglm.solvers import BaseSolver
-from skglm.datafits import BaseDatafit
 
 
 class LBFGS(BaseSolver):
@@ -18,7 +17,7 @@ class LBFGS(BaseSolver):
     Parameters
     ----------
     max_iter : int, default 20
-        Maximum number of outer iterations.
+        Maximum number of iterations.
 
     tol : float, default 1e-4
         Tolerance for convergence.
@@ -32,7 +31,7 @@ class LBFGS(BaseSolver):
         self.tol = tol
         self.verbose = verbose
 
-    def solve(self, X, y, datafit: BaseDatafit, penalty, w_init=None, Xw_init=None):
+    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
 
         def objective_function(w):
             Xw = X @ w

@@ -646,6 +646,10 @@ class Cox(BaseDatafit):
 
         return out / n_samples
 
+    def gradient(self, X, y, Xw):
+        """Compute gradient of the datafit."""
+        return X.T @ self.raw_grad(y, Xw)
+
     def initialize(self, X, y):
         """Initialize the datafit attributes."""
         tm, s = y

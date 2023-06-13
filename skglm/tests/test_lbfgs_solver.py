@@ -2,8 +2,8 @@ import pytest
 import numpy as np
 import pandas as pd
 
-from skglm.solvers import LBFGS
 from skglm.penalties import L2
+from skglm.solvers import LBFGS
 from skglm.datafits import Logistic, Cox
 
 from sklearn.linear_model import LogisticRegression
@@ -44,17 +44,17 @@ def test_L2_Cox(use_efron):
         from lifelines import CoxPHFitter
     except ModuleNotFoundError:
         pytest.xfail(
-            "Testing Cox Estimator requires `lifelines` packages\n"
+            "Testing L2 Cox Estimator requires `lifelines` packages\n"
             "Run `pip install lifelines`"
         )
 
-    alpha = 1.
+    alpha = 10.
     n_samples, n_features = 50, 10
-    random_state = 1265
+    random_state = 0
 
-    tm, s, X = make_dummy_survival_data(n_samples, n_features,
-                                        with_ties=use_efron,
-                                        random_state=random_state)
+    tm, s, X = make_dummy_survival_data(
+        n_samples, n_features, normalize=True, with_ties=use_efron,
+        random_state=random_state)
 
     datafit = compiled_clone(Cox(use_efron))
     penalty = compiled_clone(L2(alpha))
@@ -69,17 +69,16 @@ def test_L2_Cox(use_efron):
     estimator = CoxPHFitter(penalizer=alpha, l1_ratio=0.)
     estimator.fit(
         df, duration_col=0, event_col=1,
-        fit_options={"max_steps": 10_000, "precision": 1e-20},
-        show_progress=True,
     )
     w_ll = estimator.params_.values
 
     p_obj_skglm = datafit.value((tm, s), w, X @ w) + penalty.value(w)
     p_obj_ll = datafit.value((tm, s), w_ll, X @ w_ll) + penalty.value(w_ll)
 
-    # though norm of solution might differ
-    np.testing.assert_allclose(p_obj_skglm, p_obj_ll, atol=1e-3)
+    np.testing.assert_allclose(w, w_ll, atol=1e-3)
+    np.testing.assert_allclose(p_obj_skglm, p_obj_ll, atol=1e-5)
 
 
 if __name__ == "__main__":
+    test_L2_Cox(False)
     pass

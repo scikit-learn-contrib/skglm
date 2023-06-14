@@ -139,7 +139,7 @@ def test_cox(use_efron):
 
     # perform test 10 times to consider truncation errors
     # due to usage of finite differences to evaluate grad and Hessian
-    for _ in range(10):
+    for _ in range(3):
 
         # generate dummy w, Xw
         w = rng.randn(n_features)

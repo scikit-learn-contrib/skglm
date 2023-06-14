@@ -20,11 +20,9 @@ from skglm.utils.data import make_correlated_data, make_dummy_survival_data
 from skglm.estimators import (
     GeneralizedLinearEstimator, Lasso, MultiTaskLasso, WeightedLasso, ElasticNet,
     MCPRegression, SparseLogisticRegression, LinearSVC)
-from skglm.datafits import Logistic, Quadratic, QuadraticSVC, QuadraticMultiTask
+from skglm.datafits import Logistic, Quadratic, QuadraticSVC, QuadraticMultiTask, Cox
 from skglm.penalties import L1, IndicatorBox, L1_plus_L2, MCPenalty, WeightedL1
 from skglm.solvers import AndersonCD
-
-from skglm.datafits.single_task import FastCox as Cox
 
 import pandas as pd
 from skglm.solvers import ProxNewton

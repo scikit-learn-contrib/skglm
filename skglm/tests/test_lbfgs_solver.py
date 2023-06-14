@@ -80,5 +80,4 @@ def test_L2_Cox(use_efron):
 
 
 if __name__ == "__main__":
-    test_L2_Cox(False)
     pass

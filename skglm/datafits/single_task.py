@@ -712,3 +712,200 @@ class Cox(BaseDatafit):
             out[current_H_idx] = weighted_sum_vec_H * np.ones(size_current_H)
 
         return out
+
+
+class FastCox(BaseDatafit):
+    r"""Cox datafit for survival analysis.
+
+    Refer to :ref:`Mathematics behind Cox datafit <maths_cox_datafit>` for details.
+
+    Parameters
+    ----------
+    use_efron : bool, default=False
+        If ``True`` uses Efron estimate to handle tied observations.
+
+    Attributes
+    ----------
+    T_indices : array-like, shape (n_samples,)
+        Indices of uncensored observations with the same occurrence times
+        stacked horizontally as ``[group_1, group_2, ...]``. It is initialized
+        with ``.initialize`` (or ``initialize_sparse`` for sparse ``X``) method.
+
+    T_indptr : array-like, (np.unique(tm) + 1,)
+        Array where two consecutive elements delimits a group of
+        observations having the same occurrence times.
+
+    H_indices : array-like, shape (n_samples,)
+        Indices of uncensored observations with the same occurrence times
+        stacked horizontally as ``[group_1, group_2, ...]``. It is initialized
+        when calling ``.initialize`` (or ``initialize_sparse`` for sparse ``X``) method
+        when ``use_efron=True``.
+
+    H_indptr : array-like, (np.unique(tm[s != 0]) + 1,)
+        Array where two consecutive elements delimits a group of uncensored
+        observations having the same occurrence times.
+    """
+
+    def __init__(self, use_efron=False):
+        self.use_efron = use_efron
+
+    def get_spec(self):
+        return (
+            ('use_efron', bool_),
+            ('H_indptr', int64[:]), ('H_indices', int64[:]),
+            ('T_indptr', int64[:]), ('T_indices', int64[:]),
+        )
+
+    def params_to_dict(self):
+        return dict(use_efron=self.use_efron)
+
+    def value(self, y, w, Xw):
+        """Compute the value of the datafit."""
+        tm, s = y
+        n_samples = Xw.shape[0]
+
+        # compute inside log term
+        exp_Xw = np.exp(Xw)
+        B_exp_Xw = self._B_dot_vec(exp_Xw)
+        if self.use_efron:
+            B_exp_Xw -= self._A_dot_vec(exp_Xw)
+
+        out = -(s @ Xw) + s @ np.log(B_exp_Xw)
+        return out / n_samples
+
+    def raw_grad(self, y, Xw):
+        r"""Compute gradient of datafit w.r.t. ``Xw``.
+
+        Refer to :ref:`Mathematics behind Cox datafit <maths_cox_datafit>`
+        equation 4 for details.
+        """
+        tm, s = y
+        n_samples = Xw.shape[0]
+
+        exp_Xw = np.exp(Xw)
+        B_exp_Xw = self._B_dot_vec(exp_Xw)
+        if self.use_efron:
+            B_exp_Xw -= self._A_dot_vec(exp_Xw)
+
+        s_over_B_exp_Xw = s / B_exp_Xw
+        out = -s + exp_Xw * self._B_T_dot_vec(s_over_B_exp_Xw)
+        if self.use_efron:
+            out -= exp_Xw * self._AT_dot_vec(s_over_B_exp_Xw)
+
+        return out / n_samples
+
+    def raw_hessian(self, y, Xw):
+        """Compute a diagonal upper bound of the datafit's Hessian w.r.t. ``Xw``.
+
+        Refer to :ref:`Mathematics behind Cox datafit <maths_cox_datafit>`
+        equation 6 for details.
+        """
+        tm, s = y
+        n_samples = Xw.shape[0]
+
+        exp_Xw = np.exp(Xw)
+        B_exp_Xw = self._B_dot_vec(exp_Xw)
+        if self.use_efron:
+            B_exp_Xw -= self._A_dot_vec(exp_Xw)
+
+        s_over_B_exp_Xw = s / B_exp_Xw
+        out = exp_Xw * self._B_T_dot_vec(s_over_B_exp_Xw)
+        if self.use_efron:
+            out -= exp_Xw * self._AT_dot_vec(s_over_B_exp_Xw)
+
+        return out / n_samples
+
+    def gradient(self, X, y, Xw):
+        """Compute gradient of the datafit."""
+        return X.T @ self.raw_grad(y, Xw)
+
+    def initialize(self, X, y):
+        """Initialize the datafit attributes."""
+        tm, s = y
+
+        # sorted indices
+        self.T_indices = np.argsort(tm)
+        self.T_indptr = self._get_indptr(tm, self.T_indices)
+
+        if self.use_efron:
+            # filter out censored data
+            self.H_indices = self.T_indices[s[self.T_indices] != 0]
+            self.H_indptr = self._get_indptr(tm, self.H_indices)
+
+    def initialize_sparse(self, X_data, X_indptr, X_indices, y):
+        """Initialize the datafit attributes in sparse dataset case."""
+        # initialize_sparse and initialize have the same implementation
+        # small hack to avoid repetitive code: pass in X_data as only its dtype is used
+        self.initialize(X_data, y)
+
+    def _B_dot_vec(self, vec):
+        out = np.zeros_like(vec)
+        n_T = self.T_indptr.shape[0] - 1
+        cum_diff = np.sum(vec)
+
+        for idx in range(n_T):
+            current_T_idx = self.T_indices[self.T_indptr[idx]: self.T_indptr[idx+1]]
+
+            out[current_T_idx] = cum_diff
+            cum_diff -= np.sum(vec[current_T_idx])
+
+        return out
+
+    def _B_T_dot_vec(self, vec):
+        out = np.zeros_like(vec)
+        n_T = self.T_indptr.shape[0] - 1
+        cum_sum = 0.
+
+        for idx in range(n_T):
+            current_T_idx = self.T_indices[self.T_indptr[idx]: self.T_indptr[idx+1]]
+
+            cum_sum += np.sum(vec[current_T_idx])
+            out[current_T_idx] = cum_sum
+
+        return out
+
+    def _A_dot_vec(self, vec):
+        out = np.zeros_like(vec)
+        n_H = self.H_indptr.shape[0] - 1
+
+        for idx in range(n_H):
+            current_H_idx = self.H_indices[self.H_indptr[idx]: self.H_indptr[idx+1]]
+            size_current_H = current_H_idx.shape[0]
+            frac_range = np.arange(size_current_H, dtype=vec.dtype) / size_current_H
+
+            sum_vec_H = np.sum(vec[current_H_idx])
+            out[current_H_idx] = sum_vec_H * frac_range
+
+        return out
+
+    def _AT_dot_vec(self, vec):
+        out = np.zeros_like(vec)
+        n_H = self.H_indptr.shape[0] - 1
+
+        for idx in range(n_H):
+            current_H_idx = self.H_indices[self.H_indptr[idx]: self.H_indptr[idx+1]]
+            size_current_H = current_H_idx.shape[0]
+            frac_range = np.arange(size_current_H, dtype=vec.dtype) / size_current_H
+
+            weighted_sum_vec_H = vec[current_H_idx] @ frac_range
+            out[current_H_idx] = weighted_sum_vec_H * np.ones(size_current_H)
+
+        return out
+
+    def _get_indptr(self, vals, indices):
+        # given `indices = argsort(vals)`
+        # build and array `indptr` where two consecutive elements
+        # delimit indices with the same val
+        n_indices = indices.shape[0]
+
+        indptr = [0]
+        count = 1
+        for i in range(1, n_indices):
+            if vals[indices[i-1]] == vals[indices[i]]:
+                count += 1
+            else:
+                indptr.append(count + indptr[-1])
+                count = 1
+        indptr.append(n_indices)
+
+        return np.asarray(indptr, dtype=np.int64)

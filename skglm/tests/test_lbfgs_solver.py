@@ -14,7 +14,7 @@ from skglm.utils.data import make_correlated_data, make_dummy_survival_data
 
 def test_lbfgs_L2_logreg():
     reg = 1.
-    n_samples, n_features = 50, 10
+    n_samples, n_features = 100, 50
 
     X, y, _ = make_correlated_data(
         n_samples, n_features, random_state=0)
@@ -23,19 +23,17 @@ def test_lbfgs_L2_logreg():
     # fit L-BFGS
     datafit = compiled_clone(Logistic())
     penalty = compiled_clone(L2(reg))
-    w, *_ = LBFGS().solve(X, y, datafit, penalty)
+    w, *_ = LBFGS(tol=1e-12).solve(X, y, datafit, penalty)
 
     # fit scikit learn
     estimator = LogisticRegression(
         penalty='l2',
         C=1 / (n_samples * reg),
-        fit_intercept=False
-    )
-    estimator.fit(X, y)
+        fit_intercept=False,
+        tol=1e-12,
+    ).fit(X, y)
 
-    np.testing.assert_allclose(
-        w, estimator.coef_.flatten(), atol=1e-4
-    )
+    np.testing.assert_allclose(w, estimator.coef_.flatten())
 
 
 @pytest.mark.parametrize("use_efron", [True, False])
@@ -49,12 +47,11 @@ def test_L2_Cox(use_efron):
         )
 
     alpha = 10.
-    n_samples, n_features = 50, 10
-    random_state = 0
+    n_samples, n_features = 100, 50
 
     tm, s, X = make_dummy_survival_data(
-        n_samples, n_features, normalize=True, with_ties=use_efron,
-        random_state=random_state)
+        n_samples, n_features, normalize=True,
+        with_ties=use_efron, random_state=0)
 
     datafit = compiled_clone(Cox(use_efron))
     penalty = compiled_clone(L2(alpha))
@@ -66,9 +63,8 @@ def test_L2_Cox(use_efron):
     stacked_tm_s_X = np.hstack((tm[:, None], s[:, None], X))
     df = pd.DataFrame(stacked_tm_s_X)
 
-    estimator = CoxPHFitter(penalizer=alpha, l1_ratio=0.)
-    estimator.fit(
-        df, duration_col=0, event_col=1,
+    estimator = CoxPHFitter(penalizer=alpha, l1_ratio=0.).fit(
+        df, duration_col=0, event_col=1
     )
     w_ll = estimator.params_.values
 
@@ -76,7 +72,7 @@ def test_L2_Cox(use_efron):
     p_obj_ll = datafit.value((tm, s), w_ll, X @ w_ll) + penalty.value(w_ll)
 
     np.testing.assert_allclose(w, w_ll, atol=1e-3)
-    np.testing.assert_allclose(p_obj_skglm, p_obj_ll, atol=1e-5)
+    np.testing.assert_allclose(p_obj_skglm, p_obj_ll, atol=1e-6)
 
 
 if __name__ == "__main__":

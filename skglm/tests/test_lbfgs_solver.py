@@ -71,6 +71,9 @@ def test_L2_Cox(use_efron):
     p_obj_skglm = datafit.value((tm, s), w, X @ w) + penalty.value(w)
     p_obj_ll = datafit.value((tm, s), w_ll, X @ w_ll) + penalty.value(w_ll)
 
+    # despite increasing tol in lifelines, solutions are quite far apart
+    # suspecting lifelines https://github.com/CamDavidsonPilon/lifelines/pull/1534
+    # as our solution gives the lowest objective value
     np.testing.assert_allclose(w, w_ll, rtol=1e-1)
     np.testing.assert_allclose(p_obj_skglm, p_obj_ll, rtol=1e-6)
 

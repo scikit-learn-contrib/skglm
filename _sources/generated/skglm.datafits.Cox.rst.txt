@@ -15,6 +15,7 @@
    
       ~Cox.__init__
       ~Cox.get_spec
+      ~Cox.gradient
       ~Cox.gradient_scalar
       ~Cox.gradient_scalar_sparse
       ~Cox.initialize

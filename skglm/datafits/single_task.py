@@ -562,23 +562,23 @@ class Cox(BaseDatafit):
     Attributes
     ----------
     T_indices : array-like, shape (n_samples,)
-        Indices of uncensored observations with the same occurrence times
-        stacked horizontally as ``[group_1, group_2, ...]``. It is initialized
+        Indices of observations with the same occurrence times stacked horizontally as
+        ``[group_1, group_2, ...]`` in an ascending order. It is initialized
         with ``.initialize`` (or ``initialize_sparse`` for sparse ``X``) method.
 
     T_indptr : array-like, (np.unique(tm) + 1,)
-        Array where two consecutive elements delimits a group of
+        Array where two consecutive elements delimit a group of
         observations having the same occurrence times.
 
     H_indices : array-like, shape (n_samples,)
-        Indices of uncensored observations with the same occurrence times
-        stacked horizontally as ``[group_1, group_2, ...]``. It is initialized
-        when calling ``.initialize`` (or ``initialize_sparse`` for sparse ``X``) method
-        when ``use_efron=True``.
+        Indices of uncensored observations with the same occurrence times stacked
+        horizontally as ``[group_1, group_2, ...]`` in an ascending order.
+        It is initialized when calling ``.initialize`` (or ``initialize_sparse``
+        for sparse ``X``) method when ``use_efron=True``.
 
     H_indptr : array-like, (np.unique(tm[s != 0]) + 1,)
         Array where two consecutive elements delimits a group of uncensored
-        observations having the same occurrence times.
+        observations having the same occurrence time.
     """
 
     def __init__(self, use_efron=False):
@@ -668,17 +668,19 @@ class Cox(BaseDatafit):
 
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
         """Initialize the datafit attributes in sparse dataset case."""
-        # initialize_sparse and initialize have the same implementation
+        # `initialize_sparse` and `initialize` have the same implementation
         # small hack to avoid repetitive code: pass in X_data as only its dtype is used
         self.initialize(X_data, y)
 
     def _B_dot_vec(self, vec):
+        # compute `B @ vec` in O(n) instead of O(n^2)
         out = np.zeros_like(vec)
         n_T = self.T_indptr.shape[0] - 1
         cum_sum = 0.
 
         # reverse loop to avoid starting from cum_sum and subtracting vec coordinates
-        # subtracting big numbers results in 'cancellation' and hence erroneous results
+        # subtracting big numbers results in 'cancellation errors' and hence erroneous
+        # results. Ref. J Nocedal, "Numerical optimization", page 615
         for idx in range(n_T - 1, -1, -1):
             current_T_idx = self.T_indices[self.T_indptr[idx]: self.T_indptr[idx+1]]
 
@@ -688,6 +690,7 @@ class Cox(BaseDatafit):
         return out
 
     def _B_T_dot_vec(self, vec):
+        # compute `B.T @ vec` in O(n) instead of O(n^2)
         out = np.zeros_like(vec)
         n_T = self.T_indptr.shape[0] - 1
         cum_sum = 0.
@@ -701,6 +704,7 @@ class Cox(BaseDatafit):
         return out
 
     def _A_dot_vec(self, vec):
+        # compute `A @ vec` in O(n) instead of O(n^2)
         out = np.zeros_like(vec)
         n_H = self.H_indptr.shape[0] - 1
 
@@ -715,6 +719,7 @@ class Cox(BaseDatafit):
         return out
 
     def _AT_dot_vec(self, vec):
+        # compute `A.T @ vec` in O(n) instead of O(n^2)
         out = np.zeros_like(vec)
         n_H = self.H_indptr.shape[0] - 1
 

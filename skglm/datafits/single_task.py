@@ -563,8 +563,8 @@ class Cox(BaseDatafit):
     ----------
     T_indices : array-like, shape (n_samples,)
         Indices of observations with the same occurrence times stacked horizontally as
-        ``[group_1, group_2, ...]`` in an ascending order. It is initialized
-        with ``.initialize`` (or ``initialize_sparse`` for sparse ``X``) method.
+        ``[group_1, group_2, ...]`` in ascending order. It is initialized
+        with the ``.initialize`` method (or ``initialize_sparse`` for sparse ``X``).
 
     T_indptr : array-like, (np.unique(tm) + 1,)
         Array where two consecutive elements delimit a group of
@@ -572,11 +572,11 @@ class Cox(BaseDatafit):
 
     H_indices : array-like, shape (n_samples,)
         Indices of uncensored observations with the same occurrence times stacked
-        horizontally as ``[group_1, group_2, ...]`` in an ascending order.
-        It is initialized when calling ``.initialize`` (or ``initialize_sparse``
-        for sparse ``X``) method when ``use_efron=True``.
+        horizontally as ``[group_1, group_2, ...]`` in ascending order.
+        It is initialized when calling the ``.initialize`` method
+        (or ``initialize_sparse`` for sparse ``X``) when ``use_efron=True``.
 
-    H_indptr : array-like, (np.unique(tm[s != 0]) + 1,)
+    H_indptr : array-like, shape (np.unique(tm[s != 0]) + 1,)
         Array where two consecutive elements delimits a group of uncensored
         observations having the same occurrence time.
     """
@@ -741,8 +741,8 @@ class Cox(BaseDatafit):
 
         indptr = [0]
         count = 1
-        for i in range(1, n_indices):
-            if vals[indices[i-1]] == vals[indices[i]]:
+        for i in range(n_indices):
+            if vals[indices[i]] == vals[indices[i+1]]:
                 count += 1
             else:
                 indptr.append(count + indptr[-1])

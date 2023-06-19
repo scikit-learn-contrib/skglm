@@ -741,7 +741,7 @@ class Cox(BaseDatafit):
 
         indptr = [0]
         count = 1
-        for i in range(n_indices):
+        for i in range(n_indices - 1):
             if vals[indices[i]] == vals[indices[i+1]]:
                 count += 1
             else:

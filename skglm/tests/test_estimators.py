@@ -168,8 +168,9 @@ def test_mtl_path():
     np.testing.assert_allclose(coef_ours, coef_sk, rtol=1e-5)
 
 
-@pytest.mark.parametrize("use_efron", [True, False])
-def test_CoxEstimator(use_efron):
+@pytest.mark.parametrize("use_efron, use_float_32",
+                         product([True, False], [True, False]))
+def test_CoxEstimator(use_efron, use_float_32):
     try:
         from lifelines import CoxPHFitter
     except ModuleNotFoundError:
@@ -184,7 +185,8 @@ def test_CoxEstimator(use_efron):
     random_state = 1265
 
     tm, s, X = make_dummy_survival_data(n_samples, n_features, normalize=True,
-                                        with_ties=use_efron, random_state=random_state)
+                                        with_ties=use_efron, use_float_32=use_float_32,
+                                        random_state=random_state)
 
     # compute alpha_max
     B = (tm >= tm[:, None]).astype(X.dtype)
@@ -214,7 +216,7 @@ def test_CoxEstimator(use_efron):
         df, duration_col=0, event_col=1,
         fit_options={"max_steps": 10_000, "precision": 1e-12}
     )
-    w_ll = estimator.params_.values
+    w_ll = estimator.params_.values.astype(X.dtype)
 
     p_obj_skglm = datafit.value((tm, s), w, X @ w) + penalty.value(w)
     p_obj_ll = datafit.value((tm, s), w_ll, X @ w_ll) + penalty.value(w_ll)
@@ -223,14 +225,16 @@ def test_CoxEstimator(use_efron):
     np.testing.assert_allclose(p_obj_skglm, p_obj_ll, atol=1e-6)
 
 
-@pytest.mark.parametrize("use_efron", [True, False])
-def test_CoxEstimator_sparse(use_efron):
+@pytest.mark.parametrize("use_efron, use_float_32",
+                         product([True, False], [True, False]))
+def test_CoxEstimator_sparse(use_efron, use_float_32):
     reg = 1e-2
     n_samples, n_features = 100, 30
     X_density, random_state = 0.5, 1265
 
     tm, s, X = make_dummy_survival_data(n_samples, n_features, X_density=X_density,
-                                        with_ties=use_efron, random_state=random_state)
+                                        use_float_32=use_float_32, with_ties=use_efron,
+                                        random_state=random_state)
 
     # compute alpha_max
     B = (tm >= tm[:, None]).astype(X.dtype)
@@ -373,4 +377,5 @@ def test_warm_start(estimator_name):
 
 
 if __name__ == "__main__":
+    test_CoxEstimator(True, True)
     pass

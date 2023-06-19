@@ -152,6 +152,9 @@ def make_dummy_survival_data(n_samples, n_features, normalize=False, X_density=1
         Determine if the data contains tied observations: observations with the same
         occurrences times ``tm``.
 
+    use_float_32 : bool, default=False
+        It ``True`` returns data with type ``float32``, otherwise, it is ``float64``.
+
     random_state : int, default=None
         Determines random number generation for data generation.
 

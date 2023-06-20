@@ -4,6 +4,7 @@ import warnings
 import numpy as np
 from scipy.sparse import issparse
 from scipy.special import expit
+from numbers import Integral, Real
 from skglm.solvers.prox_newton import ProxNewton
 
 from sklearn.utils.validation import check_is_fitted
@@ -14,6 +15,7 @@ from sklearn.linear_model._base import (
 )
 from sklearn.utils.extmath import softmax
 from sklearn.preprocessing import LabelEncoder
+from sklearn.utils._param_validation import Interval, StrOptions
 from sklearn.multiclass import OneVsRestClassifier, check_classification_targets
 
 from skglm.utils.jit_compilation import compiled_clone
@@ -1157,6 +1159,30 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
         return _glm_fit(X, y, self, QuadraticSVC(), IndicatorBox(self.C), solver)
 
     # TODO add predict_proba for LinearSVC
+
+
+class CoxEstimator(LinearModel):
+
+    _parameter_constraints: dict = {
+        "alpha": [Interval(Real, 0, None, closed="neither")],
+        "l1_ratio": [Interval(Real, 0, 1, closed="both")],
+        "method": [StrOptions({"efron", "breslow"})],
+        "tol": [Interval(Real, 0, None, closed="left")],
+        "max_iter": [Interval(Integral, 1, None, closed="left")],
+        "verbose": ["boolean", Interval(Integral, 0, 2, closed="both")],
+    }
+
+    def __init__(self, alpha=1., l1_ratio=1., method="efron", tol=1e-4, max_iter=50, verbose=False):
+        self.alpha = alpha
+        self.l1_ratio = l1_ratio
+        self.method = method
+        self.tol = tol
+        self.max_iter = max_iter
+        self.verbose = verbose
+
+    def fit(self, X, tm, s):
+        self._validate_params()
+        return self
 
 
 class MultiTaskLasso(LinearModel, RegressorMixin):

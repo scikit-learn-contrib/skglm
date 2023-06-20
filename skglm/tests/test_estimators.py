@@ -278,7 +278,7 @@ def test_Cox_sk_like_estimator(use_efron, l1_ratio):
                                         with_ties=use_efron, random_state=0)
 
     estimator_sk = CoxEstimator(
-        alpha, l1_ratio=l1_ratio, method=method, tol=1e-6, verbose=True
+        alpha, l1_ratio=l1_ratio, method=method, tol=1e-6
     ).fit(X, tm, s)
     w_sk = estimator_sk.coef_
 
@@ -305,8 +305,8 @@ def test_Cox_sk_like_estimator(use_efron, l1_ratio):
     np.testing.assert_allclose(p_obj_skglm, p_obj_ll, atol=1e-6)
 
 
-@pytest.mark.parametrize("use_efron", [True, False])
-def test_Cox_sk_like_estimator_sparse(use_efron):
+@pytest.mark.parametrize("use_efron, l1_ratio", product([True, False], [1., 0.7]))
+def test_Cox_sk_like_estimator_sparse(use_efron, l1_ratio):
     alpha = 1e-2
     # norms of solutions differ when n_features > n_samples
     n_samples, n_features = 100, 30
@@ -316,7 +316,7 @@ def test_Cox_sk_like_estimator_sparse(use_efron):
                                         with_ties=use_efron, random_state=0)
 
     estimator_sk = CoxEstimator(
-        alpha, l1_ratio=1., method=method, tol=1e-9, verbose=True
+        alpha, l1_ratio=l1_ratio, method=method, tol=1e-9
     ).fit(X, tm, s)
     stop_crit = estimator_sk.stop_crit_
 

@@ -92,3 +92,11 @@ def _XT_dot_vec(X_data, X_indptr, X_indices, vec):
             result[j] += X_data[idx] * vec[X_indices[idx]]
 
     return result
+
+@njit(fastmath=True)
+def _sparse_xj_dot(X_data, X_indptr, X_indices, j, other):
+    # Compute X[:, j] @ other in case X sparse
+    res = 0.
+    for i in range(X_indptr[j], X_indptr[j+1]):
+        res += X_data[i] * other[X_indices[i]]
+    return res

@@ -6,7 +6,7 @@ from scipy.sparse import issparse
 from skglm.solvers.base import BaseSolver
 
 from sklearn.exceptions import ConvergenceWarning
-
+from skglm.utils.sparse_ops import _sparse_xj_dot
 
 EPS_TOL = 0.3
 MAX_CD_ITER = 20
@@ -411,15 +411,6 @@ def _construct_grad_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, ws):
     for idx, j in enumerate(ws):
         grad[idx] = _sparse_xj_dot(X_data, X_indptr, X_indices, j, raw_grad)
     return grad
-
-
-@njit(fastmath=True)
-def _sparse_xj_dot(X_data, X_indptr, X_indices, j, other):
-    # Compute X[:, j] @ other in case X sparse
-    res = 0.
-    for i in range(X_indptr[j], X_indptr[j+1]):
-        res += X_data[i] * other[X_indices[i]]
-    return res
 
 
 @njit(fastmath=True)

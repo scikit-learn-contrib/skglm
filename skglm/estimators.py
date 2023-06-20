@@ -7,8 +7,8 @@ from scipy.special import expit
 from numbers import Integral, Real
 from skglm.solvers import ProxNewton, LBFGS
 
-from sklearn.utils.validation import check_is_fitted
 from sklearn.utils import check_array, check_consistent_length
+from sklearn.utils.validation import check_is_fitted, check_array
 from sklearn.linear_model._base import (
     LinearModel, RegressorMixin,
     LinearClassifierMixin, SparseCoefMixin, BaseEstimator
@@ -1185,7 +1185,19 @@ class CoxEstimator(LinearModel):
     def fit(self, X, tm, s):
         self._validate_params()
 
-        # TODO: validate X, tm, and s
+        # validate input data
+        X = check_array(
+            X,
+            accept_sparse=True,
+            order="F",
+            dtype=[np.float64, np.float32],
+        )
+        tm = check_array(
+            tm, order="C", dtype=X.dtype, ensure_2d=False
+        )
+        s = check_array(
+            s, order="C", dtype=X.dtype, ensure_2d=False
+        )
 
         # init datafit penalty
         datafit = Cox(self.method)
@@ -1205,13 +1217,15 @@ class CoxEstimator(LinearModel):
         if self.l1_ratio == 0.:
             solver = LBFGS(max_iter=self.max_iter, tol=self.tol, verbose=self.verbose)
         else:
-            solver = ProxNewton(max_iter=self.max_iter, verbose=self.verbose,
-                                fit_intercept=False,)
+            solver = ProxNewton(
+                max_iter=self.max_iter, verbose=self.verbose, fit_intercept=False
+            )
 
         # solve problem
         datafit.initialize(X, (tm, s))
-        coef_, p_obj_out, _ = solver.solve(X, (tm, s), datafit, penalty)
+        coef_, _, _ = solver.solve(X, (tm, s), datafit, penalty)
 
+        # save to attribute
         self.coef_ = coef_
 
         return self

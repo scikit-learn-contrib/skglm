@@ -72,7 +72,7 @@ class LBFGS(BaseSolver):
 
         n_features = X.shape[1]
         w = np.zeros(n_features) if w_init is None else w_init
-        jacobian_function = d_jacobian_function if issparse(X) else s_jacobian_function
+        jacobian_function = s_jacobian_function if issparse(X) else d_jacobian_function
         p_objs_out = []
 
         result = scipy.optimize.minimize(

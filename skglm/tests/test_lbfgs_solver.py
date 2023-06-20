@@ -12,12 +12,15 @@ from skglm.utils.jit_compilation import compiled_clone
 from skglm.utils.data import make_correlated_data, make_dummy_survival_data
 
 
-def test_lbfgs_L2_logreg():
+@pytest.mark.parametrize("X_sparse", [True, False])
+def test_lbfgs_L2_logreg(X_sparse):
     reg = 1.
+    X_density = 1. if not X_sparse else 0.1
     n_samples, n_features = 100, 50
 
     X, y, _ = make_correlated_data(
-        n_samples, n_features, random_state=0)
+        n_samples, n_features, random_state=0, X_density=X_density,
+    )
     y = np.sign(y)
 
     # fit L-BFGS

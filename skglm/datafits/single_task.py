@@ -186,6 +186,16 @@ class Logistic(BaseDatafit):
     def gradient(self, X, y, Xw):
         return X.T @ self.raw_grad(y, Xw)
 
+    def gradient_sparse(self, X_data, X_indptr, X_indices, y, Xw):
+        n_features = X_indptr.shape[0] - 1
+        out = np.zeros(n_features, dtype=X_data.dtype)
+        raw_grad = self.raw_grad(y, Xw)
+
+        for j in range(n_features):
+            out[j] = _sparse_xj_dot(X_data, X_indptr, X_indices, j, raw_grad)
+
+        return out
+
     def full_grad_sparse(
             self, X_data, X_indptr, X_indices, y, Xw):
         n_features = X_indptr.shape[0] - 1

@@ -1188,15 +1188,15 @@ class CoxEstimator(LinearModel):
         # validate input data
         X = check_array(
             X,
-            accept_sparse=True,
+            accept_sparse="csc",
             order="F",
             dtype=[np.float64, np.float32],
         )
         tm = check_array(
-            tm, order="C", dtype=X.dtype, ensure_2d=False
+            tm, order="C", dtype=X.dtype, accept_sparse=False, ensure_2d=False
         )
         s = check_array(
-            s, order="C", dtype=X.dtype, ensure_2d=False
+            s, order="C", dtype=X.dtype, accept_sparse=False, ensure_2d=False
         )
 
         # init datafit penalty

@@ -189,7 +189,10 @@ def make_dummy_survival_data(n_samples, n_features, normalize=False, X_density=1
     if normalize and X_density == 1.:
         X = StandardScaler().fit_transform(X)
 
-    return tm, s, X
+    # stack (tm, s)
+    y = np.column_stack((tm, s)).astype(dtype, order='F')
+
+    return X, y
 
 
 def grp_converter(groups, n_features):

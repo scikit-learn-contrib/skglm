@@ -7,8 +7,8 @@ from scipy.special import expit
 from numbers import Integral, Real
 from skglm.solvers import ProxNewton, LBFGS
 
-from sklearn.utils import check_array, check_consistent_length
-from sklearn.utils.validation import check_is_fitted, check_array
+from sklearn.utils.validation import (check_is_fitted, check_array,
+                                      check_consistent_length)
 from sklearn.linear_model._base import (
     LinearModel, RegressorMixin,
     LinearClassifierMixin, SparseCoefMixin, BaseEstimator
@@ -1163,6 +1163,51 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
 
 
 class CoxEstimator(LinearModel):
+    """Elastic Cox estimator with Efron and Breslow estimate.
+
+    Refer to :ref:`Mathematics behind Cox datafit <maths_cox_datafit>`
+    for details about the datafit expression. The data convention for the
+    estimator is
+
+    - ``X `` the design matrix with ``n_features`` predictors
+    - ``tm`` the vector recording the time of event occurrences
+    - ``s`` the vector of censoring
+
+    For L2 Cox, ``l1_ratio=0.``, :ref:`LBFGS <skglm.solvers.LBFGS>`
+    is the used solver, otherwise it is :ref:`ProxNewton <skglm.solvers.ProxNewton>`.
+
+    Parameters
+    ----------
+    alpha : float, optional
+        Penalty strength. It must positive ``alpha > 0``.
+
+    l1_ratio : float, default=0.7
+        The ElasticNet mixing parameter, with ``0 <= l1_ratio <= 1``. For
+        ``l1_ratio = 0`` the penalty is an L2 penalty. ``For l1_ratio = 1`` it
+        is an L1 penalty.  For ``0 < l1_ratio < 1``, the penalty is a
+        combination of L1 and L2.
+
+    method : {'efron', 'breslow'}, default='efron'
+        The estimate used for the Cox datafit. Use ``efron`` to
+        handle tied observation.
+
+    tol : float, optional
+        Stopping criterion for the optimization.
+
+    max_iter : int, optional
+        The maximum number of iterations to solve the problem.
+
+    verbose : bool or int
+        Amount of verbosity.
+
+    Attributes
+    ----------
+    coef_ : array, shape (n_features,)
+        Parameter vector of Cox regression.
+
+    stop_crit_ : float
+        The value of the stopping criterion at convergence.
+    """
 
     _parameter_constraints: dict = {
         "alpha": [Interval(Real, 0, None, closed="neither")],
@@ -1173,7 +1218,7 @@ class CoxEstimator(LinearModel):
         "verbose": ["boolean", Interval(Integral, 0, 2, closed="both")],
     }
 
-    def __init__(self, alpha=1., l1_ratio=1., method="efron", tol=1e-4,
+    def __init__(self, alpha=1., l1_ratio=0.7, method="efron", tol=1e-4,
                  max_iter=50, verbose=False):
         self.alpha = alpha
         self.l1_ratio = l1_ratio
@@ -1183,6 +1228,24 @@ class CoxEstimator(LinearModel):
         self.verbose = verbose
 
     def fit(self, X, tm, s):
+        """Fit Cox estimator.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            Design matrix.
+
+        tm : array-like, shape (n_samples,)
+            Vector of event time occurrences.
+
+        s : array-like, shape (n_samples,)
+            Vector of censoring.
+
+        Returns
+        -------
+        self :
+            The fitted estimator.
+        """
         self._validate_params()
 
         # validate input data

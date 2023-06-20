@@ -18,6 +18,7 @@
       ~Cox.gradient
       ~Cox.gradient_scalar
       ~Cox.gradient_scalar_sparse
+      ~Cox.gradient_sparse
       ~Cox.initialize
       ~Cox.initialize_sparse
       ~Cox.params_to_dict

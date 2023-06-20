@@ -19,6 +19,7 @@
       ~Logistic.gradient
       ~Logistic.gradient_scalar
       ~Logistic.gradient_scalar_sparse
+      ~Logistic.gradient_sparse
       ~Logistic.init_global_lipschitz
       ~Logistic.init_global_lipschitz_sparse
       ~Logistic.initialize

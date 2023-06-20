@@ -4,6 +4,7 @@ from sklearn.exceptions import ConvergenceWarning
 import numpy as np
 import scipy.optimize
 from numpy.linalg import norm
+from scipy.sparse import issparse
 
 from skglm.solvers import BaseSolver
 
@@ -40,9 +41,16 @@ class LBFGS(BaseSolver):
 
             return datafit_value + penalty_value
 
-        def jacobian_function(w):
+        def d_jacobian_function(w):
             Xw = X @ w
             datafit_grad = datafit.gradient(X, y, Xw)
+            penalty_grad = penalty.gradient(w)
+
+            return datafit_grad + penalty_grad
+
+        def s_jacobian_function(w):
+            Xw = X @ w
+            datafit_grad = datafit.gradient_sparse(X.data, X.indptr, X.indices, y, Xw)
             penalty_grad = penalty.gradient(w)
 
             return datafit_grad + penalty_grad
@@ -64,6 +72,7 @@ class LBFGS(BaseSolver):
 
         n_features = X.shape[1]
         w = np.zeros(n_features) if w_init is None else w_init
+        jacobian_function = d_jacobian_function if issparse(X) else s_jacobian_function
         p_objs_out = []
 
         result = scipy.optimize.minimize(

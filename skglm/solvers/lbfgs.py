@@ -4,6 +4,7 @@ from sklearn.exceptions import ConvergenceWarning
 import numpy as np
 import scipy.optimize
 from numpy.linalg import norm
+from scipy.sparse import issparse
 
 from skglm.solvers import BaseSolver
 
@@ -33,27 +34,34 @@ class LBFGS(BaseSolver):
 
     def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
 
-        def objective_function(w):
+        def objective(w):
             Xw = X @ w
             datafit_value = datafit.value(y, w, Xw)
             penalty_value = penalty.value(w)
 
             return datafit_value + penalty_value
 
-        def jacobian_function(w):
+        def d_jac(w):
             Xw = X @ w
             datafit_grad = datafit.gradient(X, y, Xw)
             penalty_grad = penalty.gradient(w)
 
             return datafit_grad + penalty_grad
 
+        def s_jac(w):
+            Xw = X @ w
+            datafit_grad = datafit.gradient_sparse(X.data, X.indptr, X.indices, y, Xw)
+            penalty_grad = penalty.gradient(w)
+
+            return datafit_grad + penalty_grad
+
         def callback_post_iter(w_k):
             # save p_obj
-            p_obj = objective_function(w_k)
+            p_obj = objective(w_k)
             p_objs_out.append(p_obj)
 
             if self.verbose:
-                grad = jacobian_function(w_k)
+                grad = jac(w_k)
                 stop_crit = norm(grad)
 
                 it = len(p_objs_out)
@@ -64,11 +72,12 @@ class LBFGS(BaseSolver):
 
         n_features = X.shape[1]
         w = np.zeros(n_features) if w_init is None else w_init
+        jac = s_jac if issparse(X) else d_jac
         p_objs_out = []
 
         result = scipy.optimize.minimize(
-            fun=objective_function,
-            jac=jacobian_function,
+            fun=objective,
+            jac=jac,
             x0=w,
             method="L-BFGS-B",
             options=dict(

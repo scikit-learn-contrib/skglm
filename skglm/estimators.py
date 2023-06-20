@@ -5,7 +5,7 @@ import numpy as np
 from scipy.sparse import issparse
 from scipy.special import expit
 from numbers import Integral, Real
-from skglm.solvers.prox_newton import ProxNewton
+from skglm.solvers import ProxNewton, LBFGS
 
 from sklearn.utils.validation import check_is_fitted
 from sklearn.utils import check_array, check_consistent_length
@@ -20,8 +20,9 @@ from sklearn.multiclass import OneVsRestClassifier, check_classification_targets
 
 from skglm.utils.jit_compilation import compiled_clone
 from skglm.solvers import AndersonCD, MultiTaskBCD
-from skglm.datafits import Quadratic, Logistic, QuadraticSVC, QuadraticMultiTask
-from skglm.penalties import L1, WeightedL1, L1_plus_L2, MCPenalty, IndicatorBox, L2_1
+from skglm.datafits import Cox, Quadratic, Logistic, QuadraticSVC, QuadraticMultiTask
+from skglm.penalties import (L1, WeightedL1, L1_plus_L2, L2,
+                             MCPenalty, IndicatorBox, L2_1)
 
 
 def _glm_fit(X, y, model, datafit, penalty, solver):
@@ -1172,7 +1173,8 @@ class CoxEstimator(LinearModel):
         "verbose": ["boolean", Interval(Integral, 0, 2, closed="both")],
     }
 
-    def __init__(self, alpha=1., l1_ratio=1., method="efron", tol=1e-4, max_iter=50, verbose=False):
+    def __init__(self, alpha=1., l1_ratio=1., method="efron", tol=1e-4,
+                 max_iter=50, verbose=False):
         self.alpha = alpha
         self.l1_ratio = l1_ratio
         self.method = method
@@ -1182,6 +1184,36 @@ class CoxEstimator(LinearModel):
 
     def fit(self, X, tm, s):
         self._validate_params()
+
+        # TODO: validate X, tm, and s
+
+        # init datafit penalty
+        datafit = Cox(self.method)
+
+        if self.l1_ratio == 1.:
+            penalty = L1(self.alpha)
+        elif 0. < self.l1_ratio < 1.:
+            penalty = L1_plus_L2(self.alpha, self.l1_ratio)
+        else:
+            penalty = L2(self.alpha)
+
+        # skglm internal: JIT compile classes
+        datafit = compiled_clone(datafit)
+        penalty = compiled_clone(penalty)
+
+        # init solver
+        if self.l1_ratio == 0.:
+            solver = LBFGS(max_iter=self.max_iter, tol=self.tol, verbose=self.verbose)
+        else:
+            solver = ProxNewton(max_iter=self.max_iter, verbose=self.verbose,
+                                fit_intercept=False,)
+
+        # solve problem
+        datafit.initialize(X, (tm, s))
+        coef_, p_obj_out, _ = solver.solve(X, (tm, s), datafit, penalty)
+
+        self.coef_ = coef_
+
         return self
 
 

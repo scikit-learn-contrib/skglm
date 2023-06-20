@@ -27,6 +27,7 @@ from skglm.solvers import AndersonCD
 import pandas as pd
 from skglm.solvers import ProxNewton
 from skglm.utils.jit_compilation import compiled_clone
+from skglm.estimators import CoxEstimator
 
 
 n_samples = 50
@@ -252,6 +253,51 @@ def test_CoxEstimator_sparse(use_efron):
     )
 
     np.testing.assert_allclose(stop_crit, 0., atol=1e-6)
+
+
+@pytest.mark.parametrize("use_efron", [True, False])
+def test_Cox_sk_like_estimator(use_efron):
+    try:
+        from lifelines import CoxPHFitter
+    except ModuleNotFoundError:
+        pytest.xfail(
+            "Testing Cox Estimator requires `lifelines` packages\n"
+            "Run `pip install lifelines`"
+        )
+
+    alpha = 1e-2
+    # norms of solutions differ when n_features > n_samples
+    n_samples, n_features = 100, 30
+    method = "efron" if use_efron else "breslow"
+
+    tm, s, X = make_dummy_survival_data(n_samples, n_features, normalize=True,
+                                        with_ties=use_efron, random_state=0)
+
+    estimator_sk = CoxEstimator(
+        alpha, l1_ratio=1., method=method, tol=1e-6, verbose=True
+    ).fit(X, tm, s)
+    w_sk = estimator_sk.coef_
+
+    # fit lifeline estimator
+    stacked_tm_s_X = np.hstack((tm[:, None], s[:, None], X))
+    df = pd.DataFrame(stacked_tm_s_X)
+
+    estimator_ll = CoxPHFitter(penalizer=alpha, l1_ratio=1.)
+    estimator_ll.fit(
+        df, duration_col=0, event_col=1,
+        fit_options={"max_steps": 10_000, "precision": 1e-12}
+    )
+    w_ll = estimator_ll.params_.values
+
+    datafit = Cox(use_efron)
+    penalty = L1(alpha)
+    datafit.initialize(X, (tm, s))
+
+    p_obj_skglm = datafit.value((tm, s), w_sk, X @ w_sk) + penalty.value(w_sk)
+    p_obj_ll = datafit.value((tm, s), w_ll, X @ w_ll) + penalty.value(w_ll)
+
+    # though norm of solution might differ
+    np.testing.assert_allclose(p_obj_skglm, p_obj_ll, atol=1e-6)
 
 
 # Test if GeneralizedLinearEstimator returns the correct coefficients

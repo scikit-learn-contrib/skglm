@@ -1163,13 +1163,13 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
 
 
 class CoxEstimator(LinearModel):
-    """Elastic Cox estimator with Efron and Breslow estimate.
+    r"""Elastic Cox estimator with Efron and Breslow estimate.
 
     Refer to :ref:`Mathematics behind Cox datafit <maths_cox_datafit>`
     for details about the datafit expression. The data convention for the
     estimator is
 
-    - ``X `` the design matrix with ``n_features`` predictors
+    - ``X`` the design matrix with ``n_features`` predictors
     - ``tm`` the vector recording the time of event occurrences
     - ``s`` the vector of censoring
 

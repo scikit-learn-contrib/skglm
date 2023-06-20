@@ -15,6 +15,7 @@ Estimators
    :toctree: generated/
 
    GeneralizedLinearEstimator
+   CoxEstimator
    ElasticNet
    Lasso
    LinearSVC

@@ -52,27 +52,27 @@ def test_L2_Cox(use_efron):
     alpha = 10.
     n_samples, n_features = 100, 50
 
-    tm, s, X = make_dummy_survival_data(
+    X, y = make_dummy_survival_data(
         n_samples, n_features, normalize=True,
         with_ties=use_efron, random_state=0)
 
     datafit = compiled_clone(Cox(use_efron))
     penalty = compiled_clone(L2(alpha))
 
-    datafit.initialize(X, (tm, s))
-    w, *_ = LBFGS().solve(X, (tm, s), datafit, penalty)
+    datafit.initialize(X, y)
+    w, *_ = LBFGS().solve(X, y, datafit, penalty)
 
     # fit lifeline estimator
-    stacked_tm_s_X = np.hstack((tm[:, None], s[:, None], X))
-    df = pd.DataFrame(stacked_tm_s_X)
+    stacked_y_X = np.hstack((y, X))
+    df = pd.DataFrame(stacked_y_X)
 
     estimator = CoxPHFitter(penalizer=alpha, l1_ratio=0.).fit(
         df, duration_col=0, event_col=1
     )
     w_ll = estimator.params_.values
 
-    p_obj_skglm = datafit.value((tm, s), w, X @ w) + penalty.value(w)
-    p_obj_ll = datafit.value((tm, s), w_ll, X @ w_ll) + penalty.value(w_ll)
+    p_obj_skglm = datafit.value(y, w, X @ w) + penalty.value(w)
+    p_obj_ll = datafit.value(y, w_ll, X @ w_ll) + penalty.value(w_ll)
 
     # despite increasing tol in lifelines, solutions are quite far apart
     # suspecting lifelines https://github.com/CamDavidsonPilon/lifelines/pull/1534

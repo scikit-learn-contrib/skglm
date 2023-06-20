@@ -333,6 +333,9 @@ def _backtrack_line_search(X, y, w, Xw, fit_intercept, datafit, penalty, delta_w
         grad_ws = _construct_grad(X, y, w[:n_features], Xw, datafit, ws)
         # TODO: could be improved by passing in w[ws]
         stop_crit = penalty.value(w[:n_features]) - old_penalty_val
+
+        # it is mandatory to split the two operations, otherwise numba raises an error
+        # cf. https://github.com/numba/numba/issues/9025
         dot = grad_ws @ delta_w_ws[:len(ws)]
         stop_crit += step * dot
 
@@ -369,6 +372,9 @@ def _backtrack_line_search_s(X_data, X_indptr, X_indices, y, w, Xw, fit_intercep
                                          y, w[:n_features], Xw, datafit, ws)
         # TODO: could be improved by passing in w[ws]
         stop_crit = penalty.value(w[:n_features]) - old_penalty_val
+
+        # it is mandatory to split the two operations, otherwise numba raises an error
+        # cf. https://github.com/numba/numba/issues/9025
         dot = grad_ws.T @ delta_w_ws[:len(ws)]
         stop_crit += step * dot
 

@@ -5,6 +5,7 @@ from numba import float64, int64, bool_
 
 from skglm.datafits.base import BaseDatafit
 from skglm.utils.sparse_ops import spectral_norm
+from skglm.solvers.prox_newton import _sparse_xj_dot
 
 
 class Quadratic(BaseDatafit):
@@ -184,6 +185,16 @@ class Logistic(BaseDatafit):
 
     def gradient(self, X, y, Xw):
         return X.T @ self.raw_grad(y, Xw)
+
+    def gradient_sparse(self, X_data, X_indptr, X_indices, y, Xw):
+        n_features = X_indptr.shape[0] - 1
+        out = np.zeros(n_features, dtype=X_data.dtype)
+        raw_grad = self.raw_grad(y, Xw)
+
+        for j in range(n_features):
+            out[j] = _sparse_xj_dot(X_data, X_indptr, X_indices, j, raw_grad)
+
+        return out
 
     def full_grad_sparse(
             self, X_data, X_indptr, X_indices, y, Xw):
@@ -653,6 +664,17 @@ class Cox(BaseDatafit):
     def gradient(self, X, y, Xw):
         """Compute gradient of the datafit."""
         return X.T @ self.raw_grad(y, Xw)
+
+    def gradient_sparse(self, X_data, X_indptr, X_indices, y, Xw):
+        """Compute gradient of the datafit in case ``X`` is sparse."""
+        n_features = X_indptr.shape[0] - 1
+        out = np.zeros(n_features, dtype=X_data.dtype)
+        raw_grad = self.raw_grad(y, Xw)
+
+        for j in range(n_features):
+            out[j] = _sparse_xj_dot(X_data, X_indptr, X_indices, j, raw_grad)
+
+        return out
 
     def initialize(self, X, y):
         """Initialize the datafit attributes."""

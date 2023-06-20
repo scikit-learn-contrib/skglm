@@ -124,8 +124,8 @@ def make_correlated_data(
         return X, Y, w_true
 
 
-def make_dummy_survival_data(n_samples, n_features, normalize=False,
-                             X_density=1., with_ties=False, random_state=None):
+def make_dummy_survival_data(n_samples, n_features, normalize=False, X_density=1.,
+                             with_ties=False, use_float_32=False, random_state=None):
     """Generate a random dataset for survival analysis.
 
     The design matrix ``X`` is generated according to standard normal, the vector of
@@ -152,6 +152,9 @@ def make_dummy_survival_data(n_samples, n_features, normalize=False,
         Determine if the data contains tied observations: observations with the same
         occurrences times ``tm``.
 
+    use_float_32 : bool, default=False
+        It ``True`` returns data with type ``float32``, otherwise, it is ``float64``.
+
     random_state : int, default=None
         Determines random number generation for data generation.
 
@@ -167,20 +170,21 @@ def make_dummy_survival_data(n_samples, n_features, normalize=False,
         The matrix of predictors. If ``density < 1``, a CSC sparse matrix is returned.
     """
     rng = np.random.RandomState(random_state)
+    dtype = np.float64 if use_float_32 is False else np.float32
 
     if X_density == 1.:
-        X = rng.randn(n_samples, n_features).astype(float, order='F')
+        X = rng.randn(n_samples, n_features).astype(dtype, order='F')
     else:
         X = scipy.sparse.rand(
-            n_samples, n_features, density=X_density, format="csc", dtype=float)
+            n_samples, n_features, density=X_density, format="csc", dtype=dtype)
 
     if not with_ties:
-        tm = rng.weibull(a=1, size=n_samples)
+        tm = rng.weibull(a=1, size=n_samples).astype(dtype)
     else:
-        unique_tm = rng.weibull(a=1, size=n_samples // 10 + 1)
+        unique_tm = rng.weibull(a=1, size=n_samples // 10 + 1).astype(dtype)
         tm = rng.choice(unique_tm, size=n_samples)
 
-    s = rng.choice(2, size=n_samples).astype(float)
+    s = rng.choice(2, size=n_samples).astype(dtype)
 
     if normalize and X_density == 1.:
         X = StandardScaler().fit_transform(X)

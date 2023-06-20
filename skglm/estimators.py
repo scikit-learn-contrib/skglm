@@ -1218,15 +1218,21 @@ class CoxEstimator(LinearModel):
             solver = LBFGS(max_iter=self.max_iter, tol=self.tol, verbose=self.verbose)
         else:
             solver = ProxNewton(
-                max_iter=self.max_iter, verbose=self.verbose, fit_intercept=False
+                max_iter=self.max_iter, tol=self.tol, verbose=self.verbose,
+                fit_intercept=False,
             )
 
         # solve problem
-        datafit.initialize(X, (tm, s))
-        coef_, _, _ = solver.solve(X, (tm, s), datafit, penalty)
+        if not issparse(X):
+            datafit.initialize(X, (tm, s))
+        else:
+            datafit.initialize_sparse(X.data, X.indptr, X.indices, (tm, s))
+
+        coef_, _, stop_crit = solver.solve(X, (tm, s), datafit, penalty)
 
         # save to attribute
         self.coef_ = coef_
+        self.stop_crit_ = stop_crit
 
         return self
 

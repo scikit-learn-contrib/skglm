@@ -300,6 +300,24 @@ def test_Cox_sk_like_estimator(use_efron):
     np.testing.assert_allclose(p_obj_skglm, p_obj_ll, atol=1e-6)
 
 
+@pytest.mark.parametrize("use_efron", [True, False])
+def test_Cox_sk_like_estimator_sparse(use_efron):
+    alpha = 1e-2
+    # norms of solutions differ when n_features > n_samples
+    n_samples, n_features = 100, 30
+    method = "efron" if use_efron else "breslow"
+
+    tm, s, X = make_dummy_survival_data(n_samples, n_features, X_density=0.1,
+                                        with_ties=use_efron, random_state=0)
+
+    estimator_sk = CoxEstimator(
+        alpha, l1_ratio=1., method=method, tol=1e-9, verbose=True
+    ).fit(X, tm, s)
+    stop_crit = estimator_sk.stop_crit_
+
+    np.testing.assert_allclose(stop_crit, 0., atol=1e-8)
+
+
 # Test if GeneralizedLinearEstimator returns the correct coefficients
 @pytest.mark.parametrize("Datafit, Penalty, Estimator, pen_args", [
     (Quadratic, L1, Lasso, [alpha]),

@@ -276,16 +276,16 @@ def test_Cox_sk_like_estimator(use_efron, l1_ratio):
     n_samples, n_features = 100, 30
     method = "efron" if use_efron else "breslow"
 
-    tm, s, X = make_dummy_survival_data(n_samples, n_features, normalize=True,
-                                        with_ties=use_efron, random_state=0)
+    X, y = make_dummy_survival_data(n_samples, n_features, normalize=True,
+                                    with_ties=use_efron, random_state=0)
 
     estimator_sk = CoxEstimator(
         alpha, l1_ratio=l1_ratio, method=method, tol=1e-6
-    ).fit(X, tm, s)
+    ).fit(X, y)
     w_sk = estimator_sk.coef_
 
     # fit lifeline estimator
-    stacked_tm_s_X = np.hstack((tm[:, None], s[:, None], X))
+    stacked_tm_s_X = np.hstack((y, X))
     df = pd.DataFrame(stacked_tm_s_X)
 
     estimator_ll = CoxPHFitter(penalizer=alpha, l1_ratio=l1_ratio)
@@ -298,10 +298,10 @@ def test_Cox_sk_like_estimator(use_efron, l1_ratio):
     # define datafit and penalty to check objs
     datafit = Cox(use_efron)
     penalty = L1_plus_L2(alpha, l1_ratio)
-    datafit.initialize(X, (tm, s))
+    datafit.initialize(X, y)
 
-    p_obj_skglm = datafit.value((tm, s), w_sk, X @ w_sk) + penalty.value(w_sk)
-    p_obj_ll = datafit.value((tm, s), w_ll, X @ w_ll) + penalty.value(w_ll)
+    p_obj_skglm = datafit.value(y, w_sk, X @ w_sk) + penalty.value(w_sk)
+    p_obj_ll = datafit.value(y, w_ll, X @ w_ll) + penalty.value(w_ll)
 
     # though norm of solution might differ
     np.testing.assert_allclose(p_obj_skglm, p_obj_ll, atol=1e-6)
@@ -314,12 +314,12 @@ def test_Cox_sk_like_estimator_sparse(use_efron, l1_ratio):
     n_samples, n_features = 100, 30
     method = "efron" if use_efron else "breslow"
 
-    tm, s, X = make_dummy_survival_data(n_samples, n_features, X_density=0.1,
-                                        with_ties=use_efron, random_state=0)
+    X, y = make_dummy_survival_data(n_samples, n_features, X_density=0.1,
+                                    with_ties=use_efron, random_state=0)
 
     estimator_sk = CoxEstimator(
         alpha, l1_ratio=l1_ratio, method=method, tol=1e-9
-    ).fit(X, tm, s)
+    ).fit(X, y)
     stop_crit = estimator_sk.stop_crit_
 
     np.testing.assert_allclose(stop_crit, 0., atol=1e-8)

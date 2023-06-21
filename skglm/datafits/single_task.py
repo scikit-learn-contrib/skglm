@@ -607,7 +607,7 @@ class Cox(BaseDatafit):
 
     def value(self, y, w, Xw):
         """Compute the value of the datafit."""
-        tm, s = y
+        tm, s = y[:, 0], y[:, 1]  # noqa
         n_samples = Xw.shape[0]
 
         # compute inside log term
@@ -625,7 +625,7 @@ class Cox(BaseDatafit):
         Refer to :ref:`Mathematics behind Cox datafit <maths_cox_datafit>`
         equation 4 for details.
         """
-        tm, s = y
+        tm, s = y[:, 0], y[:, 1]  # noqa
         n_samples = Xw.shape[0]
 
         exp_Xw = np.exp(Xw)
@@ -646,7 +646,7 @@ class Cox(BaseDatafit):
         Refer to :ref:`Mathematics behind Cox datafit <maths_cox_datafit>`
         equation 6 for details.
         """
-        tm, s = y
+        tm, s = y[:, 0], y[:, 1]  # noqa
         n_samples = Xw.shape[0]
 
         exp_Xw = np.exp(Xw)
@@ -678,7 +678,7 @@ class Cox(BaseDatafit):
 
     def initialize(self, X, y):
         """Initialize the datafit attributes."""
-        tm, s = y
+        tm, s = y[:, 0], y[:, 1]  # noqa
 
         self.T_indices = np.argsort(tm)
         self.T_indptr = self._get_indptr(tm, self.T_indices)

@@ -18,18 +18,20 @@ x100 less time.
 from skglm.utils.data import make_dummy_survival_data
 
 n_samples, n_features = 500, 100
-tm, s, X = make_dummy_survival_data(
+X, y = make_dummy_survival_data(
     n_samples, n_features,
     normalize=True,
     random_state=0
 )
 
+tm, s = y[:, 0], y[:, 1]
+
 # %%
 # The synthetic data has the following properties:
 #
+# * ``X`` is the matrix of predictors, generated using standard normal distribution with Toeplitz covariance.
 # * ``tm`` is the vector of occurrence times which follows a Weibull(1) distribution
 # * ``s`` indicates the observations censorship and follows a Bernoulli(0.5) distribution
-# * ``X`` is the matrix of predictors, generated using standard normal distribution with Toeplitz covariance.
 #
 # Let's inspect the data quickly:
 import matplotlib.pyplot as plt
@@ -70,13 +72,13 @@ alpha = 1e-2
 datafit = compiled_clone(Cox())
 penalty = compiled_clone(L1(alpha))
 
-datafit.initialize(X, (tm, s))
+datafit.initialize(X, y)
 
 # init solver
 solver = ProxNewton(fit_intercept=False, max_iter=50)
 
 # solve the problem
-w_sk = solver.solve(X, (tm, s), datafit, penalty)[0]
+w_sk = solver.solve(X, y, datafit, penalty)[0]
 
 # %%
 # For this data a regularization value a relatively sparse solution is found:
@@ -93,8 +95,8 @@ import pandas as pd
 from lifelines import CoxPHFitter
 
 # format data
-stacked_tm_s_X = np.hstack((tm[:, None], s[:, None], X))
-df = pd.DataFrame(stacked_tm_s_X)
+stacked_y_X = np.hstack((y, X))
+df = pd.DataFrame(stacked_y_X)
 
 # fit lifelines estimator
 lifelines_estimator = CoxPHFitter(penalizer=alpha, l1_ratio=1.).fit(
@@ -106,8 +108,8 @@ w_ll = lifelines_estimator.params_.values
 
 # %%
 # Check that both solvers find solutions having the same objective value:
-obj_sk = datafit.value((tm, s), w_sk, X @ w_sk) + penalty.value(w_sk)
-obj_ll = datafit.value((tm, s), w_ll, X @ w_ll) + penalty.value(w_ll)
+obj_sk = datafit.value(y, w_sk, X @ w_sk) + penalty.value(w_sk)
+obj_ll = datafit.value(y, w_ll, X @ w_ll) + penalty.value(w_ll)
 
 print(f"Objective skglm: {obj_sk:.6f}")
 print(f"Objective lifelines: {obj_ll:.6f}")
@@ -141,11 +143,11 @@ for n_iter in range(1, max_runs + 1):
     solver.max_iter = n_iter
 
     start = time.perf_counter()
-    w = solver.solve(X, (tm, s), datafit, penalty)[0]
+    w = solver.solve(X, y, datafit, penalty)[0]
     end = time.perf_counter()
 
     records["skglm"]["objs"].append(
-        datafit.value((tm, s), w, X @ w) + penalty.value(w)
+        datafit.value(y, w, X @ w) + penalty.value(w)
     )
     records["skglm"]["times"].append(end - start)
 
@@ -164,7 +166,7 @@ for n_iter in list(range(10)) + list(range(10, max_runs + 1, 5)):
     w = lifelines_estimator.params_.values
 
     records["lifelines"]["objs"].append(
-        datafit.value((tm, s), w, X @ w) + penalty.value(w)
+        datafit.value(y, w, X @ w) + penalty.value(w)
     )
     records["lifelines"]["times"].append(end - start)
 
@@ -212,12 +214,13 @@ print(f"speed up ratio: {speed_up:.0f}")
 #
 # Let's start by generating data with tied observations. This can be achieved
 # by passing in a ``with_ties=True`` to ``make_dummy_survival_data`` function.
-tm, s, X = make_dummy_survival_data(
+X, y = make_dummy_survival_data(
     n_samples, n_features,
     normalize=True,
     with_ties=True,
     random_state=0
 )
+tm, s = y[:, 0], y[:, 1]
 
 # check the data has tied observations
 print(f"Number of unique times {len(np.unique(tm))} out of {n_samples}")
@@ -228,11 +231,11 @@ print(f"Number of unique times {len(np.unique(tm))} out of {n_samples}")
 
 # ensure using Efron estimate
 datafit = compiled_clone(Cox(use_efron=True))
-datafit.initialize(X, (tm, s))
+datafit.initialize(X, y)
 
 # solve the problem
 solver = ProxNewton(fit_intercept=False, max_iter=50)
-w_sk = solver.solve(X, (tm, s), datafit, penalty)[0]
+w_sk = solver.solve(X, y, datafit, penalty)[0]
 
 # %%
 # Again a relatively sparse solution is found:
@@ -257,8 +260,8 @@ lifelines_estimator = CoxPHFitter(penalizer=alpha, l1_ratio=1.).fit(
 w_ll = lifelines_estimator.params_.values
 
 # Check that both solvers find solutions with the same objective value
-obj_sk = datafit.value((tm, s), w_sk, X @ w_sk) + penalty.value(w_sk)
-obj_ll = datafit.value((tm, s), w_ll, X @ w_ll) + penalty.value(w_ll)
+obj_sk = datafit.value(y, w_sk, X @ w_sk) + penalty.value(w_sk)
+obj_ll = datafit.value(y, w_ll, X @ w_ll) + penalty.value(w_ll)
 
 print(f"Objective skglm: {obj_sk:.6f}")
 print(f"Objective lifelines: {obj_ll:.6f}")
@@ -272,7 +275,7 @@ print(f"Euclidean distance between solutions: {np.linalg.norm(w_sk - w_ll):.3e}"
 
 # time skglm
 start = time.perf_counter()
-solver.solve(X, (tm, s), datafit, penalty)[0]
+solver.solve(X, y, datafit, penalty)[0]
 end = time.perf_counter()
 
 total_time_skglm = end - start

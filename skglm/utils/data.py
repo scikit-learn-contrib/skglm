@@ -160,14 +160,13 @@ def make_dummy_survival_data(n_samples, n_features, normalize=False, X_density=1
 
     Returns
     -------
-    tm : array-like, shape (n_samples,)
-        The vector of recording the time of event occurrences
-
-    s : array-like, shape (n_samples,)
-        The vector of indicating samples censorship
-
     X : array-like, shape (n_samples, n_features)
         The matrix of predictors. If ``density < 1``, a CSC sparse matrix is returned.
+
+    y : array-like, shape (n_samples, 2)
+        Two-column array where the first column ``tm`` is the vector
+        recording the time of event occurrences, and the second column ``s``
+        is the vector of sample censoring.
     """
     rng = np.random.RandomState(random_state)
     dtype = np.float64 if use_float_32 is False else np.float32
@@ -189,7 +188,10 @@ def make_dummy_survival_data(n_samples, n_features, normalize=False, X_density=1
     if normalize and X_density == 1.:
         X = StandardScaler().fit_transform(X)
 
-    return tm, s, X
+    # stack (tm, s)
+    y = np.column_stack((tm, s)).astype(dtype, order='F')
+
+    return X, y
 
 
 def grp_converter(groups, n_features):

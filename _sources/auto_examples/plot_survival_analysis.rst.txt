@@ -33,19 +33,20 @@ Let's first generate synthetic data on which to run the Cox estimator,
 using ``skglm`` data utils.
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 18-27
+.. GENERATED FROM PYTHON SOURCE LINES 18-29
 
 .. code-block:: default
 
     from skglm.utils.data import make_dummy_survival_data
 
     n_samples, n_features = 500, 100
-    tm, s, X = make_dummy_survival_data(
+    X, y = make_dummy_survival_data(
         n_samples, n_features,
         normalize=True,
         random_state=0
     )
 
+    tm, s = y[:, 0], y[:, 1]
 
 
 
@@ -53,17 +54,18 @@ using ``skglm`` data utils.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 28-35
+
+.. GENERATED FROM PYTHON SOURCE LINES 30-37
 
 The synthetic data has the following properties:
 
+* ``X`` is the matrix of predictors, generated using standard normal distribution with Toeplitz covariance.
 * ``tm`` is the vector of occurrence times which follows a Weibull(1) distribution
 * ``s`` indicates the observations censorship and follows a Bernoulli(0.5) distribution
-* ``X`` is the matrix of predictors, generated using standard normal distribution with Toeplitz covariance.
 
 Let's inspect the data quickly:
 
-.. GENERATED FROM PYTHON SOURCE LINES 35-52
+.. GENERATED FROM PYTHON SOURCE LINES 37-54
 
 .. code-block:: default
 
@@ -96,7 +98,7 @@ Let's inspect the data quickly:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 53-60
+.. GENERATED FROM PYTHON SOURCE LINES 55-62
 
 Fitting the Cox Estimator
 -----------------
@@ -106,7 +108,7 @@ Todo so, we need to combine a Cox datafit and a :math:`\ell_1` penalty
 and solve the resulting problem using skglm Proximal Newton solver ``ProxNewton``.
 We set the intensity of the :math:`\ell_1` regularization to ``alpha=1e-2``.
 
-.. GENERATED FROM PYTHON SOURCE LINES 60-81
+.. GENERATED FROM PYTHON SOURCE LINES 62-83
 
 .. code-block:: default
 
@@ -123,13 +125,13 @@ We set the intensity of the :math:`\ell_1` regularization to ``alpha=1e-2``.
     datafit = compiled_clone(Cox())
     penalty = compiled_clone(L1(alpha))
 
-    datafit.initialize(X, (tm, s))
+    datafit.initialize(X, y)
 
     # init solver
     solver = ProxNewton(fit_intercept=False, max_iter=50)
 
     # solve the problem
-    w_sk = solver.solve(X, (tm, s), datafit, penalty)[0]
+    w_sk = solver.solve(X, y, datafit, penalty)[0]
 
 
 
@@ -138,11 +140,11 @@ We set the intensity of the :math:`\ell_1` regularization to ``alpha=1e-2``.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 82-83
+.. GENERATED FROM PYTHON SOURCE LINES 84-85
 
 For this data a regularization value a relatively sparse solution is found:
 
-.. GENERATED FROM PYTHON SOURCE LINES 83-88
+.. GENERATED FROM PYTHON SOURCE LINES 85-90
 
 .. code-block:: default
 
@@ -164,12 +166,12 @@ For this data a regularization value a relatively sparse solution is found:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 89-91
+.. GENERATED FROM PYTHON SOURCE LINES 91-93
 
 Let's solve the problem with ``lifelines`` through its ``CoxPHFitter``
 estimator and compare the objectives found by the two packages.
 
-.. GENERATED FROM PYTHON SOURCE LINES 91-107
+.. GENERATED FROM PYTHON SOURCE LINES 93-109
 
 .. code-block:: default
 
@@ -178,8 +180,8 @@ estimator and compare the objectives found by the two packages.
     from lifelines import CoxPHFitter
 
     # format data
-    stacked_tm_s_X = np.hstack((tm[:, None], s[:, None], X))
-    df = pd.DataFrame(stacked_tm_s_X)
+    stacked_y_X = np.hstack((y, X))
+    df = pd.DataFrame(stacked_y_X)
 
     # fit lifelines estimator
     lifelines_estimator = CoxPHFitter(penalizer=alpha, l1_ratio=1.).fit(
@@ -196,16 +198,16 @@ estimator and compare the objectives found by the two packages.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 108-109
+.. GENERATED FROM PYTHON SOURCE LINES 110-111
 
 Check that both solvers find solutions having the same objective value:
 
-.. GENERATED FROM PYTHON SOURCE LINES 109-115
+.. GENERATED FROM PYTHON SOURCE LINES 111-117
 
 .. code-block:: default
 
-    obj_sk = datafit.value((tm, s), w_sk, X @ w_sk) + penalty.value(w_sk)
-    obj_ll = datafit.value((tm, s), w_ll, X @ w_ll) + penalty.value(w_ll)
+    obj_sk = datafit.value(y, w_sk, X @ w_sk) + penalty.value(w_sk)
+    obj_ll = datafit.value(y, w_ll, X @ w_ll) + penalty.value(w_ll)
 
     print(f"Objective skglm: {obj_sk:.6f}")
     print(f"Objective lifelines: {obj_ll:.6f}")
@@ -225,11 +227,11 @@ Check that both solvers find solutions having the same objective value:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 116-117
+.. GENERATED FROM PYTHON SOURCE LINES 118-119
 
 We can do the same to check how close the two solutions are.
 
-.. GENERATED FROM PYTHON SOURCE LINES 117-119
+.. GENERATED FROM PYTHON SOURCE LINES 119-121
 
 .. code-block:: default
 
@@ -248,7 +250,7 @@ We can do the same to check how close the two solutions are.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 120-127
+.. GENERATED FROM PYTHON SOURCE LINES 122-129
 
 Timing comparison
 -----------------
@@ -258,7 +260,7 @@ let's compare their execution time. To get the evolution of the suboptimality
 (objective - optimal objective) we run both estimators with increasing number of
 iterations.
 
-.. GENERATED FROM PYTHON SOURCE LINES 127-177
+.. GENERATED FROM PYTHON SOURCE LINES 129-179
 
 .. code-block:: default
 
@@ -279,11 +281,11 @@ iterations.
         solver.max_iter = n_iter
 
         start = time.perf_counter()
-        w = solver.solve(X, (tm, s), datafit, penalty)[0]
+        w = solver.solve(X, y, datafit, penalty)[0]
         end = time.perf_counter()
 
         records["skglm"]["objs"].append(
-            datafit.value((tm, s), w, X @ w) + penalty.value(w)
+            datafit.value(y, w, X @ w) + penalty.value(w)
         )
         records["skglm"]["times"].append(end - start)
 
@@ -302,7 +304,7 @@ iterations.
         w = lifelines_estimator.params_.values
 
         records["lifelines"]["objs"].append(
-            datafit.value((tm, s), w, X @ w) + penalty.value(w)
+            datafit.value(y, w, X @ w) + penalty.value(w)
         )
         records["lifelines"]["times"].append(end - start)
 
@@ -319,12 +321,12 @@ iterations.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 178-180
+.. GENERATED FROM PYTHON SOURCE LINES 180-182
 
 Results
 -------
 
-.. GENERATED FROM PYTHON SOURCE LINES 180-200
+.. GENERATED FROM PYTHON SOURCE LINES 182-202
 
 .. code-block:: default
 
@@ -360,12 +362,12 @@ Results
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 201-203
+.. GENERATED FROM PYTHON SOURCE LINES 203-205
 
 According to printed ratio, using ``skglm`` we get the same result as ``lifelines``
 with more than x100 less time!
 
-.. GENERATED FROM PYTHON SOURCE LINES 203-206
+.. GENERATED FROM PYTHON SOURCE LINES 205-208
 
 .. code-block:: default
 
@@ -380,12 +382,12 @@ with more than x100 less time!
 
  .. code-block:: none
 
-    speed up ratio: 953
+    speed up ratio: 485
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 207-215
+.. GENERATED FROM PYTHON SOURCE LINES 209-217
 
 Efron estimate
 --------------
@@ -396,16 +398,17 @@ can be extended to the case of handling tied observation with the Efron estimate
 Let's start by generating data with tied observations. This can be achieved
 by passing in a ``with_ties=True`` to ``make_dummy_survival_data`` function.
 
-.. GENERATED FROM PYTHON SOURCE LINES 215-225
+.. GENERATED FROM PYTHON SOURCE LINES 217-228
 
 .. code-block:: default
 
-    tm, s, X = make_dummy_survival_data(
+    X, y = make_dummy_survival_data(
         n_samples, n_features,
         normalize=True,
         with_ties=True,
         random_state=0
     )
+    tm, s = y[:, 0], y[:, 1]
 
     # check the data has tied observations
     print(f"Number of unique times {len(np.unique(tm))} out of {n_samples}")
@@ -423,23 +426,23 @@ by passing in a ``with_ties=True`` to ``make_dummy_survival_data`` function.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 226-228
+.. GENERATED FROM PYTHON SOURCE LINES 229-231
 
 It is straightforward to fit an :math:`\ell_1` Cox estimator with the Efron estimate.
 We only need to pass in ``use_efron=True`` to the ``Cox`` datafit.
 
-.. GENERATED FROM PYTHON SOURCE LINES 228-237
+.. GENERATED FROM PYTHON SOURCE LINES 231-240
 
 .. code-block:: default
 
 
     # ensure using Efron estimate
     datafit = compiled_clone(Cox(use_efron=True))
-    datafit.initialize(X, (tm, s))
+    datafit.initialize(X, y)
 
     # solve the problem
     solver = ProxNewton(fit_intercept=False, max_iter=50)
-    w_sk = solver.solve(X, (tm, s), datafit, penalty)[0]
+    w_sk = solver.solve(X, y, datafit, penalty)[0]
 
 
 
@@ -448,11 +451,11 @@ We only need to pass in ``use_efron=True`` to the ``Cox`` datafit.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 238-239
+.. GENERATED FROM PYTHON SOURCE LINES 241-242
 
 Again a relatively sparse solution is found:
 
-.. GENERATED FROM PYTHON SOURCE LINES 239-244
+.. GENERATED FROM PYTHON SOURCE LINES 242-247
 
 .. code-block:: default
 
@@ -474,11 +477,11 @@ Again a relatively sparse solution is found:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 245-246
+.. GENERATED FROM PYTHON SOURCE LINES 248-249
 
 Let's do the same with ``lifelines`` and compare the results
 
-.. GENERATED FROM PYTHON SOURCE LINES 246-270
+.. GENERATED FROM PYTHON SOURCE LINES 249-273
 
 .. code-block:: default
 
@@ -496,8 +499,8 @@ Let's do the same with ``lifelines`` and compare the results
     w_ll = lifelines_estimator.params_.values
 
     # Check that both solvers find solutions with the same objective value
-    obj_sk = datafit.value((tm, s), w_sk, X @ w_sk) + penalty.value(w_sk)
-    obj_ll = datafit.value((tm, s), w_ll, X @ w_ll) + penalty.value(w_ll)
+    obj_sk = datafit.value(y, w_sk, X @ w_sk) + penalty.value(w_sk)
+    obj_ll = datafit.value(y, w_ll, X @ w_ll) + penalty.value(w_ll)
 
     print(f"Objective skglm: {obj_sk:.6f}")
     print(f"Objective lifelines: {obj_ll:.6f}")
@@ -522,18 +525,18 @@ Let's do the same with ``lifelines`` and compare the results
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 271-272
+.. GENERATED FROM PYTHON SOURCE LINES 274-275
 
 Finally, let's compare the timings of both solvers
 
-.. GENERATED FROM PYTHON SOURCE LINES 272-297
+.. GENERATED FROM PYTHON SOURCE LINES 275-300
 
 .. code-block:: default
 
 
     # time skglm
     start = time.perf_counter()
-    solver.solve(X, (tm, s), datafit, penalty)[0]
+    solver.solve(X, y, datafit, penalty)[0]
     end = time.perf_counter()
 
     total_time_skglm = end - start
@@ -563,12 +566,12 @@ Finally, let's compare the timings of both solvers
 
  .. code-block:: none
 
-    speed up ratio: 825
+    speed up ratio: 593
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 298-300
+.. GENERATED FROM PYTHON SOURCE LINES 301-303
 
 As shown by the last print, we still preserve the x100 ratio speed up
 even for the Efron estimate.
@@ -576,7 +579,7 @@ even for the Efron estimate.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  52.541 seconds)
+   **Total running time of the script:** ( 0 minutes  52.385 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_survival_analysis.py:

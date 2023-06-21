@@ -276,18 +276,20 @@ using <code class="docutils literal notranslate"><span class="pre">skglm</span><
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skglm.utils.data</span> <span class="kn">import</span> <span class="n">make_dummy_survival_data</span>
 
 <span class="n">n_samples</span><span class="p">,</span> <span class="n">n_features</span> <span class="o">=</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">100</span>
-<span class="n">tm</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">X</span> <span class="o">=</span> <span class="n">make_dummy_survival_data</span><span class="p">(</span>
+<span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">make_dummy_survival_data</span><span class="p">(</span>
     <span class="n">n_samples</span><span class="p">,</span> <span class="n">n_features</span><span class="p">,</span>
     <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span>
 <span class="p">)</span>
+
+<span class="n">tm</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="n">y</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>The synthetic data has the following properties:</p>
 <ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">X</span></code> is the matrix of predictors, generated using standard normal distribution with Toeplitz covariance.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">tm</span></code> is the vector of occurrence times which follows a Weibull(1) distribution</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">s</span></code> indicates the observations censorship and follows a Bernoulli(0.5) distribution</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">X</span></code> is the matrix of predictors, generated using standard normal distribution with Toeplitz covariance.</p></li>
 </ul>
 <p>Let’s inspect the data quickly:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -328,13 +330,13 @@ We set the intensity of the <span class="math notranslate nohighlight">`\ell_1`<
 <span class="n">datafit</span> <span class="o">=</span> <span class="n">compiled_clone</span><span class="p">(</span><a href="../generated/skglm.datafits.Cox.html#skglm.datafits.Cox" title="skglm.datafits.Cox" class="sphx-glr-backref-module-skglm-datafits sphx-glr-backref-type-py-class"><span class="n">Cox</span></a><span class="p">())</span>
 <span class="n">penalty</span> <span class="o">=</span> <span class="n">compiled_clone</span><span class="p">(</span><a href="../generated/skglm.penalties.L1.html#skglm.penalties.L1" title="skglm.penalties.L1" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">L1</span></a><span class="p">(</span><span class="n">alpha</span><span class="p">))</span>
 
-<span class="n">datafit</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">(</span><span class="n">tm</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
+<span class="n">datafit</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
 
 <span class="c1"># init solver</span>
 <a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a> <span class="o">=</span> <a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class"><span class="n">ProxNewton</span></a><span class="p">(</span><span class="n">fit_intercept</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
 
 <span class="c1"># solve the problem</span>
-<span class="n">w_sk</span> <span class="o">=</span> <a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">(</span><span class="n">tm</span><span class="p">,</span> <span class="n">s</span><span class="p">),</span> <span class="n">datafit</span><span class="p">,</span> <span class="n">penalty</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">w_sk</span> <span class="o">=</span> <a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">datafit</span><span class="p">,</span> <span class="n">penalty</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>For this data a regularization value a relatively sparse solution is found:</p>
@@ -354,8 +356,8 @@ estimator and compare the objectives found by the two packages.</p>
 <span class="kn">from</span> <span class="nn">lifelines</span> <span class="kn">import</span> <span class="n">CoxPHFitter</span>
 
 <span class="c1"># format data</span>
-<span class="n">stacked_tm_s_X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">tm</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">s</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">X</span><span class="p">))</span>
-<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">stacked_tm_s_X</span><span class="p">)</span>
+<span class="n">stacked_y_X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">y</span><span class="p">,</span> <span class="n">X</span><span class="p">))</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">stacked_y_X</span><span class="p">)</span>
 
 <span class="c1"># fit lifelines estimator</span>
 <span class="n">lifelines_estimator</span> <span class="o">=</span> <span class="n">CoxPHFitter</span><span class="p">(</span><span class="n">penalizer</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> <span class="n">l1_ratio</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
@@ -367,8 +369,8 @@ estimator and compare the objectives found by the two packages.</p>
 </pre></div>
 </div>
 <p>Check that both solvers find solutions having the same objective value:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">obj_sk</span> <span class="o">=</span> <span class="n">datafit</span><span class="o">.</span><span class="n">value</span><span class="p">((</span><span class="n">tm</span><span class="p">,</span> <span class="n">s</span><span class="p">),</span> <span class="n">w_sk</span><span class="p">,</span> <span class="n">X</span> <span class="o">@</span> <span class="n">w_sk</span><span class="p">)</span> <span class="o">+</span> <span class="n">penalty</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">w_sk</span><span class="p">)</span>
-<span class="n">obj_ll</span> <span class="o">=</span> <span class="n">datafit</span><span class="o">.</span><span class="n">value</span><span class="p">((</span><span class="n">tm</span><span class="p">,</span> <span class="n">s</span><span class="p">),</span> <span class="n">w_ll</span><span class="p">,</span> <span class="n">X</span> <span class="o">@</span> <span class="n">w_ll</span><span class="p">)</span> <span class="o">+</span> <span class="n">penalty</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">w_ll</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">obj_sk</span> <span class="o">=</span> <span class="n">datafit</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">w_sk</span><span class="p">,</span> <span class="n">X</span> <span class="o">@</span> <span class="n">w_sk</span><span class="p">)</span> <span class="o">+</span> <span class="n">penalty</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">w_sk</span><span class="p">)</span>
+<span class="n">obj_ll</span> <span class="o">=</span> <span class="n">datafit</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">w_ll</span><span class="p">,</span> <span class="n">X</span> <span class="o">@</span> <span class="n">w_ll</span><span class="p">)</span> <span class="o">+</span> <span class="n">penalty</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">w_ll</span><span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Objective skglm: </span><span class="si">{</span><span class="n">obj_sk</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Objective lifelines: </span><span class="si">{</span><span class="n">obj_ll</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -411,11 +413,11 @@ iterations.</p>
     <a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a><span class="o">.</span><span class="n">max_iter</span> <span class="o">=</span> <span class="n">n_iter</span>
 
     <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
-    <span class="n">w</span> <span class="o">=</span> <a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">(</span><span class="n">tm</span><span class="p">,</span> <span class="n">s</span><span class="p">),</span> <span class="n">datafit</span><span class="p">,</span> <span class="n">penalty</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">w</span> <span class="o">=</span> <a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">datafit</span><span class="p">,</span> <span class="n">penalty</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
 
     <span class="n">records</span><span class="p">[</span><span class="s2">&quot;skglm&quot;</span><span class="p">][</span><span class="s2">&quot;objs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-        <span class="n">datafit</span><span class="o">.</span><span class="n">value</span><span class="p">((</span><span class="n">tm</span><span class="p">,</span> <span class="n">s</span><span class="p">),</span> <span class="n">w</span><span class="p">,</span> <span class="n">X</span> <span class="o">@</span> <span class="n">w</span><span class="p">)</span> <span class="o">+</span> <span class="n">penalty</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+        <span class="n">datafit</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">X</span> <span class="o">@</span> <span class="n">w</span><span class="p">)</span> <span class="o">+</span> <span class="n">penalty</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
     <span class="p">)</span>
     <span class="n">records</span><span class="p">[</span><span class="s2">&quot;skglm&quot;</span><span class="p">][</span><span class="s2">&quot;times&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span>
 
@@ -434,7 +436,7 @@ iterations.</p>
     <span class="n">w</span> <span class="o">=</span> <span class="n">lifelines_estimator</span><span class="o">.</span><span class="n">params_</span><span class="o">.</span><span class="n">values</span>
 
     <span class="n">records</span><span class="p">[</span><span class="s2">&quot;lifelines&quot;</span><span class="p">][</span><span class="s2">&quot;objs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-        <span class="n">datafit</span><span class="o">.</span><span class="n">value</span><span class="p">((</span><span class="n">tm</span><span class="p">,</span> <span class="n">s</span><span class="p">),</span> <span class="n">w</span><span class="p">,</span> <span class="n">X</span> <span class="o">@</span> <span class="n">w</span><span class="p">)</span> <span class="o">+</span> <span class="n">penalty</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+        <span class="n">datafit</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">X</span> <span class="o">@</span> <span class="n">w</span><span class="p">)</span> <span class="o">+</span> <span class="n">penalty</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
     <span class="p">)</span>
     <span class="n">records</span><span class="p">[</span><span class="s2">&quot;lifelines&quot;</span><span class="p">][</span><span class="s2">&quot;times&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span>
 
@@ -474,7 +476,7 @@ with more than x100 less time!</p>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;speed up ratio: </span><span class="si">{</span><span class="n">speed_up</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>speed up ratio: 953
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>speed up ratio: 485
 </pre></div>
 </div>
 </section>
@@ -484,12 +486,13 @@ with more than x100 less time!</p>
 can be extended to the case of handling tied observation with the Efron estimate.</p>
 <p>Let’s start by generating data with tied observations. This can be achieved
 by passing in a <code class="docutils literal notranslate"><span class="pre">with_ties=True</span></code> to <code class="docutils literal notranslate"><span class="pre">make_dummy_survival_data</span></code> function.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tm</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">X</span> <span class="o">=</span> <span class="n">make_dummy_survival_data</span><span class="p">(</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">make_dummy_survival_data</span><span class="p">(</span>
     <span class="n">n_samples</span><span class="p">,</span> <span class="n">n_features</span><span class="p">,</span>
     <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">with_ties</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span>
 <span class="p">)</span>
+<span class="n">tm</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="n">y</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
 
 <span class="c1"># check the data has tied observations</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of unique times </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">tm</span><span class="p">))</span><span class="si">}</span><span class="s2"> out of </span><span class="si">{</span><span class="n">n_samples</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -502,11 +505,11 @@ by passing in a <code class="docutils literal notranslate"><span class="pre">wit
 We only need to pass in <code class="docutils literal notranslate"><span class="pre">use_efron=True</span></code> to the <code class="docutils literal notranslate"><span class="pre">Cox</span></code> datafit.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># ensure using Efron estimate</span>
 <span class="n">datafit</span> <span class="o">=</span> <span class="n">compiled_clone</span><span class="p">(</span><a href="../generated/skglm.datafits.Cox.html#skglm.datafits.Cox" title="skglm.datafits.Cox" class="sphx-glr-backref-module-skglm-datafits sphx-glr-backref-type-py-class"><span class="n">Cox</span></a><span class="p">(</span><span class="n">use_efron</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-<span class="n">datafit</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">(</span><span class="n">tm</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
+<span class="n">datafit</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
 
 <span class="c1"># solve the problem</span>
 <a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a> <span class="o">=</span> <a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class"><span class="n">ProxNewton</span></a><span class="p">(</span><span class="n">fit_intercept</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
-<span class="n">w_sk</span> <span class="o">=</span> <a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">(</span><span class="n">tm</span><span class="p">,</span> <span class="n">s</span><span class="p">),</span> <span class="n">datafit</span><span class="p">,</span> <span class="n">penalty</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">w_sk</span> <span class="o">=</span> <a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">datafit</span><span class="p">,</span> <span class="n">penalty</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>Again a relatively sparse solution is found:</p>
@@ -533,8 +536,8 @@ We only need to pass in <code class="docutils literal notranslate"><span class="
 <span class="n">w_ll</span> <span class="o">=</span> <span class="n">lifelines_estimator</span><span class="o">.</span><span class="n">params_</span><span class="o">.</span><span class="n">values</span>
 
 <span class="c1"># Check that both solvers find solutions with the same objective value</span>
-<span class="n">obj_sk</span> <span class="o">=</span> <span class="n">datafit</span><span class="o">.</span><span class="n">value</span><span class="p">((</span><span class="n">tm</span><span class="p">,</span> <span class="n">s</span><span class="p">),</span> <span class="n">w_sk</span><span class="p">,</span> <span class="n">X</span> <span class="o">@</span> <span class="n">w_sk</span><span class="p">)</span> <span class="o">+</span> <span class="n">penalty</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">w_sk</span><span class="p">)</span>
-<span class="n">obj_ll</span> <span class="o">=</span> <span class="n">datafit</span><span class="o">.</span><span class="n">value</span><span class="p">((</span><span class="n">tm</span><span class="p">,</span> <span class="n">s</span><span class="p">),</span> <span class="n">w_ll</span><span class="p">,</span> <span class="n">X</span> <span class="o">@</span> <span class="n">w_ll</span><span class="p">)</span> <span class="o">+</span> <span class="n">penalty</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">w_ll</span><span class="p">)</span>
+<span class="n">obj_sk</span> <span class="o">=</span> <span class="n">datafit</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">w_sk</span><span class="p">,</span> <span class="n">X</span> <span class="o">@</span> <span class="n">w_sk</span><span class="p">)</span> <span class="o">+</span> <span class="n">penalty</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">w_sk</span><span class="p">)</span>
+<span class="n">obj_ll</span> <span class="o">=</span> <span class="n">datafit</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">w_ll</span><span class="p">,</span> <span class="n">X</span> <span class="o">@</span> <span class="n">w_ll</span><span class="p">)</span> <span class="o">+</span> <span class="n">penalty</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">w_ll</span><span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Objective skglm: </span><span class="si">{</span><span class="n">obj_sk</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Objective lifelines: </span><span class="si">{</span><span class="n">obj_ll</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -553,7 +556,7 @@ Euclidean distance between solutions: 4.046e-04
 <p>Finally, let’s compare the timings of both solvers</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># time skglm</span>
 <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
-<a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">(</span><span class="n">tm</span><span class="p">,</span> <span class="n">s</span><span class="p">),</span> <span class="n">datafit</span><span class="p">,</span> <span class="n">penalty</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<a href="../generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton" title="skglm.solvers.ProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">datafit</span><span class="p">,</span> <span class="n">penalty</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
 
 <span class="n">total_time_skglm</span> <span class="o">=</span> <span class="n">end</span> <span class="o">-</span> <span class="n">start</span>
@@ -576,12 +579,12 @@ Euclidean distance between solutions: 4.046e-04
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;speed up ratio: </span><span class="si">{</span><span class="n">speed_up</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>speed up ratio: 825
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>speed up ratio: 593
 </pre></div>
 </div>
 <p>As shown by the last print, we still preserve the x100 ratio speed up
 even for the Efron estimate.</p>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  52.541 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  52.385 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-survival-analysis-py">
 <div class="sphx-glr-download sphx-glr-download-python docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/eaeb462b2d01e653174a906e5979ea4c/plot_survival_analysis.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_survival_analysis.py</span></code></a></p>

@@ -11,6 +11,7 @@ from skglm.solvers import AndersonCD, ProxNewton
 from skglm import GeneralizedLinearEstimator
 from skglm.utils.data import make_correlated_data
 from skglm.utils.jit_compilation import compiled_clone
+from skglm.utils.data import make_dummy_survival_data
 
 
 @pytest.mark.parametrize('fit_intercept', [False, True])
@@ -122,10 +123,8 @@ def test_cox(use_efron):
     n_samples, n_features = 10, 30
 
     # generate data
-    X = rng.randn(n_samples, n_features)
-    tm = rng.choice(n_samples*n_features, size=n_samples, replace=True).astype(float)
-    s = rng.choice(2, size=n_samples).astype(float)
-    y = (tm, s)
+    X, y = make_dummy_survival_data(n_samples, n_features, normalize=True,
+                                    with_ties=use_efron, random_state=0)
 
     # generate dummy w, Xw
     w = rng.randn(n_features)
@@ -134,7 +133,7 @@ def test_cox(use_efron):
     # check datafit
     cox_df = compiled_clone(Cox(use_efron))
 
-    cox_df.initialize(X, (tm, s))
+    cox_df.initialize(X, y)
     cox_df.value(y, w, Xw)
 
     # perform test 10 times to consider truncation errors

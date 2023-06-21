@@ -185,9 +185,10 @@ def test_CoxEstimator(use_efron, use_float_32):
     n_samples, n_features = 100, 30
     random_state = 1265
 
-    tm, s, X = make_dummy_survival_data(n_samples, n_features, normalize=True,
-                                        with_ties=use_efron, use_float_32=use_float_32,
-                                        random_state=random_state)
+    X, y = make_dummy_survival_data(n_samples, n_features, normalize=True,
+                                    with_ties=use_efron, use_float_32=use_float_32,
+                                    random_state=random_state)
+    tm, s = y[:, 0], y[:, 1]
 
     # compute alpha_max
     B = (tm >= tm[:, None]).astype(X.dtype)
@@ -200,17 +201,17 @@ def test_CoxEstimator(use_efron, use_float_32):
     datafit = compiled_clone(Cox(use_efron))
     penalty = compiled_clone(L1(alpha))
 
-    datafit.initialize(X, (tm, s))
+    datafit.initialize(X, y)
 
     w, *_ = ProxNewton(
         fit_intercept=False, tol=1e-6, max_iter=50
     ).solve(
-        X, (tm, s), datafit, penalty
+        X, y, datafit, penalty
     )
 
     # fit lifeline estimator
-    stacked_tm_s_X = np.hstack((tm[:, None], s[:, None], X))
-    df = pd.DataFrame(stacked_tm_s_X)
+    stacked_y_X = np.hstack((y, X))
+    df = pd.DataFrame(stacked_y_X)
 
     estimator = CoxPHFitter(penalizer=alpha, l1_ratio=1.)
     estimator.fit(
@@ -219,8 +220,8 @@ def test_CoxEstimator(use_efron, use_float_32):
     )
     w_ll = estimator.params_.values.astype(X.dtype)
 
-    p_obj_skglm = datafit.value((tm, s), w, X @ w) + penalty.value(w)
-    p_obj_ll = datafit.value((tm, s), w_ll, X @ w_ll) + penalty.value(w_ll)
+    p_obj_skglm = datafit.value(y, w, X @ w) + penalty.value(w)
+    p_obj_ll = datafit.value(y, w_ll, X @ w_ll) + penalty.value(w_ll)
 
     # though norm of solution might differ
     np.testing.assert_allclose(p_obj_skglm, p_obj_ll, atol=1e-6)
@@ -233,9 +234,10 @@ def test_CoxEstimator_sparse(use_efron, use_float_32):
     n_samples, n_features = 100, 30
     X_density, random_state = 0.5, 1265
 
-    tm, s, X = make_dummy_survival_data(n_samples, n_features, X_density=X_density,
-                                        use_float_32=use_float_32, with_ties=use_efron,
-                                        random_state=random_state)
+    X, y = make_dummy_survival_data(n_samples, n_features, X_density=X_density,
+                                    use_float_32=use_float_32, with_ties=use_efron,
+                                    random_state=random_state)
+    tm, s = y[:, 0], y[:, 1]
 
     # compute alpha_max
     B = (tm >= tm[:, None]).astype(X.dtype)
@@ -248,12 +250,12 @@ def test_CoxEstimator_sparse(use_efron, use_float_32):
     datafit = compiled_clone(Cox(use_efron))
     penalty = compiled_clone(L1(alpha))
 
-    datafit.initialize_sparse(X.data, X.indptr, X.indices, (tm, s))
+    datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
 
     *_, stop_crit = ProxNewton(
         fit_intercept=False, tol=1e-6, max_iter=50
     ).solve(
-        X, (tm, s), datafit, penalty
+        X, y, datafit, penalty
     )
 
     np.testing.assert_allclose(stop_crit, 0., atol=1e-6)

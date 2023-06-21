@@ -325,6 +325,10 @@ def test_Cox_sk_like_estimator_sparse(use_efron, l1_ratio):
     np.testing.assert_allclose(stop_crit, 0., atol=1e-8)
 
 
+def test_Cox_sk_compatible():
+    check_estimator(CoxEstimator())
+
+
 # Test if GeneralizedLinearEstimator returns the correct coefficients
 @pytest.mark.parametrize("Datafit, Penalty, Estimator, pen_args", [
     (Quadratic, L1, Lasso, [alpha]),

@@ -1235,9 +1235,10 @@ class CoxEstimator(LinearModel):
         X : array-like, shape (n_samples, n_features)
             Design matrix.
 
-        y : array-like, shape (n_samples,)
+        y : array-like, shape (n_samples, 2)
             Two-column vector where the first is of event time occurrences
-            and the second is of censoring.
+            and the second is of censoring. If it is of dimension 1, it is
+            assumed to be the times vector and there no censoring.
 
         Returns
         -------
@@ -1248,19 +1249,42 @@ class CoxEstimator(LinearModel):
 
         # validate input data
         X = check_array(
-            X, accept_sparse="csc", order="F", dtype=[np.float64, np.float32]
+            X,
+            accept_sparse="csc",
+            order="F",
+            dtype=[np.float64, np.float32],
+            input_name="X",
         )
+        if y is None:
+            # Needed to pass check estimator. Message error is
+            # copy/past from https://github.com/scikit-learn/scikit-learn/blob/ \
+            # 23ff51c07ebc03c866984e93c921a8993e96d1f9/sklearn/utils/ \
+            # estimator_checks.py#L3886
+            raise ValueError("requires y to be passed, but the target y is None")
         y = check_array(
-            y, accept_sparse=False, order="F", dtype=X.dtype
+            y,
+            accept_sparse=False,
+            order="F",
+            dtype=X.dtype,
+            ensure_2d=False,
+            input_name="y",
         )
-
-        if y.shape[1] != 2:
+        if y.ndim == 1:
+            warnings.warn(
+                f"{repr(self)} requires the vector of response `y` to have "
+                f"two columns. Got one column.\nAssuming that `y` "
+                "is the vector of times and there is no censoring."
+            )
+            y = np.column_stack((y, np.ones_like(y))).astype(X.dtype, order="F")
+        elif y.shape[1] > 2:
             raise ValueError(
                 f"{repr(self)} requires the vector of response `y` to have "
                 f"two columns. Got {y.shape[1]} columns."
             )
 
-        # init datafit penalty
+        check_consistent_length(X, y)
+
+        # init datafit and penalty
         datafit = Cox(self.method)
 
         if self.l1_ratio == 1.:
@@ -1294,6 +1318,10 @@ class CoxEstimator(LinearModel):
         # save to attribute
         self.coef_ = coef_
         self.stop_crit_ = stop_crit
+
+        self.intercept_ = 0.
+        self.n_features_in_ = X.shape[1]
+        self.feature_names_in_ = np.arange(X.shape[1])
 
         return self
 

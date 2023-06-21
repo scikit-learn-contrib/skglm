@@ -82,7 +82,8 @@ class LBFGS(BaseSolver):
             method="L-BFGS-B",
             options=dict(
                 maxiter=self.max_iter,
-                gtol=self.tol
+                gtol=self.tol,
+                ftol=0.  # set ftol=0. to control control convergence using only gtol
             ),
             callback=callback_post_iter,
         )

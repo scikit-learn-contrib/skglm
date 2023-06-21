@@ -307,7 +307,7 @@ def test_Cox_sk_like_estimator(use_efron, l1_ratio):
     np.testing.assert_allclose(p_obj_skglm, p_obj_ll, atol=1e-6)
 
 
-@pytest.mark.parametrize("use_efron, l1_ratio", product([True, False], [1., 0.7]))
+@pytest.mark.parametrize("use_efron, l1_ratio", product([True, False], [1., 0.7, 0.]))
 def test_Cox_sk_like_estimator_sparse(use_efron, l1_ratio):
     alpha = 1e-2
     # norms of solutions differ when n_features > n_samples

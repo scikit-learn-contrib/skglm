@@ -1227,7 +1227,7 @@ class CoxEstimator(LinearModel):
         self.max_iter = max_iter
         self.verbose = verbose
 
-    def fit(self, X, tm, s):
+    def fit(self, X, y):
         """Fit Cox estimator.
 
         Parameters
@@ -1235,11 +1235,9 @@ class CoxEstimator(LinearModel):
         X : array-like, shape (n_samples, n_features)
             Design matrix.
 
-        tm : array-like, shape (n_samples,)
-            Vector of event time occurrences.
-
-        s : array-like, shape (n_samples,)
-            Vector of censoring.
+        y : array-like, shape (n_samples,)
+            Two-column vector where the first is of event time occurrences
+            and the second is of censoring.
 
         Returns
         -------
@@ -1250,17 +1248,17 @@ class CoxEstimator(LinearModel):
 
         # validate input data
         X = check_array(
-            X,
-            accept_sparse="csc",
-            order="F",
-            dtype=[np.float64, np.float32],
+            X, accept_sparse="csc", order="F", dtype=[np.float64, np.float32]
         )
-        tm = check_array(
-            tm, order="C", dtype=X.dtype, accept_sparse=False, ensure_2d=False
+        y = check_array(
+            y, accept_sparse=False, order="F", dtype=X.dtype
         )
-        s = check_array(
-            s, order="C", dtype=X.dtype, accept_sparse=False, ensure_2d=False
-        )
+
+        if y.shape[1] != 2:
+            raise ValueError(
+                f"{repr(self)} requires the vector of response `y` to have "
+                f"two columns. Got {y.shape[1]} columns."
+            )
 
         # init datafit penalty
         datafit = Cox(self.method)
@@ -1287,11 +1285,11 @@ class CoxEstimator(LinearModel):
 
         # solve problem
         if not issparse(X):
-            datafit.initialize(X, (tm, s))
+            datafit.initialize(X, y)
         else:
-            datafit.initialize_sparse(X.data, X.indptr, X.indices, (tm, s))
+            datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
 
-        coef_, _, stop_crit = solver.solve(X, (tm, s), datafit, penalty)
+        coef_, _, stop_crit = solver.solve(X, y, datafit, penalty)
 
         # save to attribute
         self.coef_ = coef_

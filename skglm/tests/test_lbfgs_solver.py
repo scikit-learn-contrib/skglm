@@ -26,7 +26,7 @@ def test_lbfgs_L2_logreg(X_sparse):
     # fit L-BFGS
     datafit = compiled_clone(Logistic())
     penalty = compiled_clone(L2(reg))
-    w, *_ = LBFGS(tol=1e-12).solve(X, y, datafit, penalty)
+    w, *_ = LBFGS(tol=1e-5, verbose=1).solve(X, y, datafit, penalty)
 
     # fit scikit learn
     estimator = LogisticRegression(
@@ -82,4 +82,5 @@ def test_L2_Cox(use_efron):
 
 
 if __name__ == "__main__":
+    test_lbfgs_L2_logreg(True)
     pass

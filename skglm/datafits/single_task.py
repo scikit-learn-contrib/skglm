@@ -4,8 +4,7 @@ from numba import njit
 from numba import float64, int64, bool_
 
 from skglm.datafits.base import BaseDatafit
-from skglm.utils.sparse_ops import spectral_norm
-from skglm.solvers.prox_newton import _sparse_xj_dot
+from skglm.utils.sparse_ops import spectral_norm, _sparse_xj_dot
 
 
 class Quadratic(BaseDatafit):

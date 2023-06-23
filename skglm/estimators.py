@@ -1170,7 +1170,7 @@ class CoxEstimator(LinearModel):
 
     - ``X`` the design matrix with ``n_features`` predictors
     - ``y`` a two-column vector where the first ``tm`` is of event time occurrences
-    and the second ``s`` is of censoring.
+      and the second ``s`` is of censoring.
 
     For L2 Cox, ``l1_ratio=0.``, :ref:`LBFGS <skglm.solvers.LBFGS>`
     is the used solver, otherwise it is :ref:`ProxNewton <skglm.solvers.ProxNewton>`.

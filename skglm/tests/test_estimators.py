@@ -310,7 +310,6 @@ def test_Cox_sk_like_estimator(use_efron, l1_ratio):
 @pytest.mark.parametrize("use_efron, l1_ratio", product([True, False], [1., 0.7, 0.]))
 def test_Cox_sk_like_estimator_sparse(use_efron, l1_ratio):
     alpha = 1e-2
-    # norms of solutions differ when n_features > n_samples
     n_samples, n_features = 100, 30
     method = "efron" if use_efron else "breslow"
 
@@ -325,7 +324,7 @@ def test_Cox_sk_like_estimator_sparse(use_efron, l1_ratio):
     np.testing.assert_allclose(stop_crit, 0., atol=1e-8)
 
 
-def test_Cox_sk_compatible():
+def test_Cox_sk_compatibility():
     check_estimator(CoxEstimator())
 
 

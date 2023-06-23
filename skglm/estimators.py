@@ -1166,12 +1166,11 @@ class CoxEstimator(LinearModel):
     r"""Elastic Cox estimator with Efron and Breslow estimate.
 
     Refer to :ref:`Mathematics behind Cox datafit <maths_cox_datafit>`
-    for details about the datafit expression. The data convention for the
-    estimator is
+    for details about the datafit expression. The data convention for the estimator is
 
     - ``X`` the design matrix with ``n_features`` predictors
-    - ``tm`` the vector recording the time of event occurrences
-    - ``s`` the vector of censoring
+    - ``y`` a two-column vector where the first ``tm`` is of event time occurrences
+    and the second ``s`` is of censoring.
 
     For L2 Cox, ``l1_ratio=0.``, :ref:`LBFGS <skglm.solvers.LBFGS>`
     is the used solver, otherwise it is :ref:`ProxNewton <skglm.solvers.ProxNewton>`.
@@ -1313,10 +1312,10 @@ class CoxEstimator(LinearModel):
         else:
             datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
 
-        coef_, _, stop_crit = solver.solve(X, y, datafit, penalty)
+        w, _, stop_crit = solver.solve(X, y, datafit, penalty)
 
         # save to attribute
-        self.coef_ = coef_
+        self.coef_ = w
         self.stop_crit_ = stop_crit
 
         self.intercept_ = 0.

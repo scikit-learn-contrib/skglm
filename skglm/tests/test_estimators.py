@@ -21,8 +21,8 @@ from skglm.estimators import (
     GeneralizedLinearEstimator, Lasso, MultiTaskLasso, WeightedLasso, ElasticNet,
     MCPRegression, SparseLogisticRegression, LinearSVC)
 from skglm.datafits import Logistic, Quadratic, QuadraticSVC, QuadraticMultiTask, Cox
-from skglm.penalties import L1, IndicatorBox, L1_plus_L2, MCPenalty, WeightedL1
-from skglm.solvers import AndersonCD
+from skglm.penalties import L1, IndicatorBox, L1_plus_L2, MCPenalty, WeightedL1, SLOPE
+from skglm.solvers import AndersonCD, FISTA
 
 import pandas as pd
 from skglm.solvers import ProxNewton
@@ -326,6 +326,37 @@ def test_Cox_sk_compatibility():
     check_estimator(CoxEstimator())
 
 
+@pytest.mark.parametrize("use_efron", [True, False])
+def test_cox_SLOPE(use_efron):
+    reg = 1e-2
+    n_samples, n_features = 100, 10
+
+    X, y = make_dummy_survival_data(
+        n_samples, n_features, with_ties=use_efron, random_state=0)
+
+    # init datafit
+    datafit = compiled_clone(Cox(use_efron))
+    datafit.initialize(X, y)
+
+    # compute alpha_max
+    grad_0 = datafit.raw_grad(y, np.zeros(n_samples))
+    alpha_max = np.linalg.norm(X.T @ grad_0, ord=np.inf)
+
+    # init penalty
+    alpha = reg * alpha_max
+    alphas = alpha * np.ones(n_features)
+    penalty = compiled_clone(SLOPE(alphas))
+
+    solver = FISTA(opt_strategy="fixpoint", max_iter=10_000, tol=1e-9)
+
+    w, *_ = solver.solve(X, y, datafit, penalty)
+
+    method = 'efron' if use_efron else 'breslow'
+    estimator = CoxEstimator(alpha, l1_ratio=1., method=method, tol=1e-9).fit(X, y)
+
+    np.testing.assert_allclose(w, estimator.coef_, atol=1e-6)
+
+
 # Test if GeneralizedLinearEstimator returns the correct coefficients
 @pytest.mark.parametrize("Datafit, Penalty, Estimator, pen_args", [
     (Quadratic, L1, Lasso, [alpha]),
@@ -445,4 +476,5 @@ def test_warm_start(estimator_name):
 
 
 if __name__ == "__main__":
+    test_cox_SLOPE(True)
     pass

@@ -326,17 +326,24 @@ def test_Cox_sk_compatibility():
     check_estimator(CoxEstimator())
 
 
-@pytest.mark.parametrize("use_efron", [True, False])
-def test_cox_SLOPE(use_efron):
+@pytest.mark.parametrize("use_efron, issparse", product([True, False], repeat=2))
+def test_cox_SLOPE(use_efron, issparse):
+    # this only tests the case of SLOPE equivalent to L1 (equal alphas)
     reg = 1e-2
     n_samples, n_features = 100, 10
+    X_density = 1. if not issparse else 0.2
 
     X, y = make_dummy_survival_data(
-        n_samples, n_features, with_ties=use_efron, random_state=0)
+        n_samples, n_features, with_ties=use_efron, X_density=X_density,
+        random_state=0)
 
     # init datafit
     datafit = compiled_clone(Cox(use_efron))
-    datafit.initialize(X, y)
+
+    if not issparse:
+        datafit.initialize(X, y)
+    else:
+        datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
 
     # compute alpha_max
     grad_0 = datafit.raw_grad(y, np.zeros(n_samples))
@@ -476,5 +483,4 @@ def test_warm_start(estimator_name):
 
 
 if __name__ == "__main__":
-    test_cox_SLOPE(True)
     pass

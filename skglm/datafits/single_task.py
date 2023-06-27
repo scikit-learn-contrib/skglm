@@ -695,13 +695,13 @@ class Cox(BaseDatafit):
         self.initialize(X_data, y)
 
     def init_global_lipschitz(self, X, y):
-        tm, s = y[:, 0], y[:, 1]  # noqa
+        s = y[:, 1]
 
         n_samples = X.shape[0]
         self.global_lipschitz = s.sum() * norm(X, ord=2) ** 2 / n_samples
 
     def init_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
-        tm, s = y[:, 0], y[:, 1]  # noqa
+        s = y[:, 1]
 
         n_samples = s.shape[0]
         norm_X = spectral_norm(X_data, X_indptr, X_indices, n_samples)

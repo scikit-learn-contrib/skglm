@@ -1169,7 +1169,7 @@ class CoxEstimator(LinearModel):
     for details about the datafit expression. The data convention for the estimator is
 
     - ``X`` the design matrix with ``n_features`` predictors
-    - ``y`` a two-column vector where the first ``tm`` is of event time occurrences
+    - ``y`` a two-column array where the first ``tm`` is of event time occurrences
       and the second ``s`` is of censoring.
 
     For L2-regularized Cox (``l1_ratio=0.``) :ref:`LBFGS <skglm.solvers.LBFGS>`
@@ -1235,7 +1235,7 @@ class CoxEstimator(LinearModel):
             Design matrix.
 
         y : array-like, shape (n_samples, 2)
-            Two-column vector where the first is of event time occurrences
+            Two-column array where the first is of event time occurrences
             and the second is of censoring. If it is of dimension 1, it is
             assumed to be the times vector and there no censoring.
 

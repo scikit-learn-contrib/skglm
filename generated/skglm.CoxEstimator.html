@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="skglm.penalties.L2" href="skglm.penalties.L2.html" /><link rel="prev" title="skglm.penalties.L1" href="skglm.penalties.L1.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="skglm.ElasticNet" href="skglm.ElasticNet.html" /><link rel="prev" title="skglm.GeneralizedLinearEstimator" href="skglm.GeneralizedLinearEstimator.html" />
 
     <!-- Generated with Sphinx 7.0.1 and Furo 2023.05.20 -->
-        <title>skglm.penalties.L1_plus_L2 - skglm 0.3.dev documentation</title>
+        <title>skglm.CoxEstimator - skglm 0.3.dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
@@ -183,7 +183,7 @@
 </li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="../api.html">API Documentation</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of API Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="skglm.GeneralizedLinearEstimator.html">skglm.GeneralizedLinearEstimator</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.CoxEstimator.html">skglm.CoxEstimator</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">skglm.CoxEstimator</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.ElasticNet.html">skglm.ElasticNet</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.Lasso.html">skglm.Lasso</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.LinearSVC.html">skglm.LinearSVC</a></li>
@@ -194,7 +194,7 @@
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.IndicatorBox.html">skglm.penalties.IndicatorBox</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L0_5.html">skglm.penalties.L0_5</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L1.html">skglm.penalties.L1</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">skglm.penalties.L1_plus_L2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L1_plus_L2.html">skglm.penalties.L1_plus_L2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L2.html">skglm.penalties.L2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L2_3.html">skglm.penalties.L2_3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.MCPenalty.html">skglm.penalties.MCPenalty</a></li>
@@ -261,47 +261,74 @@
           </label>
         </div>
         <article role="main">
-          <section id="skglm-penalties-l1-plus-l2">
-<h1>skglm.penalties.L1_plus_L2<a class="headerlink" href="#skglm-penalties-l1-plus-l2" title="Permalink to this heading">#</a></h1>
+          <section id="skglm-coxestimator">
+<h1>skglm.CoxEstimator<a class="headerlink" href="#skglm-coxestimator" title="Permalink to this heading">#</a></h1>
 <dl class="py class">
-<dt class="sig sig-object py" id="skglm.penalties.L1_plus_L2">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.penalties.</span></span><span class="sig-name descname"><span class="pre">L1_plus_L2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1_ratio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/e1a27e1/skglm/penalties/separable.py#L70"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.penalties.L1_plus_L2" title="Permalink to this definition">#</a></dt>
-<dd><p><span class="math notranslate nohighlight">`ell_1 + ell_2`</span> penalty (aka ElasticNet penalty).</p>
+<dt class="sig sig-object py" id="skglm.CoxEstimator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.</span></span><span class="sig-name descname"><span class="pre">CoxEstimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'efron'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/e1a27e1/skglm/estimators.py#L1165"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.CoxEstimator" title="Permalink to this definition">#</a></dt>
+<dd><p>Elastic Cox estimator with Efron and Breslow estimate.</p>
+<p>Refer to <a class="reference internal" href="../tutorials/cox_datafit.html#maths-cox-datafit"><span class="std std-ref">Mathematics behind Cox datafit</span></a>
+for details about the datafit expression. The data convention for the estimator is</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">X</span></code> the design matrix with <code class="docutils literal notranslate"><span class="pre">n_features</span></code> predictors</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">y</span></code> a two-column array where the first <code class="docutils literal notranslate"><span class="pre">tm</span></code> is of event time occurrences
+and the second <code class="docutils literal notranslate"><span class="pre">s</span></code> is of censoring.</p></li>
+</ul>
+<p>For L2-regularized Cox (<code class="docutils literal notranslate"><span class="pre">l1_ratio=0.</span></code>) <a class="reference internal" href="skglm.solvers.LBFGS.html#skglm-solvers-lbfgs"><span class="std std-ref">LBFGS</span></a>
+is the used solver, otherwise it is <a class="reference internal" href="skglm.solvers.ProxNewton.html#skglm-solvers-proxnewton"><span class="std std-ref">ProxNewton</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>alpha</strong><span class="classifier">float, optional</span></dt><dd><p>Penalty strength. It must be strictly positive.</p>
+</dd>
+<dt><strong>l1_ratio</strong><span class="classifier">float, default=0.5</span></dt><dd><p>The ElasticNet mixing parameter, with <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">&lt;=</span> <span class="pre">l1_ratio</span> <span class="pre">&lt;=</span> <span class="pre">1</span></code>. For
+<code class="docutils literal notranslate"><span class="pre">l1_ratio</span> <span class="pre">=</span> <span class="pre">0</span></code> the penalty is an L2 penalty. <code class="docutils literal notranslate"><span class="pre">For</span> <span class="pre">l1_ratio</span> <span class="pre">=</span> <span class="pre">1</span></code> it
+is an L1 penalty.  For <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">&lt;</span> <span class="pre">l1_ratio</span> <span class="pre">&lt;</span> <span class="pre">1</span></code>, the penalty is a
+combination of L1 and L2.</p>
+</dd>
+<dt><strong>method</strong><span class="classifier">{‘efron’, ‘breslow’}, default=’efron’</span></dt><dd><p>The estimate used for the Cox datafit. Use <code class="docutils literal notranslate"><span class="pre">efron</span></code> to
+handle tied observations.</p>
+</dd>
+<dt><strong>tol</strong><span class="classifier">float, optional</span></dt><dd><p>Stopping criterion for the optimization.</p>
+</dd>
+<dt><strong>max_iter</strong><span class="classifier">int, optional</span></dt><dd><p>The maximum number of iterations to solve the problem.</p>
+</dd>
+<dt><strong>verbose</strong><span class="classifier">bool or int</span></dt><dd><p>Amount of verbosity.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Attributes<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>coef_</strong><span class="classifier">array, shape (n_features,)</span></dt><dd><p>Parameter vector of Cox regression.</p>
+</dd>
+<dt><strong>stop_crit_</strong><span class="classifier">float</span></dt><dd><p>The value of the stopping criterion at convergence.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="skglm.penalties.L1_plus_L2.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1_ratio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/e1a27e1/skglm/penalties/separable.py#L73"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.penalties.L1_plus_L2.__init__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="skglm.CoxEstimator.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'efron'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/e1a27e1/skglm/estimators.py#L1220"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.CoxEstimator.__init__" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#skglm.penalties.L1_plus_L2.__init__" title="skglm.penalties.L1_plus_L2.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(alpha, l1_ratio[, positive])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#skglm.CoxEstimator.__init__" title="skglm.CoxEstimator.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>([alpha, l1_ratio, method, tol, ...])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">alpha_max</span></code>(gradient0)</p></td>
-<td><p>Return penalization value for which 0 is solution.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit</span></code>(X, y)</p></td>
+<td><p>Fit Cox estimator.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">generalized_support</span></code>(w)</p></td>
-<td><p>Return a mask with non-zero coefficients.</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_params</span></code>([deep])</p></td>
+<td><p>Get parameters for this estimator.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_spec</span></code>()</p></td>
-<td><p>Specify the numba types of the class attributes.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code>(X)</p></td>
+<td><p>Predict using the linear model.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_penalized</span></code>(n_features)</p></td>
-<td><p>Return a binary mask with the penalized features.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
-<td><p>Get the parameters to initialize an instance of the class.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">prox_1d</span></code>(value, stepsize, j)</p></td>
-<td><p>Compute the proximal operator (scaled soft-thresholding).</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">subdiff_distance</span></code>(w, grad, ws)</p></td>
-<td><p>Compute distance of negative gradient to the subdifferential at w.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(w)</p></td>
-<td><p>Compute the L1 + L2 penalty value.</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_params</span></code>(**params)</p></td>
+<td><p>Set the parameters of this estimator.</p></td>
 </tr>
 </tbody>
 </table>
@@ -315,23 +342,23 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="skglm.penalties.L2.html">
+          <a class="next-page" href="skglm.ElasticNet.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">skglm.penalties.L2</div>
+                <div class="title">skglm.ElasticNet</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="skglm.penalties.L1.html">
+          <a class="prev-page" href="skglm.GeneralizedLinearEstimator.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">skglm.penalties.L1</div>
+                <div class="title">skglm.GeneralizedLinearEstimator</div>
                 
               </div>
             </a>
@@ -372,9 +399,9 @@
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">skglm.penalties.L1_plus_L2</a><ul>
-<li><a class="reference internal" href="#skglm.penalties.L1_plus_L2"><code class="docutils literal notranslate"><span class="pre">L1_plus_L2</span></code></a><ul>
-<li><a class="reference internal" href="#skglm.penalties.L1_plus_L2.__init__"><code class="docutils literal notranslate"><span class="pre">L1_plus_L2.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#">skglm.CoxEstimator</a><ul>
+<li><a class="reference internal" href="#skglm.CoxEstimator"><code class="docutils literal notranslate"><span class="pre">CoxEstimator</span></code></a><ul>
+<li><a class="reference internal" href="#skglm.CoxEstimator.__init__"><code class="docutils literal notranslate"><span class="pre">CoxEstimator.__init__()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -394,8 +421,6 @@
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/clipboard.min.js"></script>
     <script src="../_static/copybutton.js"></script>
-    <script>window.MathJax = {"loader": {"load": ["input/asciimath"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/scripts/asciimath-defines.js"></script>
     </body>
 </html>

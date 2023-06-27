@@ -183,6 +183,7 @@
 </li>
 <li class="toctree-l1 current has-children current-page"><a class="current reference internal" href="#">API Documentation</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of API Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.GeneralizedLinearEstimator.html">skglm.GeneralizedLinearEstimator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/skglm.CoxEstimator.html">skglm.CoxEstimator</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.ElasticNet.html">skglm.ElasticNet</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.Lasso.html">skglm.Lasso</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.LinearSVC.html">skglm.LinearSVC</a></li>
@@ -270,25 +271,28 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.GeneralizedLinearEstimator.html#skglm.GeneralizedLinearEstimator" title="skglm.GeneralizedLinearEstimator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GeneralizedLinearEstimator</span></code></a>([datafit, ...])</p></td>
 <td><p>Generic generalized linear estimator.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.ElasticNet.html#skglm.ElasticNet" title="skglm.ElasticNet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ElasticNet</span></code></a>([alpha, l1_ratio, max_iter, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.CoxEstimator.html#skglm.CoxEstimator" title="skglm.CoxEstimator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CoxEstimator</span></code></a>([alpha, l1_ratio, method, tol, ...])</p></td>
+<td><p>Elastic Cox estimator with Efron and Breslow estimate.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.ElasticNet.html#skglm.ElasticNet" title="skglm.ElasticNet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ElasticNet</span></code></a>([alpha, l1_ratio, max_iter, ...])</p></td>
 <td><p>Elastic net estimator.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.Lasso.html#skglm.Lasso" title="skglm.Lasso"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Lasso</span></code></a>([alpha, max_iter, max_epochs, p0, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.Lasso.html#skglm.Lasso" title="skglm.Lasso"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Lasso</span></code></a>([alpha, max_iter, max_epochs, p0, ...])</p></td>
 <td><p>Lasso estimator based on Celer solver and primal extrapolation.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.LinearSVC.html#skglm.LinearSVC" title="skglm.LinearSVC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LinearSVC</span></code></a>([C, max_iter, max_epochs, p0, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.LinearSVC.html#skglm.LinearSVC" title="skglm.LinearSVC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LinearSVC</span></code></a>([C, max_iter, max_epochs, p0, ...])</p></td>
 <td><p>LinearSVC estimator, with hinge loss.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.SparseLogisticRegression.html#skglm.SparseLogisticRegression" title="skglm.SparseLogisticRegression"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SparseLogisticRegression</span></code></a>([alpha, tol, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.SparseLogisticRegression.html#skglm.SparseLogisticRegression" title="skglm.SparseLogisticRegression"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SparseLogisticRegression</span></code></a>([alpha, tol, ...])</p></td>
 <td><p>Sparse Logistic regression estimator.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.MCPRegression.html#skglm.MCPRegression" title="skglm.MCPRegression"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MCPRegression</span></code></a>([alpha, gamma, max_iter, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.MCPRegression.html#skglm.MCPRegression" title="skglm.MCPRegression"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MCPRegression</span></code></a>([alpha, gamma, max_iter, ...])</p></td>
 <td><p>Linear regression with MCP penalty estimator.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.MultiTaskLasso.html#skglm.MultiTaskLasso" title="skglm.MultiTaskLasso"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MultiTaskLasso</span></code></a>([alpha, copy_X, max_iter, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.MultiTaskLasso.html#skglm.MultiTaskLasso" title="skglm.MultiTaskLasso"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MultiTaskLasso</span></code></a>([alpha, copy_X, max_iter, ...])</p></td>
 <td><p>MultiTaskLasso estimator.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.WeightedLasso.html#skglm.WeightedLasso" title="skglm.WeightedLasso"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WeightedLasso</span></code></a>([alpha, weights, max_iter, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.WeightedLasso.html#skglm.WeightedLasso" title="skglm.WeightedLasso"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WeightedLasso</span></code></a>([alpha, weights, max_iter, ...])</p></td>
 <td><p>WeightedLasso estimator based on Celer solver and primal extrapolation.</p></td>
 </tr>
 </tbody>

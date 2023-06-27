@@ -40,14 +40,16 @@ class SLOPE(BasePenalty):
         return np.sum(np.sort(np.abs(w)) * self.alphas[::-1])
 
     def prox_vec(self, x, stepsize):
-        def _prox(_x, _alphas):
-            sign_x = np.sign(_x)
-            _x = np.abs(_x)
-            sorted_indices = np.argsort(_x)[::-1]
-            prox = prox_SLOPE(_x[sorted_indices], _alphas)
-            prox[sorted_indices] = prox
-            return prox * sign_x
-        return _prox(x, self.alphas * stepsize)
+        _alphas = self.alphas * stepsize
+        _x = x
+        # def _prox(_x, _alphas):
+        sign_x = np.sign(_x)
+        _x = np.abs(_x)
+        sorted_indices = np.argsort(_x)[::-1]
+        prox = prox_SLOPE(_x[sorted_indices], _alphas)
+        prox[sorted_indices] = prox
+        return prox * sign_x
+        # return _prox(x, self.alphas * stepsize)
 
     def prox_1d(self, value, stepsize, j):
         raise ValueError(

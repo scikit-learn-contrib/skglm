@@ -62,7 +62,7 @@ class LBFGS(BaseSolver):
 
             if self.verbose:
                 grad = jac(w_k)
-                stop_crit = norm(grad)
+                stop_crit = norm(grad, ord=np.inf)
 
                 it = len(p_objs_out)
                 print(
@@ -97,6 +97,8 @@ class LBFGS(BaseSolver):
             )
 
         w = result.x
-        stop_crit = norm(result.jac)
+        # scipy LBFGS uses || projected gradient ||_oo to check convergence, cf. `gtol`
+        # in https://docs.scipy.org/doc/scipy/reference/optimize.minimize-lbfgsb.html
+        stop_crit = norm(result.jac, ord=np.inf)
 
         return w, np.asarray(p_objs_out), stop_crit

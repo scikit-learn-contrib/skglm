@@ -1172,7 +1172,7 @@ class CoxEstimator(LinearModel):
     - ``y`` a two-column vector where the first ``tm`` is of event time occurrences
       and the second ``s`` is of censoring.
 
-    For L2 Cox, ``l1_ratio=0.``, :ref:`LBFGS <skglm.solvers.LBFGS>`
+    For L2-regularized Cox (``l1_ratio=0.``) :ref:`LBFGS <skglm.solvers.LBFGS>`
     is the used solver, otherwise it is :ref:`ProxNewton <skglm.solvers.ProxNewton>`.
 
     Parameters
@@ -1180,7 +1180,7 @@ class CoxEstimator(LinearModel):
     alpha : float, optional
         Penalty strength. It must positive ``alpha > 0``.
 
-    l1_ratio : float, default=0.7
+    l1_ratio : float, default=0.5
         The ElasticNet mixing parameter, with ``0 <= l1_ratio <= 1``. For
         ``l1_ratio = 0`` the penalty is an L2 penalty. ``For l1_ratio = 1`` it
         is an L1 penalty.  For ``0 < l1_ratio < 1``, the penalty is a
@@ -1188,7 +1188,7 @@ class CoxEstimator(LinearModel):
 
     method : {'efron', 'breslow'}, default='efron'
         The estimate used for the Cox datafit. Use ``efron`` to
-        handle tied observation.
+        handle tied observations.
 
     tol : float, optional
         Stopping criterion for the optimization.
@@ -1256,7 +1256,7 @@ class CoxEstimator(LinearModel):
         )
         if y is None:
             # Needed to pass check estimator. Message error is
-            # copy/past from https://github.com/scikit-learn/scikit-learn/blob/ \
+            # copy/paste from https://github.com/scikit-learn/scikit-learn/blob/ \
             # 23ff51c07ebc03c866984e93c921a8993e96d1f9/sklearn/utils/ \
             # estimator_checks.py#L3886
             raise ValueError("requires y to be passed, but the target y is None")

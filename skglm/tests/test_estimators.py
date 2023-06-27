@@ -210,8 +210,7 @@ def test_CoxEstimator(use_efron, use_float_32):
     )
 
     # fit lifeline estimator
-    stacked_y_X = np.hstack((y, X))
-    df = pd.DataFrame(stacked_y_X)
+    df = pd.DataFrame(np.hstack((y, X)))
 
     estimator = CoxPHFitter(penalizer=alpha, l1_ratio=1.)
     estimator.fit(
@@ -285,8 +284,7 @@ def test_Cox_sk_like_estimator(use_efron, l1_ratio):
     w_sk = estimator_sk.coef_
 
     # fit lifeline estimator
-    stacked_tm_s_X = np.hstack((y, X))
-    df = pd.DataFrame(stacked_tm_s_X)
+    df = pd.DataFrame(np.hstack((y, X)))
 
     estimator_ll = CoxPHFitter(penalizer=alpha, l1_ratio=l1_ratio)
     estimator_ll.fit(
@@ -321,7 +319,7 @@ def test_Cox_sk_like_estimator_sparse(use_efron, l1_ratio):
     ).fit(X, y)
     stop_crit = estimator_sk.stop_crit_
 
-    np.testing.assert_allclose(stop_crit, 0., atol=1e-8)
+    np.testing.assert_array_less(stop_crit, 1e-9)
 
 
 def test_Cox_sk_compatibility():

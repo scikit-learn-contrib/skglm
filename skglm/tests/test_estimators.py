@@ -27,6 +27,7 @@ from skglm.solvers import AndersonCD
 import pandas as pd
 from skglm.solvers import ProxNewton
 from skglm.utils.jit_compilation import compiled_clone
+from skglm.estimators import CoxEstimator
 
 
 n_samples = 50
@@ -209,8 +210,7 @@ def test_CoxEstimator(use_efron, use_float_32):
     )
 
     # fit lifeline estimator
-    stacked_y_X = np.hstack((y, X))
-    df = pd.DataFrame(stacked_y_X)
+    df = pd.DataFrame(np.hstack((y, X)))
 
     estimator = CoxPHFitter(penalizer=alpha, l1_ratio=1.)
     estimator.fit(
@@ -258,6 +258,72 @@ def test_CoxEstimator_sparse(use_efron, use_float_32):
     )
 
     np.testing.assert_allclose(stop_crit, 0., atol=1e-6)
+
+
+@pytest.mark.parametrize("use_efron, l1_ratio", product([True, False], [1., 0.7, 0.]))
+def test_Cox_sk_like_estimator(use_efron, l1_ratio):
+    try:
+        from lifelines import CoxPHFitter
+    except ModuleNotFoundError:
+        pytest.xfail(
+            "Testing Cox Estimator requires `lifelines` packages\n"
+            "Run `pip install lifelines`"
+        )
+
+    alpha = 1e-2
+    # norms of solutions differ when n_features > n_samples
+    n_samples, n_features = 100, 30
+    method = "efron" if use_efron else "breslow"
+
+    X, y = make_dummy_survival_data(n_samples, n_features, normalize=True,
+                                    with_ties=use_efron, random_state=0)
+
+    estimator_sk = CoxEstimator(
+        alpha, l1_ratio=l1_ratio, method=method, tol=1e-6
+    ).fit(X, y)
+    w_sk = estimator_sk.coef_
+
+    # fit lifeline estimator
+    df = pd.DataFrame(np.hstack((y, X)))
+
+    estimator_ll = CoxPHFitter(penalizer=alpha, l1_ratio=l1_ratio)
+    estimator_ll.fit(
+        df, duration_col=0, event_col=1,
+        fit_options={"max_steps": 10_000, "precision": 1e-12}
+    )
+    w_ll = estimator_ll.params_.values
+
+    # define datafit and penalty to check objs
+    datafit = Cox(use_efron)
+    penalty = L1_plus_L2(alpha, l1_ratio)
+    datafit.initialize(X, y)
+
+    p_obj_skglm = datafit.value(y, w_sk, X @ w_sk) + penalty.value(w_sk)
+    p_obj_ll = datafit.value(y, w_ll, X @ w_ll) + penalty.value(w_ll)
+
+    # though norm of solution might differ
+    np.testing.assert_allclose(p_obj_skglm, p_obj_ll, atol=1e-6)
+
+
+@pytest.mark.parametrize("use_efron, l1_ratio", product([True, False], [1., 0.7, 0.]))
+def test_Cox_sk_like_estimator_sparse(use_efron, l1_ratio):
+    alpha = 1e-2
+    n_samples, n_features = 100, 30
+    method = "efron" if use_efron else "breslow"
+
+    X, y = make_dummy_survival_data(n_samples, n_features, X_density=0.1,
+                                    with_ties=use_efron, random_state=0)
+
+    estimator_sk = CoxEstimator(
+        alpha, l1_ratio=l1_ratio, method=method, tol=1e-9
+    ).fit(X, y)
+    stop_crit = estimator_sk.stop_crit_
+
+    np.testing.assert_array_less(stop_crit, 1e-9)
+
+
+def test_Cox_sk_compatibility():
+    check_estimator(CoxEstimator())
 
 
 # Test if GeneralizedLinearEstimator returns the correct coefficients
@@ -379,5 +445,4 @@ def test_warm_start(estimator_name):
 
 
 if __name__ == "__main__":
-    test_CoxEstimator(True, True)
     pass

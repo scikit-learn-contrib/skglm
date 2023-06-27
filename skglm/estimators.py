@@ -1178,7 +1178,7 @@ class CoxEstimator(LinearModel):
     Parameters
     ----------
     alpha : float, optional
-        Penalty strength. It must be strictly positive ``alpha > 0``.
+        Penalty strength. It must be strictly positive.
 
     l1_ratio : float, default=0.5
         The ElasticNet mixing parameter, with ``0 <= l1_ratio <= 1``. For

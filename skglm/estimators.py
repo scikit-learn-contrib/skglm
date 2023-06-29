@@ -4,22 +4,25 @@ import warnings
 import numpy as np
 from scipy.sparse import issparse
 from scipy.special import expit
-from skglm.solvers.prox_newton import ProxNewton
+from numbers import Integral, Real
+from skglm.solvers import ProxNewton, LBFGS
 
-from sklearn.utils.validation import check_is_fitted
-from sklearn.utils import check_array, check_consistent_length
+from sklearn.utils.validation import (check_is_fitted, check_array,
+                                      check_consistent_length)
 from sklearn.linear_model._base import (
     LinearModel, RegressorMixin,
     LinearClassifierMixin, SparseCoefMixin, BaseEstimator
 )
 from sklearn.utils.extmath import softmax
 from sklearn.preprocessing import LabelEncoder
+from sklearn.utils._param_validation import Interval, StrOptions
 from sklearn.multiclass import OneVsRestClassifier, check_classification_targets
 
 from skglm.utils.jit_compilation import compiled_clone
 from skglm.solvers import AndersonCD, MultiTaskBCD
-from skglm.datafits import Quadratic, Logistic, QuadraticSVC, QuadraticMultiTask
-from skglm.penalties import L1, WeightedL1, L1_plus_L2, MCPenalty, IndicatorBox, L2_1
+from skglm.datafits import Cox, Quadratic, Logistic, QuadraticSVC, QuadraticMultiTask
+from skglm.penalties import (L1, WeightedL1, L1_plus_L2, L2,
+                             MCPenalty, IndicatorBox, L2_1)
 
 
 def _glm_fit(X, y, model, datafit, penalty, solver):
@@ -1157,6 +1160,169 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
         return _glm_fit(X, y, self, QuadraticSVC(), IndicatorBox(self.C), solver)
 
     # TODO add predict_proba for LinearSVC
+
+
+class CoxEstimator(LinearModel):
+    r"""Elastic Cox estimator with Efron and Breslow estimate.
+
+    Refer to :ref:`Mathematics behind Cox datafit <maths_cox_datafit>`
+    for details about the datafit expression. The data convention for the estimator is
+
+    - ``X`` the design matrix with ``n_features`` predictors
+    - ``y`` a two-column array where the first ``tm`` is of event time occurrences
+      and the second ``s`` is of censoring.
+
+    For L2-regularized Cox (``l1_ratio=0.``) :ref:`LBFGS <skglm.solvers.LBFGS>`
+    is the used solver, otherwise it is :ref:`ProxNewton <skglm.solvers.ProxNewton>`.
+
+    Parameters
+    ----------
+    alpha : float, optional
+        Penalty strength. It must be strictly positive.
+
+    l1_ratio : float, default=0.5
+        The ElasticNet mixing parameter, with ``0 <= l1_ratio <= 1``. For
+        ``l1_ratio = 0`` the penalty is an L2 penalty. ``For l1_ratio = 1`` it
+        is an L1 penalty.  For ``0 < l1_ratio < 1``, the penalty is a
+        combination of L1 and L2.
+
+    method : {'efron', 'breslow'}, default='efron'
+        The estimate used for the Cox datafit. Use ``efron`` to
+        handle tied observations.
+
+    tol : float, optional
+        Stopping criterion for the optimization.
+
+    max_iter : int, optional
+        The maximum number of iterations to solve the problem.
+
+    verbose : bool or int
+        Amount of verbosity.
+
+    Attributes
+    ----------
+    coef_ : array, shape (n_features,)
+        Parameter vector of Cox regression.
+
+    stop_crit_ : float
+        The value of the stopping criterion at convergence.
+    """
+
+    _parameter_constraints: dict = {
+        "alpha": [Interval(Real, 0, None, closed="neither")],
+        "l1_ratio": [Interval(Real, 0, 1, closed="both")],
+        "method": [StrOptions({"efron", "breslow"})],
+        "tol": [Interval(Real, 0, None, closed="left")],
+        "max_iter": [Interval(Integral, 1, None, closed="left")],
+        "verbose": ["boolean", Interval(Integral, 0, 2, closed="both")],
+    }
+
+    def __init__(self, alpha=1., l1_ratio=0.7, method="efron", tol=1e-4,
+                 max_iter=50, verbose=False):
+        self.alpha = alpha
+        self.l1_ratio = l1_ratio
+        self.method = method
+        self.tol = tol
+        self.max_iter = max_iter
+        self.verbose = verbose
+
+    def fit(self, X, y):
+        """Fit Cox estimator.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            Design matrix.
+
+        y : array-like, shape (n_samples, 2)
+            Two-column array where the first is of event time occurrences
+            and the second is of censoring. If it is of dimension 1, it is
+            assumed to be the times vector and there no censoring.
+
+        Returns
+        -------
+        self :
+            The fitted estimator.
+        """
+        self._validate_params()
+
+        # validate input data
+        X = check_array(
+            X,
+            accept_sparse="csc",
+            order="F",
+            dtype=[np.float64, np.float32],
+            input_name="X",
+        )
+        if y is None:
+            # Needed to pass check estimator. Message error is
+            # copy/paste from https://github.com/scikit-learn/scikit-learn/blob/ \
+            # 23ff51c07ebc03c866984e93c921a8993e96d1f9/sklearn/utils/ \
+            # estimator_checks.py#L3886
+            raise ValueError("requires y to be passed, but the target y is None")
+        y = check_array(
+            y,
+            accept_sparse=False,
+            order="F",
+            dtype=X.dtype,
+            ensure_2d=False,
+            input_name="y",
+        )
+        if y.ndim == 1:
+            warnings.warn(
+                f"{repr(self)} requires the vector of response `y` to have "
+                f"two columns. Got one column.\nAssuming that `y` "
+                "is the vector of times and there is no censoring."
+            )
+            y = np.column_stack((y, np.ones_like(y))).astype(X.dtype, order="F")
+        elif y.shape[1] > 2:
+            raise ValueError(
+                f"{repr(self)} requires the vector of response `y` to have "
+                f"two columns. Got {y.shape[1]} columns."
+            )
+
+        check_consistent_length(X, y)
+
+        # init datafit and penalty
+        datafit = Cox(self.method)
+
+        if self.l1_ratio == 1.:
+            penalty = L1(self.alpha)
+        elif 0. < self.l1_ratio < 1.:
+            penalty = L1_plus_L2(self.alpha, self.l1_ratio)
+        else:
+            penalty = L2(self.alpha)
+
+        # skglm internal: JIT compile classes
+        datafit = compiled_clone(datafit)
+        penalty = compiled_clone(penalty)
+
+        # init solver
+        if self.l1_ratio == 0.:
+            solver = LBFGS(max_iter=self.max_iter, tol=self.tol, verbose=self.verbose)
+        else:
+            solver = ProxNewton(
+                max_iter=self.max_iter, tol=self.tol, verbose=self.verbose,
+                fit_intercept=False,
+            )
+
+        # solve problem
+        if not issparse(X):
+            datafit.initialize(X, y)
+        else:
+            datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
+
+        w, _, stop_crit = solver.solve(X, y, datafit, penalty)
+
+        # save to attribute
+        self.coef_ = w
+        self.stop_crit_ = stop_crit
+
+        self.intercept_ = 0.
+        self.n_features_in_ = X.shape[1]
+        self.feature_names_in_ = np.arange(X.shape[1])
+
+        return self
 
 
 class MultiTaskLasso(LinearModel, RegressorMixin):

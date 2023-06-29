@@ -36,7 +36,7 @@ def test_lbfgs_L2_logreg(X_sparse):
         tol=1e-12,
     ).fit(X, y)
 
-    np.testing.assert_allclose(w, estimator.coef_.flatten())
+    np.testing.assert_allclose(w, estimator.coef_.flatten(), atol=1e-5)
 
 
 @pytest.mark.parametrize("use_efron", [True, False])

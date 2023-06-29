@@ -14,6 +14,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.svm import LinearSVC as LinearSVC_sklearn
 from sklearn.utils.estimator_checks import check_estimator
 
+import scipy.optimize
 from scipy.sparse import csc_matrix, issparse
 
 from skglm.utils.data import make_correlated_data, make_dummy_survival_data
@@ -21,8 +22,8 @@ from skglm.estimators import (
     GeneralizedLinearEstimator, Lasso, MultiTaskLasso, WeightedLasso, ElasticNet,
     MCPRegression, SparseLogisticRegression, LinearSVC)
 from skglm.datafits import Logistic, Quadratic, QuadraticSVC, QuadraticMultiTask, Cox
-from skglm.penalties import L1, IndicatorBox, L1_plus_L2, MCPenalty, WeightedL1
-from skglm.solvers import AndersonCD
+from skglm.penalties import L1, IndicatorBox, L1_plus_L2, MCPenalty, WeightedL1, SLOPE
+from skglm.solvers import AndersonCD, FISTA
 
 import pandas as pd
 from skglm.solvers import ProxNewton
@@ -324,6 +325,87 @@ def test_Cox_sk_like_estimator_sparse(use_efron, l1_ratio):
 
 def test_Cox_sk_compatibility():
     check_estimator(CoxEstimator())
+
+
+@pytest.mark.parametrize("use_efron, issparse", product([True, False], repeat=2))
+def test_equivalence_cox_SLOPE_cox_L1(use_efron, issparse):
+    # this only tests the case of SLOPE equivalent to L1 (equal alphas)
+    reg = 1e-2
+    n_samples, n_features = 100, 10
+    X_density = 1. if not issparse else 0.2
+
+    X, y = make_dummy_survival_data(
+        n_samples, n_features, with_ties=use_efron, X_density=X_density,
+        random_state=0)
+
+    # init datafit
+    datafit = compiled_clone(Cox(use_efron))
+
+    if not issparse:
+        datafit.initialize(X, y)
+    else:
+        datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
+
+    # compute alpha_max
+    grad_0 = datafit.raw_grad(y, np.zeros(n_samples))
+    alpha_max = np.linalg.norm(X.T @ grad_0, ord=np.inf)
+
+    # init penalty
+    alpha = reg * alpha_max
+    alphas = alpha * np.ones(n_features)
+    penalty = compiled_clone(SLOPE(alphas))
+
+    solver = FISTA(opt_strategy="fixpoint", max_iter=10_000, tol=1e-9)
+
+    w, *_ = solver.solve(X, y, datafit, penalty)
+
+    method = 'efron' if use_efron else 'breslow'
+    estimator = CoxEstimator(alpha, l1_ratio=1., method=method, tol=1e-9).fit(X, y)
+
+    np.testing.assert_allclose(w, estimator.coef_, atol=1e-6)
+
+
+@pytest.mark.parametrize("use_efron", [True, False])
+def test_cox_SLOPE(use_efron):
+    reg = 1e-2
+    n_samples, n_features = 100, 10
+
+    X, y = make_dummy_survival_data(
+        n_samples, n_features, with_ties=use_efron, random_state=0)
+
+    # init datafit
+    datafit = compiled_clone(Cox(use_efron))
+    datafit.initialize(X, y)
+
+    # compute alpha_max
+    grad_0 = datafit.raw_grad(y, np.zeros(n_samples))
+    alpha_ref = np.linalg.norm(X.T @ grad_0, ord=np.inf)
+
+    # init penalty
+    alpha = reg * alpha_ref
+    alphas = alpha / np.arange(n_features + 1)[1:]
+    penalty = compiled_clone(SLOPE(alphas))
+
+    solver = FISTA(opt_strategy="fixpoint", max_iter=10_000, tol=1e-9)
+
+    w, *_ = solver.solve(X, y, datafit, penalty)
+
+    result = scipy.optimize.minimize(
+        fun=lambda w: datafit.value(y, w, X @ w) + penalty.value(w),
+        x0=np.zeros(n_features),
+        method="SLSQP",
+        options=dict(
+            ftol=1e-9,
+            maxiter=10_000,
+        ),
+    )
+    w_sp = result.x
+
+    # check both methods yield the same objective
+    np.testing.assert_allclose(
+        datafit.value(y, w, X @ w) + penalty.value(w),
+        datafit.value(y, w_sp, X @ w_sp) + penalty.value(w_sp)
+    )
 
 
 # Test if GeneralizedLinearEstimator returns the correct coefficients

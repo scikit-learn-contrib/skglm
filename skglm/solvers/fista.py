@@ -63,11 +63,19 @@ class FISTA(BaseSolver):
             t_old = t_new
             t_new = (1 + np.sqrt(1 + 4 * t_old ** 2)) / 2
             w_old = w.copy()
+
             if X_is_sparse:
-                grad = construct_grad_sparse(
-                    X.data, X.indptr, X.indices, y, z, X @ z, datafit, all_features)
+                if hasattr(datafit, "gradient_sparse"):
+                    grad = datafit.gradient_sparse(
+                        X.data, X.indptr, X.indices, y, X @ z)
+                else:
+                    grad = construct_grad_sparse(
+                        X.data, X.indptr, X.indices, y, z, X @ z, datafit, all_features)
             else:
-                grad = construct_grad(X, y, z, X @ z, datafit, all_features)
+                if hasattr(datafit, "gradient"):
+                    grad = datafit.gradient(X, y, X @ z)
+                else:
+                    grad = construct_grad(X, y, z, X @ z, datafit, all_features)
 
             step = 1 / lipschitz
             z -= step * grad

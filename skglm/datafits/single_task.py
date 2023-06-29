@@ -599,6 +599,7 @@ class Cox(BaseDatafit):
             ('use_efron', bool_),
             ('T_indptr', int64[:]), ('T_indices', int64[:]),
             ('H_indptr', int64[:]), ('H_indices', int64[:]),
+            ('global_lipschitz', float64),
         )
 
     def params_to_dict(self):
@@ -692,6 +693,20 @@ class Cox(BaseDatafit):
         # `initialize_sparse` and `initialize` have the same implementation
         # small hack to avoid repetitive code: pass in X_data as only its dtype is used
         self.initialize(X_data, y)
+
+    def init_global_lipschitz(self, X, y):
+        s = y[:, 1]
+
+        n_samples = X.shape[0]
+        self.global_lipschitz = s.sum() * norm(X, ord=2) ** 2 / n_samples
+
+    def init_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+        s = y[:, 1]
+
+        n_samples = s.shape[0]
+        norm_X = spectral_norm(X_data, X_indptr, X_indices, n_samples)
+
+        self.global_lipschitz = s.sum() * norm_X ** 2 / n_samples
 
     def _B_dot_vec(self, vec):
         # compute `B @ vec` in O(n) instead of O(n^2)

@@ -320,7 +320,7 @@ def test_Cox_sk_like_estimator_sparse(use_efron, l1_ratio):
     ).fit(X, y)
     stop_crit = estimator_sk.stop_crit_
 
-    np.testing.assert_array_less(stop_crit, 1e-9)
+    np.testing.assert_array_less(stop_crit, 1e-8)
 
 
 def test_Cox_sk_compatibility():

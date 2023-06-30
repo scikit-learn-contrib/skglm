@@ -1,0 +1,16 @@
+.. _changes_0_3:
+
+Version 0.3 (2023/07/01)
+------------------------
+
+- Add :ref:`Cox Estimator <skglm.CoxEstimator>` with support of L1, L2, and Elastic regularization (PR: :gh:`171`)
+- Reduce time overhead when fitting :ref:`Lasso Estimator <skglm.Lasso>` (PR: :gh:`129`)
+- Add :ref:`Cox <skglm.datafits.Cox>` datafit for survival analysis (PR :gh:`180`, :gh:`168`, :gh:`159`, :gh:`157`)
+- Experimental :ref:`Pinball <skglm.experimental.Pinball>` datafit (PR: :gh:`134`)
+- Add :ref:`Gamma <skglm.datafits.Gamma>` datafit (PR: :gh:`113`)
+- Add Positivity constraint to :ref:`L1 <skglm.penalties.L1>`, :ref:`L1_plus_L2 <skglm.penalties.L1_plus_L2>`, :ref:`WeightedL1 <skglm.penalties.WeightedL1>` (PR: :gh:`110`)
+- Add :ref:`PositiveConstraint <skglm.penalties.PositiveConstraint>` (PR: :gh:`126`)
+- Add :ref:`L-BFGS <skglm.solvers.LBFGS>` solver for problems with smooth datafits and penalties (PR: :gh:`165`, :gh:`173`)
+- Experimental :ref:`Primal-dual coordinate descent solve <skglm.experimental.PDCD_WS>` for problems with non-smooth datafits (PR: :gh:`131`)
+- Add support of ``float32`` in :ref:`ProxNewton <skglm.solvers.ProxNewton>`  
+ 

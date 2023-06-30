@@ -41,6 +41,7 @@ Penalties
    L2
    L2_3
    MCPenalty
+   PositiveConstraint
    WeightedL1
    WeightedGroupL2
    SCAD
@@ -93,6 +94,8 @@ Experimental
 .. autosummary::
    :toctree: generated/
 
-   SqrtLasso
-   PDCD_WS
    IterativeReweightedL1
+   PDCD_WS 
+   Pinball
+   SqrtQuadratic
+   SqrtLasso

@@ -12,9 +12,11 @@ from skglm.solvers.prox_newton import ProxNewton
 
 
 class SqrtQuadratic(BaseDatafit):
-    """Unnormalized square root quadratic datafit.
+    r"""Unnormalized square root quadratic datafit.
 
-    The datafit reads::
+    The datafit reads:
+
+    .. math::
 
         ||y - Xw||_2
     """

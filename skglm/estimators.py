@@ -237,6 +237,14 @@ class GeneralizedLinearEstimator(LinearModel):
         n_iters : array, shape (n_alphas,), optional
             The number of iterations along the path. If return_n_iter is set to `True`.
         """
+        # TODO: add support for Cox datafit in `_glm_fit`
+        # `_glm_fit` interpret `Cox` as a multitask datafit which breaks down solvers
+        if isinstance(self.datafit, Cox):
+            raise ValueError(
+                "`GeneralizedLinearEstimator` doesn't currently support "
+                "`Cox` datafit"
+            )
+
         self.penalty = self.penalty if self.penalty else L1(1.)
         self.datafit = self.datafit if self.datafit else Quadratic()
         self.solver = self.solver if self.solver else AndersonCD()

@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Contribute to skglm" href="../contribute.html" /><link rel="prev" title="skglm.experimental.SqrtQuadratic" href="skglm.experimental.SqrtQuadratic.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="skglm.penalties.WeightedL1" href="skglm.penalties.WeightedL1.html" /><link rel="prev" title="skglm.penalties.MCPenalty" href="skglm.penalties.MCPenalty.html" />
 
     <!-- Generated with Sphinx 7.0.1 and Furo 2023.05.20 -->
-        <title>skglm.experimental.SqrtLasso - skglm 0.3.dev documentation</title>
+        <title>skglm.penalties.PositiveConstraint - skglm 0.3.dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
@@ -198,7 +198,7 @@
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L2.html">skglm.penalties.L2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L2_3.html">skglm.penalties.L2_3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.MCPenalty.html">skglm.penalties.MCPenalty</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.penalties.PositiveConstraint.html">skglm.penalties.PositiveConstraint</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">skglm.penalties.PositiveConstraint</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.WeightedL1.html">skglm.penalties.WeightedL1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.WeightedGroupL2.html">skglm.penalties.WeightedGroupL2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.SCAD.html">skglm.penalties.SCAD</a></li>
@@ -225,7 +225,7 @@
 <li class="toctree-l2"><a class="reference internal" href="skglm.experimental.PDCD_WS.html">skglm.experimental.PDCD_WS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.experimental.Pinball.html">skglm.experimental.Pinball</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.experimental.SqrtQuadratic.html">skglm.experimental.SqrtQuadratic</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">skglm.experimental.SqrtLasso</a></li>
+<li class="toctree-l2"><a class="reference internal" href="skglm.experimental.SqrtLasso.html">skglm.experimental.SqrtLasso</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../contribute.html">Contribute to <code class="docutils literal notranslate"><span class="pre">skglm</span></code></a></li>
@@ -264,70 +264,44 @@
           </label>
         </div>
         <article role="main">
-          <section id="skglm-experimental-sqrtlasso">
-<h1>skglm.experimental.SqrtLasso<a class="headerlink" href="#skglm-experimental-sqrtlasso" title="Permalink to this heading">#</a></h1>
+          <section id="skglm-penalties-positiveconstraint">
+<h1>skglm.penalties.PositiveConstraint<a class="headerlink" href="#skglm-penalties-positiveconstraint" title="Permalink to this heading">#</a></h1>
 <dl class="py class">
-<dt class="sig sig-object py" id="skglm.experimental.SqrtLasso">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.experimental.</span></span><span class="sig-name descname"><span class="pre">SqrtLasso</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_pn_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/c7d0465/skglm/experimental/sqrt_lasso.py#L78"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.experimental.SqrtLasso" title="Permalink to this definition">#</a></dt>
-<dd><p>Square root Lasso estimator based on Prox Newton solver.</p>
-<p>The optimization objective for square root Lasso is:</p>
-<div class="math-wrapper docutils container">
-<div class="math notranslate nohighlight">
-`||y - Xw||_2 + alpha ||w||_1`</div>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>alpha</strong><span class="classifier">float, default 1</span></dt><dd><p>Penalty strength.</p>
-</dd>
-<dt><strong>max_iter</strong><span class="classifier">int, default 20</span></dt><dd><p>Maximum number of outer iterations.</p>
-</dd>
-<dt><strong>max_pn_iter</strong><span class="classifier">int, default 1000</span></dt><dd><p>Maximum number of prox Newton iterations on each subproblem.</p>
-</dd>
-<dt><strong>p0</strong><span class="classifier">int, default 10</span></dt><dd><p>Minimum number of features to be included in the working set.</p>
-</dd>
-<dt><strong>tol</strong><span class="classifier">float, default 1e-4</span></dt><dd><p>Tolerance for convergence.</p>
-</dd>
-<dt><strong>verbose</strong><span class="classifier">bool, default False</span></dt><dd><p>Amount of verbosity. 0/False is silent.</p>
-</dd>
-</dl>
-</dd>
-</dl>
+<dt class="sig sig-object py" id="skglm.penalties.PositiveConstraint">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.penalties.</span></span><span class="sig-name descname"><span class="pre">PositiveConstraint</span></span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/c7d0465/skglm/penalties/separable.py#L517"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.penalties.PositiveConstraint" title="Permalink to this definition">#</a></dt>
+<dd><p>Positivity constraint penalty.</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="skglm.experimental.SqrtLasso.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_pn_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/c7d0465/skglm/experimental/sqrt_lasso.py#L106"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.experimental.SqrtLasso.__init__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="skglm.penalties.PositiveConstraint.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/c7d0465/skglm/penalties/separable.py#L520"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.penalties.PositiveConstraint.__init__" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#skglm.experimental.SqrtLasso.__init__" title="skglm.experimental.SqrtLasso.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>([alpha, max_iter, max_pn_iter, p0, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#skglm.penalties.PositiveConstraint.__init__" title="skglm.penalties.PositiveConstraint.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>()</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit</span></code>(X, y)</p></td>
-<td><p>Fit the model according to the given training data.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">generalized_support</span></code>(w)</p></td>
+<td><p>Return a mask with non-zero coefficients.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_metadata_routing</span></code>()</p></td>
-<td><p>Get metadata routing of this object.</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_spec</span></code>()</p></td>
+<td><p>Specify the numba types of the class attributes.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_params</span></code>([deep])</p></td>
-<td><p>Get parameters for this estimator.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_penalized</span></code>(n_features)</p></td>
+<td><p>Return a binary mask with the penalized features.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">path</span></code>(X, y[, alphas, eps, n_alphas])</p></td>
-<td><p>Compute Lasso path.</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
+<td><p>Get the parameters to initialize an instance of the class.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code>(X)</p></td>
-<td><p>Predict using the linear model.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">prox_1d</span></code>(value, stepsize, j)</p></td>
+<td><p>Compute the proximal operator of the PositiveConstraint.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">score</span></code>(X, y[, sample_weight])</p></td>
-<td><p>Return the coefficient of determination of the prediction.</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">subdiff_distance</span></code>(w, grad, ws)</p></td>
+<td><p>Compute distance of negative gradient to the subdifferential at w.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_params</span></code>(**params)</p></td>
-<td><p>Set the parameters of this estimator.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_score_request</span></code>(*[, sample_weight])</p></td>
-<td><p>Request metadata passed to the <code class="docutils literal notranslate"><span class="pre">score</span></code> method.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(w)</p></td>
+<td><p>Compute the value of the PositiveConstraint penalty at w.</p></td>
 </tr>
 </tbody>
 </table>
@@ -341,23 +315,23 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="../contribute.html">
+          <a class="next-page" href="skglm.penalties.WeightedL1.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Contribute to <code class="docutils literal notranslate"><span class="pre">skglm</span></code></div>
+                <div class="title">skglm.penalties.WeightedL1</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="skglm.experimental.SqrtQuadratic.html">
+          <a class="prev-page" href="skglm.penalties.MCPenalty.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">skglm.experimental.SqrtQuadratic</div>
+                <div class="title">skglm.penalties.MCPenalty</div>
                 
               </div>
             </a>
@@ -398,9 +372,9 @@
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">skglm.experimental.SqrtLasso</a><ul>
-<li><a class="reference internal" href="#skglm.experimental.SqrtLasso"><code class="docutils literal notranslate"><span class="pre">SqrtLasso</span></code></a><ul>
-<li><a class="reference internal" href="#skglm.experimental.SqrtLasso.__init__"><code class="docutils literal notranslate"><span class="pre">SqrtLasso.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#">skglm.penalties.PositiveConstraint</a><ul>
+<li><a class="reference internal" href="#skglm.penalties.PositiveConstraint"><code class="docutils literal notranslate"><span class="pre">PositiveConstraint</span></code></a><ul>
+<li><a class="reference internal" href="#skglm.penalties.PositiveConstraint.__init__"><code class="docutils literal notranslate"><span class="pre">PositiveConstraint.__init__()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -420,8 +394,6 @@
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/clipboard.min.js"></script>
     <script src="../_static/copybutton.js"></script>
-    <script>window.MathJax = {"loader": {"load": ["input/asciimath"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/scripts/asciimath-defines.js"></script>
     </body>
 </html>

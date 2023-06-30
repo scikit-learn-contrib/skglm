@@ -15,6 +15,7 @@
    
       ~IterativeReweightedL1.__init__
       ~IterativeReweightedL1.fit
+      ~IterativeReweightedL1.get_metadata_routing
       ~IterativeReweightedL1.get_params
       ~IterativeReweightedL1.predict
       ~IterativeReweightedL1.set_params

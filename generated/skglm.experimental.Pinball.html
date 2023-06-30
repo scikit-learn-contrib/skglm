@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Contribute to skglm" href="../contribute.html" /><link rel="prev" title="skglm.experimental.SqrtQuadratic" href="skglm.experimental.SqrtQuadratic.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="skglm.experimental.SqrtQuadratic" href="skglm.experimental.SqrtQuadratic.html" /><link rel="prev" title="skglm.experimental.PDCD_WS" href="skglm.experimental.PDCD_WS.html" />
 
     <!-- Generated with Sphinx 7.0.1 and Furo 2023.05.20 -->
-        <title>skglm.experimental.SqrtLasso - skglm 0.3.dev documentation</title>
+        <title>skglm.experimental.Pinball - skglm 0.3.dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
@@ -223,9 +223,9 @@
 <li class="toctree-l2"><a class="reference internal" href="skglm.solvers.ProxNewton.html">skglm.solvers.ProxNewton</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.experimental.IterativeReweightedL1.html">skglm.experimental.IterativeReweightedL1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.experimental.PDCD_WS.html">skglm.experimental.PDCD_WS</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.experimental.Pinball.html">skglm.experimental.Pinball</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">skglm.experimental.Pinball</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.experimental.SqrtQuadratic.html">skglm.experimental.SqrtQuadratic</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">skglm.experimental.SqrtLasso</a></li>
+<li class="toctree-l2"><a class="reference internal" href="skglm.experimental.SqrtLasso.html">skglm.experimental.SqrtLasso</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../contribute.html">Contribute to <code class="docutils literal notranslate"><span class="pre">skglm</span></code></a></li>
@@ -264,70 +264,68 @@
           </label>
         </div>
         <article role="main">
-          <section id="skglm-experimental-sqrtlasso">
-<h1>skglm.experimental.SqrtLasso<a class="headerlink" href="#skglm-experimental-sqrtlasso" title="Permalink to this heading">#</a></h1>
+          <section id="skglm-experimental-pinball">
+<h1>skglm.experimental.Pinball<a class="headerlink" href="#skglm-experimental-pinball" title="Permalink to this heading">#</a></h1>
 <dl class="py class">
-<dt class="sig sig-object py" id="skglm.experimental.SqrtLasso">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.experimental.</span></span><span class="sig-name descname"><span class="pre">SqrtLasso</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_pn_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/c7d0465/skglm/experimental/sqrt_lasso.py#L78"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.experimental.SqrtLasso" title="Permalink to this definition">#</a></dt>
-<dd><p>Square root Lasso estimator based on Prox Newton solver.</p>
-<p>The optimization objective for square root Lasso is:</p>
-<div class="math-wrapper docutils container">
-<div class="math notranslate nohighlight">
-`||y - Xw||_2 + alpha ||w||_1`</div>
+<dt class="sig sig-object py" id="skglm.experimental.Pinball">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.experimental.</span></span><span class="sig-name descname"><span class="pre">Pinball</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">quantile_level</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/c7d0465/skglm/experimental/quantile_regression.py#L7"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.experimental.Pinball" title="Permalink to this definition">#</a></dt>
+<dd><p>Pinball datafit.</p>
+<p>The datafit reads:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sum_i</span> <span class="n">quantile_level</span> <span class="o">*</span> <span class="nb">max</span><span class="p">(</span><span class="n">y_i</span> <span class="o">-</span> <span class="n">Xw_i</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span>
+<span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">quantile_level</span><span class="p">)</span> <span class="o">*</span> <span class="nb">max</span><span class="p">(</span><span class="n">Xw_i</span> <span class="o">-</span> <span class="n">y_i</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</pre></div>
 </div>
+<p>with <code class="docutils literal notranslate"><span class="pre">quantile_level</span></code> in [0, 1].</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>alpha</strong><span class="classifier">float, default 1</span></dt><dd><p>Penalty strength.</p>
-</dd>
-<dt><strong>max_iter</strong><span class="classifier">int, default 20</span></dt><dd><p>Maximum number of outer iterations.</p>
-</dd>
-<dt><strong>max_pn_iter</strong><span class="classifier">int, default 1000</span></dt><dd><p>Maximum number of prox Newton iterations on each subproblem.</p>
-</dd>
-<dt><strong>p0</strong><span class="classifier">int, default 10</span></dt><dd><p>Minimum number of features to be included in the working set.</p>
-</dd>
-<dt><strong>tol</strong><span class="classifier">float, default 1e-4</span></dt><dd><p>Tolerance for convergence.</p>
-</dd>
-<dt><strong>verbose</strong><span class="classifier">bool, default False</span></dt><dd><p>Amount of verbosity. 0/False is silent.</p>
+<dt><strong>quantile_level</strong><span class="classifier">float</span></dt><dd><p>Quantile level must be in [0, 1]. When <code class="docutils literal notranslate"><span class="pre">quantile_level=0.5</span></code>,
+the datafit becomes a Least Absolute Deviation (LAD) datafit.</p>
 </dd>
 </dl>
 </dd>
 </dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="skglm.experimental.SqrtLasso.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_pn_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/c7d0465/skglm/experimental/sqrt_lasso.py#L106"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.experimental.SqrtLasso.__init__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="skglm.experimental.Pinball.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">quantile_level</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/c7d0465/skglm/experimental/quantile_regression.py#L24"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.experimental.Pinball.__init__" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#skglm.experimental.SqrtLasso.__init__" title="skglm.experimental.SqrtLasso.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>([alpha, max_iter, max_pn_iter, p0, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#skglm.experimental.Pinball.__init__" title="skglm.experimental.Pinball.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(quantile_level)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit</span></code>(X, y)</p></td>
-<td><p>Fit the model according to the given training data.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_spec</span></code>()</p></td>
+<td><p>Specify the numba types of the class attributes.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_metadata_routing</span></code>()</p></td>
-<td><p>Get metadata routing of this object.</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient_scalar</span></code>(X, y, w, Xw, j)</p></td>
+<td><p>Gradient with respect to j-th coordinate of w.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_params</span></code>([deep])</p></td>
-<td><p>Get parameters for this estimator.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient_scalar_sparse</span></code>(X_data, X_indptr, ...)</p></td>
+<td><p>Gradient with respect to j-th coordinate of w when X is sparse.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">path</span></code>(X, y[, alphas, eps, n_alphas])</p></td>
-<td><p>Compute Lasso path.</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize</span></code>(X, y)</p></td>
+<td><p>Pre-computations before fitting on X and y.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code>(X)</p></td>
-<td><p>Predict using the linear model.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_sparse</span></code>(X_data, X_indptr, X_indices, y)</p></td>
+<td><p>Pre-computations before fitting on X and y when X is a sparse matrix.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">score</span></code>(X, y[, sample_weight])</p></td>
-<td><p>Return the coefficient of determination of the prediction.</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
+<td><p>Get the parameters to initialize an instance of the class.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_params</span></code>(**params)</p></td>
-<td><p>Set the parameters of this estimator.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">prox</span></code>(w, step, y)</p></td>
+<td><p>Prox of <code class="docutils literal notranslate"><span class="pre">step</span> <span class="pre">*</span> <span class="pre">pinball</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_score_request</span></code>(*[, sample_weight])</p></td>
-<td><p>Request metadata passed to the <code class="docutils literal notranslate"><span class="pre">score</span></code> method.</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">prox_conjugate</span></code>(z, step, y)</p></td>
+<td><p>Prox of <code class="docutils literal notranslate"><span class="pre">step</span> <span class="pre">*</span> <span class="pre">pinball^*</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">subdiff_distance</span></code>(Xw, z, y)</p></td>
+<td><p>Distance of <code class="docutils literal notranslate"><span class="pre">z</span></code> to subdiff of pinball at <code class="docutils literal notranslate"><span class="pre">Xw</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(y, w, Xw)</p></td>
+<td><p>Value of datafit at vector w.</p></td>
 </tr>
 </tbody>
 </table>
@@ -341,23 +339,23 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="../contribute.html">
+          <a class="next-page" href="skglm.experimental.SqrtQuadratic.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Contribute to <code class="docutils literal notranslate"><span class="pre">skglm</span></code></div>
+                <div class="title">skglm.experimental.SqrtQuadratic</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="skglm.experimental.SqrtQuadratic.html">
+          <a class="prev-page" href="skglm.experimental.PDCD_WS.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">skglm.experimental.SqrtQuadratic</div>
+                <div class="title">skglm.experimental.PDCD_WS</div>
                 
               </div>
             </a>
@@ -398,9 +396,9 @@
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">skglm.experimental.SqrtLasso</a><ul>
-<li><a class="reference internal" href="#skglm.experimental.SqrtLasso"><code class="docutils literal notranslate"><span class="pre">SqrtLasso</span></code></a><ul>
-<li><a class="reference internal" href="#skglm.experimental.SqrtLasso.__init__"><code class="docutils literal notranslate"><span class="pre">SqrtLasso.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#">skglm.experimental.Pinball</a><ul>
+<li><a class="reference internal" href="#skglm.experimental.Pinball"><code class="docutils literal notranslate"><span class="pre">Pinball</span></code></a><ul>
+<li><a class="reference internal" href="#skglm.experimental.Pinball.__init__"><code class="docutils literal notranslate"><span class="pre">Pinball.__init__()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -420,8 +418,6 @@
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/clipboard.min.js"></script>
     <script src="../_static/copybutton.js"></script>
-    <script>window.MathJax = {"loader": {"load": ["input/asciimath"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/scripts/asciimath-defines.js"></script>
     </body>
 </html>

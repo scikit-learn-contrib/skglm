@@ -196,6 +196,7 @@
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.penalties.L2.html">skglm.penalties.L2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.penalties.L2_3.html">skglm.penalties.L2_3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.penalties.MCPenalty.html">skglm.penalties.MCPenalty</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/skglm.penalties.PositiveConstraint.html">skglm.penalties.PositiveConstraint</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.penalties.WeightedL1.html">skglm.penalties.WeightedL1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.penalties.WeightedGroupL2.html">skglm.penalties.WeightedGroupL2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.penalties.SCAD.html">skglm.penalties.SCAD</a></li>
@@ -218,9 +219,11 @@
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.solvers.LBFGS.html">skglm.solvers.LBFGS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.solvers.MultiTaskBCD.html">skglm.solvers.MultiTaskBCD</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.solvers.ProxNewton.html">skglm.solvers.ProxNewton</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generated/skglm.experimental.SqrtLasso.html">skglm.experimental.SqrtLasso</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generated/skglm.experimental.PDCD_WS.html">skglm.experimental.PDCD_WS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.experimental.IterativeReweightedL1.html">skglm.experimental.IterativeReweightedL1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/skglm.experimental.PDCD_WS.html">skglm.experimental.PDCD_WS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/skglm.experimental.Pinball.html">skglm.experimental.Pinball</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/skglm.experimental.SqrtQuadratic.html">skglm.experimental.SqrtQuadratic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/skglm.experimental.SqrtLasso.html">skglm.experimental.SqrtLasso</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="contribute.html">Contribute to <code class="docutils literal notranslate"><span class="pre">skglm</span></code></a></li>
@@ -294,7 +297,11 @@
 </li>
           <li><a href="generated/skglm.experimental.PDCD_WS.html#skglm.experimental.PDCD_WS.__init__">(skglm.experimental.PDCD_WS method)</a>
 </li>
+          <li><a href="generated/skglm.experimental.Pinball.html#skglm.experimental.Pinball.__init__">(skglm.experimental.Pinball method)</a>
+</li>
           <li><a href="generated/skglm.experimental.SqrtLasso.html#skglm.experimental.SqrtLasso.__init__">(skglm.experimental.SqrtLasso method)</a>
+</li>
+          <li><a href="generated/skglm.experimental.SqrtQuadratic.html#skglm.experimental.SqrtQuadratic.__init__">(skglm.experimental.SqrtQuadratic method)</a>
 </li>
           <li><a href="generated/skglm.GeneralizedLinearEstimator.html#skglm.GeneralizedLinearEstimator.__init__">(skglm.GeneralizedLinearEstimator method)</a>
 </li>
@@ -321,6 +328,8 @@
           <li><a href="generated/skglm.penalties.L2_3.html#skglm.penalties.L2_3.__init__">(skglm.penalties.L2_3 method)</a>
 </li>
           <li><a href="generated/skglm.penalties.MCPenalty.html#skglm.penalties.MCPenalty.__init__">(skglm.penalties.MCPenalty method)</a>
+</li>
+          <li><a href="generated/skglm.penalties.PositiveConstraint.html#skglm.penalties.PositiveConstraint.__init__">(skglm.penalties.PositiveConstraint method)</a>
 </li>
           <li><a href="generated/skglm.penalties.SCAD.html#skglm.penalties.SCAD.__init__">(skglm.penalties.SCAD method)</a>
 </li>
@@ -507,9 +516,13 @@
     <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="generated/skglm.experimental.PDCD_WS.html#skglm.experimental.PDCD_WS">PDCD_WS (class in skglm.experimental)</a>
 </li>
+        <li><a href="generated/skglm.experimental.Pinball.html#skglm.experimental.Pinball">Pinball (class in skglm.experimental)</a>
+</li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="generated/skglm.datafits.Poisson.html#skglm.datafits.Poisson">Poisson (class in skglm.datafits)</a>
+</li>
+        <li><a href="generated/skglm.penalties.PositiveConstraint.html#skglm.penalties.PositiveConstraint">PositiveConstraint (class in skglm.penalties)</a>
 </li>
         <li><a href="generated/skglm.solvers.ProxNewton.html#skglm.solvers.ProxNewton">ProxNewton (class in skglm.solvers)</a>
 </li>
@@ -546,6 +559,8 @@
         <li><a href="generated/skglm.SparseLogisticRegression.html#skglm.SparseLogisticRegression">SparseLogisticRegression (class in skglm)</a>
 </li>
         <li><a href="generated/skglm.experimental.SqrtLasso.html#skglm.experimental.SqrtLasso">SqrtLasso (class in skglm.experimental)</a>
+</li>
+        <li><a href="generated/skglm.experimental.SqrtQuadratic.html#skglm.experimental.SqrtQuadratic">SqrtQuadratic (class in skglm.experimental)</a>
 </li>
     </ul></td>
   </tr></table>

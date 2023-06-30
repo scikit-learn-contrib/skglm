@@ -198,6 +198,7 @@
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.penalties.L2.html">skglm.penalties.L2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.penalties.L2_3.html">skglm.penalties.L2_3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.penalties.MCPenalty.html">skglm.penalties.MCPenalty</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/skglm.penalties.PositiveConstraint.html">skglm.penalties.PositiveConstraint</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.penalties.WeightedL1.html">skglm.penalties.WeightedL1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.penalties.WeightedGroupL2.html">skglm.penalties.WeightedGroupL2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.penalties.SCAD.html">skglm.penalties.SCAD</a></li>
@@ -220,9 +221,11 @@
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.solvers.LBFGS.html">skglm.solvers.LBFGS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.solvers.MultiTaskBCD.html">skglm.solvers.MultiTaskBCD</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.solvers.ProxNewton.html">skglm.solvers.ProxNewton</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generated/skglm.experimental.SqrtLasso.html">skglm.experimental.SqrtLasso</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generated/skglm.experimental.PDCD_WS.html">skglm.experimental.PDCD_WS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.experimental.IterativeReweightedL1.html">skglm.experimental.IterativeReweightedL1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/skglm.experimental.PDCD_WS.html">skglm.experimental.PDCD_WS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/skglm.experimental.Pinball.html">skglm.experimental.Pinball</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/skglm.experimental.SqrtQuadratic.html">skglm.experimental.SqrtQuadratic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/skglm.experimental.SqrtLasso.html">skglm.experimental.SqrtLasso</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="contribute.html">Contribute to <code class="docutils literal notranslate"><span class="pre">skglm</span></code></a></li>
@@ -325,19 +328,22 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.penalties.MCPenalty.html#skglm.penalties.MCPenalty" title="skglm.penalties.MCPenalty"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MCPenalty</span></code></a>(alpha, gamma)</p></td>
 <td><p>Minimax Concave Penalty (MCP), a non-convex sparse penalty.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.penalties.WeightedL1.html#skglm.penalties.WeightedL1" title="skglm.penalties.WeightedL1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WeightedL1</span></code></a>(alpha, weights[, positive])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.penalties.PositiveConstraint.html#skglm.penalties.PositiveConstraint" title="skglm.penalties.PositiveConstraint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PositiveConstraint</span></code></a>()</p></td>
+<td><p>Positivity constraint penalty.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.penalties.WeightedL1.html#skglm.penalties.WeightedL1" title="skglm.penalties.WeightedL1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WeightedL1</span></code></a>(alpha, weights[, positive])</p></td>
 <td><p>Weighted L1 penalty.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.penalties.WeightedGroupL2.html#skglm.penalties.WeightedGroupL2" title="skglm.penalties.WeightedGroupL2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WeightedGroupL2</span></code></a>(alpha, weights, grp_ptr, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.penalties.WeightedGroupL2.html#skglm.penalties.WeightedGroupL2" title="skglm.penalties.WeightedGroupL2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WeightedGroupL2</span></code></a>(alpha, weights, grp_ptr, ...)</p></td>
 <td><p>Weighted Group L2 penalty.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.penalties.SCAD.html#skglm.penalties.SCAD" title="skglm.penalties.SCAD"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCAD</span></code></a>(alpha, gamma)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.penalties.SCAD.html#skglm.penalties.SCAD" title="skglm.penalties.SCAD"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCAD</span></code></a>(alpha, gamma)</p></td>
 <td><p>Smoothly Clipped Absolute Deviation.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.penalties.BlockSCAD.html#skglm.penalties.BlockSCAD" title="skglm.penalties.BlockSCAD"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BlockSCAD</span></code></a>(alpha, gamma)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.penalties.BlockSCAD.html#skglm.penalties.BlockSCAD" title="skglm.penalties.BlockSCAD"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BlockSCAD</span></code></a>(alpha, gamma)</p></td>
 <td><p>Block Smoothly Clipped Absolute Deviation.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.penalties.SLOPE.html#skglm.penalties.SLOPE" title="skglm.penalties.SLOPE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SLOPE</span></code></a>(alphas)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.penalties.SLOPE.html#skglm.penalties.SLOPE" title="skglm.penalties.SLOPE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SLOPE</span></code></a>(alphas)</p></td>
 <td><p>Sorted L-One Penalized Estimation (SLOPE) penalty.</p></td>
 </tr>
 </tbody>
@@ -418,14 +424,20 @@
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.experimental.SqrtLasso.html#skglm.experimental.SqrtLasso" title="skglm.experimental.SqrtLasso"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SqrtLasso</span></code></a>([alpha, max_iter, max_pn_iter, ...])</p></td>
-<td><p>Square root Lasso estimator based on Prox Newton solver.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.experimental.IterativeReweightedL1.html#skglm.experimental.IterativeReweightedL1" title="skglm.experimental.IterativeReweightedL1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IterativeReweightedL1</span></code></a>([datafit, penalty, ...])</p></td>
+<td><p>Reweighted L1-norm estimator.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.experimental.PDCD_WS.html#skglm.experimental.PDCD_WS" title="skglm.experimental.PDCD_WS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PDCD_WS</span></code></a>([max_iter, max_epochs, dual_init, ...])</p></td>
 <td><p>Primal-Dual Coordinate Descent solver with working sets.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.experimental.IterativeReweightedL1.html#skglm.experimental.IterativeReweightedL1" title="skglm.experimental.IterativeReweightedL1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IterativeReweightedL1</span></code></a>([datafit, penalty, ...])</p></td>
-<td><p>Reweighted L1-norm estimator.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.experimental.Pinball.html#skglm.experimental.Pinball" title="skglm.experimental.Pinball"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Pinball</span></code></a>(quantile_level)</p></td>
+<td><p>Pinball datafit.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.experimental.SqrtQuadratic.html#skglm.experimental.SqrtQuadratic" title="skglm.experimental.SqrtQuadratic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SqrtQuadratic</span></code></a>()</p></td>
+<td><p>Unnormalized square root quadratic datafit.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.experimental.SqrtLasso.html#skglm.experimental.SqrtLasso" title="skglm.experimental.SqrtLasso"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SqrtLasso</span></code></a>([alpha, max_iter, max_pn_iter, ...])</p></td>
+<td><p>Square root Lasso estimator based on Prox Newton solver.</p></td>
 </tr>
 </tbody>
 </table>

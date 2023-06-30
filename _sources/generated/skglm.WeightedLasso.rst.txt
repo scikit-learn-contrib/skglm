@@ -15,11 +15,13 @@
    
       ~WeightedLasso.__init__
       ~WeightedLasso.fit
+      ~WeightedLasso.get_metadata_routing
       ~WeightedLasso.get_params
       ~WeightedLasso.path
       ~WeightedLasso.predict
       ~WeightedLasso.score
       ~WeightedLasso.set_params
+      ~WeightedLasso.set_score_request
    
    
 

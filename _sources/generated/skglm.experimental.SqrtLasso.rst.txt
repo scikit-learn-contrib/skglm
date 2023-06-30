@@ -15,11 +15,13 @@
    
       ~SqrtLasso.__init__
       ~SqrtLasso.fit
+      ~SqrtLasso.get_metadata_routing
       ~SqrtLasso.get_params
       ~SqrtLasso.path
       ~SqrtLasso.predict
       ~SqrtLasso.score
       ~SqrtLasso.set_params
+      ~SqrtLasso.set_score_request
    
    
 

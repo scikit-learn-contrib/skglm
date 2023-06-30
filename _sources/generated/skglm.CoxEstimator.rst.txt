@@ -15,6 +15,7 @@
    
       ~CoxEstimator.__init__
       ~CoxEstimator.fit
+      ~CoxEstimator.get_metadata_routing
       ~CoxEstimator.get_params
       ~CoxEstimator.predict
       ~CoxEstimator.set_params

@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Contribute to skglm" href="../contribute.html" /><link rel="prev" title="skglm.experimental.PDCD_WS" href="skglm.experimental.PDCD_WS.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="skglm.experimental.PDCD_WS" href="skglm.experimental.PDCD_WS.html" /><link rel="prev" title="skglm.solvers.ProxNewton" href="skglm.solvers.ProxNewton.html" />
 
     <!-- Generated with Sphinx 7.0.1 and Furo 2023.05.20 -->
         <title>skglm.experimental.IterativeReweightedL1 - skglm 0.3.dev documentation</title>
@@ -198,6 +198,7 @@
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L2.html">skglm.penalties.L2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L2_3.html">skglm.penalties.L2_3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.MCPenalty.html">skglm.penalties.MCPenalty</a></li>
+<li class="toctree-l2"><a class="reference internal" href="skglm.penalties.PositiveConstraint.html">skglm.penalties.PositiveConstraint</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.WeightedL1.html">skglm.penalties.WeightedL1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.WeightedGroupL2.html">skglm.penalties.WeightedGroupL2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.SCAD.html">skglm.penalties.SCAD</a></li>
@@ -220,9 +221,11 @@
 <li class="toctree-l2"><a class="reference internal" href="skglm.solvers.LBFGS.html">skglm.solvers.LBFGS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.solvers.MultiTaskBCD.html">skglm.solvers.MultiTaskBCD</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.solvers.ProxNewton.html">skglm.solvers.ProxNewton</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.experimental.SqrtLasso.html">skglm.experimental.SqrtLasso</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.experimental.PDCD_WS.html">skglm.experimental.PDCD_WS</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">skglm.experimental.IterativeReweightedL1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="skglm.experimental.PDCD_WS.html">skglm.experimental.PDCD_WS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="skglm.experimental.Pinball.html">skglm.experimental.Pinball</a></li>
+<li class="toctree-l2"><a class="reference internal" href="skglm.experimental.SqrtQuadratic.html">skglm.experimental.SqrtQuadratic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="skglm.experimental.SqrtLasso.html">skglm.experimental.SqrtLasso</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../contribute.html">Contribute to <code class="docutils literal notranslate"><span class="pre">skglm</span></code></a></li>
@@ -265,7 +268,7 @@
 <h1>skglm.experimental.IterativeReweightedL1<a class="headerlink" href="#skglm-experimental-iterativereweightedl1" title="Permalink to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="skglm.experimental.IterativeReweightedL1">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.experimental.</span></span><span class="sig-name descname"><span class="pre">IterativeReweightedL1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datafit=&lt;skglm.datafits.single_task.Quadratic</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">penalty=&lt;skglm.penalties.separable.L0_5</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_reweights=5</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/882cfae/skglm/experimental/reweighted.py#L8"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.experimental.IterativeReweightedL1" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.experimental.</span></span><span class="sig-name descname"><span class="pre">IterativeReweightedL1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datafit=&lt;skglm.datafits.single_task.Quadratic</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">penalty=&lt;skglm.penalties.separable.L0_5</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_reweights=5</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/c7d0465/skglm/experimental/reweighted.py#L8"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.experimental.IterativeReweightedL1" title="Permalink to this definition">#</a></dt>
 <dd><p>Reweighted L1-norm estimator.</p>
 <p>This estimator solves a non-convex problems by iteratively solving
 convex surrogates involving weighted L1 norms.</p>
@@ -305,7 +308,7 @@ convex surrogates involving weighted L1 norms.</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="skglm.experimental.IterativeReweightedL1.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datafit=&lt;skglm.datafits.single_task.Quadratic</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">penalty=&lt;skglm.penalties.separable.L0_5</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_reweights=5</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/882cfae/skglm/experimental/reweighted.py#L44"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.experimental.IterativeReweightedL1.__init__" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datafit=&lt;skglm.datafits.single_task.Quadratic</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">penalty=&lt;skglm.penalties.separable.L0_5</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_reweights=5</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/c7d0465/skglm/experimental/reweighted.py#L44"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.experimental.IterativeReweightedL1.__init__" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
@@ -318,13 +321,16 @@ convex surrogates involving weighted L1 norms.</p>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit</span></code>(X, y)</p></td>
 <td><p>Fit the model according to the given training data.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_params</span></code>([deep])</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_metadata_routing</span></code>()</p></td>
+<td><p>Get metadata routing of this object.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_params</span></code>([deep])</p></td>
 <td><p>Get parameters of the estimators including the datafit's and penalty's.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code>(X)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code>(X)</p></td>
 <td><p>Predict target values for samples in X.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_params</span></code>(**params)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_params</span></code>(**params)</p></td>
 <td><p>Set the parameters of this estimator.</p></td>
 </tr>
 </tbody>
@@ -339,23 +345,23 @@ convex surrogates involving weighted L1 norms.</p>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="../contribute.html">
+          <a class="next-page" href="skglm.experimental.PDCD_WS.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Contribute to <code class="docutils literal notranslate"><span class="pre">skglm</span></code></div>
+                <div class="title">skglm.experimental.PDCD_WS</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="skglm.experimental.PDCD_WS.html">
+          <a class="prev-page" href="skglm.solvers.ProxNewton.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">skglm.experimental.PDCD_WS</div>
+                <div class="title">skglm.solvers.ProxNewton</div>
                 
               </div>
             </a>

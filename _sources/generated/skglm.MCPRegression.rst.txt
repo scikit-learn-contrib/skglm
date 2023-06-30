@@ -15,11 +15,13 @@
    
       ~MCPRegression.__init__
       ~MCPRegression.fit
+      ~MCPRegression.get_metadata_routing
       ~MCPRegression.get_params
       ~MCPRegression.path
       ~MCPRegression.predict
       ~MCPRegression.score
       ~MCPRegression.set_params
+      ~MCPRegression.set_score_request
    
    
 

@@ -198,6 +198,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.L2.html">skglm.penalties.L2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.L2_3.html">skglm.penalties.L2_3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.MCPenalty.html">skglm.penalties.MCPenalty</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.PositiveConstraint.html">skglm.penalties.PositiveConstraint</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.WeightedL1.html">skglm.penalties.WeightedL1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.WeightedGroupL2.html">skglm.penalties.WeightedGroupL2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.SCAD.html">skglm.penalties.SCAD</a></li>
@@ -220,9 +221,11 @@
 <li class="toctree-l2"><a class="reference internal" href="../generated/skglm.solvers.LBFGS.html">skglm.solvers.LBFGS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../generated/skglm.solvers.MultiTaskBCD.html">skglm.solvers.MultiTaskBCD</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../generated/skglm.solvers.ProxNewton.html">skglm.solvers.ProxNewton</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.experimental.SqrtLasso.html">skglm.experimental.SqrtLasso</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.experimental.PDCD_WS.html">skglm.experimental.PDCD_WS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../generated/skglm.experimental.IterativeReweightedL1.html">skglm.experimental.IterativeReweightedL1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.experimental.PDCD_WS.html">skglm.experimental.PDCD_WS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.experimental.Pinball.html">skglm.experimental.Pinball</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.experimental.SqrtQuadratic.html">skglm.experimental.SqrtQuadratic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.experimental.SqrtLasso.html">skglm.experimental.SqrtLasso</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../contribute.html">Contribute to <code class="docutils literal notranslate"><span class="pre">skglm</span></code></a></li>
@@ -263,6 +266,21 @@
         <article role="main">
           <section id="what-s-new">
 <span id="whats-new"></span><h1>What’s new<a class="headerlink" href="#what-s-new" title="Permalink to this heading">#</a></h1>
+<section id="version-0-3-2023-07-01">
+<span id="changes-0-3"></span><h2>Version 0.3 (2023/07/01)<a class="headerlink" href="#version-0-3-2023-07-01" title="Permalink to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Add <a class="reference internal" href="../generated/skglm.CoxEstimator.html#skglm-coxestimator"><span class="std std-ref">Cox Estimator</span></a> with support of L1, L2, and Elastic regularization (PR: <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/171">#171</a>)</p></li>
+<li><p>Reduce time overhead when fitting <a class="reference internal" href="../generated/skglm.Lasso.html#skglm-lasso"><span class="std std-ref">Lasso Estimator</span></a> (PR: <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/129">#129</a>)</p></li>
+<li><p>Add <a class="reference internal" href="../generated/skglm.datafits.Cox.html#skglm-datafits-cox"><span class="std std-ref">Cox</span></a> datafit for survival analysis (PR <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/180">#180</a>, <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/168">#168</a>, <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/159">#159</a>, <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/157">#157</a>)</p></li>
+<li><p>Experimental <a class="reference internal" href="../generated/skglm.experimental.Pinball.html#skglm-experimental-pinball"><span class="std std-ref">Pinball</span></a> datafit (PR: <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/134">#134</a>)</p></li>
+<li><p>Add <a class="reference internal" href="../generated/skglm.datafits.Gamma.html#skglm-datafits-gamma"><span class="std std-ref">Gamma</span></a> datafit (PR: <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/113">#113</a>)</p></li>
+<li><p>Add Positivity constraint to <a class="reference internal" href="../generated/skglm.penalties.L1.html#skglm-penalties-l1"><span class="std std-ref">L1</span></a>, <span class="xref std std-ref">L1_plus_L2</span>, <a class="reference internal" href="../generated/skglm.penalties.WeightedL1.html#skglm-penalties-weightedl1"><span class="std std-ref">WeightedL1</span></a> (PR: <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/110">#110</a>)</p></li>
+<li><p>Add <a class="reference internal" href="../generated/skglm.penalties.PositiveConstraint.html#skglm-penalties-positiveconstraint"><span class="std std-ref">PositiveConstraint</span></a> (PR: <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/126">#126</a>)</p></li>
+<li><p>Add <a class="reference internal" href="../generated/skglm.solvers.LBFGS.html#skglm-solvers-lbfgs"><span class="std std-ref">L-BFGS</span></a> solver for problems with smooth datafits and penalties (PR: <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/165">#165</a>, <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/173">#173</a>)</p></li>
+<li><p>Experimental <span class="xref std std-ref">Primal-dual coordinate descent solve</span> for problems with non-smooth datafits (PR: <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/131">#131</a>)</p></li>
+<li><p>Add support of <code class="docutils literal notranslate"><span class="pre">float32</span></code> in <a class="reference internal" href="../generated/skglm.solvers.ProxNewton.html#skglm-solvers-proxnewton"><span class="std std-ref">ProxNewton</span></a></p></li>
+</ul>
+</section>
 <section id="version-0-2-2022-10-18">
 <span id="changes-0-2"></span><h2>Version 0.2 (2022/10/18)<a class="headerlink" href="#version-0-2-2022-10-18" title="Permalink to this heading">#</a></h2>
 <ul class="simple">
@@ -339,6 +357,7 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">What’s new</a><ul>
+<li><a class="reference internal" href="#version-0-3-2023-07-01">Version 0.3 (2023/07/01)</a></li>
 <li><a class="reference internal" href="#version-0-2-2022-10-18">Version 0.2 (2022/10/18)</a></li>
 <li><a class="reference internal" href="#version-0-1-2022-04-25">Version 0.1 (2022/04/25)</a></li>
 </ul>

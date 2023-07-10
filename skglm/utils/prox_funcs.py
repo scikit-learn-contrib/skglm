@@ -60,11 +60,11 @@ def value_MCP(w, alpha, gamma):
 
 
 @njit
-def prox_MCP(value, stepsize, alpha, gamma):
+def prox_MCP(value, stepsize, alpha, gamma, positive=False):
     """Compute the proximal operator of stepsize * MCP penalty."""
     tau = alpha * stepsize
     g = gamma / stepsize  # what does g stand for ?
-    if np.abs(value) <= tau:
+    if (np.abs(value) <= tau) or (positive and value <= 0.):
         return 0.
     if np.abs(value) > g * tau:
         return value

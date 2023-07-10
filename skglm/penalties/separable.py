@@ -222,42 +222,59 @@ class MCPenalty(BasePenalty):
         "value" = sum_(j=1)^(n_"features") "pen"(abs(w_j))
     """
 
-    def __init__(self, alpha, gamma):
+    def __init__(self, alpha, gamma, positive=False):
         self.alpha = alpha
         self.gamma = gamma
+        self.positive = positive
 
     def get_spec(self):
         spec = (
             ('alpha', float64),
             ('gamma', float64),
+            ('positive', bool_)
         )
         return spec
 
     def params_to_dict(self):
         return dict(alpha=self.alpha,
-                    gamma=self.gamma)
+                    gamma=self.gamma,
+                    positive=self.positive)
 
     def value(self, w):
         return value_MCP(w, self.alpha, self.gamma)
 
     def prox_1d(self, value, stepsize, j):
         """Compute the proximal operator of MCP."""
-        return prox_MCP(value, stepsize, self.alpha, self.gamma)
+        return prox_MCP(value, stepsize, self.alpha, self.gamma, self.positive)
 
     def subdiff_distance(self, w, grad, ws):
         """Compute distance of negative gradient to the subdifferential at w."""
         subdiff_dist = np.zeros_like(grad)
         for idx, j in enumerate(ws):
-            if w[j] == 0:
-                # distance of -grad to alpha * [-1, 1]
-                subdiff_dist[idx] = max(0, np.abs(grad[idx]) - self.alpha)
-            elif np.abs(w[j]) < self.alpha * self.gamma:
-                # distance of -grad_j to (alpha * sign(w[j]) - w[j] / gamma)
-                subdiff_dist[idx] = np.abs(
-                    grad[idx] + self.alpha * np.sign(w[j]) - w[j] / self.gamma)
+            if self.positive: # TODO double check this
+                if w[j] < 0:
+                    subdiff_dist[idx] = np.inf
+                elif w[j] == 0:
+                    # distance of -grad to (-infty, alpha]
+                    subdiff_dist[idx] = max(0, - grad[idx] - self.alpha)
+                elif w[j] < self.alpha * self.gamma:
+                    # distance of -grad to {alpha - w[j] / gamma}
+                    subdiff_dist[idx] = np.abs(
+                        grad[idx] + self.alpha - w[j] / self.gamma)
+                else:
+                    # distance of grad to 0
+                    subdiff_dist[idx] = np.abs(grad[idx])
             else:
-                # distance of grad to 0
-                subdiff_dist[idx] = np.abs(grad[idx])
+                if w[j] == 0:
+                    # distance of -grad to [-alpha, alpha]
+                    subdiff_dist[idx] = max(0, np.abs(grad[idx]) - self.alpha)
+                elif np.abs(w[j]) < self.alpha * self.gamma:
+                    # distance of -grad to {alpha * sign(w[j]) - w[j] / gamma}
+                    subdiff_dist[idx] = np.abs(
+                        grad[idx] + self.alpha * np.sign(w[j]) - w[j] / self.gamma)
+                else:
+                    # distance of grad to 0
+                    subdiff_dist[idx] = np.abs(grad[idx])
         return subdiff_dist
 
     def is_penalized(self, n_features):

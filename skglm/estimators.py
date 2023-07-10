@@ -810,6 +810,9 @@ class MCPRegression(LinearModel, RegressorMixin):
     fit_intercept : bool, optional (default=True)
         Whether or not to fit an intercept.
 
+    positive : bool, optional
+        When set to ``True``, forces the coefficient vector to be positive.
+
     warm_start : bool, optional (default=False)
         When set to ``True``, reuse the solution of the previous call to fit as
         initialization, otherwise, just erase the previous solution.
@@ -837,19 +840,20 @@ class MCPRegression(LinearModel, RegressorMixin):
     """
 
     def __init__(self, alpha=1., gamma=3, max_iter=50, max_epochs=50_000, p0=10,
-                 verbose=0, tol=1e-4, fit_intercept=True, warm_start=False,
-                 ws_strategy="subdiff"):
+                 verbose=0, tol=1e-4, positive=False, fit_intercept=True,
+                 warm_start=False, ws_strategy="subdiff"):
         super().__init__()
         self.alpha = alpha
         self.gamma = gamma
-        self.tol = tol
         self.max_iter = max_iter
         self.max_epochs = max_epochs
         self.p0 = p0
-        self.ws_strategy = ws_strategy
+        self.verbose = verbose
+        self.tol = tol
+        self.positive = positive
         self.fit_intercept = fit_intercept
         self.warm_start = warm_start
-        self.verbose = verbose
+        self.ws_strategy = ws_strategy
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
         """Compute MCPRegression path.
@@ -890,7 +894,8 @@ class MCPRegression(LinearModel, RegressorMixin):
             The number of iterations along the path. If return_n_iter is set to
             ``True``.
         """
-        penalty = compiled_clone(MCPenalty(self.alpha, self.gamma))
+        penalty = compiled_clone(
+            MCPenalty(self.alpha, self.gamma, self.positive))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
         solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
@@ -918,7 +923,7 @@ class MCPRegression(LinearModel, RegressorMixin):
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
             ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
             warm_start=self.warm_start, verbose=self.verbose)
-        return _glm_fit(X, y, self, Quadratic(), MCPenalty(self.alpha, self.gamma),
+        return _glm_fit(X, y, self, Quadratic(), MCPenalty(self.alpha, self.gamma, self.positive),
                         solver)
 
 

@@ -60,6 +60,16 @@ def value_MCP(w, alpha, gamma):
 
 
 @njit
+def value_weighted_MCP(w, alpha, gamma, weights):
+    """Compute the value of the weighted MCP."""
+    s0 = np.abs(w) < gamma * alpha
+    value = weights * gamma * alpha ** 2 / 2.
+    value[s0] = alpha * np.abs(w[s0]) - w[s0]**2 / (2 * gamma)
+    value[s0] *= weights[s0]
+    return np.sum(value)
+
+
+@njit
 def prox_MCP(value, stepsize, alpha, gamma, positive=False):
     """Compute the proximal operator of stepsize * MCP penalty."""
     tau = alpha * stepsize

@@ -4,7 +4,7 @@ from numba.types import bool_
 
 from skglm.penalties.base import BasePenalty
 from skglm.utils.prox_funcs import (
-    ST, box_proj, prox_05, prox_2_3, prox_SCAD, value_SCAD, prox_MCP, value_MCP)
+    ST, box_proj, prox_05, prox_2_3, prox_SCAD, value_SCAD, prox_MCP, value_MCP, value_weighted_MCP)
 
 
 class L1(BasePenalty):
@@ -288,6 +288,91 @@ class MCPenalty(BasePenalty):
     def alpha_max(self, gradient0):
         """Return penalization value for which 0 is solution."""
         return np.max(np.abs(gradient0))
+
+class WeightedMCPenalty(BasePenalty):
+    """Minimax Concave Penalty (MCP), a non-convex sparse penalty.
+
+    Notes
+    -----
+    With :math:`x >= 0`:
+
+    .. math::
+        "pen"(x) = {(alpha x - x^2 / (2 gamma), if x =< alpha gamma),
+                    (gamma alpha^2 / 2        , if x > alpha gamma):}
+    .. math::
+        "value" = sum_(j=1)^(n_"features") "pen"(abs(w_j))
+    """
+
+    def __init__(self, alpha, gamma, weights, positive=False):
+        self.alpha = alpha
+        self.gamma = gamma
+        self.weights = weights.astype(np.float64)
+        self.positive = positive
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+            ('gamma', float64),
+            ('weights', float64[:]),
+            ('positive', bool_)
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha,
+                    gamma=self.gamma,
+                    weights=self.weights,
+                    positive=self.positive)
+
+    def value(self, w):
+        return value_weighted_MCP(w, self.alpha, self.gamma, self.weights)
+
+    def prox_1d(self, value, stepsize, j):
+        """Compute the proximal operator of the weighted MCP."""
+        return prox_MCP(value, stepsize, self.alpha * self.weights[j], self.gamma / self.weights[j], self.positive)
+
+    def subdiff_distance(self, w, grad, ws):
+        """Compute distance of negative gradient to the subdifferential at w."""
+        subdiff_dist = np.zeros_like(grad)
+        for idx, j in enumerate(ws):
+            if self.positive: # TODO double check this
+                if w[j] < 0:
+                    subdiff_dist[idx] = np.inf
+                elif w[j] == 0:
+                    # distance of -grad to (-infty, alpha * weights[j]]
+                    subdiff_dist[idx] = max(0, - grad[idx] - self.alpha * self.weights[j])
+                elif w[j] < self.alpha * self.gamma:
+                    # distance of -grad to weights[j] * {alpha - w[j] / gamma}
+                    subdiff_dist[idx] = np.abs(
+                        grad[idx] + self.alpha * self.weights[j] - self.weights[j] * w[j] / self.gamma)
+                else:
+                    # distance of grad to 0
+                    subdiff_dist[idx] = np.abs(grad[idx])
+            else:
+                if w[j] == 0:
+                    # distance of -grad to weights[j] * [-alpha, alpha]
+                    subdiff_dist[idx] = max(0, np.abs(grad[idx]) - self.alpha * self.weights[j])
+                elif np.abs(w[j]) < self.alpha * self.gamma:
+                    # distance of -grad to weights[j] * {alpha * sign(w[j]) - w[j] / gamma}
+                    subdiff_dist[idx] = np.abs(
+                        grad[idx] + self.alpha * self.weights[j] * np.sign(w[j]) - self.weights[j] * w[j] / self.gamma)
+                else:
+                    # distance of grad to 0
+                    subdiff_dist[idx] = np.abs(grad[idx])
+        return subdiff_dist
+
+    def is_penalized(self, n_features):
+        """Return a binary mask with the penalized features."""
+        return np.ones(n_features, bool_)
+
+    def generalized_support(self, w):
+        """Return a mask with non-zero coefficients."""
+        return w != 0
+
+    def alpha_max(self, gradient0):
+        """Return penalization value for which 0 is solution."""
+        nnz_weights = self.weights != 0
+        return np.max(np.abs(gradient0[nnz_weights] / self.weights[nnz_weights]))
 
 
 class SCAD(BasePenalty):

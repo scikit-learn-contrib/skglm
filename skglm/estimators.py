@@ -807,11 +807,11 @@ class MCPRegression(LinearModel, RegressorMixin):
     tol : float, optional
         Stopping criterion for the optimization.
 
-    fit_intercept : bool, optional (default=True)
-        Whether or not to fit an intercept.
-
     positive : bool, optional
         When set to ``True``, forces the coefficient vector to be positive.
+
+    fit_intercept : bool, optional (default=True)
+        Whether or not to fit an intercept.
 
     warm_start : bool, optional (default=False)
         When set to ``True``, reuse the solution of the previous call to fit as
@@ -955,6 +955,10 @@ class WeightedMCPRegression(LinearModel, RegressorMixin):
         If ``gamma = np.inf`` it is a soft thresholding.
         Should be larger than (or equal to) 1.
 
+    weights : array, shape (n_features,), optional (default=None)
+        Positive weights used in the L1 penalty part of the Lasso
+        objective. If ``None``, weights equal to 1 are used.
+
     max_iter : int, optional
         The maximum number of iterations (subproblem definitions).
 
@@ -970,11 +974,11 @@ class WeightedMCPRegression(LinearModel, RegressorMixin):
     tol : float, optional
         Stopping criterion for the optimization.
 
-    fit_intercept : bool, optional (default=True)
-        Whether or not to fit an intercept.
-
     positive : bool, optional
         When set to ``True``, forces the coefficient vector to be positive.
+
+    fit_intercept : bool, optional (default=True)
+        Whether or not to fit an intercept.
 
     warm_start : bool, optional (default=False)
         When set to ``True``, reuse the solution of the previous call to fit as

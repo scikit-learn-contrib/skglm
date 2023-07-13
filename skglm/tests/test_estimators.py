@@ -118,7 +118,8 @@ def test_estimator(estimator_name, X, fit_intercept, positive):
         pytest.xfail("sklearn LogisticRegression does not support intercept.")
     if fit_intercept and estimator_name == "SVC":
         pytest.xfail("Intercept is not supported for SVC.")
-    if positive and estimator_name not in ("Lasso", "ElasticNet", "wLasso", "MCP", "wMCP"):
+    if positive and estimator_name not in (
+            "Lasso", "ElasticNet", "wLasso", "MCP", "wMCP"):
         pytest.xfail("`positive` option is only supported by L1, L1_plus_L2 and wL1.")
 
     estimator_sk = clone(dict_estimators_sk[estimator_name])

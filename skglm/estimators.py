@@ -923,8 +923,9 @@ class MCPRegression(LinearModel, RegressorMixin):
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
             ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
             warm_start=self.warm_start, verbose=self.verbose)
-        return _glm_fit(X, y, self, Quadratic(), MCPenalty(self.alpha, self.gamma, self.positive),
-                        solver)
+        return _glm_fit(
+            X, y, self, Quadratic(),
+            MCPenalty(self.alpha, self.gamma, self.positive), solver)
 
 
 class WeightedMCPRegression(LinearModel, RegressorMixin):
@@ -1006,8 +1007,8 @@ class WeightedMCPRegression(LinearModel, RegressorMixin):
     Lasso : Lasso regularization.
     """
 
-    def __init__(self, alpha=1., gamma=3, weights=None, max_iter=50, max_epochs=50_000, p0=10,
-                 verbose=0, tol=1e-4, positive=False, fit_intercept=True,
+    def __init__(self, alpha=1., gamma=3, weights=None, max_iter=50, max_epochs=50_000,
+                 p0=10, verbose=0, tol=1e-4, positive=False, fit_intercept=True,
                  warm_start=False, ws_strategy="subdiff"):
         super().__init__()
         self.alpha = alpha

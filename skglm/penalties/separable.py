@@ -252,19 +252,11 @@ class MCPenalty(BasePenalty):
         """Compute distance of negative gradient to the subdifferential at w."""
         subdiff_dist = np.zeros_like(grad)
         for idx, j in enumerate(ws):
-            if self.positive:
-                if w[j] < 0:
-                    subdiff_dist[idx] = np.inf
-                elif w[j] == 0:
-                    # distance of -grad to (-infty, alpha]
-                    subdiff_dist[idx] = max(0, - grad[idx] - self.alpha)
-                elif w[j] < self.alpha * self.gamma:
-                    # distance of -grad to {alpha - w[j] / gamma}
-                    subdiff_dist[idx] = np.abs(
-                        grad[idx] + self.alpha - w[j] / self.gamma)
-                else:
-                    # distance of grad to 0
-                    subdiff_dist[idx] = np.abs(grad[idx])
+            if self.positive and w[j] < 0:
+                subdiff_dist[idx] = np.inf
+            elif self.positive and w[j] == 0:
+                # distance of -grad to (-infty, alpha]
+                subdiff_dist[idx] = max(0, - grad[idx] - self.alpha)
             else:
                 if w[j] == 0:
                     # distance of -grad to [-alpha, alpha]
@@ -339,21 +331,12 @@ class WeightedMCPenalty(BasePenalty):
         """Compute distance of negative gradient to the subdifferential at w."""
         subdiff_dist = np.zeros_like(grad)
         for idx, j in enumerate(ws):
-            if self.positive:
-                if w[j] < 0:
-                    subdiff_dist[idx] = np.inf
-                elif w[j] == 0:
-                    # distance of -grad to (-infty, alpha * weights[j]]
-                    subdiff_dist[idx] = max(
-                        0, - grad[idx] - self.alpha * self.weights[j])
-                elif w[j] < self.alpha * self.gamma:
-                    # distance of -grad to weights[j] * {alpha - w[j] / gamma}
-                    subdiff_dist[idx] = np.abs(
-                        grad[idx] + self.alpha * self.weights[j]
-                        - self.weights[j] * w[j] / self.gamma)
-                else:
-                    # distance of grad to 0
-                    subdiff_dist[idx] = np.abs(grad[idx])
+            if self.positive and w[j] < 0:
+                subdiff_dist[idx] = np.inf
+            elif self.positive and w[j] == 0:
+                # distance of -grad to (-infty, alpha * weights[j]]
+                subdiff_dist[idx] = max(
+                    0, - grad[idx] - self.alpha * self.weights[j])
             else:
                 if w[j] == 0:
                     # distance of -grad to weights[j] * [-alpha, alpha]
@@ -361,7 +344,7 @@ class WeightedMCPenalty(BasePenalty):
                         0, np.abs(grad[idx]) - self.alpha * self.weights[j])
                 elif np.abs(w[j]) < self.alpha * self.gamma:
                     # distance of -grad to
-                    # weights[j] * {alpha * sign(w[j]) - w[j] / gamma}
+                    # {weights[j] * alpha * sign(w[j]) - w[j] / gamma}
                     subdiff_dist[idx] = np.abs(
                         grad[idx] + self.alpha * self.weights[j] * np.sign(w[j])
                         - self.weights[j] * w[j] / self.gamma)

@@ -20,7 +20,7 @@ from scipy.sparse import csc_matrix, issparse
 from skglm.utils.data import make_correlated_data, make_dummy_survival_data
 from skglm.estimators import (
     GeneralizedLinearEstimator, Lasso, MultiTaskLasso, WeightedLasso, ElasticNet,
-    MCPRegression, WeightedMCPRegression, SparseLogisticRegression, LinearSVC)
+    MCPRegression, SparseLogisticRegression, LinearSVC)
 from skglm.datafits import Logistic, Quadratic, QuadraticSVC, QuadraticMultiTask, Cox
 from skglm.penalties import L1, IndicatorBox, L1_plus_L2, MCPenalty, WeightedL1, SLOPE
 from skglm.solvers import AndersonCD, FISTA
@@ -74,11 +74,6 @@ dict_estimators_sk["MCP"] = Lasso_sklearn(
 dict_estimators_ours["MCP"] = MCPRegression(
     alpha=alpha, gamma=np.inf, tol=tol)
 
-dict_estimators_sk["wMCP"] = Lasso_sklearn(
-    alpha=alpha, tol=tol)
-dict_estimators_ours["wMCP"] = WeightedMCPRegression(
-    alpha=alpha, gamma=np.inf, tol=tol, weights=np.ones(n_features))
-
 dict_estimators_sk["LogisticRegression"] = LogReg_sklearn(
     C=1/(alpha * n_samples), tol=tol, penalty='l1',
     solver='liblinear')
@@ -93,7 +88,7 @@ dict_estimators_ours["SVC"] = LinearSVC(C=C, tol=tol)
 
 @pytest.mark.parametrize(
     "estimator_name",
-    ["Lasso", "wLasso", "ElasticNet", "MCP", "wMCP", "LogisticRegression", "SVC"])
+    ["Lasso", "wLasso", "ElasticNet", "MCP", "LogisticRegression", "SVC"])
 def test_check_estimator(estimator_name):
     if estimator_name == "SVC":
         pytest.xfail("SVC check_estimator is too slow due to bug.")
@@ -119,7 +114,7 @@ def test_estimator(estimator_name, X, fit_intercept, positive):
     if fit_intercept and estimator_name == "SVC":
         pytest.xfail("Intercept is not supported for SVC.")
     if positive and estimator_name not in (
-            "Lasso", "ElasticNet", "wLasso", "MCP", "wMCP"):
+            "Lasso", "ElasticNet", "wLasso", "MCP"):
         pytest.xfail("`positive` option is only supported by L1, L1_plus_L2 and wL1.")
 
     estimator_sk = clone(dict_estimators_sk[estimator_name])
@@ -496,7 +491,7 @@ def test_generic_get_params():
 # the regularization parameter (`C` for sklearn, `alpha` in skglm).
 @pytest.mark.parametrize(
     "estimator_name",
-    ["Lasso", "wLasso", "ElasticNet", "MCP", "wMCP"])
+    ["Lasso", "wLasso", "ElasticNet", "MCP"])
 def test_grid_search(estimator_name):
     estimator_sk = clone(dict_estimators_sk[estimator_name])
     estimator_ours = clone(dict_estimators_ours[estimator_name])
@@ -519,7 +514,7 @@ def test_grid_search(estimator_name):
 
 @pytest.mark.parametrize(
     "estimator_name",
-    ["Lasso", "wLasso", "ElasticNet", "MCP", "wMCP", "LogisticRegression", "SVC"])
+    ["Lasso", "wLasso", "ElasticNet", "MCP", "LogisticRegression", "SVC"])
 def test_warm_start(estimator_name):
     if estimator_name == "LogisticRegression":
         # TODO: remove xfail when ProxNewton supports intercept fitting

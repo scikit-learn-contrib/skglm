@@ -324,8 +324,7 @@ class WeightedMCPenalty(BasePenalty):
     def prox_1d(self, value, stepsize, j):
         """Compute the proximal operator of the weighted MCP."""
         return prox_MCP(
-            value, stepsize, self.alpha * self.weights[j],
-            self.gamma / self.weights[j], self.positive)
+            value, stepsize, self.alpha, self.gamma, self.positive, self.weights[j])
 
     def subdiff_distance(self, w, grad, ws):
         """Compute distance of negative gradient to the subdifferential at w."""

@@ -63,11 +63,9 @@ def value_MCP(w, alpha, gamma):
 def value_weighted_MCP(w, alpha, gamma, weights):
     """Compute the value of the weighted MCP."""
     s0 = np.abs(w) < gamma * alpha
-    value = np.zeros_like(w)
-    value[~s0] = weights[~s0] * gamma * alpha ** 2 / 2.
+    value = np.full_like(w, gamma * alpha ** 2 / 2.)
     value[s0] = alpha * np.abs(w[s0]) - w[s0]**2 / (2 * gamma)
-    value[s0] *= weights[s0]
-    return np.sum(value)
+    return np.sum(weights * value)
 
 
 @njit

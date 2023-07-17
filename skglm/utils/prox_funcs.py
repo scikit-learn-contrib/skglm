@@ -71,13 +71,12 @@ def value_weighted_MCP(w, alpha, gamma, weights):
 @njit
 def prox_MCP(value, stepsize, alpha, gamma, positive=False, weight=1.):
     """Compute the proximal operator of stepsize * weight MCP penalty."""
-    tau = alpha * stepsize
-    g = gamma / stepsize  # what does g stand for ?
-    if (np.abs(value) <= tau * weight) or (positive and value <= 0.):
+    wstepsize = weight * stepsize  # weighted stepsize
+    if (np.abs(value) <= alpha * wstepsize) or (positive and value <= 0.):
         return 0.
-    if np.abs(value) > g * tau:
+    if np.abs(value) > alpha * gamma:
         return value
-    return np.sign(value) * (np.abs(value) - tau * weight) / (1. - weight/g)
+    return np.sign(value) * (np.abs(value) - alpha * wstepsize) / (1. - wstepsize/gamma)
 
 
 @njit

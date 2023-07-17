@@ -906,8 +906,8 @@ class MCPRegression(LinearModel, RegressorMixin):
                 f"Got {len(weights)}, expected {X.shape[1]}."
             )
         penalty = compiled_clone(
-            WeightedMCPenalty(
-                self.alpha, self.gamma, weights, self.positive))
+            WeightedMCPenalty(self.alpha, self.gamma, weights, self.positive)
+        )
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
         solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,

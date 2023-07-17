@@ -899,15 +899,19 @@ class MCPRegression(LinearModel, RegressorMixin):
             The number of iterations along the path. If return_n_iter is set to
             ``True``.
         """
-        weights = np.ones(X.shape[1]) if self.weights is None else self.weights
-        if X.shape[1] != len(weights):
-            raise ValueError(
-                "The number of weights must match the number of features. "
-                f"Got {len(weights)}, expected {X.shape[1]}."
+        if self.weights is None:
+            penalty = compiled_clone(
+                MCPenalty(self.alpha, self.gamma, self.positive)
             )
-        penalty = compiled_clone(
-            WeightedMCPenalty(self.alpha, self.gamma, weights, self.positive)
-        )
+        else:
+            if X.shape[1] != len(self.weights):
+                raise ValueError(
+                    "The number of weights must match the number of features. "
+                    f"Got {len(self.weights)}, expected {X.shape[1]}."
+                )
+            penalty = compiled_clone(
+                WeightedMCPenalty(self.alpha, self.gamma, self.weights, self.positive)
+            )
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
         solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
@@ -934,6 +938,11 @@ class MCPRegression(LinearModel, RegressorMixin):
         if self.weights is None:
             penalty = MCPenalty(self.alpha, self.gamma, self.positive)
         else:
+            if X.shape[1] != len(self.weights):
+                raise ValueError(
+                    "The number of weights must match the number of features. "
+                    f"Got {len(self.weights)}, expected {X.shape[1]}."
+                )
             penalty = WeightedMCPenalty(
                 self.alpha, self.gamma, self.weights, self.positive)
         solver = AndersonCD(

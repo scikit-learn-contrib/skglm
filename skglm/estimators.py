@@ -901,9 +901,10 @@ class MCPRegression(LinearModel, RegressorMixin):
         """
         weights = np.ones(X.shape[1]) if self.weights is None else self.weights
         if X.shape[1] != len(weights):
-            raise ValueError("The number of weights must match the number of \
-                              features. Got %s, expected %s." % (
-                len(weights), X.shape[1]))
+            raise ValueError(
+                "The number of weights must match the number of features. "
+                f"Got {len(weights)}, expected {X.shape[1]}."
+            )
         penalty = compiled_clone(
             WeightedMCPenalty(
                 self.alpha, self.gamma, weights, self.positive))

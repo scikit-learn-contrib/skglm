@@ -44,6 +44,7 @@ Penalties
    PositiveConstraint
    WeightedL1
    WeightedGroupL2
+   WeightedMCPenalty
    SCAD
    BlockSCAD
    SLOPE

@@ -201,6 +201,7 @@
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.penalties.PositiveConstraint.html">skglm.penalties.PositiveConstraint</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.penalties.WeightedL1.html">skglm.penalties.WeightedL1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.penalties.WeightedGroupL2.html">skglm.penalties.WeightedGroupL2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/skglm.penalties.WeightedMCPenalty.html">skglm.penalties.WeightedMCPenalty</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.penalties.SCAD.html">skglm.penalties.SCAD</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.penalties.BlockSCAD.html">skglm.penalties.BlockSCAD</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/skglm.penalties.SLOPE.html">skglm.penalties.SLOPE</a></li>
@@ -289,7 +290,7 @@
 <tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.SparseLogisticRegression.html#skglm.SparseLogisticRegression" title="skglm.SparseLogisticRegression"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SparseLogisticRegression</span></code></a>([alpha, tol, ...])</p></td>
 <td><p>Sparse Logistic regression estimator.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.MCPRegression.html#skglm.MCPRegression" title="skglm.MCPRegression"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MCPRegression</span></code></a>([alpha, gamma, max_iter, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.MCPRegression.html#skglm.MCPRegression" title="skglm.MCPRegression"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MCPRegression</span></code></a>([alpha, gamma, weights, ...])</p></td>
 <td><p>Linear regression with MCP penalty estimator.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.MultiTaskLasso.html#skglm.MultiTaskLasso" title="skglm.MultiTaskLasso"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MultiTaskLasso</span></code></a>([alpha, copy_X, max_iter, ...])</p></td>
@@ -325,7 +326,7 @@
 <tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.penalties.L2_3.html#skglm.penalties.L2_3" title="skglm.penalties.L2_3"><code class="xref py py-obj docutils literal notranslate"><span class="pre">L2_3</span></code></a>(alpha)</p></td>
 <td><p><span class="math notranslate nohighlight">`ell_(2/3)`</span> quasi-norm non-convex penalty.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.penalties.MCPenalty.html#skglm.penalties.MCPenalty" title="skglm.penalties.MCPenalty"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MCPenalty</span></code></a>(alpha, gamma)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.penalties.MCPenalty.html#skglm.penalties.MCPenalty" title="skglm.penalties.MCPenalty"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MCPenalty</span></code></a>(alpha, gamma[, positive])</p></td>
 <td><p>Minimax Concave Penalty (MCP), a non-convex sparse penalty.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.penalties.PositiveConstraint.html#skglm.penalties.PositiveConstraint" title="skglm.penalties.PositiveConstraint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PositiveConstraint</span></code></a>()</p></td>
@@ -337,13 +338,16 @@
 <tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.penalties.WeightedGroupL2.html#skglm.penalties.WeightedGroupL2" title="skglm.penalties.WeightedGroupL2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WeightedGroupL2</span></code></a>(alpha, weights, grp_ptr, ...)</p></td>
 <td><p>Weighted Group L2 penalty.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.penalties.SCAD.html#skglm.penalties.SCAD" title="skglm.penalties.SCAD"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCAD</span></code></a>(alpha, gamma)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.penalties.WeightedMCPenalty.html#skglm.penalties.WeightedMCPenalty" title="skglm.penalties.WeightedMCPenalty"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WeightedMCPenalty</span></code></a>(alpha, gamma, weights[, ...])</p></td>
+<td><p>Weighted Minimax Concave Penalty (MCP), a non-convex sparse penalty.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.penalties.SCAD.html#skglm.penalties.SCAD" title="skglm.penalties.SCAD"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCAD</span></code></a>(alpha, gamma)</p></td>
 <td><p>Smoothly Clipped Absolute Deviation.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.penalties.BlockSCAD.html#skglm.penalties.BlockSCAD" title="skglm.penalties.BlockSCAD"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BlockSCAD</span></code></a>(alpha, gamma)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.penalties.BlockSCAD.html#skglm.penalties.BlockSCAD" title="skglm.penalties.BlockSCAD"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BlockSCAD</span></code></a>(alpha, gamma)</p></td>
 <td><p>Block Smoothly Clipped Absolute Deviation.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/skglm.penalties.SLOPE.html#skglm.penalties.SLOPE" title="skglm.penalties.SLOPE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SLOPE</span></code></a>(alphas)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/skglm.penalties.SLOPE.html#skglm.penalties.SLOPE" title="skglm.penalties.SLOPE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SLOPE</span></code></a>(alphas)</p></td>
 <td><p>Sorted L-One Penalized Estimation (SLOPE) penalty.</p></td>
 </tr>
 </tbody>

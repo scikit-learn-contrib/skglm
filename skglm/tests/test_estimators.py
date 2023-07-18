@@ -74,6 +74,11 @@ dict_estimators_sk["MCP"] = Lasso_sklearn(
 dict_estimators_ours["MCP"] = MCPRegression(
     alpha=alpha, gamma=np.inf, tol=tol)
 
+dict_estimators_sk["wMCP"] = Lasso_sklearn(
+    alpha=alpha, tol=tol)
+dict_estimators_ours["wMCP"] = MCPRegression(
+    alpha=alpha, gamma=np.inf, tol=tol, weights=np.ones(n_features))
+
 dict_estimators_sk["LogisticRegression"] = LogReg_sklearn(
     C=1/(alpha * n_samples), tol=tol, penalty='l1',
     solver='liblinear')
@@ -88,7 +93,7 @@ dict_estimators_ours["SVC"] = LinearSVC(C=C, tol=tol)
 
 @pytest.mark.parametrize(
     "estimator_name",
-    ["Lasso", "wLasso", "ElasticNet", "MCP", "LogisticRegression", "SVC"])
+    ["Lasso", "wLasso", "ElasticNet", "MCP", "wMCP", "LogisticRegression", "SVC"])
 def test_check_estimator(estimator_name):
     if estimator_name == "SVC":
         pytest.xfail("SVC check_estimator is too slow due to bug.")
@@ -97,7 +102,7 @@ def test_check_estimator(estimator_name):
         pytest.xfail("ProxNewton does not yet support intercept fitting")
     clf = clone(dict_estimators_ours[estimator_name])
     clf.tol = 1e-6  # failure in float32 computation otherwise
-    if isinstance(clf, WeightedLasso):
+    if isinstance(clf, (WeightedLasso, MCPRegression)):
         clf.weights = None
     check_estimator(clf)
 
@@ -114,7 +119,7 @@ def test_estimator(estimator_name, X, fit_intercept, positive):
     if fit_intercept and estimator_name == "SVC":
         pytest.xfail("Intercept is not supported for SVC.")
     if positive and estimator_name not in (
-            "Lasso", "ElasticNet", "wLasso", "MCP"):
+            "Lasso", "ElasticNet", "wLasso", "MCP", "wMCP"):
         pytest.xfail("`positive` option is only supported by L1, L1_plus_L2 and wL1.")
 
     estimator_sk = clone(dict_estimators_sk[estimator_name])

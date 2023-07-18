@@ -5,7 +5,7 @@ What's new
 
 .. currentmodule:: skglm
 
-.. include:: 0.3.1.rst
+.. include:: 0.4.rst
 
 .. include:: 0.3.rst
 

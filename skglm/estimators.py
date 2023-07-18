@@ -22,7 +22,7 @@ from skglm.utils.jit_compilation import compiled_clone
 from skglm.solvers import AndersonCD, MultiTaskBCD
 from skglm.datafits import Cox, Quadratic, Logistic, QuadraticSVC, QuadraticMultiTask
 from skglm.penalties import (L1, WeightedL1, L1_plus_L2, L2,
-                             MCPenalty, IndicatorBox, L2_1)
+                             MCPenalty, WeightedMCPenalty, IndicatorBox, L2_1)
 
 
 def _glm_fit(X, y, model, datafit, penalty, solver):
@@ -792,6 +792,10 @@ class MCPRegression(LinearModel, RegressorMixin):
         If ``gamma = np.inf`` it is a soft thresholding.
         Should be larger than (or equal to) 1.
 
+    weights : array, shape (n_features,), optional (default=None)
+        Positive weights used in the L1 penalty part of the Lasso
+        objective. If ``None``, weights equal to 1 are used.
+
     max_iter : int, optional
         The maximum number of iterations (subproblem definitions).
 
@@ -806,6 +810,9 @@ class MCPRegression(LinearModel, RegressorMixin):
 
     tol : float, optional
         Stopping criterion for the optimization.
+
+    positive : bool, optional
+        When set to ``True``, forces the coefficient vector to be positive.
 
     fit_intercept : bool, optional (default=True)
         Whether or not to fit an intercept.
@@ -836,20 +843,22 @@ class MCPRegression(LinearModel, RegressorMixin):
     Lasso : Lasso regularization.
     """
 
-    def __init__(self, alpha=1., gamma=3, max_iter=50, max_epochs=50_000, p0=10,
-                 verbose=0, tol=1e-4, fit_intercept=True, warm_start=False,
-                 ws_strategy="subdiff"):
+    def __init__(self, alpha=1., gamma=3, weights=None, max_iter=50, max_epochs=50_000,
+                 p0=10, verbose=0, tol=1e-4, positive=False, fit_intercept=True,
+                 warm_start=False, ws_strategy="subdiff"):
         super().__init__()
         self.alpha = alpha
         self.gamma = gamma
-        self.tol = tol
+        self.weights = weights
         self.max_iter = max_iter
         self.max_epochs = max_epochs
         self.p0 = p0
-        self.ws_strategy = ws_strategy
+        self.verbose = verbose
+        self.tol = tol
+        self.positive = positive
         self.fit_intercept = fit_intercept
         self.warm_start = warm_start
-        self.verbose = verbose
+        self.ws_strategy = ws_strategy
 
     def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
         """Compute MCPRegression path.
@@ -890,7 +899,19 @@ class MCPRegression(LinearModel, RegressorMixin):
             The number of iterations along the path. If return_n_iter is set to
             ``True``.
         """
-        penalty = compiled_clone(MCPenalty(self.alpha, self.gamma))
+        if self.weights is None:
+            penalty = compiled_clone(
+                MCPenalty(self.alpha, self.gamma, self.positive)
+            )
+        else:
+            if X.shape[1] != len(self.weights):
+                raise ValueError(
+                    "The number of weights must match the number of features. "
+                    f"Got {len(self.weights)}, expected {X.shape[1]}."
+                )
+            penalty = compiled_clone(
+                WeightedMCPenalty(self.alpha, self.gamma, self.weights, self.positive)
+            )
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
         solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
@@ -914,12 +935,21 @@ class MCPRegression(LinearModel, RegressorMixin):
         self :
             Fitted estimator.
         """
+        if self.weights is None:
+            penalty = MCPenalty(self.alpha, self.gamma, self.positive)
+        else:
+            if X.shape[1] != len(self.weights):
+                raise ValueError(
+                    "The number of weights must match the number of features. "
+                    f"Got {len(self.weights)}, expected {X.shape[1]}."
+                )
+            penalty = WeightedMCPenalty(
+                self.alpha, self.gamma, self.weights, self.positive)
         solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
             ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
             warm_start=self.warm_start, verbose=self.verbose)
-        return _glm_fit(X, y, self, Quadratic(), MCPenalty(self.alpha, self.gamma),
-                        solver)
+        return _glm_fit(X, y, self, Quadratic(), penalty, solver)
 
 
 class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):

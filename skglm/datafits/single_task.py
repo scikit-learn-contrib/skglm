@@ -498,8 +498,8 @@ class Poisson(BaseDatafit):
             grad += X_data[i] * (np.exp(Xw[idx_i]) - y[idx_i])
         return grad / len(y)
 
-    def intercept_update_self(self, y, Xw):
-        pass
+    def intercept_update_step(self, y, Xw):
+        return np.mean(np.exp(Xw) - y)
 
 
 class Gamma(BaseDatafit):
@@ -555,8 +555,8 @@ class Gamma(BaseDatafit):
     def gradient_scalar_sparse(self, X_data, X_indptr, X_indices, y, Xw, j):
         pass
 
-    def intercept_update_self(self, y, Xw):
-        pass
+    def intercept_update_step(self, y, Xw):
+        return 1 - np.mean(y * np.exp(Xw))
 
 
 class Cox(BaseDatafit):

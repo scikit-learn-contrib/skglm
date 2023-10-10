@@ -499,7 +499,7 @@ class Poisson(BaseDatafit):
         return grad / len(y)
 
     def intercept_update_step(self, y, Xw):
-        return np.mean(np.exp(Xw) - y)
+        return np.sum(self.raw_grad(y, Xw))
 
 
 class Gamma(BaseDatafit):
@@ -556,7 +556,7 @@ class Gamma(BaseDatafit):
         pass
 
     def intercept_update_step(self, y, Xw):
-        return 1 - np.mean(y * np.exp(Xw))
+        return np.sum(self.raw_grad(y, Xw))
 
 
 class Cox(BaseDatafit):

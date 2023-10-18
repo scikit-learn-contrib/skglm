@@ -3,6 +3,7 @@ from scipy.sparse import issparse
 from skglm.solvers.base import BaseSolver
 from skglm.solvers.common import construct_grad, construct_grad_sparse
 from skglm.utils.prox_funcs import _prox_vec
+from skglm.utils.validation import check_obj_solver_compatibility
 
 
 class FISTA(BaseSolver):
@@ -115,4 +116,5 @@ class FISTA(BaseSolver):
         return w, np.array(p_objs_out), stop_crit
 
     def validate(self, datafit, penalty):
-        pass
+        check_obj_solver_compatibility(datafit, FISTA._datafit_required_attr)
+        check_obj_solver_compatibility(penalty, FISTA._penalty_required_attr)

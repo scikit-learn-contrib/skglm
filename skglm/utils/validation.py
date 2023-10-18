@@ -49,6 +49,6 @@ def check_obj_solver_compatibility(obj, required_attr):
 
         raise AttributeError(
             "Object not compatible with solver. "
-            f"It must implement {' and '.join(required_attr)} \n"
+            f"It must implement {' and '.join(required_attr)}\n"
             f"Missing {' and '.join(missing_attrs)}."
         )

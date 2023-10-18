@@ -1,6 +1,6 @@
 ---
 name: Feature request
-
+title: FEAT - Give a title to the feature request
 ---
 
 # Description of the feature

@@ -1,5 +1,5 @@
 ---
-title: Bug report
+name: Bug report
 
 ---
 

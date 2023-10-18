@@ -7,6 +7,7 @@ from numpy.linalg import norm
 from scipy.sparse import issparse
 
 from skglm.solvers import BaseSolver
+from skglm.utils.validation import check_obj_solver_compatibility
 
 
 class LBFGS(BaseSolver):
@@ -26,6 +27,9 @@ class LBFGS(BaseSolver):
     verbose : bool, default False
         Amount of verbosity. 0/False is silent.
     """
+
+    _datafit_required_attr = ("gradient",)
+    _penalty_required_attr = ("gradient",)
 
     def __init__(self, max_iter=50, tol=1e-4, verbose=False):
         self.max_iter = max_iter
@@ -104,4 +108,5 @@ class LBFGS(BaseSolver):
         return w, np.asarray(p_objs_out), stop_crit
 
     def validate(self, datafit, penalty):
-        pass
+        check_obj_solver_compatibility(datafit, LBFGS._datafit_required_attr)
+        check_obj_solver_compatibility(penalty, LBFGS._penalty_required_attr)

@@ -3,7 +3,9 @@ from numba import njit
 
 from skglm.solvers.base import BaseSolver
 from skglm.utils.anderson import AndersonAcceleration
-from skglm.utils.validation import check_group_compatible
+from skglm.utils.validation import (
+    check_group_compatible, check_obj_solver_compatibility
+)
 
 
 class GroupBCD(BaseSolver):
@@ -34,6 +36,9 @@ class GroupBCD(BaseSolver):
     verbose : bool, default False
         Amount of verbosity. 0/False is silent.
     """
+
+    _datafit_required_attr = ("gradient_g",)
+    _penalty_required_attr = ("subdiff_distance", "prox_1group")
 
     def __init__(self, max_iter=1000, max_epochs=100, p0=10, tol=1e-4,
                  fit_intercept=False, warm_start=False, verbose=0):
@@ -139,7 +144,11 @@ class GroupBCD(BaseSolver):
         return w, p_objs_out, stop_crit
 
     def validate(self, datafit, penalty):
-        pass
+        check_obj_solver_compatibility(datafit, GroupBCD._datafit_required_attr)
+        check_obj_solver_compatibility(penalty, GroupBCD._penalty_required_attr)
+
+        check_group_compatible(datafit)
+        check_group_compatible(penalty)
 
 
 @njit

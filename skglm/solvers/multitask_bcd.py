@@ -4,10 +4,14 @@ from numba import njit
 from numpy.linalg import norm
 from sklearn.utils import check_array
 from skglm.solvers.base import BaseSolver
+from skglm.utils.validation import check_obj_solver_compatibility
 
 
 class MultiTaskBCD(BaseSolver):
     """Block coordinate descent solver for multi-task problems."""
+
+    _datafit_required_attr = ("gradient_j",)
+    _penalty_required_attr = ("subdiff_distance", "prox_1feat")
 
     def __init__(self, max_iter=100, max_epochs=50_000, p0=10, tol=1e-6,
                  use_acc=True, ws_strategy="subdiff", fit_intercept=True,
@@ -224,7 +228,8 @@ class MultiTaskBCD(BaseSolver):
         return results
 
     def validate(self, datafit, penalty):
-        pass
+        check_obj_solver_compatibility(datafit, MultiTaskBCD._datafit_required_attr)
+        check_obj_solver_compatibility(penalty, MultiTaskBCD._penalty_required_attr)
 
 
 @njit

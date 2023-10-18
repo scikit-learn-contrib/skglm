@@ -27,6 +27,9 @@ class FISTA(BaseSolver):
            https://epubs.siam.org/doi/10.1137/080716542
     """
 
+    _datafit_required_attr = ("init_global_lipschitz",)
+    _penalty_required_attr = ("subdiff_distance",)
+
     def __init__(self, max_iter=100, tol=1e-4, opt_strategy="subdiff", verbose=0):
         self.max_iter = max_iter
         self.tol = tol

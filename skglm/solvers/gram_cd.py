@@ -2,8 +2,11 @@ import warnings
 import numpy as np
 from numba import njit
 from scipy.sparse import issparse
+
+from skglm.datafits import Quadratic
 from skglm.solvers.base import BaseSolver
 from skglm.utils.anderson import AndersonAcceleration
+from skglm.utils.validation import check_obj_solver_compatibility
 
 
 class GramCD(BaseSolver):
@@ -47,6 +50,9 @@ class GramCD(BaseSolver):
     verbose : bool, default False
         Amount of verbosity. 0/False is silent.
     """
+
+    _datafit_required_attr = ("gradient_scalar",)
+    _penalty_required_attr = ("prox_1d", "subdiff_distance")
 
     def __init__(self, max_iter=100, use_acc=True, greedy_cd=True, tol=1e-4,
                  fit_intercept=True, warm_start=False, verbose=0):
@@ -131,6 +137,15 @@ class GramCD(BaseSolver):
             p_objs_out.append(p_obj)
         return w, np.array(p_objs_out), stop_crit
 
+    def validate(self, datafit, penalty):
+        if datafit.__class__ is not Quadratic:
+            raise AttributeError(
+                f"`GramCD` supports only `Quadratic` datafit. got {datafit}"
+            )
+
+        check_obj_solver_compatibility(datafit, GramCD._datafit_required_attr)
+        check_obj_solver_compatibility(penalty, GramCD._penalty_required_attr)
+
 
 @njit
 def _gram_cd_epoch(scaled_gram, w, grad, penalty, greedy_cd):
@@ -153,7 +168,3 @@ def _gram_cd_epoch(scaled_gram, w, grad, penalty, greedy_cd):
             grad += (w[j] - old_w_j) * scaled_gram[:, j]
 
     return penalty.subdiff_distance(w, grad, all_features)
-
-
-def validate(self, datafit, penalty):
-    pass

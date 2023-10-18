@@ -2,10 +2,10 @@ import numpy as np
 from numba import njit
 from scipy import sparse
 from sklearn.utils import check_array
-from skglm.penalties import L0_5, L2_3
 from skglm.solvers.common import construct_grad, construct_grad_sparse, dist_fix_point
 from skglm.solvers.base import BaseSolver
 from skglm.utils.anderson import AndersonAcceleration
+from skglm.utils.validation import check_obj_solver_compatibility
 
 
 class AndersonCD(BaseSolver):
@@ -45,6 +45,9 @@ class AndersonCD(BaseSolver):
            https://proceedings.mlr.press/v130/bertrand21a.html
            code: https://github.com/mathurinm/andersoncd
     """
+
+    _datafit_required_attr = ("gradient_scalar",)
+    _penalty_required_attr = ("prox_1d", "subdiff_distance")
 
     def __init__(self, max_iter=50, max_epochs=50_000, p0=10,
                  tol=1e-4, ws_strategy="subdiff", fit_intercept=True,
@@ -260,7 +263,8 @@ class AndersonCD(BaseSolver):
         return results
 
     def validate(self, datafit, penalty):
-        pass
+        check_obj_solver_compatibility(datafit, AndersonCD._datafit_required_attr)
+        check_obj_solver_compatibility(penalty, AndersonCD._penalty_required_attr)
 
 
 @njit

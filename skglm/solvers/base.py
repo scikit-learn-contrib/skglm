@@ -39,7 +39,7 @@ class BaseSolver():
         stop_crit : float
             Value of stopping criterion at convergence.
         """
-    
+
     @abstractmethod
     def validate(self, datafit, penalty):
         """Ensure the solver is suited for the `datafit` + `penalty` problem.
@@ -52,4 +52,3 @@ class BaseSolver():
         penalty : instance of BasePenalty
             Penalty.
         """
-

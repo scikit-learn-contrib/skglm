@@ -102,3 +102,6 @@ class LBFGS(BaseSolver):
         stop_crit = norm(result.jac, ord=np.inf)
 
         return w, np.asarray(p_objs_out), stop_crit
+
+    def validate(self, datafit, penalty):
+        pass

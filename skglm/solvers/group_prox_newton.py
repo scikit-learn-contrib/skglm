@@ -143,10 +143,7 @@ class GroupProxNewton(BaseSolver):
         return w, np.asarray(p_objs_out), stop_crit
 
     def validate(self, datafit, penalty):
-        if not set(("raw_grad", "raw_hessian")) <= set(dir(datafit)):
-            raise Exception(
-                f"ProwNewton cannot optimize {datafit.__class__.__name__}, since"
-                + "`raw_grad` and `raw_hessian` are not implemented.")
+        pass
 
 
 @njit

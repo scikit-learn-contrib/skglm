@@ -222,7 +222,7 @@ class MultiTaskBCD(BaseSolver):
             results += (n_iters,)
 
         return results
-    
+
     def validate(self, datafit, penalty):
         pass
 

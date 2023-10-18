@@ -154,5 +154,6 @@ def _gram_cd_epoch(scaled_gram, w, grad, penalty, greedy_cd):
 
     return penalty.subdiff_distance(w, grad, all_features)
 
-    def validate(self, datafit, penalty):
-        pass
+
+def validate(self, datafit, penalty):
+    pass

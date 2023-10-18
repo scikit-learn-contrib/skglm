@@ -10,7 +10,7 @@ from skglm.utils.validation import check_obj_solver_compatibility
 class MultiTaskBCD(BaseSolver):
     """Block coordinate descent solver for multi-task problems."""
 
-    _datafit_required_attr = ("gradient_j",)
+    _datafit_required_attr = ("initialize", "gradient_j")
     _penalty_required_attr = ("subdiff_distance", "prox_1feat")
 
     def __init__(self, max_iter=100, max_epochs=50_000, p0=10, tol=1e-6,

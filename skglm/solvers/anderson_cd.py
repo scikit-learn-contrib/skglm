@@ -46,7 +46,7 @@ class AndersonCD(BaseSolver):
            code: https://github.com/mathurinm/andersoncd
     """
 
-    _datafit_required_attr = ("gradient_scalar",)
+    _datafit_required_attr = ("initialize", "gradient_scalar")
     _penalty_required_attr = ("prox_1d", "subdiff_distance")
 
     def __init__(self, max_iter=50, max_epochs=50_000, p0=10,

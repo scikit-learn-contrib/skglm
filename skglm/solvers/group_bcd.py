@@ -37,7 +37,7 @@ class GroupBCD(BaseSolver):
         Amount of verbosity. 0/False is silent.
     """
 
-    _datafit_required_attr = ("gradient_g",)
+    _datafit_required_attr = ("initialize", "gradient_g")
     _penalty_required_attr = ("subdiff_distance", "prox_1group")
 
     def __init__(self, max_iter=1000, max_epochs=100, p0=10, tol=1e-4,

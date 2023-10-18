@@ -138,7 +138,7 @@ class GramCD(BaseSolver):
         return w, np.array(p_objs_out), stop_crit
 
     def validate(self, datafit, penalty):
-        if datafit.__class__ is not Quadratic:
+        if not isinstance(datafit, Quadratic):
             raise AttributeError(
                 f"`GramCD` supports only `Quadratic` datafit, got {datafit}"
             )

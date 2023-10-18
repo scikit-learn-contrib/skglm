@@ -6,6 +6,8 @@ from scipy.sparse import issparse
 
 from numba import njit
 from skglm.utils.jit_compilation import compiled_clone
+from skglm.utils.validation import check_obj_solver_compatibility
+
 from sklearn.exceptions import ConvergenceWarning
 
 
@@ -77,6 +79,9 @@ class PDCD_WS:
            "Beyond L1: Faster and Better Sparse Models with skglm", NeurIPS, 2022
            https://arxiv.org/abs/2204.07826
     """
+
+    _datafit_required_attr = ('prox_conjugate',)
+    _penalty_required_attr = ("prox_1d",)
 
     def __init__(self, max_iter=1000, max_epochs=1000, dual_init=None,
                  p0=100, tol=1e-6, verbose=False):
@@ -197,23 +202,13 @@ class PDCD_WS:
                     break
 
     @staticmethod
-    def _validate_init(datafit_, penalty_):
-        # validate datafit
-        missing_attrs = []
-        for attr in ('prox_conjugate', 'subdiff_distance'):
-            if not hasattr(datafit_, attr):
-                missing_attrs.append(f"`{attr}`")
-
-        if len(missing_attrs):
-            raise AttributeError(
-                "Datafit is not compatible with PDCD_WS solver.\n"
-                "Datafit must implement `prox_conjugate` and `subdiff_distance`.\n"
-                f"Missing {' and '.join(missing_attrs)}."
-            )
+    def _validate_init(datafit, penalty):
+        check_obj_solver_compatibility(datafit, PDCD_WS._datafit_required_attr)
+        check_obj_solver_compatibility(penalty, PDCD_WS._penalty_required_attr)
 
         # jit compile classes
-        compiled_datafit = compiled_clone(datafit_)
-        compiled_penalty = compiled_clone(penalty_)
+        compiled_datafit = compiled_clone(datafit)
+        compiled_penalty = compiled_clone(penalty)
 
         return compiled_datafit, compiled_penalty
 

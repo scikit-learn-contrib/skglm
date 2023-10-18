@@ -13,15 +13,16 @@ class IterativeReweightedL1(GeneralizedLinearEstimator):
 
     Parameters
     ----------
-    alpha : float, optional
-        Penalty strength.
-
     datafit : instance of BaseDatafit, optional
-        Datafit. If None, ``datafit`` is initialized as a ``Quadratic`` datafit.
+        Datafit. If None, ``datafit`` is initialized as a :class:`.Quadratic` datafit.
         ``datafit`` is replaced by a JIT-compiled instance when calling fit.
 
+    penalty : instance of BasePenalty, optional
+        Penalty. If None, `penalty` is initialized as a :class:`.L0_5` penalty.
+        `penalty` is replaced by a JIT-compiled instance when calling fit.
+
     solver : instance of BaseSolver, optional
-        Solver. If None, `solver` is initialized as an `AndersonCD` solver.
+        Solver. If None, ``solver`` is initialized as an :class:`.AndersonCD` solver.
 
     n_reweights : int, optional
         Number of reweighting performed (convex surrogates solved).
@@ -29,7 +30,7 @@ class IterativeReweightedL1(GeneralizedLinearEstimator):
     Attributes
     ----------
     coef_ : array, shape (n_features,)
-        Parameter vector (w in the cost function formula).
+        Parameter vector (:math:`w` in the cost function formula).
 
     loss_history_ : list
         Objective history after every reweighting.

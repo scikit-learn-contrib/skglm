@@ -1,0 +1,5 @@
+.. _changes_0_4:
+
+Version 0.4 (in progress)
+---------------------------
+- Add support for weights and positive coefficients to :ref:`MCPRegression Estimator <skglm.MCPRegression>` (PR: :gh:`184`)

@@ -12,28 +12,35 @@ from sklearn.exceptions import ConvergenceWarning
 class PDCD_WS:
     r"""Primal-Dual Coordinate Descent solver with working sets.
 
-    It solves::
+    It solves
+
+    .. math::
 
         \min_w F(Xw) + G(w)
 
-    using a primal-dual method on the saddle point problem::
 
-        \min_w \max_z <Xw, z> + G(w) - F^*(z)
+    using a primal-dual method on the saddle point problem
 
-    where :math:`F` is the datafit term (:math:`F^*` its Fenchel conjugate)
+    .. math::
+
+        min_w max_z (:Xw, z:) + G(w) - F^**(z)
+
+    where :math:`F` is the datafit term (:math:`F^**` its Fenchel conjugate)
     and :math:`G` is the penalty term.
 
     The datafit is required to be convex and proximable. Also, the penalty
     is required to be convex, separable, and proximable.
 
-    The solver is an adaptation of algorithm [1] to working sets [2].
+    The solver is an adaptation of algorithm [1]_ to working sets [2]_.
     The working sets are built using a fixed point distance strategy
     where each feature is assigned a score based how much its coefficient varies
-    when performing a primal update::
+    when performing a primal update
 
-        \text{score}_j = \abs{w_j - prox_{\tau_j, G_j}(w_j - \tau_j <X_j, z>)}
+    .. math::
 
-    where :maths:`\tau_j` is the primal step associated with the j-th feature.
+        "score"_j = abs(w_j - "prox"_(tau_j, G_j)(w_j - tau_j (:X_j, z:)))
+
+    where :math:`tau_j` is the primal step associated with the j-th feature.
 
     Parameters
     ----------
@@ -46,7 +53,7 @@ class PDCD_WS:
 
     dual_init : array, shape (n_samples,) default None
         The initialization of dual variables.
-        If None, they are initialized as the 0 vector ``np.zeros(n_samples)``.
+        If ``None``, they are initialized as the 0 vector ``np.zeros(n_samples)``.
 
     p0 : int, optional
         First working set size.

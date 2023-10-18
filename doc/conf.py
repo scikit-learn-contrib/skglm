@@ -179,6 +179,22 @@ html_theme_options = {
     ],
 }
 
+# Enable asciimath parsing in MathJax and configure the HTML renderer to output
+# the default asciimath delimiters. Asciimath will not be correctly rendered in
+# other output formats, but can likely be fixed using py-asciimath[1] to convert
+# to Latex.
+# [1]: https://pypi.org/project/py-asciimath/
+mathjax3_config = {
+  "loader": {
+    "load": ['input/asciimath']
+  },
+}
+mathjax_inline = ['`', '`']
+mathjax_display = ['`', '`']
+
+html_static_path = ['_static']
+html_js_files = ["scripts/asciimath-defines.js"]
+
 # -- Options for copybutton ---------------------------------------------
 # complete explanation of the regex expression can be found here
 # https://sphinx-copybutton.readthedocs.io/en/latest/use.html#using-regexp-prompt-identifiers

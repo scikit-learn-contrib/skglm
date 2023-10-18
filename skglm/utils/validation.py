@@ -26,6 +26,22 @@ def check_group_compatible(obj):
 
 
 def check_obj_solver_compatibility(obj, required_attr):
+    """Check whether datafit or penalty is compatible with a solver.
+
+    Parameters
+    ----------
+    obj : Instance of Datafit or Penalty
+        The instance Datafit (or Penalty) to check.
+
+    required_attr : List or tuple of strings
+        The attributes that ``obj`` must have.
+
+    Raises
+    ------
+        AttributeError
+            if any of the attribute in ``required_attr`` is missing
+            from ``obj`` attributes.
+    """
     missing_attrs = [f"`{attr}`" for attr in required_attr if not hasattr(obj, attr)]
 
     if len(missing_attrs):

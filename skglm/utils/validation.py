@@ -45,7 +45,7 @@ def check_obj_solver_compatibility(obj, required_attr):
     missing_attrs = [f"`{attr}`" for attr in required_attr if not hasattr(obj, attr)]
 
     if len(missing_attrs):
-        required_attr = ' and '.join(f"`{attr}`" for attr in required_attr)
+        required_attr = [f"`{attr}`" for attr in required_attr]
 
         raise AttributeError(
             "Object not compatible with solver. "

@@ -140,7 +140,7 @@ class GramCD(BaseSolver):
     def validate(self, datafit, penalty):
         if datafit.__class__ is not Quadratic:
             raise AttributeError(
-                f"`GramCD` supports only `Quadratic` datafit. got {datafit}"
+                f"`GramCD` supports only `Quadratic` datafit, got {datafit}"
             )
 
         check_obj_solver_compatibility(datafit, GramCD._datafit_required_attr)

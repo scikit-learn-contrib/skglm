@@ -1,5 +1,7 @@
 .. _changes_0_4:
 
 Version 0.4 (in progress)
----------------------------
+-------------------------
+
 - Add support for weights and positive coefficients to :ref:`MCPRegression Estimator <skglm.MCPRegression>` (PR: :gh:`184`)
+- Check compatibility between ``datafit + penalty`` and solver (PR :gh:`137`)

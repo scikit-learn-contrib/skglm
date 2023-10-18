@@ -7,6 +7,8 @@ from skglm.solvers.base import BaseSolver
 
 from sklearn.exceptions import ConvergenceWarning
 from skglm.utils.sparse_ops import _sparse_xj_dot
+from skglm.utils.validation import check_obj_solver_compatibility
+
 
 EPS_TOL = 0.3
 MAX_CD_ITER = 20
@@ -47,6 +49,9 @@ class ProxNewton(BaseSolver):
         https://proceedings.mlr.press/v37/johnson15.html
         code: https://github.com/tbjohns/BlitzL1
     """
+
+    _datafit_required_attr = ("raw_grad", "raw_hessian")
+    _penalty_required_attr = ("prox_1d", "subdiff_distance")
 
     def __init__(self, p0=10, max_iter=20, max_pn_iter=1000, tol=1e-4,
                  fit_intercept=True, warm_start=False, verbose=0):
@@ -174,10 +179,8 @@ class ProxNewton(BaseSolver):
         return w, np.asarray(p_objs_out), stop_crit
 
     def validate(self, datafit, penalty):
-        if not set(("raw_grad", "raw_hessian")) <= set(dir(datafit)):
-            raise Exception(
-                f"ProwNewton cannot optimize {datafit.__class__.__name__}, since"
-                + "`raw_grad` and `raw_hessian` are not implemented.")
+        check_obj_solver_compatibility(datafit, ProxNewton._datafit_required_attr)
+        check_obj_solver_compatibility(penalty, ProxNewton._penalty_required_attr)
 
 
 @njit

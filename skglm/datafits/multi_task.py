@@ -28,36 +28,52 @@ class QuadraticMultiTask(BaseMultitaskDatafit):
     def get_spec(self):
         spec = (
             ('XtY', float64[:, :]),
-            ('lipschitz', float64[:]),
         )
         return spec
 
     def params_to_dict(self):
         return dict()
 
-    def initialize(self, X, Y):
-        """Compute optimization quantities before fitting on X and Y."""
-        self.XtY = X.T @ Y
+    def get_lipschitz(self, X, Y):
         n_samples, n_features = X.shape
-        self.lipschitz = np.zeros(n_features)
-        for j in range(n_features):
-            self.lipschitz[j] = norm(X[:, j]) ** 2 / n_samples
 
-    def initialize_sparse(self, X_data, X_indptr, X_indices, Y):
+        lipschitz = np.zeros(n_features)
+        for j in range(n_features):
+            lipschitz[j] = norm(X[:, j]) ** 2 / n_samples
+
+        return lipschitz
+
+    def get_lipschitz_sparse(self, X_data, X_indptr, X_indices, Y):
         """Pre-computations before fitting on X and Y, when X is sparse."""
         n_samples, n_tasks = Y.shape
         n_features = len(X_indptr) - 1
-        self.XtY = np.zeros((n_features, n_tasks))
-        self.lipschitz = np.zeros(n_features)
+
+        lipschitz = np.zeros(n_features)
         for j in range(n_features):
             nrm2 = 0.
-            xtY = np.zeros(n_tasks)
             for idx in range(X_indptr[j], X_indptr[j + 1]):
                 nrm2 += X_data[idx] ** 2
+
+            lipschitz[j] = nrm2 / n_samples
+
+        return lipschitz
+
+    def initialize(self, X, Y):
+        """Compute optimization quantities before fitting on X and Y."""
+        self.XtY = X.T @ Y
+
+    def initialize_sparse(self, X_data, X_indptr, X_indices, Y):
+        """Pre-computations before fitting on X and Y, when X is sparse."""
+        _, n_tasks = Y.shape
+        n_features = len(X_indptr) - 1
+
+        self.XtY = np.zeros((n_features, n_tasks))
+        for j in range(n_features):
+            xtY = np.zeros(n_tasks)
+            for idx in range(X_indptr[j], X_indptr[j + 1]):
                 for t in range(n_tasks):
                     xtY[t] += X_data[idx] * Y[X_indices[idx], t]
 
-            self.lipschitz[j] = nrm2 / n_samples
             self.XtY[j, :] = xtY
 
     def value(self, Y, W, XW):

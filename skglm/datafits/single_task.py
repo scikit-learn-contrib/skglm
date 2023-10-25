@@ -41,7 +41,6 @@ class Quadratic(BaseDatafit):
         spec = (
             ('Xty', float64[:]),
             ('lipschitz', float64[:]),
-            ('global_lipschitz', float64),
         )
         return spec
 
@@ -71,12 +70,11 @@ class Quadratic(BaseDatafit):
             self.lipschitz[j] = nrm2 / len(y)
             self.Xty[j] = xty
 
-    def init_global_lipschitz(self, X, y):
-        self.global_lipschitz = norm(X, ord=2) ** 2 / len(y)
+    def get_global_lipschitz(self, X, y):
+        return norm(X, ord=2) ** 2 / len(y)
 
-    def init_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
-        self.global_lipschitz = spectral_norm(
-            X_data, X_indptr, X_indices, len(y)) ** 2 / len(y)
+    def get_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+        return spectral_norm(X_data, X_indptr, X_indices, len(y)) ** 2 / len(y)
 
     def value(self, y, w, Xw):
         return np.sum((y - Xw) ** 2) / (2 * len(Xw))
@@ -142,7 +140,6 @@ class Logistic(BaseDatafit):
     def get_spec(self):
         spec = (
             ('lipschitz', float64[:]),
-            ('global_lipschitz', float64),
         )
         return spec
 
@@ -169,11 +166,11 @@ class Logistic(BaseDatafit):
             Xj = X_data[X_indptr[j]:X_indptr[j+1]]
             self.lipschitz[j] = (Xj ** 2).sum() / (len(y) * 4)
 
-    def init_global_lipschitz(self, X, y):
-        self.global_lipschitz = norm(X, ord=2) ** 2 / (4 * len(y))
+    def get_global_lipschitz(self, X, y):
+        return norm(X, ord=2) ** 2 / (4 * len(y))
 
-    def init_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
-        self.global_lipschitz = spectral_norm(
+    def get_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+        return spectral_norm(
             X_data, X_indptr, X_indices, len(y)) ** 2 / (4 * len(y))
 
     def value(self, y, w, Xw):
@@ -246,7 +243,6 @@ class QuadraticSVC(BaseDatafit):
     def get_spec(self):
         spec = (
             ('lipschitz', float64[:]),
-            ('global_lipschitz', float64),
         )
         return spec
 
@@ -270,11 +266,11 @@ class QuadraticSVC(BaseDatafit):
                 nrm2 += yXT_data[idx] ** 2
             self.lipschitz[j] = nrm2
 
-    def init_global_lipschitz(self, yXT, y):
-        self.global_lipschitz = norm(yXT, ord=2) ** 2
+    def get_global_lipschitz(self, yXT, y):
+        return norm(yXT, ord=2) ** 2
 
-    def init_global_lipschitz_sparse(self, yXT_data, yXT_indptr, yXT_indices, y):
-        self.global_lipschitz = spectral_norm(
+    def get_global_lipschitz_sparse(self, yXT_data, yXT_indptr, yXT_indices, y):
+        return spectral_norm(
             yXT_data, yXT_indptr, yXT_indices, max(yXT_indices)+1) ** 2
 
     def value(self, y, w, yXTw):
@@ -343,7 +339,6 @@ class Huber(BaseDatafit):
         spec = (
             ('delta', float64),
             ('lipschitz', float64[:]),
-            ('global_lipschitz', float64),
         )
         return spec
 
@@ -366,11 +361,11 @@ class Huber(BaseDatafit):
                 nrm2 += X_data[idx] ** 2
             self.lipschitz[j] = nrm2 / len(y)
 
-    def init_global_lipschitz(self, X, y):
-        self.global_lipschitz = norm(X, ord=2) ** 2 / len(y)
+    def get_global_lipschitz(self, X, y):
+        return norm(X, ord=2) ** 2 / len(y)
 
-    def init_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
-        self.global_lipschitz = spectral_norm(
+    def get_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+        return spectral_norm(
             X_data, X_indptr, X_indices, len(y)) ** 2 / len(y)
 
     def value(self, y, w, Xw):
@@ -599,7 +594,6 @@ class Cox(BaseDatafit):
             ('use_efron', bool_),
             ('T_indptr', int64[:]), ('T_indices', int64[:]),
             ('H_indptr', int64[:]), ('H_indices', int64[:]),
-            ('global_lipschitz', float64),
         )
 
     def params_to_dict(self):
@@ -694,19 +688,19 @@ class Cox(BaseDatafit):
         # small hack to avoid repetitive code: pass in X_data as only its dtype is used
         self.initialize(X_data, y)
 
-    def init_global_lipschitz(self, X, y):
+    def get_global_lipschitz(self, X, y):
         s = y[:, 1]
 
         n_samples = X.shape[0]
-        self.global_lipschitz = s.sum() * norm(X, ord=2) ** 2 / n_samples
+        return s.sum() * norm(X, ord=2) ** 2 / n_samples
 
-    def init_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+    def get_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
         s = y[:, 1]
 
         n_samples = s.shape[0]
         norm_X = spectral_norm(X_data, X_indptr, X_indices, n_samples)
 
-        self.global_lipschitz = s.sum() * norm_X ** 2 / n_samples
+        return s.sum() * norm_X ** 2 / n_samples
 
     def _B_dot_vec(self, vec):
         # compute `B @ vec` in O(n) instead of O(n^2)

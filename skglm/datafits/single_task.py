@@ -122,8 +122,8 @@ class Logistic(BaseDatafit):
 
     .. math:: 1 / n_"samples" \sum_(i=1)^(n_"samples") log(1 + exp(-y_i (Xw)_i))
 
-    Note
-    ----
+    Notes
+    -----
     The class is jit compiled at fit time using Numba compiler.
     This allows for faster computations.
     """
@@ -214,8 +214,8 @@ class QuadraticSVC(BaseDatafit):
 
     .. math:: 1/2 ||(yX)^T w||_2 ^ 2
 
-    Note
-    ----
+    Notes
+    -----
     The class is jit compiled at fit time using Numba compiler.
     This allows for faster computations.
     """

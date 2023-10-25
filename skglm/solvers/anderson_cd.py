@@ -284,6 +284,9 @@ def _cd_epoch(X, y, w, Xw, lc, datafit, penalty, ws):
     Xw : array, shape (n_samples,)
         Model fit.
 
+    lc : array, shape (n_features,)
+        Lipschitz constants of the features.
+
     datafit : Datafit
         Datafit.
 
@@ -327,6 +330,9 @@ def _cd_epoch_sparse(X_data, X_indptr, X_indices, y, w, Xw, lc, datafit, penalty
 
     Xw : array, shape (n_samples,)
         Model fit.
+
+    lc :  array, shape (n_features,)
+        Lipschitz constants of the features.
 
     datafit : Datafit
         Datafit.

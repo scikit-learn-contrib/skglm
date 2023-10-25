@@ -15,7 +15,7 @@ def dist_fix_point(w, grad_ws, lipschitz, datafit, penalty, ws):
         Gradient restricted to the working set.
 
     lipschitz :  array, shape (n_features,)
-        Lipschitz constants of the features.
+        Coordinatewise gradient Lipschitz constants.
 
     datafit: instance of BaseDatafit
         Datafit.

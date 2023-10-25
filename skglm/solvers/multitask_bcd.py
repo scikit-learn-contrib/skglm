@@ -366,7 +366,6 @@ def _bcd_epoch(X, Y, W, XW, lc, datafit, penalty, ws):
     lc :  array, shape (n_features,)
         Lipschitz constants of each bloc.
 
-
     datafit : instance of BaseMultiTaskDatafit
         Datafit.
 

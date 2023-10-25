@@ -40,7 +40,6 @@ class QuadraticMultiTask(BaseMultitaskDatafit):
         return lipschitz
 
     def get_lipschitz_sparse(self, X_data, X_indptr, X_indices, Y):
-        """Pre-computations before fitting on X and Y, when X is sparse."""
         n_samples, n_tasks = Y.shape
         n_features = len(X_indptr) - 1
 

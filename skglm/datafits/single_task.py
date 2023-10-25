@@ -40,34 +40,46 @@ class Quadratic(BaseDatafit):
     def get_spec(self):
         spec = (
             ('Xty', float64[:]),
-            ('lipschitz', float64[:]),
         )
         return spec
 
     def params_to_dict(self):
         return dict()
 
-    def initialize(self, X, y):
-        self.Xty = X.T @ y
+    def get_lipschitz(self, X, y):
         n_features = X.shape[1]
 
-        self.lipschitz = np.zeros(n_features, dtype=X.dtype)
+        lipschitz = np.zeros(n_features, dtype=X.dtype)
         for j in range(n_features):
-            self.lipschitz[j] = (X[:, j] ** 2).sum() / len(y)
+            lipschitz[j] = (X[:, j] ** 2).sum() / len(y)
+
+        return lipschitz
+
+    def get_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+        n_features = len(X_indptr) - 1
+        lipschitz = np.zeros(n_features, dtype=X_data.dtype)
+
+        for j in range(n_features):
+            nrm2 = 0.
+            for idx in range(X_indptr[j], X_indptr[j + 1]):
+                nrm2 += X_data[idx] ** 2
+
+            lipschitz[j] = nrm2 / len(y)
+
+        return lipschitz
+
+    def initialize(self, X, y):
+        self.Xty = X.T @ y
 
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
         n_features = len(X_indptr) - 1
         self.Xty = np.zeros(n_features, dtype=X_data.dtype)
 
-        self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
         for j in range(n_features):
-            nrm2 = 0.
             xty = 0
             for idx in range(X_indptr[j], X_indptr[j + 1]):
-                nrm2 += X_data[idx] ** 2
                 xty += X_data[idx] * y[X_indices[idx]]
 
-            self.lipschitz[j] = nrm2 / len(y)
             self.Xty[j] = xty
 
     def get_global_lipschitz(self, X, y):
@@ -138,10 +150,7 @@ class Logistic(BaseDatafit):
         pass
 
     def get_spec(self):
-        spec = (
-            ('lipschitz', float64[:]),
-        )
-        return spec
+        pass
 
     def params_to_dict(self):
         return dict()
@@ -155,16 +164,18 @@ class Logistic(BaseDatafit):
         exp_minus_yXw = np.exp(-y * Xw)
         return exp_minus_yXw / (1 + exp_minus_yXw) ** 2 / len(y)
 
-    def initialize(self, X, y):
-        self.lipschitz = (X ** 2).sum(axis=0) / (len(y) * 4)
+    def get_lipschitz(self, X, y):
+        return (X ** 2).sum(axis=0) / (4 * len(y))
 
-    def initialize_sparse(self, X_data, X_indptr, X_indices, y):
+    def get_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
         n_features = len(X_indptr) - 1
 
-        self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
+        lipschitz = np.zeros(n_features, dtype=X_data.dtype)
         for j in range(n_features):
             Xj = X_data[X_indptr[j]:X_indptr[j+1]]
-            self.lipschitz[j] = (Xj ** 2).sum() / (len(y) * 4)
+            lipschitz[j] = (Xj ** 2).sum() / (len(y) * 4)
+
+        return lipschitz
 
     def get_global_lipschitz(self, X, y):
         return norm(X, ord=2) ** 2 / (4 * len(y))
@@ -241,30 +252,31 @@ class QuadraticSVC(BaseDatafit):
         pass
 
     def get_spec(self):
-        spec = (
-            ('lipschitz', float64[:]),
-        )
-        return spec
+        pass
 
     def params_to_dict(self):
         return dict()
 
-    def initialize(self, yXT, y):
+    def get_lipschitz(self, yXT, y):
         n_features = yXT.shape[1]
-        self.lipschitz = np.zeros(n_features, dtype=yXT.dtype)
+        lipschitz = np.zeros(n_features, dtype=yXT.dtype)
 
         for j in range(n_features):
-            self.lipschitz[j] = norm(yXT[:, j]) ** 2
+            lipschitz[j] = norm(yXT[:, j]) ** 2
 
-    def initialize_sparse(self, yXT_data, yXT_indptr, yXT_indices, y):
+        return lipschitz
+
+    def get_lipschitz_sparse(self, yXT_data, yXT_indptr, yXT_indices, y):
         n_features = len(yXT_indptr) - 1
 
-        self.lipschitz = np.zeros(n_features, dtype=yXT_data.dtype)
+        lipschitz = np.zeros(n_features, dtype=yXT_data.dtype)
         for j in range(n_features):
             nrm2 = 0.
             for idx in range(yXT_indptr[j], yXT_indptr[j + 1]):
                 nrm2 += yXT_data[idx] ** 2
-            self.lipschitz[j] = nrm2
+            lipschitz[j] = nrm2
+
+        return lipschitz
 
     def get_global_lipschitz(self, yXT, y):
         return norm(yXT, ord=2) ** 2
@@ -338,28 +350,32 @@ class Huber(BaseDatafit):
     def get_spec(self):
         spec = (
             ('delta', float64),
-            ('lipschitz', float64[:]),
         )
         return spec
 
     def params_to_dict(self):
         return dict(delta=self.delta)
 
-    def initialize(self, X, y):
+    def get_lipschitz(self, X, y):
         n_features = X.shape[1]
-        self.lipschitz = np.zeros(n_features, dtype=X.dtype)
-        for j in range(n_features):
-            self.lipschitz[j] = (X[:, j] ** 2).sum() / len(y)
 
-    def initialize_sparse(self, X_data, X_indptr, X_indices, y):
+        lipschitz = np.zeros(n_features, dtype=X.dtype)
+        for j in range(n_features):
+            lipschitz[j] = (X[:, j] ** 2).sum() / len(y)
+
+        return lipschitz
+
+    def get_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
         n_features = len(X_indptr) - 1
 
-        self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
+        lipschitz = np.zeros(n_features, dtype=X_data.dtype)
         for j in range(n_features):
             nrm2 = 0.
             for idx in range(X_indptr[j], X_indptr[j + 1]):
                 nrm2 += X_data[idx] ** 2
-            self.lipschitz[j] = nrm2 / len(y)
+            lipschitz[j] = nrm2 / len(y)
+
+        return lipschitz
 
     def get_global_lipschitz(self, X, y):
         return norm(X, ord=2) ** 2 / len(y)

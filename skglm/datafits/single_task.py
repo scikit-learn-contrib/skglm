@@ -20,14 +20,6 @@ class Quadratic(BaseDatafit):
         Pre-computed quantity used during the gradient evaluation.
         Equal to ``X.T @ y``.
 
-    lipschitz : array, shape (n_features,)
-        The coordinatewise gradient Lipschitz constants. Equal to
-        ``norm(X, axis=0) ** 2 / n_samples``.
-
-    global_lipschitz : float
-        Global Lipschitz constant. Equal to
-        ``norm(X, ord=2) ** 2 / n_samples``.
-
     Note
     ----
     The class is jit compiled at fit time using Numba compiler.
@@ -130,16 +122,6 @@ class Logistic(BaseDatafit):
 
     .. math:: 1 / n_"samples" \sum_(i=1)^(n_"samples") log(1 + exp(-y_i (Xw)_i))
 
-    Attributes
-    ----------
-    lipschitz : array, shape (n_features,)
-        The coordinatewise gradient Lipschitz constants. Equal to
-        ``norm(X, axis=0) ** 2 / (4 * n_samples)``.
-
-    global_lipschitz : float
-        Global Lipschitz constant. Equal to
-        ``norm(X, ord=2) ** 2 / (4 * n_samples)``.
-
     Note
     ----
     The class is jit compiled at fit time using Numba compiler.
@@ -232,16 +214,6 @@ class QuadraticSVC(BaseDatafit):
 
     .. math:: 1/2 ||(yX)^T w||_2 ^ 2
 
-    Attributes
-    ----------
-    lipschitz : array, shape (n_features,)
-        The coordinatewise gradient Lipschitz constants.
-        Equal to ``norm(yXT, axis=0) ** 2``.
-
-    global_lipschitz : float
-        Global Lipschitz constant. Equal to
-        ``norm(yXT, ord=2) ** 2``.
-
     Note
     ----
     The class is jit compiled at fit time using Numba compiler.
@@ -329,14 +301,6 @@ class Huber(BaseDatafit):
     ----------
     delta : float
         Threshold hyperparameter.
-
-    lipschitz : array, shape (n_features,)
-        The coordinatewise gradient Lipschitz constants. Equal to
-        ``norm(X, axis=0) ** 2 / n_samples``.
-
-    global_lipschitz : float
-        Global Lipschitz constant. Equal to
-        ``norm(X, ord=2) ** 2 / n_samples``.
 
     Note
     ----

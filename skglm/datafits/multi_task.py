@@ -16,10 +16,6 @@ class QuadraticMultiTask(BaseMultitaskDatafit):
     ----------
     XtY : array, shape (n_features, n_tasks)
         Pre-computed quantity used during the gradient evaluation.
-
-    lipschitz : array, shape (n_features,)
-        The coordinatewise gradient Lipschitz constants. Equal to
-        ``norm(X, axis=0) ** 2 / n_samples``.
     """
 
     def __init__(self):

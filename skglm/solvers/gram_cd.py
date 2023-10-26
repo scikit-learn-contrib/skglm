@@ -6,7 +6,7 @@ from scipy.sparse import issparse
 from skglm.datafits import Quadratic
 from skglm.solvers.base import BaseSolver
 from skglm.utils.anderson import AndersonAcceleration
-from skglm.utils.validation import check_obj_solver_compatibility
+from skglm.utils.validation import check_obj_solver_attr_compatibility
 
 
 class GramCD(BaseSolver):
@@ -143,8 +143,8 @@ class GramCD(BaseSolver):
                 f"`GramCD` supports only `Quadratic` datafit, got {datafit}"
             )
 
-        check_obj_solver_compatibility(datafit, GramCD._datafit_required_attr)
-        check_obj_solver_compatibility(penalty, GramCD._penalty_required_attr)
+        check_obj_solver_attr_compatibility(datafit, self, self._datafit_required_attr)
+        check_obj_solver_attr_compatibility(penalty, self, self._penalty_required_attr)
 
 
 @njit

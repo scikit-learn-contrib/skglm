@@ -7,7 +7,7 @@ from skglm.solvers.base import BaseSolver
 
 from sklearn.exceptions import ConvergenceWarning
 from skglm.utils.sparse_ops import _sparse_xj_dot
-from skglm.utils.validation import check_obj_solver_compatibility
+from skglm.utils.validation import check_obj_solver_attr_compatibility
 
 
 EPS_TOL = 0.3
@@ -179,8 +179,8 @@ class ProxNewton(BaseSolver):
         return w, np.asarray(p_objs_out), stop_crit
 
     def validate(self, datafit, penalty):
-        check_obj_solver_compatibility(datafit, ProxNewton._datafit_required_attr)
-        check_obj_solver_compatibility(penalty, ProxNewton._penalty_required_attr)
+        check_obj_solver_attr_compatibility(datafit, self._datafit_required_attr)
+        check_obj_solver_attr_compatibility(penalty, self._penalty_required_attr)
 
 
 @njit

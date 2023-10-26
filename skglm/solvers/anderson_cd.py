@@ -5,7 +5,7 @@ from sklearn.utils import check_array
 from skglm.solvers.common import construct_grad, construct_grad_sparse, dist_fix_point
 from skglm.solvers.base import BaseSolver
 from skglm.utils.anderson import AndersonAcceleration
-from skglm.utils.validation import check_obj_solver_compatibility
+from skglm.utils.validation import check_obj_solver_attr_compatibility
 
 
 class AndersonCD(BaseSolver):
@@ -46,7 +46,7 @@ class AndersonCD(BaseSolver):
            code: https://github.com/mathurinm/andersoncd
     """
 
-    _datafit_required_attr = ("initialize", "gradient_scalar")
+    _datafit_required_attr = ("get_lipschitz", "gradient_scalar")
     _penalty_required_attr = ("prox_1d", "subdiff_distance")
 
     def __init__(self, max_iter=50, max_epochs=50_000, p0=10,
@@ -270,8 +270,8 @@ class AndersonCD(BaseSolver):
         return results
 
     def validate(self, datafit, penalty):
-        check_obj_solver_compatibility(datafit, AndersonCD._datafit_required_attr)
-        check_obj_solver_compatibility(penalty, AndersonCD._penalty_required_attr)
+        check_obj_solver_attr_compatibility(datafit, self, self._datafit_required_attr)
+        check_obj_solver_attr_compatibility(penalty, self, self._penalty_required_attr)
 
 
 @njit

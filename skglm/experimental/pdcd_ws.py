@@ -6,7 +6,7 @@ from scipy.sparse import issparse
 
 from numba import njit
 from skglm.utils.jit_compilation import compiled_clone
-from skglm.utils.validation import check_obj_solver_compatibility
+from skglm.utils.validation import check_obj_solver_attr_compatibility
 
 from sklearn.exceptions import ConvergenceWarning
 
@@ -201,10 +201,9 @@ class PDCD_WS:
                 if stop_crit_in <= tol_in:
                     break
 
-    @staticmethod
-    def _validate_init(datafit, penalty):
-        check_obj_solver_compatibility(datafit, PDCD_WS._datafit_required_attr)
-        check_obj_solver_compatibility(penalty, PDCD_WS._penalty_required_attr)
+    def _validate_init(self, datafit, penalty):
+        check_obj_solver_attr_compatibility(datafit, self, self._datafit_required_attr)
+        check_obj_solver_attr_compatibility(penalty, self, self._penalty_required_attr)
 
         # jit compile classes
         compiled_datafit = compiled_clone(datafit)

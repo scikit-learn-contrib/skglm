@@ -2,7 +2,9 @@ import numpy as np
 from numba import njit
 from scipy import sparse
 from sklearn.utils import check_array
-from skglm.solvers.common import construct_grad, construct_grad_sparse, dist_fix_point
+from skglm.solvers.common import (
+    construct_grad, construct_grad_sparse, dist_fix_point_cd
+)
 from skglm.solvers.base import BaseSolver
 from skglm.utils.anderson import AndersonAcceleration
 
@@ -104,7 +106,7 @@ class AndersonCD(BaseSolver):
             if self.ws_strategy == "subdiff":
                 opt = penalty.subdiff_distance(w[:n_features], grad, all_feats)
             elif self.ws_strategy == "fixpoint":
-                opt = dist_fix_point(
+                opt = dist_fix_point_cd(
                     w[:n_features], grad, lipschitz, datafit, penalty, all_feats
                 )
 
@@ -181,7 +183,7 @@ class AndersonCD(BaseSolver):
                     if self.ws_strategy == "subdiff":
                         opt_ws = penalty.subdiff_distance(w[:n_features], grad_ws, ws)
                     elif self.ws_strategy == "fixpoint":
-                        opt_ws = dist_fix_point(
+                        opt_ws = dist_fix_point_cd(
                             w[:n_features], grad_ws, lipschitz, datafit, penalty, ws
                         )
 

@@ -79,8 +79,10 @@ class AndersonCD(BaseSolver):
         is_sparse = sparse.issparse(X)
         if is_sparse:
             datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
+            lipschitz = datafit.get_lipschitz_sparse(X.data, X.indptr, X.indices, y)
         else:
             datafit.initialize(X, y)
+            lipschitz = datafit.get_lipschitz(X, y)
 
         if len(w) != n_features + self.fit_intercept:
             if self.fit_intercept:
@@ -106,7 +108,9 @@ class AndersonCD(BaseSolver):
             if self.ws_strategy == "subdiff":
                 opt = penalty.subdiff_distance(w[:n_features], grad, all_feats)
             elif self.ws_strategy == "fixpoint":
-                opt = dist_fix_point(w[:n_features], grad, datafit, penalty, all_feats)
+                opt = dist_fix_point(
+                    w[:n_features], grad, lipschitz, datafit, penalty, all_feats
+                )
 
             if self.fit_intercept:
                 intercept_opt = np.abs(datafit.intercept_update_step(y, Xw))
@@ -145,9 +149,11 @@ class AndersonCD(BaseSolver):
                 if is_sparse:
                     _cd_epoch_sparse(
                         X.data, X.indptr, X.indices, y, w[:n_features], Xw,
-                        datafit, penalty, ws)
+                        lipschitz, datafit, penalty, ws)
                 else:
-                    _cd_epoch(X, y, w[:n_features], Xw, datafit, penalty, ws)
+                    _cd_epoch(
+                        X, y, w[:n_features], Xw, lipschitz, datafit, penalty, ws
+                    )
 
                 # update intercept
                 if self.fit_intercept:
@@ -180,7 +186,8 @@ class AndersonCD(BaseSolver):
                         opt_ws = penalty.subdiff_distance(w[:n_features], grad_ws, ws)
                     elif self.ws_strategy == "fixpoint":
                         opt_ws = dist_fix_point(
-                            w[:n_features], grad_ws, datafit, penalty, ws)
+                            w[:n_features], grad_ws, lipschitz, datafit, penalty, ws
+                        )
 
                     stop_crit_in = np.max(opt_ws)
                     if max(self.verbose - 1, 0):
@@ -268,7 +275,7 @@ class AndersonCD(BaseSolver):
 
 
 @njit
-def _cd_epoch(X, y, w, Xw, datafit, penalty, ws):
+def _cd_epoch(X, y, w, Xw, lc, datafit, penalty, ws):
     """Run an epoch of coordinate descent in place.
 
     Parameters
@@ -285,6 +292,9 @@ def _cd_epoch(X, y, w, Xw, datafit, penalty, ws):
     Xw : array, shape (n_samples,)
         Model fit.
 
+    lc : array, shape (n_features,)
+        Coordinatewise gradient Lipschitz constants.
+
     datafit : Datafit
         Datafit.
 
@@ -294,7 +304,6 @@ def _cd_epoch(X, y, w, Xw, datafit, penalty, ws):
     ws : array, shape (ws_size,)
         The range of features.
     """
-    lc = datafit.lipschitz
     for j in ws:
         stepsize = 1/lc[j] if lc[j] != 0 else 1000
         Xj = X[:, j]
@@ -307,7 +316,7 @@ def _cd_epoch(X, y, w, Xw, datafit, penalty, ws):
 
 
 @njit
-def _cd_epoch_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, penalty, ws):
+def _cd_epoch_sparse(X_data, X_indptr, X_indices, y, w, Xw, lc, datafit, penalty, ws):
     """Run an epoch of coordinate descent in place for a sparse CSC array.
 
     Parameters
@@ -330,6 +339,9 @@ def _cd_epoch_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, penalty, ws
     Xw : array, shape (n_samples,)
         Model fit.
 
+    lc :  array, shape (n_features,)
+        Coordinatewise gradient Lipschitz constants.
+
     datafit : Datafit
         Datafit.
 
@@ -339,7 +351,6 @@ def _cd_epoch_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, penalty, ws
     ws : array, shape (ws_size,)
         The working set.
     """
-    lc = datafit.lipschitz
     for j in ws:
         stepsize = 1/lc[j] if lc[j] != 0 else 1000
 

@@ -55,8 +55,10 @@ class MultiTaskBCD(BaseSolver):
         is_sparse = sparse.issparse(X)
         if is_sparse:
             datafit.initialize_sparse(X.data, X.indptr, X.indices, Y)
+            lipschitz = datafit.get_lipschitz_sparse(X.data, X.indptr, X.indices, Y)
         else:
             datafit.initialize(X, Y)
+            lipschitz = datafit.get_lipschitz(X, Y)
 
         for t in range(self.max_iter):
             if is_sparse:
@@ -96,10 +98,12 @@ class MultiTaskBCD(BaseSolver):
             for epoch in range(self.max_epochs):
                 if is_sparse:
                     _bcd_epoch_sparse(
-                        X.data, X.indptr, X.indices, Y, W, XW, datafit, penalty,
-                        ws)
+                        X.data, X.indptr, X.indices, Y, W, XW,
+                        lipschitz, datafit, penalty, ws
+                    )
                 else:
-                    _bcd_epoch(X, Y, W, XW, datafit, penalty, ws)
+                    _bcd_epoch(X, Y, W, XW, lipschitz, datafit, penalty, ws)
+
                 # update intercept
                 if self.fit_intercept:
                     intercept_old = W[-1, :].copy()
@@ -150,7 +154,9 @@ class MultiTaskBCD(BaseSolver):
                     if self.ws_strategy == "subdiff":
                         opt_ws = penalty.subdiff_distance(W, grad_ws, ws)
                     elif self.ws_strategy == "fixpoint":
-                        opt_ws = dist_fix_point(W, grad_ws, datafit, penalty, ws)
+                        opt_ws = dist_fix_point(
+                            W, grad_ws, lipschitz, datafit, penalty, ws
+                        )
 
                     stop_crit_in = np.max(opt_ws)
                     if max(self.verbose - 1, 0):
@@ -233,7 +239,7 @@ class MultiTaskBCD(BaseSolver):
 
 
 @njit
-def dist_fix_point(W, grad_ws, datafit, penalty, ws):
+def dist_fix_point(W, grad_ws, lipschitz, datafit, penalty, ws):
     """Compute the violation of the fixed point iterate schema.
 
     Parameters
@@ -246,6 +252,9 @@ def dist_fix_point(W, grad_ws, datafit, penalty, ws):
 
     datafit: instance of BaseMultiTaskDatafit
         Datafit.
+
+    lipschitz :  array, shape (n_features,)
+        Blockwise gradient Lipschitz constants.
 
     penalty: instance of BasePenalty
         Penalty.
@@ -260,10 +269,11 @@ def dist_fix_point(W, grad_ws, datafit, penalty, ws):
     """
     dist_fix_point = np.zeros(ws.shape[0])
     for idx, j in enumerate(ws):
-        lcj = datafit.lipschitz[j]
+        lcj = lipschitz[j]
         if lcj:
             dist_fix_point[idx] = norm(
-                W[j] - penalty.prox_1feat(W[j] - grad_ws[idx] / lcj, 1. / lcj, j))
+                W[j] - penalty.prox_1feat(W[j] - grad_ws[idx] / lcj, 1. / lcj, j)
+            )
     return dist_fix_point
 
 
@@ -344,7 +354,7 @@ def construct_grad_sparse(data, indptr, indices, Y, XW, datafit, ws):
 
 
 @njit
-def _bcd_epoch(X, Y, W, XW, datafit, penalty, ws):
+def _bcd_epoch(X, Y, W, XW, lc, datafit, penalty, ws):
     """Run an epoch of block coordinate descent in place.
 
     Parameters
@@ -361,6 +371,9 @@ def _bcd_epoch(X, Y, W, XW, datafit, penalty, ws):
     XW : array, shape (n_samples, n_tasks)
         Model fit.
 
+    lc :  array, shape (n_features,)
+        Blockwise gradient Lipschitz constants.
+
     datafit : instance of BaseMultiTaskDatafit
         Datafit.
 
@@ -370,7 +383,6 @@ def _bcd_epoch(X, Y, W, XW, datafit, penalty, ws):
     ws : array, shape (ws_size,)
         The working set.
     """
-    lc = datafit.lipschitz
     n_tasks = Y.shape[1]
     for j in ws:
         if lc[j] == 0.:
@@ -388,7 +400,7 @@ def _bcd_epoch(X, Y, W, XW, datafit, penalty, ws):
 
 
 @njit
-def _bcd_epoch_sparse(X_data, X_indptr, X_indices, Y, W, XW, datafit, penalty, ws):
+def _bcd_epoch_sparse(X_data, X_indptr, X_indices, Y, W, XW, lc, datafit, penalty, ws):
     """Run an epoch of block coordinate descent in place for a sparse CSC array.
 
     Parameters
@@ -411,6 +423,9 @@ def _bcd_epoch_sparse(X_data, X_indptr, X_indices, Y, W, XW, datafit, penalty, w
     XW : array, shape (n_samples, n_tasks)
         Model fit.
 
+    lc :  array, shape (n_features,)
+        Blockwise gradient Lipschitz constants.
+
     datafit : instance of BaseMultiTaskDatafit
         Datafit.
 
@@ -420,7 +435,6 @@ def _bcd_epoch_sparse(X_data, X_indptr, X_indices, Y, W, XW, datafit, penalty, w
     ws : array, shape (ws_size,)
         Features to be updated.
     """
-    lc = datafit.lipschitz
     for j in ws:
         if lc[j] == 0.:
             continue

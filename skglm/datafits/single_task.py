@@ -20,14 +20,6 @@ class Quadratic(BaseDatafit):
         Pre-computed quantity used during the gradient evaluation.
         Equal to ``X.T @ y``.
 
-    lipschitz : array, shape (n_features,)
-        The coordinatewise gradient Lipschitz constants. Equal to
-        ``norm(X, axis=0) ** 2 / n_samples``.
-
-    global_lipschitz : float
-        Global Lipschitz constant. Equal to
-        ``norm(X, ord=2) ** 2 / n_samples``.
-
     Note
     ----
     The class is jit compiled at fit time using Numba compiler.
@@ -40,43 +32,53 @@ class Quadratic(BaseDatafit):
     def get_spec(self):
         spec = (
             ('Xty', float64[:]),
-            ('lipschitz', float64[:]),
-            ('global_lipschitz', float64),
         )
         return spec
 
     def params_to_dict(self):
         return dict()
 
-    def initialize(self, X, y):
-        self.Xty = X.T @ y
+    def get_lipschitz(self, X, y):
         n_features = X.shape[1]
 
-        self.lipschitz = np.zeros(n_features, dtype=X.dtype)
+        lipschitz = np.zeros(n_features, dtype=X.dtype)
         for j in range(n_features):
-            self.lipschitz[j] = (X[:, j] ** 2).sum() / len(y)
+            lipschitz[j] = (X[:, j] ** 2).sum() / len(y)
+
+        return lipschitz
+
+    def get_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+        n_features = len(X_indptr) - 1
+        lipschitz = np.zeros(n_features, dtype=X_data.dtype)
+
+        for j in range(n_features):
+            nrm2 = 0.
+            for idx in range(X_indptr[j], X_indptr[j + 1]):
+                nrm2 += X_data[idx] ** 2
+
+            lipschitz[j] = nrm2 / len(y)
+
+        return lipschitz
+
+    def initialize(self, X, y):
+        self.Xty = X.T @ y
 
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
         n_features = len(X_indptr) - 1
         self.Xty = np.zeros(n_features, dtype=X_data.dtype)
 
-        self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
         for j in range(n_features):
-            nrm2 = 0.
             xty = 0
             for idx in range(X_indptr[j], X_indptr[j + 1]):
-                nrm2 += X_data[idx] ** 2
                 xty += X_data[idx] * y[X_indices[idx]]
 
-            self.lipschitz[j] = nrm2 / len(y)
             self.Xty[j] = xty
 
-    def init_global_lipschitz(self, X, y):
-        self.global_lipschitz = norm(X, ord=2) ** 2 / len(y)
+    def get_global_lipschitz(self, X, y):
+        return norm(X, ord=2) ** 2 / len(y)
 
-    def init_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
-        self.global_lipschitz = spectral_norm(
-            X_data, X_indptr, X_indices, len(y)) ** 2 / len(y)
+    def get_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+        return spectral_norm(X_data, X_indptr, X_indices, len(y)) ** 2 / len(y)
 
     def value(self, y, w, Xw):
         return np.sum((y - Xw) ** 2) / (2 * len(Xw))
@@ -120,18 +122,8 @@ class Logistic(BaseDatafit):
 
     .. math:: 1 / n_"samples" \sum_(i=1)^(n_"samples") log(1 + exp(-y_i (Xw)_i))
 
-    Attributes
-    ----------
-    lipschitz : array, shape (n_features,)
-        The coordinatewise gradient Lipschitz constants. Equal to
-        ``norm(X, axis=0) ** 2 / (4 * n_samples)``.
-
-    global_lipschitz : float
-        Global Lipschitz constant. Equal to
-        ``norm(X, ord=2) ** 2 / (4 * n_samples)``.
-
-    Note
-    ----
+    Notes
+    -----
     The class is jit compiled at fit time using Numba compiler.
     This allows for faster computations.
     """
@@ -140,11 +132,7 @@ class Logistic(BaseDatafit):
         pass
 
     def get_spec(self):
-        spec = (
-            ('lipschitz', float64[:]),
-            ('global_lipschitz', float64),
-        )
-        return spec
+        pass
 
     def params_to_dict(self):
         return dict()
@@ -158,22 +146,24 @@ class Logistic(BaseDatafit):
         exp_minus_yXw = np.exp(-y * Xw)
         return exp_minus_yXw / (1 + exp_minus_yXw) ** 2 / len(y)
 
-    def initialize(self, X, y):
-        self.lipschitz = (X ** 2).sum(axis=0) / (len(y) * 4)
+    def get_lipschitz(self, X, y):
+        return (X ** 2).sum(axis=0) / (4 * len(y))
 
-    def initialize_sparse(self, X_data, X_indptr, X_indices, y):
+    def get_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
         n_features = len(X_indptr) - 1
 
-        self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
+        lipschitz = np.zeros(n_features, dtype=X_data.dtype)
         for j in range(n_features):
             Xj = X_data[X_indptr[j]:X_indptr[j+1]]
-            self.lipschitz[j] = (Xj ** 2).sum() / (len(y) * 4)
+            lipschitz[j] = (Xj ** 2).sum() / (len(y) * 4)
 
-    def init_global_lipschitz(self, X, y):
-        self.global_lipschitz = norm(X, ord=2) ** 2 / (4 * len(y))
+        return lipschitz
 
-    def init_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
-        self.global_lipschitz = spectral_norm(
+    def get_global_lipschitz(self, X, y):
+        return norm(X, ord=2) ** 2 / (4 * len(y))
+
+    def get_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+        return spectral_norm(
             X_data, X_indptr, X_indices, len(y)) ** 2 / (4 * len(y))
 
     def value(self, y, w, Xw):
@@ -224,18 +214,8 @@ class QuadraticSVC(BaseDatafit):
 
     .. math:: 1/2 ||(yX)^T w||_2 ^ 2
 
-    Attributes
-    ----------
-    lipschitz : array, shape (n_features,)
-        The coordinatewise gradient Lipschitz constants.
-        Equal to ``norm(yXT, axis=0) ** 2``.
-
-    global_lipschitz : float
-        Global Lipschitz constant. Equal to
-        ``norm(yXT, ord=2) ** 2``.
-
-    Note
-    ----
+    Notes
+    -----
     The class is jit compiled at fit time using Numba compiler.
     This allows for faster computations.
     """
@@ -244,37 +224,37 @@ class QuadraticSVC(BaseDatafit):
         pass
 
     def get_spec(self):
-        spec = (
-            ('lipschitz', float64[:]),
-            ('global_lipschitz', float64),
-        )
-        return spec
+        pass
 
     def params_to_dict(self):
         return dict()
 
-    def initialize(self, yXT, y):
+    def get_lipschitz(self, yXT, y):
         n_features = yXT.shape[1]
-        self.lipschitz = np.zeros(n_features, dtype=yXT.dtype)
+        lipschitz = np.zeros(n_features, dtype=yXT.dtype)
 
         for j in range(n_features):
-            self.lipschitz[j] = norm(yXT[:, j]) ** 2
+            lipschitz[j] = norm(yXT[:, j]) ** 2
 
-    def initialize_sparse(self, yXT_data, yXT_indptr, yXT_indices, y):
+        return lipschitz
+
+    def get_lipschitz_sparse(self, yXT_data, yXT_indptr, yXT_indices, y):
         n_features = len(yXT_indptr) - 1
 
-        self.lipschitz = np.zeros(n_features, dtype=yXT_data.dtype)
+        lipschitz = np.zeros(n_features, dtype=yXT_data.dtype)
         for j in range(n_features):
             nrm2 = 0.
             for idx in range(yXT_indptr[j], yXT_indptr[j + 1]):
                 nrm2 += yXT_data[idx] ** 2
-            self.lipschitz[j] = nrm2
+            lipschitz[j] = nrm2
 
-    def init_global_lipschitz(self, yXT, y):
-        self.global_lipschitz = norm(yXT, ord=2) ** 2
+        return lipschitz
 
-    def init_global_lipschitz_sparse(self, yXT_data, yXT_indptr, yXT_indices, y):
-        self.global_lipschitz = spectral_norm(
+    def get_global_lipschitz(self, yXT, y):
+        return norm(yXT, ord=2) ** 2
+
+    def get_global_lipschitz_sparse(self, yXT_data, yXT_indptr, yXT_indices, y):
+        return spectral_norm(
             yXT_data, yXT_indptr, yXT_indices, max(yXT_indices)+1) ** 2
 
     def value(self, y, w, yXTw):
@@ -322,14 +302,6 @@ class Huber(BaseDatafit):
     delta : float
         Threshold hyperparameter.
 
-    lipschitz : array, shape (n_features,)
-        The coordinatewise gradient Lipschitz constants. Equal to
-        ``norm(X, axis=0) ** 2 / n_samples``.
-
-    global_lipschitz : float
-        Global Lipschitz constant. Equal to
-        ``norm(X, ord=2) ** 2 / n_samples``.
-
     Note
     ----
     The class is jit compiled at fit time using Numba compiler.
@@ -342,35 +314,38 @@ class Huber(BaseDatafit):
     def get_spec(self):
         spec = (
             ('delta', float64),
-            ('lipschitz', float64[:]),
-            ('global_lipschitz', float64),
         )
         return spec
 
     def params_to_dict(self):
         return dict(delta=self.delta)
 
-    def initialize(self, X, y):
+    def get_lipschitz(self, X, y):
         n_features = X.shape[1]
-        self.lipschitz = np.zeros(n_features, dtype=X.dtype)
-        for j in range(n_features):
-            self.lipschitz[j] = (X[:, j] ** 2).sum() / len(y)
 
-    def initialize_sparse(self, X_data, X_indptr, X_indices, y):
+        lipschitz = np.zeros(n_features, dtype=X.dtype)
+        for j in range(n_features):
+            lipschitz[j] = (X[:, j] ** 2).sum() / len(y)
+
+        return lipschitz
+
+    def get_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
         n_features = len(X_indptr) - 1
 
-        self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
+        lipschitz = np.zeros(n_features, dtype=X_data.dtype)
         for j in range(n_features):
             nrm2 = 0.
             for idx in range(X_indptr[j], X_indptr[j + 1]):
                 nrm2 += X_data[idx] ** 2
-            self.lipschitz[j] = nrm2 / len(y)
+            lipschitz[j] = nrm2 / len(y)
 
-    def init_global_lipschitz(self, X, y):
-        self.global_lipschitz = norm(X, ord=2) ** 2 / len(y)
+        return lipschitz
 
-    def init_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
-        self.global_lipschitz = spectral_norm(
+    def get_global_lipschitz(self, X, y):
+        return norm(X, ord=2) ** 2 / len(y)
+
+    def get_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+        return spectral_norm(
             X_data, X_indptr, X_indices, len(y)) ** 2 / len(y)
 
     def value(self, y, w, Xw):
@@ -599,7 +574,6 @@ class Cox(BaseDatafit):
             ('use_efron', bool_),
             ('T_indptr', int64[:]), ('T_indices', int64[:]),
             ('H_indptr', int64[:]), ('H_indices', int64[:]),
-            ('global_lipschitz', float64),
         )
 
     def params_to_dict(self):
@@ -694,19 +668,19 @@ class Cox(BaseDatafit):
         # small hack to avoid repetitive code: pass in X_data as only its dtype is used
         self.initialize(X_data, y)
 
-    def init_global_lipschitz(self, X, y):
+    def get_global_lipschitz(self, X, y):
         s = y[:, 1]
 
         n_samples = X.shape[0]
-        self.global_lipschitz = s.sum() * norm(X, ord=2) ** 2 / n_samples
+        return s.sum() * norm(X, ord=2) ** 2 / n_samples
 
-    def init_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+    def get_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
         s = y[:, 1]
 
         n_samples = s.shape[0]
         norm_X = spectral_norm(X_data, X_indptr, X_indices, n_samples)
 
-        self.global_lipschitz = s.sum() * norm_X ** 2 / n_samples
+        return s.sum() * norm_X ** 2 / n_samples
 
     def _B_dot_vec(self, vec):
         # compute `B @ vec` in O(n) instead of O(n^2)

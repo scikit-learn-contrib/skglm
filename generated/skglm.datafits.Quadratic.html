@@ -269,7 +269,7 @@
 <h1>skglm.datafits.Quadratic<a class="headerlink" href="#skglm-datafits-quadratic" title="Permalink to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="skglm.datafits.Quadratic">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">Quadratic</span></span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/6376620/skglm/datafits/single_task.py#L10"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.Quadratic" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">Quadratic</span></span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/61577fc/skglm/datafits/single_task.py#L10"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.Quadratic" title="Permalink to this definition">#</a></dt>
 <dd><p>Quadratic datafit.</p>
 <p>The datafit reads:</p>
 <div class="math-wrapper docutils container">
@@ -282,18 +282,12 @@
 <dt><strong>Xty</strong><span class="classifier">array, shape (n_features,)</span></dt><dd><p>Pre-computed quantity used during the gradient evaluation.
 Equal to <code class="docutils literal notranslate"><span class="pre">X.T</span> <span class="pre">&#64;</span> <span class="pre">y</span></code>.</p>
 </dd>
-<dt><strong>lipschitz</strong><span class="classifier">array, shape (n_features,)</span></dt><dd><p>The coordinatewise gradient Lipschitz constants. Equal to
-<code class="docutils literal notranslate"><span class="pre">norm(X,</span> <span class="pre">axis=0)</span> <span class="pre">**</span> <span class="pre">2</span> <span class="pre">/</span> <span class="pre">n_samples</span></code>.</p>
-</dd>
-<dt><strong>global_lipschitz</strong><span class="classifier">float</span></dt><dd><p>Global Lipschitz constant. Equal to
-<code class="docutils literal notranslate"><span class="pre">norm(X,</span> <span class="pre">ord=2)</span> <span class="pre">**</span> <span class="pre">2</span> <span class="pre">/</span> <span class="pre">n_samples</span></code>.</p>
-</dd>
 </dl>
 </dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="skglm.datafits.Quadratic.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/6376620/skglm/datafits/single_task.py#L37"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.Quadratic.__init__" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/61577fc/skglm/datafits/single_task.py#L29"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.Quadratic.__init__" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
@@ -306,6 +300,18 @@ Equal to <code class="docutils literal notranslate"><span class="pre">X.T</span>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">full_grad_sparse</span></code>(X_data, X_indptr, ...)</p></td>
 <td><p></p></td>
 </tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_global_lipschitz</span></code>(X, y)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_global_lipschitz_sparse</span></code>(X_data, ...)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_lipschitz</span></code>(X, y)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_lipschitz_sparse</span></code>(X_data, X_indptr, ...)</p></td>
+<td><p></p></td>
+</tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_spec</span></code>()</p></td>
 <td><p>Specify the numba types of the class attributes.</p></td>
 </tr>
@@ -314,12 +320,6 @@ Equal to <code class="docutils literal notranslate"><span class="pre">X.T</span>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient_scalar_sparse</span></code>(X_data, X_indptr, ...)</p></td>
 <td><p>Gradient with respect to j-th coordinate of w when X is sparse.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_global_lipschitz</span></code>(X, y)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_global_lipschitz_sparse</span></code>(X_data, ...)</p></td>
-<td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize</span></code>(X, y)</p></td>
 <td><p>Pre-computations before fitting on X and y.</p></td>

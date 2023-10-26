@@ -269,7 +269,7 @@
 <h1>skglm.datafits.LogisticGroup<a class="headerlink" href="#skglm-datafits-logisticgroup" title="Permalink to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="skglm.datafits.LogisticGroup">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">LogisticGroup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grp_ptr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp_indices</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/6376620/skglm/datafits/group.py#L77"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.LogisticGroup" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">LogisticGroup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grp_ptr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp_indices</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/61577fc/skglm/datafits/group.py#L77"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.LogisticGroup" title="Permalink to this definition">#</a></dt>
 <dd><p>Logistic datafit used with group penalties.</p>
 <p>The datafit reads:</p>
 <div class="math-wrapper docutils container">
@@ -292,7 +292,7 @@ the indices of a group in <code class="docutils literal notranslate"><span class
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="skglm.datafits.LogisticGroup.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grp_ptr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp_indices</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/6376620/skglm/datafits/group.py#L98"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.LogisticGroup.__init__" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grp_ptr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp_indices</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/61577fc/skglm/datafits/group.py#L98"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.LogisticGroup.__init__" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
@@ -303,6 +303,18 @@ the indices of a group in <code class="docutils literal notranslate"><span class
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">full_grad_sparse</span></code>(X_data, X_indptr, ...)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_global_lipschitz</span></code>(X, y)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_global_lipschitz_sparse</span></code>(X_data, ...)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_lipschitz</span></code>(X, y)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_lipschitz_sparse</span></code>(X_data, X_indptr, ...)</p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_spec</span></code>()</p></td>
@@ -321,12 +333,6 @@ the indices of a group in <code class="docutils literal notranslate"><span class
 <td><p>Gradient with respect to j-th coordinate of w when X is sparse.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient_sparse</span></code>(X_data, X_indptr, X_indices, ...)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_global_lipschitz</span></code>(X, y)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_global_lipschitz_sparse</span></code>(X_data, ...)</p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize</span></code>(X, y)</p></td>

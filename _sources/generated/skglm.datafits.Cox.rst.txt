@@ -14,13 +14,13 @@
    .. autosummary::
    
       ~Cox.__init__
+      ~Cox.get_global_lipschitz
+      ~Cox.get_global_lipschitz_sparse
       ~Cox.get_spec
       ~Cox.gradient
       ~Cox.gradient_scalar
       ~Cox.gradient_scalar_sparse
       ~Cox.gradient_sparse
-      ~Cox.init_global_lipschitz
-      ~Cox.init_global_lipschitz_sparse
       ~Cox.initialize
       ~Cox.initialize_sparse
       ~Cox.params_to_dict

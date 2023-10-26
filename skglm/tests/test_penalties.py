@@ -14,6 +14,9 @@ from skglm import GeneralizedLinearEstimator, Lasso
 from skglm.solvers import AndersonCD, MultiTaskBCD, FISTA
 from skglm.utils.data import make_correlated_data
 
+from skglm.penalties.separable import _TestL1
+from skglm.utils.jit_compilation import compiled_clone
+
 
 n_samples = 20
 n_features = 10
@@ -116,6 +119,41 @@ def test_nnls(fit_intercept):
 
     np.testing.assert_allclose(clf.coef_, reg_nnls.coef_)
     np.testing.assert_allclose(clf.intercept_, reg_nnls.intercept_)
+
+
+def test_overload_with_l2_ElasticNet():
+    lmbd = 0.2
+    l1_ratio = 0.7
+
+    elastic_net = L1_plus_L2(lmbd, l1_ratio)
+    implicit_elastic_net = _TestL1(alpha=lmbd * l1_ratio,
+                                   l2_regularization=lmbd * (1 - l1_ratio))
+
+    n_feautures, ws_size = 5, 3
+    stepsize = 0.8
+
+    rng = np.random.RandomState(425)
+    w = rng.randn(n_feautures)
+    grad = rng.randn(ws_size)
+    ws = rng.choice(n_feautures, size=ws_size, replace=False)
+
+    x = w[2]
+    np.testing.assert_equal(
+        elastic_net.value(x),
+        implicit_elastic_net.value(x)
+    )
+    np.testing.assert_equal(
+        elastic_net.prox_1d(x, stepsize, 0),
+        implicit_elastic_net.prox_1d(x, stepsize, 0)
+    )
+    np.testing.assert_array_equal(
+        elastic_net.subdiff_distance(w, grad, ws),
+        implicit_elastic_net.subdiff_distance(w, grad, ws)
+    )
+
+    # This will raise an error as *args and **kwargs are not supported in numba
+    with pytest.raises(Exception, match=r"VAR_POSITIONAL.*unsupported.*jitclass"):
+        compiled_clone(implicit_elastic_net)
 
 
 if __name__ == "__main__":

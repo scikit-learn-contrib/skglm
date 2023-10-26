@@ -1,3 +1,5 @@
+import re
+
 
 def check_group_compatible(obj):
     """Check whether ``obj`` is compatible with ``bcd_solver``.
@@ -25,13 +27,16 @@ def check_group_compatible(obj):
             )
 
 
-def check_obj_solver_compatibility(obj, required_attr):
-    """Check whether datafit or penalty is compatible with a solver.
+def check_obj_solver_attr_compatibility(obj, solver, required_attr):
+    """Check whether datafit or penalty is compatible with solver.
 
     Parameters
     ----------
     obj : Instance of Datafit or Penalty
         The instance Datafit (or Penalty) to check.
+
+    solver : Instance of Solver
+        The instance of Solver to check.
 
     required_attr : List or tuple of strings
         The attributes that ``obj`` must have.
@@ -47,8 +52,14 @@ def check_obj_solver_compatibility(obj, required_attr):
     if len(missing_attrs):
         required_attr = [f"`{attr}`" for attr in required_attr]
 
+        # get name obj and solver
+        name_matcher = re.compile(r"\.(\w+)'>")
+
+        obj_name = name_matcher.search(str(obj.__class__)).group(1)
+        solver_name = name_matcher.search(str(solver.__class__)).group(1)
+
         raise AttributeError(
-            "Object not compatible with solver. "
+            f"{obj_name} is not compatible with {solver_name}. "
             f"It must implement {' and '.join(required_attr)}\n"
             f"Missing {' and '.join(missing_attrs)}."
         )

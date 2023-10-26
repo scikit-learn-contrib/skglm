@@ -3,4 +3,4 @@
 Version 0.4 (in progress)
 ---------------------------
 - Add support for weights and positive coefficients to :ref:`MCPRegression Estimator <skglm.MCPRegression>` (PR: :gh:`184`)
-- Expose a datafit method called by solvers to get Lipschitz. Now on, ``initialize_*`` is meant to initialize internal attributes of the datafit. (PR: :gh:`192`)
+- Move solver specific computations from ``Datafit.initialize()`` to separate ``Datafit`` methods to ease ``Solver`` - ``Datafit`` compatibility check (PR: :gh:`192`)

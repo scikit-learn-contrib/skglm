@@ -246,7 +246,7 @@ def dist_fix_point(W, grad_ws, lipschitz, datafit, penalty, ws):
         Datafit.
 
     lipschitz :  array, shape (n_features,)
-        Lipschitz constants of each bloc.
+        Blockwise gradient Lipschitz constants.
 
     penalty: instance of BasePenalty
         Penalty.
@@ -364,7 +364,7 @@ def _bcd_epoch(X, Y, W, XW, lc, datafit, penalty, ws):
         Model fit.
 
     lc :  array, shape (n_features,)
-        Lipschitz constants of each bloc.
+        Blockwise gradient Lipschitz constants.
 
     datafit : instance of BaseMultiTaskDatafit
         Datafit.
@@ -416,7 +416,7 @@ def _bcd_epoch_sparse(X_data, X_indptr, X_indices, Y, W, XW, lc, datafit, penalt
         Model fit.
 
     lc :  array, shape (n_features,)
-        Lipschitz constants of each bloc.
+        Blockwise gradient Lipschitz constants.
 
     datafit : instance of BaseMultiTaskDatafit
         Datafit.

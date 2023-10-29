@@ -626,7 +626,7 @@ class LogSumPenalty(BasePenalty):
 
     def value(self, w):
         """Compute the value of the log-sum penalty at w."""
-        return self.alpha * np.sum(log_1p_exp_vec(w))
+        return self.alpha * np.sum(log_1p_exp_vec(w, self.eps))
 
     def derivative(self, w):
         """Compute the element-wise derivative."""
@@ -642,7 +642,7 @@ class LogSumPenalty(BasePenalty):
 
     def is_penalized(self, n_features):
         """Return a binary mask with the penalized features."""
-        return np.one(n_features, bool_)
+        return np.ones(n_features, bool_)
 
     def generalized_support(self, w):
         return w != 0

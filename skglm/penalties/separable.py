@@ -630,7 +630,7 @@ class LogSumPenalty(BasePenalty):
 
     def derivative(self, w):
         """Compute the element-wise derivative."""
-        return 1. / (np.abs(w) + self.eps)
+        return (1. / (np.abs(w) + self.eps)) * np.sign(w)
 
     def prox_1d(self, value, stepsize, j):
         """Compute the proximal operator of the log-sum penalty."""
@@ -639,6 +639,13 @@ class LogSumPenalty(BasePenalty):
     def subdiff_distance(self, w, grad, ws):
         """Compute distance of negative gradient to the subdifferential at w."""
         raise NotImplementedError("TODO?")
+
+    def is_penalized(self, n_features):
+        """Return a binary mask with the penalized features."""
+        return np.one(n_features, bool_)
+
+    def generalized_support(self, w):
+        return w != 0
 
 
 class PositiveConstraint(BasePenalty):

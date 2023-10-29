@@ -224,8 +224,9 @@ def _log_sum_prox_val(x, z, alpha, eps):
 @njit
 def _r(x, alpha, eps):
     """r as defined in Prater-Bennette et al. (2021)."""
-    return (_log_sum_prox_val(_root_prox_log_vec(x, alpha, eps), x, alpha, eps)
-        - _log_sum_prox_val(0, x, alpha, eps))
+    r_z = _log_sum_prox_val(_root_prox_log_vec(x, alpha, eps), x, alpha, eps)
+    r_0 = _log_sum_prox_val(0, x, alpha, eps)
+    return r_z - r_0
 
 
 @njit

@@ -207,23 +207,25 @@ def prox_SLOPE(z, alphas):
 
 
 @njit
+def log_sum_vec(x, eps):
+    return np.log(1 + np.exp(x) / eps)
+
+
+@njit
 def _root_prox_log_vec(x, alpha, eps):
     return (x - eps) / 2. + np.sqrt(((x + eps) ** 2) / 4 - alpha)
 
 
 @njit
-def g(x, eps):
-    return np.log(1 + np.exp(x) / eps)
+def _log_sum_prox_val(x, z, alpha, eps):
+    return ((x - z) ** 2) / (2 * alpha) + log_sum_vec(x, eps)
 
 
 @njit
-def q(x, z, alpha, eps):
-    return ((x - z) ** 2) / (2 * alpha) + g(x, eps)
-
-
-@njit
-def r(x, alpha, eps):
-    return q(_root_prox_log_vec(x, alpha, eps), x, alpha, eps) - q(0, x, alpha, eps)
+def _r(x, alpha, eps):
+    """r as defined in Prater-Bennette et al. (2021)."""
+    return (_log_sum_prox_val(_root_prox_log_vec(x, alpha, eps), x, alpha, eps)
+        - _log_sum_prox_val(0, x, alpha, eps))
 
 
 @njit
@@ -231,7 +233,7 @@ def _find_root_by_bisection(a, b, alpha, eps, tol=1e-8):
     """Find root of function func in interval [a, b] by bisection."""
     while b - a > tol:
         c = (a + b) / 2.
-        if r(a, alpha, eps) * r(c, alpha, eps) < 0:
+        if _r(a, alpha, eps) * _r(c, alpha, eps) < 0:
             b = c
         else:
             a = c

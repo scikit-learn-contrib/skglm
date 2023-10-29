@@ -212,6 +212,33 @@ def _root_prox_log_vec(x, alpha, eps):
 
 
 @njit
+def g(x, eps):
+    return np.log(1 + np.exp(x) / eps)
+
+
+@njit
+def q(x, z, alpha, eps):
+    return ((x - z) ** 2) / (2 * alpha) + g(x, eps)
+
+
+@njit
+def r(x, alpha, eps):
+    return q(_root_prox_log_vec(x, alpha, eps), x, alpha, eps) - q(0, x, alpha, eps)
+
+
+@njit
+def _find_root_by_bisection(a, b, alpha, eps, tol=1e-8):
+    """Find root of function func in interval [a, b] by bisection."""
+    while b - a > tol:
+        c = (a + b) / 2.
+        if r(a, alpha, eps) * r(c, alpha, eps) < 0:
+            b = c
+        else:
+            a = c
+    return c
+
+
+@njit
 def prox_log_sum(x, alpha, eps):
     """Proximal operator of log-sum penalty.
 
@@ -222,7 +249,7 @@ def prox_log_sum(x, alpha, eps):
 
     alpha : float
         Regularization hyperparameter.
-    
+
     eps : float
         Curvature hyperparameter.
 
@@ -239,7 +266,10 @@ def prox_log_sum(x, alpha, eps):
         else:
             return np.sign(x) * _root_prox_log_vec(abs(x), alpha, eps)
     else:
-        x_star = None  # TODO
+        a = 2 * np.sqrt(alpha) - eps
+        b = alpha / eps
+        # f is continuous and f(a) * f(b) < 0, the root can be found by bisection
+        x_star = _find_root_by_bisection(a, b, alpha, eps)
         if abs(x) <= x_star:
             return 0.
         else:

@@ -5,7 +5,7 @@ from numba.types import bool_
 from skglm.penalties.base import BasePenalty
 from skglm.utils.prox_funcs import (
     ST, box_proj, prox_05, prox_2_3, prox_SCAD, value_SCAD, prox_MCP, value_MCP,
-    value_weighted_MCP, log_sum_vec, prox_log_sum)
+    value_weighted_MCP, log_1p_exp_vec, prox_log_sum)
 
 
 class L1(BasePenalty):
@@ -626,7 +626,7 @@ class LogSumPenalty(BasePenalty):
 
     def value(self, w):
         """Compute the value of the log-sum penalty at w."""
-        return self.alpha * np.sum(log_sum_vec(w))
+        return self.alpha * np.sum(log_1p_exp_vec(w))
 
     def derivative(self, w):
         """Compute the element-wise derivative."""

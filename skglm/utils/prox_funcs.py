@@ -207,7 +207,8 @@ def prox_SLOPE(z, alphas):
 
 
 @njit
-def log_sum_vec(x, eps):
+def log_1p_exp_vec(x, eps):
+    """Map log(1 + exp(x) / eps) to vector."""
     return np.log(1 + np.exp(x) / eps)
 
 
@@ -218,12 +219,12 @@ def _root_prox_log_vec(x, alpha, eps):
 
 @njit
 def _log_sum_prox_val(x, z, alpha, eps):
-    return ((x - z) ** 2) / (2 * alpha) + log_sum_vec(x, eps)
+    return ((x - z) ** 2) / (2 * alpha) + log_1p_exp_vec(x, eps)
 
 
 @njit
 def _r(x, alpha, eps):
-    """r as defined in Prater-Bennette et al. (2021)."""
+    """Compute r as defined in Prater-Bennette et al. (2021)."""
     r_z = _log_sum_prox_val(_root_prox_log_vec(x, alpha, eps), x, alpha, eps)
     r_0 = _log_sum_prox_val(0, x, alpha, eps)
     return r_z - r_0

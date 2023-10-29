@@ -4,11 +4,11 @@ from numpy.linalg import norm
 
 
 @njit
-def ST(x, u):
+def ST(x, u, positive=False):
     """Soft-thresholding of scalar x at level u."""
     if x > u:
         return x - u
-    elif x < - u:
+    elif x < - u and not positive:
         return x + u
     else:
         return 0.
@@ -60,15 +60,23 @@ def value_MCP(w, alpha, gamma):
 
 
 @njit
-def prox_MCP(value, stepsize, alpha, gamma):
-    """Compute the proximal operator of stepsize * MCP penalty."""
-    tau = alpha * stepsize
-    g = gamma / stepsize  # what does g stand for ?
-    if np.abs(value) <= tau:
+def value_weighted_MCP(w, alpha, gamma, weights):
+    """Compute the value of the weighted MCP."""
+    s0 = np.abs(w) < gamma * alpha
+    value = np.full_like(w, gamma * alpha ** 2 / 2.)
+    value[s0] = alpha * np.abs(w[s0]) - w[s0]**2 / (2 * gamma)
+    return np.sum(weights * value)
+
+
+@njit
+def prox_MCP(value, stepsize, alpha, gamma, positive=False, weight=1.):
+    """Compute the proximal operator of stepsize * weight MCP penalty."""
+    wstepsize = weight * stepsize  # weighted stepsize
+    if (np.abs(value) <= alpha * wstepsize) or (positive and value <= 0.):
         return 0.
-    if np.abs(value) > g * tau:
+    if np.abs(value) > alpha * gamma:
         return value
-    return np.sign(value) * (np.abs(value) - tau) / (1. - 1./g)
+    return np.sign(value) * (np.abs(value) - alpha * wstepsize) / (1. - wstepsize/gamma)
 
 
 @njit

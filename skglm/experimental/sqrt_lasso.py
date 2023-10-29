@@ -5,17 +5,20 @@ from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model._base import LinearModel, RegressorMixin
 
 from skglm.penalties import L1
-from skglm.utils.prox_funcs import ST_vec, proj_L2ball
+from skglm.utils.prox_funcs import ST_vec, proj_L2ball, BST
 from skglm.utils.jit_compilation import compiled_clone
 from skglm.datafits.base import BaseDatafit
 from skglm.solvers.prox_newton import ProxNewton
 
 
 class SqrtQuadratic(BaseDatafit):
-    """Square root quadratic datafit.
+    r"""Unnormalized square root quadratic datafit.
 
-    The datafit reads::
-        ||y - Xw||_2 / sqrt(n_samples)
+    The datafit reads:
+
+    .. math::
+
+        ||y - Xw||_2
     """
 
     def __init__(self):
@@ -29,7 +32,7 @@ class SqrtQuadratic(BaseDatafit):
         return dict()
 
     def value(self, y, w, Xw):
-        return np.linalg.norm(y - Xw) / np.sqrt(len(y))
+        return np.linalg.norm(y - Xw)
 
     def raw_grad(self, y, Xw):
         """Compute gradient of datafit w.r.t ``Xw``.
@@ -45,21 +48,39 @@ class SqrtQuadratic(BaseDatafit):
         if norm_residuals < 1e-2 * norm(y):
             raise ValueError("SmallResidualException")
 
-        return minus_residual / (norm_residuals * np.sqrt(len(y)))
+        return minus_residual / norm_residuals
 
     def raw_hessian(self, y, Xw):
         """Diagonal matrix upper bounding the Hessian."""
         n_samples = len(y)
-        fill_value = 1 / (np.sqrt(n_samples) * norm(y - Xw))
+        fill_value = 1 / norm(y - Xw)
         return np.full(n_samples, fill_value)
+
+    def prox(self, w, step, y):
+        """Prox of ``step * ||y - . ||``."""
+        return y - BST(y - w, step)
+
+    def prox_conjugate(self, z, step, y):
+        """Prox of ``step * ||y - . ||^*``."""
+        return proj_L2ball(z - step * y)
+
+    def subdiff_distance(self, Xw, z, y):
+        """Distance of ``z`` to subdiff of ||y - . || at ``Xw``."""
+        # computation note: \partial ||y - . ||(Xw) = - \partial || . ||(y - Xw)
+        y_minus_Xw = y - Xw
+
+        if np.any(y_minus_Xw):
+            return norm(z + y_minus_Xw / norm(y_minus_Xw))
+
+        return norm(z - proj_L2ball(z))
 
 
 class SqrtLasso(LinearModel, RegressorMixin):
     """Square root Lasso estimator based on Prox Newton solver.
 
-    The optimization objective for square root Lasso is::
+    The optimization objective for square root Lasso is:
 
-        |y - X w||_2 / sqrt(n_samples) + alpha * ||w||_1
+    .. math:: ||y - Xw||_2 + alpha ||w||_1
 
     Parameters
     ----------
@@ -205,7 +226,8 @@ def _chambolle_pock_sqrt(X, y, alpha, max_iter=1000, obj_freq=10, verbose=False)
     """Apply Chambolle-Pock algorithm to solve square-root Lasso.
 
     The objective function is:
-        min_w ||Xw - y||_2/sqrt(n_samples) + alpha * ||w||_1.
+
+        min_w ||Xw - y||_2 + alpha * ||w||_1.
     """
     n_samples, n_features = X.shape
     # dual variable is z, primal is w
@@ -221,12 +243,12 @@ def _chambolle_pock_sqrt(X, y, alpha, max_iter=1000, obj_freq=10, verbose=False)
     sigma = 0.99 / L
 
     for t in range(max_iter):
-        w = ST_vec(w - tau * X.T @ (2 * z - z_old), alpha * np.sqrt(n_samples) * tau)
+        w = ST_vec(w - tau * X.T @ (2 * z - z_old), alpha * tau)
         z_old = z.copy()
         z[:] = proj_L2ball(z + sigma * (X @ w - y))
 
         if t % obj_freq == 0:
-            objs.append(norm(X @ w - y) / np.sqrt(n_samples) + alpha * norm(w, ord=1))
+            objs.append(norm(X @ w - y) + alpha * norm(w, ord=1))
             if verbose:
                 print(f"Iter {t}, obj {objs[-1]: .10f}")
 

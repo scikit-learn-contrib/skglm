@@ -14,15 +14,21 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.svm import LinearSVC as LinearSVC_sklearn
 from sklearn.utils.estimator_checks import check_estimator
 
+import scipy.optimize
 from scipy.sparse import csc_matrix, issparse
 
-from skglm.utils.data import make_correlated_data
+from skglm.utils.data import make_correlated_data, make_dummy_survival_data
 from skglm.estimators import (
     GeneralizedLinearEstimator, Lasso, MultiTaskLasso, WeightedLasso, ElasticNet,
     MCPRegression, SparseLogisticRegression, LinearSVC)
-from skglm.datafits import Logistic, Quadratic, QuadraticSVC, QuadraticMultiTask
-from skglm.penalties import L1, IndicatorBox, L1_plus_L2, MCPenalty, WeightedL1
-from skglm.solvers import AndersonCD
+from skglm.datafits import Logistic, Quadratic, QuadraticSVC, QuadraticMultiTask, Cox
+from skglm.penalties import L1, IndicatorBox, L1_plus_L2, MCPenalty, WeightedL1, SLOPE
+from skglm.solvers import AndersonCD, FISTA
+
+import pandas as pd
+from skglm.solvers import ProxNewton
+from skglm.utils.jit_compilation import compiled_clone
+from skglm.estimators import CoxEstimator
 
 
 n_samples = 50
@@ -68,6 +74,11 @@ dict_estimators_sk["MCP"] = Lasso_sklearn(
 dict_estimators_ours["MCP"] = MCPRegression(
     alpha=alpha, gamma=np.inf, tol=tol)
 
+dict_estimators_sk["wMCP"] = Lasso_sklearn(
+    alpha=alpha, tol=tol)
+dict_estimators_ours["wMCP"] = MCPRegression(
+    alpha=alpha, gamma=np.inf, tol=tol, weights=np.ones(n_features))
+
 dict_estimators_sk["LogisticRegression"] = LogReg_sklearn(
     C=1/(alpha * n_samples), tol=tol, penalty='l1',
     solver='liblinear')
@@ -82,7 +93,7 @@ dict_estimators_ours["SVC"] = LinearSVC(C=C, tol=tol)
 
 @pytest.mark.parametrize(
     "estimator_name",
-    ["Lasso", "wLasso", "ElasticNet", "MCP", "LogisticRegression", "SVC"])
+    ["Lasso", "wLasso", "ElasticNet", "MCP", "wMCP", "LogisticRegression", "SVC"])
 def test_check_estimator(estimator_name):
     if estimator_name == "SVC":
         pytest.xfail("SVC check_estimator is too slow due to bug.")
@@ -91,7 +102,7 @@ def test_check_estimator(estimator_name):
         pytest.xfail("ProxNewton does not yet support intercept fitting")
     clf = clone(dict_estimators_ours[estimator_name])
     clf.tol = 1e-6  # failure in float32 computation otherwise
-    if isinstance(clf, WeightedLasso):
+    if isinstance(clf, (WeightedLasso, MCPRegression)):
         clf.weights = None
     check_estimator(clf)
 
@@ -99,19 +110,27 @@ def test_check_estimator(estimator_name):
 @pytest.mark.parametrize("estimator_name", dict_estimators_ours.keys())
 @pytest.mark.parametrize('X', [X, X_sparse])
 @pytest.mark.parametrize('fit_intercept', [True, False])
-def test_estimator(estimator_name, X, fit_intercept):
+@pytest.mark.parametrize('positive', [True, False])
+def test_estimator(estimator_name, X, fit_intercept, positive):
     if estimator_name == "GeneralizedLinearEstimator":
         pytest.skip()
     if fit_intercept and estimator_name == "LogisticRegression":
         pytest.xfail("sklearn LogisticRegression does not support intercept.")
     if fit_intercept and estimator_name == "SVC":
         pytest.xfail("Intercept is not supported for SVC.")
+    if positive and estimator_name not in (
+            "Lasso", "ElasticNet", "wLasso", "MCP", "wMCP"):
+        pytest.xfail("`positive` option is only supported by L1, L1_plus_L2 and wL1.")
 
     estimator_sk = clone(dict_estimators_sk[estimator_name])
     estimator_ours = clone(dict_estimators_ours[estimator_name])
 
     estimator_sk.set_params(fit_intercept=fit_intercept)
     estimator_ours.set_params(fit_intercept=fit_intercept)
+
+    if positive:
+        estimator_sk.set_params(positive=positive)
+        estimator_ours.set_params(positive=positive)
 
     estimator_sk.fit(X, y)
     estimator_ours.fit(X, y)
@@ -155,6 +174,244 @@ def test_mtl_path():
     coef_ours = MultiTaskLasso(fit_intercept=fit_intercept, tol=1e-14).path(
         X, Y, alphas, max_iter=10)[1][:, :X.shape[1]]
     np.testing.assert_allclose(coef_ours, coef_sk, rtol=1e-5)
+
+
+@pytest.mark.parametrize("use_efron, use_float_32",
+                         product([True, False], [True, False]))
+def test_CoxEstimator(use_efron, use_float_32):
+    try:
+        from lifelines import CoxPHFitter
+    except ModuleNotFoundError:
+        pytest.xfail(
+            "Testing Cox Estimator requires `lifelines` packages\n"
+            "Run `pip install lifelines`"
+        )
+
+    reg = 1e-2
+    # norms of solutions differ when n_features > n_samples
+    n_samples, n_features = 100, 30
+    random_state = 1265
+
+    X, y = make_dummy_survival_data(n_samples, n_features, normalize=True,
+                                    with_ties=use_efron, use_float_32=use_float_32,
+                                    random_state=random_state)
+    tm, s = y[:, 0], y[:, 1]
+
+    # compute alpha_max
+    B = (tm >= tm[:, None]).astype(X.dtype)
+    grad_0 = -s + B.T @ (s / np.sum(B, axis=1))
+    alpha_max = norm(X.T @ grad_0, ord=np.inf) / n_samples
+
+    alpha = reg * alpha_max
+
+    # fit Cox using ProxNewton solver
+    datafit = compiled_clone(Cox(use_efron))
+    penalty = compiled_clone(L1(alpha))
+
+    datafit.initialize(X, y)
+
+    w, *_ = ProxNewton(
+        fit_intercept=False, tol=1e-6, max_iter=50
+    ).solve(
+        X, y, datafit, penalty
+    )
+
+    # fit lifeline estimator
+    df = pd.DataFrame(np.hstack((y, X)))
+
+    estimator = CoxPHFitter(penalizer=alpha, l1_ratio=1.)
+    estimator.fit(
+        df, duration_col=0, event_col=1,
+        fit_options={"max_steps": 10_000, "precision": 1e-12}
+    )
+    w_ll = estimator.params_.values.astype(X.dtype)
+
+    p_obj_skglm = datafit.value(y, w, X @ w) + penalty.value(w)
+    p_obj_ll = datafit.value(y, w_ll, X @ w_ll) + penalty.value(w_ll)
+
+    # though norm of solution might differ
+    np.testing.assert_allclose(p_obj_skglm, p_obj_ll, atol=1e-6)
+
+
+@pytest.mark.parametrize("use_efron, use_float_32",
+                         product([True, False], [True, False]))
+def test_CoxEstimator_sparse(use_efron, use_float_32):
+    reg = 1e-2
+    n_samples, n_features = 100, 30
+    X_density, random_state = 0.5, 1265
+
+    X, y = make_dummy_survival_data(n_samples, n_features, X_density=X_density,
+                                    use_float_32=use_float_32, with_ties=use_efron,
+                                    random_state=random_state)
+    tm, s = y[:, 0], y[:, 1]
+
+    # compute alpha_max
+    B = (tm >= tm[:, None]).astype(X.dtype)
+    grad_0 = -s + B.T @ (s / np.sum(B, axis=1))
+    alpha_max = norm(X.T @ grad_0, ord=np.inf) / n_samples
+
+    alpha = reg * alpha_max
+
+    # fit Cox using ProxNewton solver
+    datafit = compiled_clone(Cox(use_efron))
+    penalty = compiled_clone(L1(alpha))
+
+    datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
+
+    *_, stop_crit = ProxNewton(
+        fit_intercept=False, tol=1e-6, max_iter=50
+    ).solve(
+        X, y, datafit, penalty
+    )
+
+    np.testing.assert_allclose(stop_crit, 0., atol=1e-6)
+
+
+@pytest.mark.parametrize("use_efron, l1_ratio", product([True, False], [1., 0.7, 0.]))
+def test_Cox_sk_like_estimator(use_efron, l1_ratio):
+    try:
+        from lifelines import CoxPHFitter
+    except ModuleNotFoundError:
+        pytest.xfail(
+            "Testing Cox Estimator requires `lifelines` packages\n"
+            "Run `pip install lifelines`"
+        )
+
+    alpha = 1e-2
+    # norms of solutions differ when n_features > n_samples
+    n_samples, n_features = 100, 30
+    method = "efron" if use_efron else "breslow"
+
+    X, y = make_dummy_survival_data(n_samples, n_features, normalize=True,
+                                    with_ties=use_efron, random_state=0)
+
+    estimator_sk = CoxEstimator(
+        alpha, l1_ratio=l1_ratio, method=method, tol=1e-6
+    ).fit(X, y)
+    w_sk = estimator_sk.coef_
+
+    # fit lifeline estimator
+    df = pd.DataFrame(np.hstack((y, X)))
+
+    estimator_ll = CoxPHFitter(penalizer=alpha, l1_ratio=l1_ratio)
+    estimator_ll.fit(
+        df, duration_col=0, event_col=1,
+        fit_options={"max_steps": 10_000, "precision": 1e-12}
+    )
+    w_ll = estimator_ll.params_.values
+
+    # define datafit and penalty to check objs
+    datafit = Cox(use_efron)
+    penalty = L1_plus_L2(alpha, l1_ratio)
+    datafit.initialize(X, y)
+
+    p_obj_skglm = datafit.value(y, w_sk, X @ w_sk) + penalty.value(w_sk)
+    p_obj_ll = datafit.value(y, w_ll, X @ w_ll) + penalty.value(w_ll)
+
+    # though norm of solution might differ
+    np.testing.assert_allclose(p_obj_skglm, p_obj_ll, atol=1e-6)
+
+
+@pytest.mark.parametrize("use_efron, l1_ratio", product([True, False], [1., 0.7, 0.]))
+def test_Cox_sk_like_estimator_sparse(use_efron, l1_ratio):
+    alpha = 1e-2
+    n_samples, n_features = 100, 30
+    method = "efron" if use_efron else "breslow"
+
+    X, y = make_dummy_survival_data(n_samples, n_features, X_density=0.1,
+                                    with_ties=use_efron, random_state=0)
+
+    estimator_sk = CoxEstimator(
+        alpha, l1_ratio=l1_ratio, method=method, tol=1e-9
+    ).fit(X, y)
+    stop_crit = estimator_sk.stop_crit_
+
+    np.testing.assert_array_less(stop_crit, 1e-8)
+
+
+def test_Cox_sk_compatibility():
+    check_estimator(CoxEstimator())
+
+
+@pytest.mark.parametrize("use_efron, issparse", product([True, False], repeat=2))
+def test_equivalence_cox_SLOPE_cox_L1(use_efron, issparse):
+    # this only tests the case of SLOPE equivalent to L1 (equal alphas)
+    reg = 1e-2
+    n_samples, n_features = 100, 10
+    X_density = 1. if not issparse else 0.2
+
+    X, y = make_dummy_survival_data(
+        n_samples, n_features, with_ties=use_efron, X_density=X_density,
+        random_state=0)
+
+    # init datafit
+    datafit = compiled_clone(Cox(use_efron))
+
+    if not issparse:
+        datafit.initialize(X, y)
+    else:
+        datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
+
+    # compute alpha_max
+    grad_0 = datafit.raw_grad(y, np.zeros(n_samples))
+    alpha_max = np.linalg.norm(X.T @ grad_0, ord=np.inf)
+
+    # init penalty
+    alpha = reg * alpha_max
+    alphas = alpha * np.ones(n_features)
+    penalty = compiled_clone(SLOPE(alphas))
+
+    solver = FISTA(opt_strategy="fixpoint", max_iter=10_000, tol=1e-9)
+
+    w, *_ = solver.solve(X, y, datafit, penalty)
+
+    method = 'efron' if use_efron else 'breslow'
+    estimator = CoxEstimator(alpha, l1_ratio=1., method=method, tol=1e-9).fit(X, y)
+
+    np.testing.assert_allclose(w, estimator.coef_, atol=1e-6)
+
+
+@pytest.mark.parametrize("use_efron", [True, False])
+def test_cox_SLOPE(use_efron):
+    reg = 1e-2
+    n_samples, n_features = 100, 10
+
+    X, y = make_dummy_survival_data(
+        n_samples, n_features, with_ties=use_efron, random_state=0)
+
+    # init datafit
+    datafit = compiled_clone(Cox(use_efron))
+    datafit.initialize(X, y)
+
+    # compute alpha_max
+    grad_0 = datafit.raw_grad(y, np.zeros(n_samples))
+    alpha_ref = np.linalg.norm(X.T @ grad_0, ord=np.inf)
+
+    # init penalty
+    alpha = reg * alpha_ref
+    alphas = alpha / np.arange(n_features + 1)[1:]
+    penalty = compiled_clone(SLOPE(alphas))
+
+    solver = FISTA(opt_strategy="fixpoint", max_iter=10_000, tol=1e-9)
+
+    w, *_ = solver.solve(X, y, datafit, penalty)
+
+    result = scipy.optimize.minimize(
+        fun=lambda w: datafit.value(y, w, X @ w) + penalty.value(w),
+        x0=np.zeros(n_features),
+        method="SLSQP",
+        options=dict(
+            ftol=1e-9,
+            maxiter=10_000,
+        ),
+    )
+    w_sp = result.x
+
+    # check both methods yield the same objective
+    np.testing.assert_allclose(
+        datafit.value(y, w, X @ w) + penalty.value(w),
+        datafit.value(y, w_sp, X @ w_sp) + penalty.value(w_sp)
+    )
 
 
 # Test if GeneralizedLinearEstimator returns the correct coefficients

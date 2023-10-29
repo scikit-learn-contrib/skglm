@@ -1,8 +1,12 @@
+import warnings
+
 import numpy as np
 from numba import njit
 from scipy.sparse import issparse
 from skglm.solvers.base import BaseSolver
 
+from sklearn.exceptions import ConvergenceWarning
+from skglm.utils.sparse_ops import _sparse_xj_dot
 
 EPS_TOL = 0.3
 MAX_CD_ITER = 20
@@ -55,10 +59,12 @@ class ProxNewton(BaseSolver):
         self.verbose = verbose
 
     def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+        dtype = X.dtype
         n_samples, n_features = X.shape
         fit_intercept = self.fit_intercept
-        w = np.zeros(n_features + fit_intercept) if w_init is None else w_init
-        Xw = np.zeros(n_samples) if Xw_init is None else Xw_init
+
+        w = np.zeros(n_features + fit_intercept, dtype) if w_init is None else w_init
+        Xw = np.zeros(n_samples, dtype) if Xw_init is None else Xw_init
         all_features = np.arange(n_features)
         stop_crit = 0.
         p_objs_out = []
@@ -158,6 +164,13 @@ class ProxNewton(BaseSolver):
 
             p_obj = datafit.value(y, w, Xw) + penalty.value(w)
             p_objs_out.append(p_obj)
+        else:
+            warnings.warn(
+                f"`ProxNewton` did not converge for tol={self.tol:.3e} "
+                f"and max_iter={self.max_iter}.\n"
+                "Consider increasing `max_iter` and/or `tol`.",
+                category=ConvergenceWarning
+            )
         return w, np.asarray(p_objs_out), stop_crit
 
 
@@ -170,16 +183,17 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
     # Minimize quadratic approximation for delta_w = w - w_epoch:
     #  b.T @ X @ delta_w + \
     #  1/2 * delta_w.T @ (X.T @ D @ X) @ delta_w + penalty(w)
+    dtype = X.dtype
     raw_hess = datafit.raw_hessian(y, Xw_epoch)
 
-    lipschitz = np.zeros(len(ws))
+    lipschitz = np.zeros(len(ws), dtype)
     for idx, j in enumerate(ws):
         lipschitz[idx] = raw_hess @ X[:, j] ** 2
 
     # for a less costly stopping criterion, we do not compute the exact gradient,
     # but store each coordinate-wise gradient every time we update one coordinate
-    past_grads = np.zeros(len(ws))
-    X_delta_w_ws = np.zeros(X.shape[0])
+    past_grads = np.zeros(len(ws), dtype)
+    X_delta_w_ws = np.zeros(X.shape[0], dtype)
     ws_intercept = np.append(ws, -1) if fit_intercept else ws
     w_ws = w_epoch[ws_intercept]
 
@@ -232,17 +246,18 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
 @njit
 def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
                          Xw_epoch, fit_intercept, grad_ws, datafit, penalty, ws, tol):
+    dtype = X_data.dtype
     raw_hess = datafit.raw_hessian(y, Xw_epoch)
 
-    lipschitz = np.zeros(len(ws))
+    lipschitz = np.zeros(len(ws), dtype)
     for idx, j in enumerate(ws):
         # equivalent to: lipschitz[idx] += raw_hess * X[:, j] ** 2
         lipschitz[idx] = _sparse_squared_weighted_norm(
             X_data, X_indptr, X_indices, j, raw_hess)
 
     # see _descent_direction() comment
-    past_grads = np.zeros(len(ws))
-    X_delta_w_ws = np.zeros(len(y))
+    past_grads = np.zeros(len(ws), dtype)
+    X_delta_w_ws = np.zeros(Xw_epoch.shape[0], dtype)
     ws_intercept = np.append(ws, -1) if fit_intercept else ws
     w_ws = w_epoch[ws_intercept]
 
@@ -318,7 +333,11 @@ def _backtrack_line_search(X, y, w, Xw, fit_intercept, datafit, penalty, delta_w
         grad_ws = _construct_grad(X, y, w[:n_features], Xw, datafit, ws)
         # TODO: could be improved by passing in w[ws]
         stop_crit = penalty.value(w[:n_features]) - old_penalty_val
-        stop_crit += step * grad_ws @ delta_w_ws[:len(ws)]
+
+        # it is mandatory to split the two operations, otherwise numba raises an error
+        # cf. https://github.com/numba/numba/issues/9025
+        dot = grad_ws @ delta_w_ws[:len(ws)]
+        stop_crit += step * dot
 
         if fit_intercept:
             stop_crit += step * delta_w_ws[-1] * np.sum(datafit.raw_grad(y, Xw))
@@ -353,7 +372,11 @@ def _backtrack_line_search_s(X_data, X_indptr, X_indices, y, w, Xw, fit_intercep
                                          y, w[:n_features], Xw, datafit, ws)
         # TODO: could be improved by passing in w[ws]
         stop_crit = penalty.value(w[:n_features]) - old_penalty_val
-        stop_crit += step * grad_ws.T @ delta_w_ws[:len(ws)]
+
+        # it is mandatory to split the two operations, otherwise numba raises an error
+        # cf. https://github.com/numba/numba/issues/9025
+        dot = grad_ws.T @ delta_w_ws[:len(ws)]
+        stop_crit += step * dot
 
         if fit_intercept:
             stop_crit += step * delta_w_ws[-1] * np.sum(datafit.raw_grad(y, Xw))
@@ -374,7 +397,7 @@ def _construct_grad(X, y, w, Xw, datafit, ws):
     # Compute grad of datafit restricted to ws. This function avoids
     # recomputing raw_grad for every j, which is costly for logreg
     raw_grad = datafit.raw_grad(y, Xw)
-    grad = np.zeros(len(ws))
+    grad = np.zeros(len(ws), dtype=X.dtype)
     for idx, j in enumerate(ws):
         grad[idx] = X[:, j] @ raw_grad
     return grad
@@ -384,19 +407,10 @@ def _construct_grad(X, y, w, Xw, datafit, ws):
 def _construct_grad_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, ws):
     # Compute grad of datafit restricted to ws in case X sparse
     raw_grad = datafit.raw_grad(y, Xw)
-    grad = np.zeros(len(ws))
+    grad = np.zeros(len(ws), dtype=X_data.dtype)
     for idx, j in enumerate(ws):
         grad[idx] = _sparse_xj_dot(X_data, X_indptr, X_indices, j, raw_grad)
     return grad
-
-
-@njit(fastmath=True)
-def _sparse_xj_dot(X_data, X_indptr, X_indices, j, other):
-    # Compute X[:, j] @ other in case X sparse
-    res = 0.
-    for i in range(X_indptr[j], X_indptr[j+1]):
-        res += X_data[i] * other[X_indices[i]]
-    return res
 
 
 @njit(fastmath=True)

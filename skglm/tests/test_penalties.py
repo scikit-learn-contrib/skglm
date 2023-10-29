@@ -4,10 +4,12 @@ import numpy as np
 from numpy.linalg import norm
 from numpy.testing import assert_array_less
 
+from sklearn.linear_model import LinearRegression
+
 from skglm.datafits import Quadratic, QuadraticMultiTask
 from skglm.penalties import (
     L1, L1_plus_L2, WeightedL1, MCPenalty, SCAD, IndicatorBox, L0_5, L2_3, SLOPE,
-    L2_1, L2_05, BlockMCPenalty, BlockSCAD)
+    PositiveConstraint, L2_1, L2_05, BlockMCPenalty, BlockSCAD)
 from skglm import GeneralizedLinearEstimator, Lasso
 from skglm.solvers import AndersonCD, MultiTaskBCD, FISTA
 from skglm.utils.data import make_correlated_data
@@ -99,6 +101,21 @@ def test_slope():
     pyslope_out = pgd_slope(
         X, y, alphas, fit_intercept=False, max_it=1000, gap_tol=tol)
     np.testing.assert_allclose(ours.coef_, pyslope_out["beta"], rtol=1e-5)
+
+
+@pytest.mark.parametrize("fit_intercept", [True, False])
+def test_nnls(fit_intercept):
+    # compare solutions with sklearn's LinearRegression, note that n_samples >=
+    # n_features for the design matrix to be injective, hence the solution unique
+    clf = GeneralizedLinearEstimator(
+        datafit=Quadratic(),
+        penalty=PositiveConstraint(),
+        solver=AndersonCD(tol=tol, fit_intercept=fit_intercept),
+    ).fit(X, y)
+    reg_nnls = LinearRegression(positive=True, fit_intercept=fit_intercept).fit(X, y)
+
+    np.testing.assert_allclose(clf.coef_, reg_nnls.coef_)
+    np.testing.assert_allclose(clf.intercept_, reg_nnls.intercept_)
 
 
 if __name__ == "__main__":

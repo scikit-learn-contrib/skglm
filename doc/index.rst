@@ -3,16 +3,16 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-========
+=========
 ``skglm``
-========
+=========
 *— A fast and modular scikit-learn replacement for sparse GLMs —*
 
 --------
 
 
-``skglm`` is a Python package that offers **fast estimators** for sparse Generalized Linear Models (GLMs) 
-that are **100% compatible with** ``scikit-learn``. It is **highly flexible** and supports a wide range of GLMs. 
+``skglm`` is a Python package that offers **fast estimators** for sparse Generalized Linear Models (GLMs)
+that are **100% compatible with** ``scikit-learn``. It is **highly flexible** and supports a wide range of GLMs.
 You get to choose from ``skglm``'s already-made estimators or **customize your own** by combining the available datafits and penalties.
 
 Get a hands-on glimpse on ``skglm`` through the :ref:`Getting started page <getting_started>`.
@@ -40,7 +40,7 @@ There are several reasons to opt for ``skglm`` among which:
 
 
 Installing ``skglm``
--------------------
+--------------------
 
 ``skglm`` is available on PyPi. Get the latest version of the package by running
 
@@ -59,7 +59,7 @@ Other advanced topics and uses-cases are covered in :ref:`Tutorials <tutorials>`
 
 .. note::
 
-  - Currently, ``skglm`` is unavailable on Conda but will be released very soon... 
+  - Currently, ``skglm`` is unavailable on Conda but will be released very soon...
 
 
 Cite

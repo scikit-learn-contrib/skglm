@@ -2,19 +2,22 @@
 
 # ``skglm``
 
-## A fast :zap: and modular :hammer_and_pick: scikit-learn replacement for sparse GLMs
+## A fast ⚡ and modular ⚒️ scikit-learn replacement for sparse GLMs
 
 </section>
 
 ![build](https://github.com/scikit-learn-contrib/skglm/workflows/pytest/badge.svg)
 ![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)
-![Downloads](https://pepy.tech/badge/skglm/month)
-![PyPI version](https://badge.fury.io/py/skglm.svg)
+[![Downloads](https://static.pepy.tech/badge/skglm)](https://pepy.tech/project/skglm)
+[![Downloads](https://static.pepy.tech/badge/skglm/month)](https://pepy.tech/project/skglm)
+[![PyPI version](https://badge.fury.io/py/skglm.svg)](https://pypi.org/project/skglm/)
 
 
-``skglm`` is a Python package that offers **fast estimators** for sparse Generalized Linear Models (GLMs) that are **100% compatible with ``scikit-learn``**. It is **highly flexible** and supports a wide range of GLMs. You get to choose from ``skglm``'s already-made estimators or **customize your own** by combining the available datafits and penalty.
+``skglm`` is a Python package that offers **fast estimators** for sparse Generalized Linear Models (GLMs) that are **100% compatible with ``scikit-learn``**. It is **highly flexible** and supports a wide range of GLMs.
+You get to choose from ``skglm``'s already-made estimators or **customize your own** by combining the available datafits and penalties.
 
-Excited to have a tour on ``skglm`` [documentation](https://contrib.scikit-learn.org/skglm/) :memo:?
+Excited to have a tour on ``skglm`` [documentation](https://contrib.scikit-learn.org/skglm/)?
+
 
 # Why ``skglm``?
 
@@ -24,10 +27,10 @@ There are several reasons to opt for ``skglm`` among which:
 
 |  |  |
 | ----- | -------------- |
-| **Speed** :zap: | Fast solvers able to tackle large datasets, either dense or sparse, with millions of features **up to 100 times faster** than ``scikit-learn``|
-| **Modularity** :hammer_and_pick: | User-friendly API than enables **composing custom estimators** with any combination of its existing datafits and penalties |
-| **Extensibility** :arrow_up_down: | Flexible design that makes it **simple and easy to implement new datafits and penalties**, a matter of few lines of code
-| **Compatibility** :electric_plug: | Estimators **fully compatible with the ``scikit-learn`` API** and drop-in replacements of its GLM estimators
+| **Speed** | Fast solvers able to tackle large datasets, either dense or sparse, with millions of features **up to 100 times faster** than ``scikit-learn``|
+| **Modularity** | User-friendly API that enables **composing custom estimators** with any combination of its existing datafits and penalties |
+| **Extensibility** | Flexible design that makes it **simple and easy to implement new datafits and penalties**, a matter of few lines of code
+| **Compatibility** | Estimators **fully compatible with the ``scikit-learn`` API** and drop-in replacements of its GLM estimators
 |  |  |
 
 
@@ -69,7 +72,7 @@ print(estimator.score(X, y))
 ```
 You can refer to the documentation to explore the list of ``skglm``'s already-made estimators.
 
-Didn't find one that suits you :monocle_face:, you can still compose your own.
+Didn't find one that suits you? you can still compose your own.
 Here is a code snippet that fits a MCP-regularized problem with Huber loss.
 
 ```python

@@ -5,23 +5,25 @@ from numba.types import bool_
 from skglm.penalties.base import BasePenalty
 from skglm.utils.prox_funcs import (
     ST, box_proj, prox_05, prox_2_3, prox_SCAD, value_SCAD, prox_MCP, value_MCP,
-    prox_log_sum)
+    value_weighted_MCP, prox_log_sum)
 
 
 class L1(BasePenalty):
-    """L1 penalty."""
+    """:math:`ell_1` penalty."""
 
-    def __init__(self, alpha):
+    def __init__(self, alpha, positive=False):
         self.alpha = alpha
+        self.positive = positive
 
     def get_spec(self):
         spec = (
             ('alpha', float64),
+            ('positive', bool_),
         )
         return spec
 
     def params_to_dict(self):
-        return dict(alpha=self.alpha)
+        return dict(alpha=self.alpha, positive=self.positive)
 
     def value(self, w):
         """Compute L1 penalty value."""
@@ -29,19 +31,28 @@ class L1(BasePenalty):
 
     def prox_1d(self, value, stepsize, j):
         """Compute proximal operator of the L1 penalty (soft-thresholding operator)."""
-        return ST(value, self.alpha * stepsize)
+        return ST(value, self.alpha * stepsize, self.positive)
 
     def subdiff_distance(self, w, grad, ws):
         """Compute distance of negative gradient to the subdifferential at w."""
         subdiff_dist = np.zeros_like(grad)
         for idx, j in enumerate(ws):
-            if w[j] == 0:
-                # distance of - grad_j to  [-alpha, alpha]
-                subdiff_dist[idx] = max(0, np.abs(grad[idx]) - self.alpha)
+            if self.positive:
+                if w[j] < 0:
+                    subdiff_dist[idx] = np.inf
+                elif w[j] == 0:
+                    # distance of -grad_j to (-infty, alpha]
+                    subdiff_dist[idx] = max(0, -grad[idx] - self.alpha)
+                else:
+                    # distance of -grad_j to {alpha}
+                    subdiff_dist[idx] = np.abs(grad[idx] + self.alpha)
             else:
-                # distance of - grad_j to alpha * sign(w[j])
-                subdiff_dist[idx] = np.abs(
-                    - grad[idx] - np.sign(w[j]) * self.alpha)
+                if w[j] == 0:
+                    # distance of -grad_j to  [-alpha, alpha]
+                    subdiff_dist[idx] = max(0, np.abs(grad[idx]) - self.alpha)
+                else:
+                    # distance of -grad_j to {alpha * sign(w[j])}
+                    subdiff_dist[idx] = np.abs(grad[idx] + np.sign(w[j]) * self.alpha)
         return subdiff_dist
 
     def is_penalized(self, n_features):
@@ -58,22 +69,23 @@ class L1(BasePenalty):
 
 
 class L1_plus_L2(BasePenalty):
-    """L1 + L2 penalty (aka ElasticNet penalty)."""
+    """:math:`ell_1 + ell_2` penalty (aka ElasticNet penalty)."""
 
-    def __init__(self, alpha, l1_ratio):
+    def __init__(self, alpha, l1_ratio, positive=False):
         self.alpha = alpha
         self.l1_ratio = l1_ratio
+        self.positive = positive
 
     def get_spec(self):
         spec = (
             ('alpha', float64),
             ('l1_ratio', float64),
+            ('positive', bool_),
         )
         return spec
 
     def params_to_dict(self):
-        return dict(alpha=self.alpha,
-                    l1_ratio=self.l1_ratio)
+        return dict(alpha=self.alpha, l1_ratio=self.l1_ratio, positive=self.positive)
 
     def value(self, w):
         """Compute the L1 + L2 penalty value."""
@@ -83,25 +95,38 @@ class L1_plus_L2(BasePenalty):
 
     def prox_1d(self, value, stepsize, j):
         """Compute the proximal operator (scaled soft-thresholding)."""
-        prox = ST(value, self.l1_ratio * self.alpha * stepsize)
+        prox = ST(value, self.l1_ratio * self.alpha * stepsize, self.positive)
         prox /= (1 + stepsize * (1 - self.l1_ratio) * self.alpha)
         return prox
 
     def subdiff_distance(self, w, grad, ws):
         """Compute distance of negative gradient to the subdifferential at w."""
         subdiff_dist = np.zeros_like(grad)
+        alpha = self.alpha
+        l1_ratio = self.l1_ratio
+
         for idx, j in enumerate(ws):
-            if w[j] == 0:
-                # distance of - grad_j to alpha * l1_ratio * [-1, 1]
-                subdiff_dist[idx] = max(
-                    0, np.abs(grad[idx]) - self.alpha * self.l1_ratio)
+            if self.positive:
+                if w[j] < 0:
+                    subdiff_dist[idx] = np.inf
+                elif w[j] == 0:
+                    # distance of -grad_j to (-infty, alpha * l1_ratio]
+                    subdiff_dist[idx] = max(0, -grad[idx] - alpha * l1_ratio)
+                else:
+                    # distance of -grad_j to alpha * {l1_ratio + (1 - l1_ratio) * w[j]}
+                    subdiff_dist[idx] = np.abs(
+                        grad[idx] + alpha * (l1_ratio
+                                             + (1 - l1_ratio) * w[j]))
             else:
-                # distance of - grad_j to alpha * l_1 ratio * sign(w[j]) +
-                # alpha * (1 - l1_ratio) * w[j]
-                subdiff_dist[idx] = np.abs(
-                    - grad[idx] -
-                    self.alpha * (self.l1_ratio *
-                                  np.sign(w[j]) + (1 - self.l1_ratio) * w[j]))
+                if w[j] == 0:
+                    # distance of -grad_j to alpha * l1_ratio * [-1, 1]
+                    subdiff_dist[idx] = max(0, np.abs(grad[idx]) - alpha * l1_ratio)
+                else:
+                    # distance of -grad_j to
+                    # {alpha * (l1 ratio * sign(w[j]) + (1 - l1_ratio) * w[j])}
+                    subdiff_dist[idx] = np.abs(
+                        grad[idx] + alpha * (l1_ratio * np.sign(w[j])
+                                             + (1 - l1_ratio) * w[j]))
         return subdiff_dist
 
     def is_penalized(self, n_features):
@@ -120,20 +145,21 @@ class L1_plus_L2(BasePenalty):
 class WeightedL1(BasePenalty):
     """Weighted L1 penalty."""
 
-    def __init__(self, alpha, weights):
+    def __init__(self, alpha, weights, positive=False):
         self.alpha = alpha
         self.weights = weights.astype(np.float64)
+        self.positive = positive
 
     def get_spec(self):
         spec = (
             ('alpha', float64),
             ('weights', float64[:]),
+            ('positive', bool_),
         )
         return spec
 
     def params_to_dict(self):
-        return dict(alpha=self.alpha,
-                    weights=self.weights)
+        return dict(alpha=self.alpha, weights=self.weights, positive=self.positive)
 
     def value(self, w):
         """Compute the weighted L1 penalty."""
@@ -141,20 +167,32 @@ class WeightedL1(BasePenalty):
 
     def prox_1d(self, value, stepsize, j):
         """Compute the proximal operator of weighted L1 (weighted soft-thresholding)."""
-        return ST(value, self.alpha * stepsize * self.weights[j])
+        return ST(value, self.alpha * stepsize * self.weights[j], self.positive)
 
     def subdiff_distance(self, w, grad, ws):
         """Compute distance of negative gradient to the subdifferential at w."""
         subdiff_dist = np.zeros_like(grad)
+        alpha = self.alpha
+        weights = self.weights
+
         for idx, j in enumerate(ws):
-            if w[j] == 0:
-                # distance of - grad_j to alpha * weights[j] * [-1, 1]
-                subdiff_dist[idx] = max(
-                    0, np.abs(grad[idx]) - self.alpha * self.weights[j])
+            if self.positive:
+                if w[j] < 0:
+                    subdiff_dist[idx] = np.inf
+                elif w[j] == 0:
+                    # distance of -grad_j to (-infty, alpha * weights[j]]
+                    subdiff_dist[idx] = max(0, -grad[idx] - alpha * weights[j])
+                else:
+                    # distance of -grad_j to {alpha * weights[j]}
+                    subdiff_dist[idx] = np.abs(grad[idx] + alpha * weights[j])
             else:
-                # distance of - grad_j to alpha * weights[j] * sign(w[j])
-                subdiff_dist[idx] = np.abs(
-                    - grad[idx] - self.alpha * self.weights[j] * np.sign(w[j]))
+                if w[j] == 0:
+                    # distance of -grad_j to alpha * weights[j] * [-1, 1]
+                    subdiff_dist[idx] = max(0, np.abs(grad[idx]) - alpha * weights[j])
+                else:
+                    # distance of -grad_j to {alpha * weights[j] * sign(w[j])}
+                    subdiff_dist[idx] = np.abs(
+                        grad[idx] + alpha * weights[j] * np.sign(w[j]))
         return subdiff_dist
 
     def is_penalized(self, n_features):
@@ -176,49 +214,60 @@ class MCPenalty(BasePenalty):
 
     Notes
     -----
-    With x >= 0
-    pen(x) =
-    alpha * x - x^2 / (2 * gamma) if x =< gamma * alpha
-    gamma * alpha^2 / 2           if x > gamma * alpha
-    value = sum_{j=1}^{n_features} pen(abs(w_j))
+    With :math:`x >= 0`:
+
+    .. math::
+        "pen"(x) = {(alpha x - x^2 / (2 gamma), if x <= alpha gamma),
+                    (gamma alpha^2 / 2        , if x > alpha gamma):}
+    .. math::
+        "value" = sum_(j=1)^(n_"features") "pen"(abs(w_j))
     """
 
-    def __init__(self, alpha, gamma):
+    def __init__(self, alpha, gamma, positive=False):
         self.alpha = alpha
         self.gamma = gamma
+        self.positive = positive
 
     def get_spec(self):
         spec = (
             ('alpha', float64),
             ('gamma', float64),
+            ('positive', bool_)
         )
         return spec
 
     def params_to_dict(self):
         return dict(alpha=self.alpha,
-                    gamma=self.gamma)
+                    gamma=self.gamma,
+                    positive=self.positive)
 
     def value(self, w):
         return value_MCP(w, self.alpha, self.gamma)
 
     def prox_1d(self, value, stepsize, j):
         """Compute the proximal operator of MCP."""
-        return prox_MCP(value, stepsize, self.alpha, self.gamma)
+        return prox_MCP(value, stepsize, self.alpha, self.gamma, self.positive)
 
     def subdiff_distance(self, w, grad, ws):
         """Compute distance of negative gradient to the subdifferential at w."""
         subdiff_dist = np.zeros_like(grad)
         for idx, j in enumerate(ws):
-            if w[j] == 0:
-                # distance of -grad to alpha * [-1, 1]
-                subdiff_dist[idx] = max(0, np.abs(grad[idx]) - self.alpha)
-            elif np.abs(w[j]) < self.alpha * self.gamma:
-                # distance of -grad_j to (alpha * sign(w[j]) - w[j] / gamma)
-                subdiff_dist[idx] = np.abs(
-                    grad[idx] + self.alpha * np.sign(w[j]) - w[j] / self.gamma)
+            if self.positive and w[j] < 0:
+                subdiff_dist[idx] = np.inf
+            elif self.positive and w[j] == 0:
+                # distance of -grad to (-infty, alpha]
+                subdiff_dist[idx] = max(0, - grad[idx] - self.alpha)
             else:
-                # distance of grad to 0
-                subdiff_dist[idx] = np.abs(grad[idx])
+                if w[j] == 0:
+                    # distance of -grad to [-alpha, alpha]
+                    subdiff_dist[idx] = max(0, np.abs(grad[idx]) - self.alpha)
+                elif np.abs(w[j]) < self.alpha * self.gamma:
+                    # distance of -grad to {alpha * sign(w[j]) - w[j] / gamma}
+                    subdiff_dist[idx] = np.abs(
+                        grad[idx] + self.alpha * np.sign(w[j]) - w[j] / self.gamma)
+                else:
+                    # distance of grad to 0
+                    subdiff_dist[idx] = np.abs(grad[idx])
         return subdiff_dist
 
     def is_penalized(self, n_features):
@@ -234,18 +283,106 @@ class MCPenalty(BasePenalty):
         return np.max(np.abs(gradient0))
 
 
-class SCAD(BasePenalty):
-    """Smoothly Clipped Absolute Deviation.
+class WeightedMCPenalty(BasePenalty):
+    """Weighted Minimax Concave Penalty (MCP), a non-convex sparse penalty.
 
     Notes
     -----
-    With x >= 0
-    pen(x) =
-    alpha * x                         if x =< alpha
-    2 * gamma * alpha * x - x^2 - alpha^2 \
-        / 2 * (gamma - 1))            if alpha < x < alpha * gamma
-    alpha^2 * (gamma + 1) / 2      if x > gamma * alpha
-    value = sum_{j=1}^{n_features} pen(abs(w_j))
+    With :math:`x >= 0`:
+
+    .. math::
+        "pen"(x) = {(alpha x - x^2 / (2 gamma), if x <= alpha gamma),
+                    (gamma alpha^2 / 2        , if x > alpha gamma):}
+    .. math::
+        "value" = sum_(j=1)^(n_"features") "weights"_j xx "pen"(abs(w_j))
+    """
+
+    def __init__(self, alpha, gamma, weights, positive=False):
+        self.alpha = alpha
+        self.gamma = gamma
+        self.weights = weights.astype(np.float64)
+        self.positive = positive
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+            ('gamma', float64),
+            ('weights', float64[:]),
+            ('positive', bool_)
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha,
+                    gamma=self.gamma,
+                    weights=self.weights,
+                    positive=self.positive)
+
+    def value(self, w):
+        return value_weighted_MCP(w, self.alpha, self.gamma, self.weights)
+
+    def prox_1d(self, value, stepsize, j):
+        """Compute the proximal operator of the weighted MCP."""
+        return prox_MCP(
+            value, stepsize, self.alpha, self.gamma, self.positive, self.weights[j])
+
+    def subdiff_distance(self, w, grad, ws):
+        """Compute distance of negative gradient to the subdifferential at w."""
+        subdiff_dist = np.zeros_like(grad)
+        for idx, j in enumerate(ws):
+            if self.positive and w[j] < 0:
+                subdiff_dist[idx] = np.inf
+            elif self.positive and w[j] == 0:
+                # distance of -grad to (-infty, alpha * weights[j]]
+                subdiff_dist[idx] = max(
+                    0, - grad[idx] - self.alpha * self.weights[j])
+            else:
+                if w[j] == 0:
+                    # distance of -grad to weights[j] * [-alpha, alpha]
+                    subdiff_dist[idx] = max(
+                        0, np.abs(grad[idx]) - self.alpha * self.weights[j])
+                elif np.abs(w[j]) < self.alpha * self.gamma:
+                    # distance of -grad to
+                    # {weights[j] * alpha * sign(w[j]) - w[j] / gamma}
+                    subdiff_dist[idx] = np.abs(
+                        grad[idx] + self.alpha * self.weights[j] * np.sign(w[j])
+                        - self.weights[j] * w[j] / self.gamma)
+                else:
+                    # distance of grad to 0
+                    subdiff_dist[idx] = np.abs(grad[idx])
+        return subdiff_dist
+
+    def is_penalized(self, n_features):
+        """Return a binary mask with the penalized features."""
+        return np.ones(n_features, bool_)
+
+    def generalized_support(self, w):
+        """Return a mask with non-zero coefficients."""
+        return w != 0
+
+    def alpha_max(self, gradient0):
+        """Return penalization value for which 0 is solution."""
+        nnz_weights = self.weights != 0
+        return np.max(np.abs(gradient0[nnz_weights] / self.weights[nnz_weights]))
+
+
+class SCAD(BasePenalty):
+    r"""Smoothly Clipped Absolute Deviation.
+
+    Notes
+    -----
+    With :math:`x >= 0`:
+
+    .. math::
+        "pen"(x) = {
+            (alpha x                  , if \ \ \ \ \ \ \ \ \ \ x <= alpha),
+            (2 alpha gamma x - x^2 - alpha^2 / 2 (gamma - 1)
+                                      , if       alpha \ \   < x <= alpha gamma),
+            (alpha^2 (gamma + 1) / 2  , if       alpha gamma < x  )
+        :}
+
+    .. math::
+        "value" = sum_(j=1)^(n_"features") "pen"(abs(w_j))
     """
 
     def __init__(self, alpha, gamma):
@@ -307,9 +444,10 @@ class IndicatorBox(BasePenalty):
 
     Notes
     -----
-    ind_[0, alpha]^n_samples
-    where ind is the indicator function of the convex set
-    [0, alpha]^n_samples
+    .. math:: bb"1"_([0, alpha]^(n_"samples"))
+
+    where :math:`bb"1"` is the indicator function of the convex set
+    :math:`[0, alpha]^(n_"samples")`
     """
 
     def __init__(self, alpha):
@@ -363,7 +501,7 @@ class IndicatorBox(BasePenalty):
 
 
 class L0_5(BasePenalty):
-    """L_{0.5} non-convex quasi-norm penalty."""
+    """:math:`ell_(0.5)` non-convex quasi-norm penalty."""
 
     def __init__(self, alpha):
         self.alpha = alpha
@@ -416,7 +554,7 @@ class L0_5(BasePenalty):
 
 
 class L2_3(BasePenalty):
-    """L_{2/3} quasi-norm non-convex penalty."""
+    """:math:`ell_(2/3)` quasi-norm non-convex penalty."""
 
     def __init__(self, alpha):
         self.alpha = alpha
@@ -502,6 +640,43 @@ class LogSumPenalty(BasePenalty):
         """Compute distance of negative gradient to the subdifferential at w."""
         raise NotImplementedError("TODO?")
 
+
+class PositiveConstraint(BasePenalty):
+    """Positivity constraint penalty."""
+
+    def __init__(self):
+        pass
+
+    def get_spec(self):
+        return ()
+
+    def params_to_dict(self):
+        return dict()
+
+    def value(self, w):
+        """Compute the value of the PositiveConstraint penalty at w."""
+        return np.inf if (w < 0).any() else 0.
+
+    def prox_1d(self, value, stepsize, j):
+        """Compute the proximal operator of the PositiveConstraint."""
+        return max(0., value)
+
+    def subdiff_distance(self, w, grad, ws):
+        """Compute distance of negative gradient to the subdifferential at w."""
+        subdiff_dist = np.zeros_like(grad)
+        for idx, j in enumerate(ws):
+            if w[j] == 0:
+                # distance of - grad_j to  ]-infty, 0]
+                subdiff_dist[idx] = max(0, -grad[idx])
+            elif w[j] > 0:
+                # distance of - grad_j to 0
+                subdiff_dist[idx] = abs(-grad[idx])
+            else:
+                # subdiff is empty, distance is infinite
+                subdiff_dist[idx] = np.inf
+
+        return subdiff_dist
+
     def is_penalized(self, n_features):
         """Return a binary mask with the penalized features."""
         return np.ones(n_features, bool_)
@@ -509,3 +684,34 @@ class LogSumPenalty(BasePenalty):
     def generalized_support(self, w):
         """Return a mask with non-zero coefficients."""
         return w != 0
+
+
+class L2(BasePenalty):
+    r""":math:`ell_2` penalty.
+
+    The penalty reads
+
+    .. math::
+
+        \alpha / 2  ||w||_2^2
+    """
+
+    def __init__(self, alpha):
+        self.alpha = alpha
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha)
+
+    def value(self, w):
+        """Compute the value of the L2 penalty."""
+        return self.alpha * (w ** 2).sum() / 2
+
+    def gradient(self, w):
+        """Compute the gradient of the L2 penalty."""
+        return self.alpha * w

@@ -9,7 +9,7 @@ from sklearn.linear_model import LinearRegression
 from skglm.datafits import Quadratic, QuadraticMultiTask
 from skglm.penalties import (
     L1, L1_plus_L2, WeightedL1, MCPenalty, SCAD, IndicatorBox, L0_5, L2_3, SLOPE,
-    PositiveConstraint, L2_1, L2_05, BlockMCPenalty, BlockSCAD)
+    LogSumPenalty, PositiveConstraint, L2_1, L2_05, BlockMCPenalty, BlockSCAD)
 from skglm import GeneralizedLinearEstimator, Lasso
 from skglm.solvers import AndersonCD, MultiTaskBCD, FISTA
 from skglm.utils.data import make_correlated_data
@@ -37,7 +37,9 @@ penalties = [
     SCAD(alpha=alpha, gamma=4),
     IndicatorBox(alpha=alpha),
     L0_5(alpha),
-    L2_3(alpha)]
+    L2_3(alpha),
+    LogSumPenalty(alpha=alpha, eps=1e-2)
+]
 
 block_penalties = [
     L2_1(alpha=alpha), L2_05(alpha=alpha),

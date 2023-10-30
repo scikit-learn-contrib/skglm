@@ -209,7 +209,8 @@ def prox_SLOPE(z, alphas):
 @njit
 def log_1p_exp_vec(x, eps):
     """Map log(1 + exp(x) / eps) to vector."""
-    return np.log(1 + np.exp(x) / eps)
+    return np.log1p(np.exp(x) / eps)
+    # return np.log(1 + np.exp(x) / eps)
 
 
 @njit
@@ -224,7 +225,13 @@ def _log_sum_prox_val(x, z, alpha, eps):
 
 @njit
 def _r(x, alpha, eps):
-    """Compute r as defined in Prater-Bennette et al. (2021)."""
+    """Compute r as defined in [1] (eq. 9).
+
+    References
+    ----------
+    .. [1] Ashley Prater-Bennette, Lixin Shen, Erin E. Tripp
+        The Proximity Operator of the Log-Sum Penalty (2021)
+    """
     r_z = _log_sum_prox_val(_root_prox_log_vec(x, alpha, eps), x, alpha, eps)
     r_0 = _log_sum_prox_val(0, x, alpha, eps)
     return r_z - r_0
@@ -257,12 +264,10 @@ def prox_log_sum(x, alpha, eps):
     eps : float
         Curvature hyperparameter.
 
-    Reference
-    ---------
-        https://www.researchgate.net/profile/Erin-Tripp/publication/ \
-        349804616_The_Proximity_Operator_of_the_Log-Sum_Penalty/links/ \
-        60914684a6fdccaebd08e9ff/The-Proximity-Operator-of-the-Log-Sum-Penalty.pdf \
-        ?origin=publication_detail
+    References
+    ----------
+    .. [1] Ashley Prater-Bennette, Lixin Shen, Erin E. Tripp
+        The Proximity Operator of the Log-Sum Penalty (2021)
     """
     if np.sqrt(alpha) <= eps:
         if abs(x) <= alpha / eps:

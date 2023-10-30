@@ -638,7 +638,19 @@ class LogSumPenalty(BasePenalty):
 
     def subdiff_distance(self, w, grad, ws):
         """Compute distance of negative gradient to the subdifferential at w."""
-        raise NotImplementedError("TODO?")
+        subdiff_dist = np.zeros_like(grad)
+        alpha = self.alpha
+        eps = self.eps
+
+        for idx, j in enumerate(ws):
+            if w[j] == 0:
+                # distance of -grad_j to [-alpha/eps, alpha/eps]
+                subdiff_dist[idx] = max(0, np.abs(grad[idx]) - alpha / eps)
+            else:
+                # distance of -grad_j to {alpha * sign(w[j]) / (eps + |w[j]|)}
+                subdiff_dist[idx] = np.abs(
+                    grad[idx] + np.sign(w[j]) * alpha / (eps + np.abs(w[j])))
+        return subdiff_dist
 
     def is_penalized(self, n_features):
         """Return a binary mask with the penalized features."""

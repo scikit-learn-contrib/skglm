@@ -1,13 +1,13 @@
 ---
 name: Bug report
-
+about: Report a problem
 ---
 
-# Describe the bug
+## Describe the bug
 
 <!-- Concise description of the bug -->
 
-# Steps to reproduce
+## Steps to reproduce
 
 <!-- You can provide a snippet that reproduces the bug -->
 

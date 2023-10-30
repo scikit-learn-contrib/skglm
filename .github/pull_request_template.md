@@ -1,4 +1,4 @@
-# Context of the PR
+## Context of the PR
 
 <!--
 
@@ -7,7 +7,7 @@ Any detail to be able to relate the PR changes
 
 -->
 
-# Contributions of the PR
+## Contributions of the PR
 
 <!-- List the contribution of the PR -->
 

@@ -630,7 +630,7 @@ class LogSumPenalty(BasePenalty):
 
     def derivative(self, w):
         """Compute the element-wise derivative."""
-        return (1. / (np.abs(w) + self.eps)) * np.sign(w)
+        return np.sign(w) / (np.abs(w) + self.eps)
 
     def prox_1d(self, value, stepsize, j):
         """Compute the proximal operator of the log-sum penalty."""

@@ -269,7 +269,7 @@
 <h1>skglm.datafits.QuadraticGroup<a class="headerlink" href="#skglm-datafits-quadraticgroup" title="Permalink to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="skglm.datafits.QuadraticGroup">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">QuadraticGroup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grp_ptr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp_indices</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/59f91f7/skglm/datafits/group.py#L9"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.QuadraticGroup" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">QuadraticGroup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grp_ptr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp_indices</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/57c6091/skglm/datafits/group.py#L9"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.QuadraticGroup" title="Permalink to this definition">#</a></dt>
 <dd><p>Quadratic datafit used with group penalties.</p>
 <p>The datafit reads:</p>
 <div class="math-wrapper docutils container">
@@ -285,14 +285,12 @@
 <dt><strong>grp_ptr</strong><span class="classifier">array, shape (n_groups + 1,)</span></dt><dd><p>The group pointers such that two consecutive elements delimit
 the indices of a group in <code class="docutils literal notranslate"><span class="pre">grp_indices</span></code>.</p>
 </dd>
-<dt><strong>lipschitz</strong><span class="classifier">array, shape (n_groups,)</span></dt><dd><p>The lipschitz constants for each group.</p>
-</dd>
 </dl>
 </dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="skglm.datafits.QuadraticGroup.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grp_ptr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp_indices</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/59f91f7/skglm/datafits/group.py#L30"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.QuadraticGroup.__init__" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grp_ptr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp_indices</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/57c6091/skglm/datafits/group.py#L27"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.QuadraticGroup.__init__" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
@@ -302,31 +300,34 @@ the indices of a group in <code class="docutils literal notranslate"><span class
 <tr class="row-odd"><td><p><a class="reference internal" href="#skglm.datafits.QuadraticGroup.__init__" title="skglm.datafits.QuadraticGroup.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(grp_ptr, grp_indices)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_spec</span></code>()</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_lipschitz</span></code>(X, y)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_spec</span></code>()</p></td>
 <td><p>Specify the numba types of the class attributes.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient_g</span></code>(X, y, w, Xw, g)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient_g</span></code>(X, y, w, Xw, g)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient_scalar</span></code>(X, y, w, Xw, j)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient_scalar</span></code>(X, y, w, Xw, j)</p></td>
 <td><p>Gradient with respect to j-th coordinate of w.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient_scalar_sparse</span></code>(X_data, X_indptr, ...)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient_scalar_sparse</span></code>(X_data, X_indptr, ...)</p></td>
 <td><p>Gradient with respect to j-th coordinate of w when X is sparse.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize</span></code>(X, y)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize</span></code>(X, y)</p></td>
 <td><p>Pre-computations before fitting on X and y.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_sparse</span></code>(X_data, X_indptr, X_indices, y)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_sparse</span></code>(X_data, X_indptr, X_indices, y)</p></td>
 <td><p>Pre-computations before fitting on X and y when X is a sparse matrix.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">intercept_update_step</span></code>(y, Xw)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">intercept_update_step</span></code>(y, Xw)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
 <td><p>Get the parameters to initialize an instance of the class.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(y, w, Xw)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(y, w, Xw)</p></td>
 <td><p>Value of datafit at vector w.</p></td>
 </tr>
 </tbody>

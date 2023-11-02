@@ -2,7 +2,19 @@ from abc import abstractmethod
 
 
 class BaseSolver():
-    """Base class for solvers."""
+    """Base class for solvers.
+
+    Attributes
+    ----------
+    _datafit_required_attr : list of str
+        List of attributes that must implemented in Datafit.
+
+    _penalty_required_attr : list of str
+        List of attributes that must implemented in Penalty.
+    """
+
+    _datafit_required_attr: list
+    _penalty_required_attr: list
 
     @abstractmethod
     def solve(self, X, y, datafit, penalty, w_init, Xw_init):

@@ -15,16 +15,18 @@
 import os
 import sys
 import warnings
-# import os
+
 import sphinx_gallery  # noqa
-import sphinx_bootstrap_theme
+import sphinx_bootstrap_theme  # noqa
 from numpydoc import numpydoc, docscrape  # noqa
-from doc.github_link import make_linkcode_resolve
 
 from skglm import __version__ as version
 
-curdir = os.path.dirname(__file__)
-sys.path.append(os.path.abspath(os.path.join(curdir, 'sphinxext')))
+# include custom extension
+curdir = os.path.dirname(__file__)  # noqa
+sys.path.append(os.path.abspath(os.path.join(curdir, 'sphinxext')))  # noqa
+
+from github_link import make_linkcode_resolve
 
 
 # Mathurin: disable agg warnings in doc

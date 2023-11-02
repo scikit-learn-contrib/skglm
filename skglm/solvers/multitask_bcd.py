@@ -11,7 +11,7 @@ class MultiTaskBCD(BaseSolver):
     """Block coordinate descent solver for multi-task problems."""
 
     _datafit_required_attr = ("get_lipschitz", "gradient_j")
-    _penalty_required_attr = ("prox_1feat", "subdiff_distance")
+    _penalty_required_attr = ("prox_1feat",)
 
     def __init__(self, max_iter=100, max_epochs=50_000, p0=10, tol=1e-6,
                  use_acc=True, ws_strategy="subdiff", fit_intercept=True,
@@ -235,7 +235,10 @@ class MultiTaskBCD(BaseSolver):
 
     def validate(self, datafit, penalty):
         check_obj_solver_attr_compatibility(datafit, self, self._datafit_required_attr)
-        check_obj_solver_attr_compatibility(penalty, self, self._penalty_required_attr)
+
+        if self.ws_strategy == "subdiff":
+            penalty_required_attr = self._penalty_required_attr + ("subdiff_distance",)
+        check_obj_solver_attr_compatibility(penalty, self, penalty_required_attr)
 
 
 @njit

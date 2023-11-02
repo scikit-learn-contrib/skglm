@@ -22,9 +22,6 @@ class QuadraticGroup(BaseDatafit):
     grp_ptr : array, shape (n_groups + 1,)
         The group pointers such that two consecutive elements delimit
         the indices of a group in ``grp_indices``.
-
-    lipschitz : array, shape (n_groups,)
-        The lipschitz constants for each group.
     """
 
     def __init__(self, grp_ptr, grp_indices):
@@ -34,7 +31,6 @@ class QuadraticGroup(BaseDatafit):
         spec = (
             ('grp_ptr', int32[:]),
             ('grp_indices', int32[:]),
-            ('lipschitz', float64[:])
         )
         return spec
 
@@ -42,7 +38,7 @@ class QuadraticGroup(BaseDatafit):
         return dict(grp_ptr=self.grp_ptr,
                     grp_indices=self.grp_indices)
 
-    def initialize(self, X, y):
+    def get_lipschitz(self, X, y):
         grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
         n_groups = len(grp_ptr) - 1
 
@@ -52,7 +48,7 @@ class QuadraticGroup(BaseDatafit):
             X_g = X[:, grp_g_indices]
             lipschitz[g] = norm(X_g, ord=2) ** 2 / len(y)
 
-        self.lipschitz = lipschitz
+        return lipschitz
 
     def value(self, y, w, Xw):
         return norm(y - Xw) ** 2 / (2 * len(y))

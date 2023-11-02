@@ -19,7 +19,7 @@ Your contribution is welcome and highly valuable. It can be
     You can use the `the issue section <https://github.com/scikit-learn-contrib/skglm/issues>`_ to make suggestions.
 
 **pull request**
-    you may have fixed a bug, added a feature, or even fixed a small typo in the documentation, ... 
+    you may have fixed a bug, added a feature, or even fixed a small typo in the documentation, ...
     You can submit a `pull request <https://github.com/scikit-learn-contrib/skglm/pulls>`_
     to integrate your changes and we will reach out to you shortly.
 
@@ -56,5 +56,5 @@ contribute with code or documentation.
 .. code-block:: shell
 
     $ cd doc
-    $ pip install -r doc-requirements.txt
+    $ pip install .[doc]
     $ make html

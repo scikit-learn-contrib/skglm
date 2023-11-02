@@ -67,6 +67,8 @@ class GroupBCD(BaseSolver):
             raise ValueError(val_error_message)
 
         datafit.initialize(X, y)
+        lipschitz = datafit.get_lipschitz(X, y)
+
         all_groups = np.arange(n_groups)
         p_objs_out = np.zeros(self.max_iter)
         stop_crit = 0.  # prevent ref before assign when max_iter == 0
@@ -100,7 +102,7 @@ class GroupBCD(BaseSolver):
 
             for epoch in range(self.max_epochs):
                 # inplace update of w and Xw
-                _bcd_epoch(X, y, w[:n_features], Xw, datafit, penalty, ws)
+                _bcd_epoch(X, y, w[:n_features], Xw, lipschitz, datafit, penalty, ws)
 
                 # update intercept
                 if self.fit_intercept:
@@ -140,7 +142,7 @@ class GroupBCD(BaseSolver):
 
 
 @njit
-def _bcd_epoch(X, y, w, Xw, datafit, penalty, ws):
+def _bcd_epoch(X, y, w, Xw, lipschitz, datafit, penalty, ws):
     # perform a single BCD epoch on groups in ws
     grp_ptr, grp_indices = penalty.grp_ptr, penalty.grp_indices
 
@@ -148,7 +150,7 @@ def _bcd_epoch(X, y, w, Xw, datafit, penalty, ws):
         grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
         old_w_g = w[grp_g_indices].copy()
 
-        lipschitz_g = datafit.lipschitz[g]
+        lipschitz_g = lipschitz[g]
         grad_g = datafit.gradient_g(X, y, w, Xw, g)
 
         w[grp_g_indices] = penalty.prox_1group(

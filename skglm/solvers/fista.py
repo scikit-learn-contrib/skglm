@@ -117,5 +117,5 @@ class FISTA(BaseSolver):
         return w, np.array(p_objs_out), stop_crit
 
     def validate(self, datafit, penalty):
-        check_obj_solver_attr_compatibility(datafit, self._datafit_required_attr)
-        check_obj_solver_attr_compatibility(penalty, self._penalty_required_attr)
+        check_obj_solver_attr_compatibility(datafit, self, self._datafit_required_attr)
+        check_obj_solver_attr_compatibility(penalty, self, self._penalty_required_attr)

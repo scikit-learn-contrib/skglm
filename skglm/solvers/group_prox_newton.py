@@ -44,7 +44,7 @@ class GroupProxNewton(BaseSolver):
     """
 
     _datafit_required_attr = ("raw_grad", "raw_hessian")
-    _penalty_required_attr = ("subdiff_distance", "prox_1group")
+    _penalty_required_attr = ("prox_1group", "subdiff_distance")
 
     def __init__(self, p0=10, max_iter=20, max_pn_iter=1000, tol=1e-4,
                  fit_intercept=False, warm_start=False, verbose=0):

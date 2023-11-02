@@ -5,13 +5,14 @@ from numpy.linalg import norm
 from scipy.sparse import issparse
 
 from numba import njit
+from skglm.solvers import BaseSolver
 from skglm.utils.jit_compilation import compiled_clone
 from skglm.utils.validation import check_obj_solver_attr_compatibility
 
 from sklearn.exceptions import ConvergenceWarning
 
 
-class PDCD_WS:
+class PDCD_WS(BaseSolver):
     r"""Primal-Dual Coordinate Descent solver with working sets.
 
     It solves
@@ -94,9 +95,14 @@ class PDCD_WS:
 
     def solve(self, X, y, datafit_, penalty_, w_init=None, Xw_init=None):
         if issparse(X):
-            raise ValueError("Sparse matrices are not yet support in PDCD_WS solver.")
+            raise ValueError("Sparse matrices are not yet support in `PDCD_WS` solver.")
 
-        datafit, penalty = PDCD_WS._validate_init(datafit_, penalty_)
+        self.validate(datafit_, penalty_)
+
+        # jit compile classes
+        datafit = compiled_clone(datafit_)
+        penalty = compiled_clone(penalty_)
+
         n_samples, n_features = X.shape
 
         # init steps
@@ -201,15 +207,9 @@ class PDCD_WS:
                 if stop_crit_in <= tol_in:
                     break
 
-    def _validate_init(self, datafit, penalty):
+    def validate(self, datafit, penalty):
         check_obj_solver_attr_compatibility(datafit, self, self._datafit_required_attr)
         check_obj_solver_attr_compatibility(penalty, self, self._penalty_required_attr)
-
-        # jit compile classes
-        compiled_datafit = compiled_clone(datafit)
-        compiled_penalty = compiled_clone(penalty)
-
-        return compiled_datafit, compiled_penalty
 
 
 @njit

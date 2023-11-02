@@ -51,7 +51,7 @@ class GramCD(BaseSolver):
         Amount of verbosity. 0/False is silent.
     """
 
-    _datafit_required_attr = ("gradient_scalar",)
+    _datafit_required_attr = ()
     _penalty_required_attr = ("prox_1d", "subdiff_distance")
 
     def __init__(self, max_iter=100, use_acc=True, greedy_cd=True, tol=1e-4,

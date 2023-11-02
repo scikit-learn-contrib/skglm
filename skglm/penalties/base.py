@@ -29,10 +29,6 @@ class BasePenalty():
         """Value of penalty at vector w."""
 
     @abstractmethod
-    def prox_1d(self, value, stepsize, j):
-        """Proximal operator of penalty for feature j."""
-
-    @abstractmethod
     def subdiff_distance(self, w, grad, ws):
         """Distance of negative gradient to subdifferential at w for features in `ws`.
 

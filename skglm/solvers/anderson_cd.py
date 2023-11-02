@@ -49,7 +49,7 @@ class AndersonCD(BaseSolver):
     """
 
     _datafit_required_attr = ("get_lipschitz", "gradient_scalar")
-    _penalty_required_attr = ("prox_1d",)
+    _penalty_required_attr = ()
 
     def __init__(self, max_iter=50, max_epochs=50_000, p0=10,
                  tol=1e-4, ws_strategy="subdiff", fit_intercept=True,
@@ -273,10 +273,7 @@ class AndersonCD(BaseSolver):
 
     def validate(self, datafit, penalty):
         check_obj_solver_attr_compatibility(datafit, self, self._datafit_required_attr)
-
-        if self.ws_strategy == "subdiff":
-            penalty_required_attr = self._penalty_required_attr + ("subdiff_distance",)
-        check_obj_solver_attr_compatibility(penalty, self, penalty_required_attr)
+        check_obj_solver_attr_compatibility(penalty, self, self._penalty_required_attr)
 
 
 @njit

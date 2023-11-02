@@ -28,7 +28,7 @@ class FISTA(BaseSolver):
            https://epubs.siam.org/doi/10.1137/080716542
     """
 
-    _datafit_required_attr = ("init_global_lipschitz",)
+    _datafit_required_attr = ("get_global_lipschitz",)
     _penalty_required_attr = ()
 
     def __init__(self, max_iter=100, tol=1e-4, opt_strategy="subdiff", verbose=0):
@@ -118,7 +118,4 @@ class FISTA(BaseSolver):
 
     def validate(self, datafit, penalty):
         check_obj_solver_attr_compatibility(datafit, self, self._datafit_required_attr)
-
-        if self.opt_strategy == "subdiff":
-            penalty_required_attr = self._penalty_required_attr + ("subdiff_distance",)
-        check_obj_solver_attr_compatibility(penalty, self, penalty_required_attr)
+        check_obj_solver_attr_compatibility(penalty, self, self._penalty_required_attr)

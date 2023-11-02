@@ -37,7 +37,7 @@ test = [
     "pytest",
     "flake8",
     "coverage",
-    "numpydoc,"
+    "numpydoc",
 ]
 
 doc = [
@@ -52,5 +52,5 @@ doc = [
     "sphinx-gallery",
     "pytest",
     "furo",
-    "lifelines"
+    "lifelines",
 ]

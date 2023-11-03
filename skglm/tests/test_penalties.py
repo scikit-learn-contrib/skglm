@@ -141,5 +141,4 @@ def test_logsum_prox():
 
 
 if __name__ == "__main__":
-    test_logsum_prox()
     pass

@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="skglm.datafits.Gamma" href="skglm.datafits.Gamma.html" /><link rel="prev" title="skglm.penalties.SLOPE" href="skglm.penalties.SLOPE.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="skglm.penalties.MCPenalty" href="skglm.penalties.MCPenalty.html" /><link rel="prev" title="skglm.penalties.L2_3" href="skglm.penalties.L2_3.html" />
 
     <!-- Generated with Sphinx 7.1.2 and Furo 2023.09.10 -->
-        <title>skglm.datafits.Cox - skglm 0.3.1dev documentation</title>
+        <title>skglm.penalties.LogSumPenalty - skglm 0.3.1dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -197,7 +197,7 @@
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L1_plus_L2.html">skglm.penalties.L1_plus_L2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L2.html">skglm.penalties.L2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L2_3.html">skglm.penalties.L2_3</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.penalties.LogSumPenalty.html">skglm.penalties.LogSumPenalty</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">skglm.penalties.LogSumPenalty</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.MCPenalty.html">skglm.penalties.MCPenalty</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.PositiveConstraint.html">skglm.penalties.PositiveConstraint</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.WeightedL1.html">skglm.penalties.WeightedL1</a></li>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.SCAD.html">skglm.penalties.SCAD</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.BlockSCAD.html">skglm.penalties.BlockSCAD</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.SLOPE.html">skglm.penalties.SLOPE</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">skglm.datafits.Cox</a></li>
+<li class="toctree-l2"><a class="reference internal" href="skglm.datafits.Cox.html">skglm.datafits.Cox</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.datafits.Gamma.html">skglm.datafits.Gamma</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.datafits.Huber.html">skglm.datafits.Huber</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.datafits.Logistic.html">skglm.datafits.Logistic</a></li>
@@ -266,90 +266,52 @@
           </label>
         </div>
         <article role="main">
-          <section id="skglm-datafits-cox">
-<h1>skglm.datafits.Cox<a class="headerlink" href="#skglm-datafits-cox" title="Permalink to this heading">#</a></h1>
+          <section id="skglm-penalties-logsumpenalty">
+<h1>skglm.penalties.LogSumPenalty<a class="headerlink" href="#skglm-penalties-logsumpenalty" title="Permalink to this heading">#</a></h1>
 <dl class="py class">
-<dt class="sig sig-object py" id="skglm.datafits.Cox">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">Cox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_efron</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/5309fd9/skglm/datafits/single_task.py#L537"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.Cox" title="Permalink to this definition">#</a></dt>
-<dd><p>Cox datafit for survival analysis.</p>
-<p>Refer to <a class="reference internal" href="../tutorials/cox_datafit.html#maths-cox-datafit"><span class="std std-ref">Mathematics behind Cox datafit</span></a> for details.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>use_efron</strong><span class="classifier">bool, default=False</span></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code> uses Efron estimate to handle tied observations.</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Attributes<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt><strong>T_indices</strong><span class="classifier">array-like, shape (n_samples,)</span></dt><dd><p>Indices of observations with the same occurrence times stacked horizontally as
-<code class="docutils literal notranslate"><span class="pre">[group_1,</span> <span class="pre">group_2,</span> <span class="pre">...]</span></code> in ascending order. It is initialized
-with the <code class="docutils literal notranslate"><span class="pre">.initialize</span></code> method (or <code class="docutils literal notranslate"><span class="pre">initialize_sparse</span></code> for sparse <code class="docutils literal notranslate"><span class="pre">X</span></code>).</p>
-</dd>
-<dt><strong>T_indptr</strong><span class="classifier">array-like, (np.unique(tm) + 1,)</span></dt><dd><p>Array where two consecutive elements delimit a group of
-observations having the same occurrence times.</p>
-</dd>
-<dt><strong>H_indices</strong><span class="classifier">array-like, shape (n_samples,)</span></dt><dd><p>Indices of uncensored observations with the same occurrence times stacked
-horizontally as <code class="docutils literal notranslate"><span class="pre">[group_1,</span> <span class="pre">group_2,</span> <span class="pre">...]</span></code> in ascending order.
-It is initialized when calling the <code class="docutils literal notranslate"><span class="pre">.initialize</span></code> method
-(or <code class="docutils literal notranslate"><span class="pre">initialize_sparse</span></code> for sparse <code class="docutils literal notranslate"><span class="pre">X</span></code>) when <code class="docutils literal notranslate"><span class="pre">use_efron=True</span></code>.</p>
-</dd>
-<dt><strong>H_indptr</strong><span class="classifier">array-like, shape (np.unique(tm[s != 0]) + 1,)</span></dt><dd><p>Array where two consecutive elements delimits a group of uncensored
-observations having the same occurrence time.</p>
-</dd>
-</dl>
-</dd>
-</dl>
+<dt class="sig sig-object py" id="skglm.penalties.LogSumPenalty">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.penalties.</span></span><span class="sig-name descname"><span class="pre">LogSumPenalty</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/5309fd9/skglm/penalties/separable.py#L610"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.penalties.LogSumPenalty" title="Permalink to this definition">#</a></dt>
+<dd><p>Log sum penalty.</p>
+<p>The penalty value reads</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`&quot;value&quot;(w) = sum_(j=1)^(n_&quot;features&quot;) log(1 + abs(w_j) / epsilon)`</div>
+</div>
 <dl class="py method">
-<dt class="sig sig-object py" id="skglm.datafits.Cox.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_efron</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/5309fd9/skglm/datafits/single_task.py#L569"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.Cox.__init__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="skglm.penalties.LogSumPenalty.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/5309fd9/skglm/penalties/separable.py#L620"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.penalties.LogSumPenalty.__init__" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#skglm.datafits.Cox.__init__" title="skglm.datafits.Cox.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>([use_efron])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#skglm.penalties.LogSumPenalty.__init__" title="skglm.penalties.LogSumPenalty.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(alpha, eps)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_global_lipschitz</span></code>(X, y)</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">derivative</span></code>(w)</p></td>
+<td><p>Compute the element-wise derivative.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_global_lipschitz_sparse</span></code>(X_data, ...)</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">generalized_support</span></code>(w)</p></td>
+<td><p>Return a mask which is True for coefficients in the generalized support.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_spec</span></code>()</p></td>
 <td><p>Specify the numba types of the class attributes.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient</span></code>(X, y, Xw)</p></td>
-<td><p>Compute gradient of the datafit.</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_penalized</span></code>(n_features)</p></td>
+<td><p>Return a binary mask with the penalized features.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient_scalar</span></code>(X, y, w, Xw, j)</p></td>
-<td><p>Gradient with respect to j-th coordinate of w.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient_scalar_sparse</span></code>(X_data, X_indptr, ...)</p></td>
-<td><p>Gradient with respect to j-th coordinate of w when X is sparse.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient_sparse</span></code>(X_data, X_indptr, X_indices, ...)</p></td>
-<td><p>Compute gradient of the datafit in case <code class="docutils literal notranslate"><span class="pre">X</span></code> is sparse.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize</span></code>(X, y)</p></td>
-<td><p>Initialize the datafit attributes.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_sparse</span></code>(X_data, X_indptr, X_indices, y)</p></td>
-<td><p>Initialize the datafit attributes in sparse dataset case.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
 <td><p>Get the parameters to initialize an instance of the class.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">raw_grad</span></code>(y, Xw)</p></td>
-<td><p>Compute gradient of datafit w.r.t.</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">prox_1d</span></code>(value, stepsize, j)</p></td>
+<td><p>Compute the proximal operator of the log-sum penalty.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">raw_hessian</span></code>(y, Xw)</p></td>
-<td><p>Compute a diagonal upper bound of the datafit's Hessian w.r.t.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">subdiff_distance</span></code>(w, grad, ws)</p></td>
+<td><p>Compute distance of negative gradient to the subdifferential at w.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(y, w, Xw)</p></td>
-<td><p>Compute the value of the datafit.</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(w)</p></td>
+<td><p>Compute the value of the log-sum penalty at <code class="docutils literal notranslate"><span class="pre">w</span></code>.</p></td>
 </tr>
 </tbody>
 </table>
@@ -363,23 +325,23 @@ observations having the same occurrence time.</p>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="skglm.datafits.Gamma.html">
+          <a class="next-page" href="skglm.penalties.MCPenalty.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">skglm.datafits.Gamma</div>
+                <div class="title">skglm.penalties.MCPenalty</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="skglm.penalties.SLOPE.html">
+          <a class="prev-page" href="skglm.penalties.L2_3.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">skglm.penalties.SLOPE</div>
+                <div class="title">skglm.penalties.L2_3</div>
                 
               </div>
             </a>
@@ -420,9 +382,9 @@ observations having the same occurrence time.</p>
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">skglm.datafits.Cox</a><ul>
-<li><a class="reference internal" href="#skglm.datafits.Cox"><code class="docutils literal notranslate"><span class="pre">Cox</span></code></a><ul>
-<li><a class="reference internal" href="#skglm.datafits.Cox.__init__"><code class="docutils literal notranslate"><span class="pre">Cox.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#">skglm.penalties.LogSumPenalty</a><ul>
+<li><a class="reference internal" href="#skglm.penalties.LogSumPenalty"><code class="docutils literal notranslate"><span class="pre">LogSumPenalty</span></code></a><ul>
+<li><a class="reference internal" href="#skglm.penalties.LogSumPenalty.__init__"><code class="docutils literal notranslate"><span class="pre">LogSumPenalty.__init__()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -442,6 +404,8 @@ observations having the same occurrence time.</p>
     <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=30646c52"></script>
+    <script>window.MathJax = {"loader": {"load": ["input/asciimath"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/scripts/asciimath-defines.js?v=d20fafab"></script>
     </body>
 </html>

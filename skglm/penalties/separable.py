@@ -626,7 +626,7 @@ class LogSumPenalty(BasePenalty):
 
     def value(self, w):
         """Compute the value of the log-sum penalty at w."""
-        return self.alpha * np.sum(np.log(1 + abs(w) / self.eps))
+        return self.alpha * np.sum(np.log(1 + np.abs(w) / self.eps))
 
     def derivative(self, w):
         """Compute the element-wise derivative."""

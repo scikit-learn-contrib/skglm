@@ -207,38 +207,6 @@ def prox_SLOPE(z, alphas):
 
 
 @njit
-def _r2(x, alpha, eps):
-    # compute r2 as in (eq. 7), ref [1] in `prox_log_sum`
-    return (x - eps) / 2. + np.sqrt(((x + eps) ** 2) / 4 - alpha)
-
-
-@njit
-def _log_sum_prox_val(x, z, alpha, eps):
-    # prox objective of log-sum `log(1 + abs(x) / eps)`
-    return ((x - z) ** 2) / (2 * alpha) + np.log1p(np.abs(x) / eps)
-
-
-@njit
-def _r(x, alpha, eps):
-    # compute r as defined in (eq. 9), ref [1] in `prox_log_sum`
-    r_z = _log_sum_prox_val(_r2(x, alpha, eps), x, alpha, eps)
-    r_0 = _log_sum_prox_val(0, x, alpha, eps)
-    return r_z - r_0
-
-
-@njit
-def _find_root_by_bisection(a, b, alpha, eps, tol=1e-8):
-    # find root of function func in interval [a, b] by bisection."""
-    while b - a > tol:
-        c = (a + b) / 2.
-        if _r(a, alpha, eps) * _r(c, alpha, eps) < 0:
-            b = c
-        else:
-            a = c
-    return c
-
-
-@njit
 def prox_log_sum(x, alpha, eps):
     """Proximal operator of log-sum penalty.
 
@@ -272,3 +240,35 @@ def prox_log_sum(x, alpha, eps):
             return 0.
         else:
             return np.sign(x) * _r2(abs(x), alpha, eps)
+
+
+@njit
+def _r2(x, alpha, eps):
+    # compute r2 as in (eq. 7), ref [1] in `prox_log_sum`
+    return (x - eps) / 2. + np.sqrt(((x + eps) ** 2) / 4 - alpha)
+
+
+@njit
+def _log_sum_prox_val(x, z, alpha, eps):
+    # prox objective of log-sum `log(1 + abs(x) / eps)`
+    return ((x - z) ** 2) / (2 * alpha) + np.log1p(np.abs(x) / eps)
+
+
+@njit
+def _r(x, alpha, eps):
+    # compute r as defined in (eq. 9), ref [1] in `prox_log_sum`
+    r_z = _log_sum_prox_val(_r2(x, alpha, eps), x, alpha, eps)
+    r_0 = _log_sum_prox_val(0, x, alpha, eps)
+    return r_z - r_0
+
+
+@njit
+def _find_root_by_bisection(a, b, alpha, eps, tol=1e-8):
+    # find root of function func in interval [a, b] by bisection."""
+    while b - a > tol:
+        c = (a + b) / 2.
+        if _r(a, alpha, eps) * _r(c, alpha, eps) < 0:
+            b = c
+        else:
+            a = c
+    return c

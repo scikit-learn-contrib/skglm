@@ -4,8 +4,8 @@ from numba.types import bool_
 
 from skglm.penalties.base import BasePenalty
 from skglm.utils.prox_funcs import (
-    ST, box_proj, prox_05, prox_2_3, prox_SCAD, value_SCAD, prox_MCP,
-    value_MCP, value_weighted_MCP)
+    ST, box_proj, prox_05, prox_2_3, prox_SCAD, value_SCAD, prox_MCP, value_MCP,
+    value_weighted_MCP, prox_log_sum)
 
 
 class L1(BasePenalty):
@@ -604,6 +604,66 @@ class L2_3(BasePenalty):
 
     def generalized_support(self, w):
         """Return a mask with non-zero coefficients."""
+        return w != 0
+
+
+class LogSumPenalty(BasePenalty):
+    """Log sum penalty.
+
+    The penalty value reads
+
+    .. math::
+
+        "value"(w) = sum_(j=1)^(n_"features") log(1 + abs(w_j) / epsilon)
+    """
+
+    def __init__(self, alpha, eps):
+        self.alpha = alpha
+        self.eps = eps
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+            ('eps', float64),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha, eps=self.eps)
+
+    def value(self, w):
+        """Compute the value of the log-sum penalty at ``w``."""
+        return self.alpha * np.sum(np.log(1 + np.abs(w) / self.eps))
+
+    def derivative(self, w):
+        """Compute the element-wise derivative."""
+        return np.sign(w) / (np.abs(w) + self.eps)
+
+    def prox_1d(self, value, stepsize, j):
+        """Compute the proximal operator of the log-sum penalty."""
+        return prox_log_sum(value, self.alpha * stepsize, self.eps)
+
+    def subdiff_distance(self, w, grad, ws):
+        """Compute distance of negative gradient to the subdifferential at w."""
+        subdiff_dist = np.zeros_like(grad)
+        alpha = self.alpha
+        eps = self.eps
+
+        for idx, j in enumerate(ws):
+            if w[j] == 0:
+                # distance of -grad_j to [-alpha/eps, alpha/eps]
+                subdiff_dist[idx] = max(0, np.abs(grad[idx]) - alpha / eps)
+            else:
+                # distance of -grad_j to {alpha * sign(w[j]) / (eps + |w[j]|)}
+                subdiff_dist[idx] = np.abs(
+                    grad[idx] + np.sign(w[j]) * alpha / (eps + np.abs(w[j])))
+        return subdiff_dist
+
+    def is_penalized(self, n_features):
+        """Return a binary mask with the penalized features."""
+        return np.ones(n_features, bool_)
+
+    def generalized_support(self, w):
         return w != 0
 
 

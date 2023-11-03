@@ -9,10 +9,12 @@ from sklearn.linear_model import LinearRegression
 from skglm.datafits import Quadratic, QuadraticMultiTask
 from skglm.penalties import (
     L1, L1_plus_L2, WeightedL1, MCPenalty, SCAD, IndicatorBox, L0_5, L2_3, SLOPE,
-    PositiveConstraint, L2_1, L2_05, BlockMCPenalty, BlockSCAD)
+    LogSumPenalty, PositiveConstraint, L2_1, L2_05, BlockMCPenalty, BlockSCAD)
 from skglm import GeneralizedLinearEstimator, Lasso
 from skglm.solvers import AndersonCD, MultiTaskBCD, FISTA
 from skglm.utils.data import make_correlated_data
+
+from skglm.utils.prox_funcs import prox_log_sum, _log_sum_prox_val
 
 
 n_samples = 20
@@ -37,7 +39,9 @@ penalties = [
     SCAD(alpha=alpha, gamma=4),
     IndicatorBox(alpha=alpha),
     L0_5(alpha),
-    L2_3(alpha)]
+    L2_3(alpha),
+    LogSumPenalty(alpha=alpha, eps=1e-2)
+]
 
 block_penalties = [
     L2_1(alpha=alpha), L2_05(alpha=alpha),
@@ -116,6 +120,24 @@ def test_nnls(fit_intercept):
 
     np.testing.assert_allclose(clf.coef_, reg_nnls.coef_)
     np.testing.assert_allclose(clf.intercept_, reg_nnls.intercept_)
+
+
+def test_logsum_prox():
+    alpha = 1.
+
+    grid_z = np.linspace(-2, 2, num=10)
+    grid_test = np.linspace(-5, 5, num=100)
+    grid_eps = np.linspace(0, 5, num=10 + 1)[1:]
+
+    for z, eps in zip(grid_z, grid_eps):
+        prox = prox_log_sum(z, alpha, eps)
+        obj_at_prox = _log_sum_prox_val(prox, z, alpha, eps)
+
+        is_lowest = all(
+            obj_at_prox <= _log_sum_prox_val(x, z, alpha, eps) for x in grid_test
+        )
+
+        np.testing.assert_equal(is_lowest, True)
 
 
 if __name__ == "__main__":

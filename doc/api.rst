@@ -40,6 +40,7 @@ Penalties
    L1_plus_L2
    L2
    L2_3
+   LogSumPenalty
    MCPenalty
    PositiveConstraint
    WeightedL1
@@ -96,7 +97,7 @@ Experimental
    :toctree: generated/
 
    IterativeReweightedL1
-   PDCD_WS 
+   PDCD_WS
    Pinball
    SqrtQuadratic
    SqrtLasso

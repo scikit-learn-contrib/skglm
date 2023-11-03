@@ -208,9 +208,8 @@ def prox_SLOPE(z, alphas):
 
 @njit
 def log_1p_exp_vec(x, eps):
-    """Map log(1 + exp(x) / eps) to vector."""
-    return np.log1p(np.exp(x) / eps)
-    # return np.log(1 + np.exp(x) / eps)
+    """Map log(1 + abs(x) / eps) to vector."""
+    return np.log1p(np.abs(x) / eps)
 
 
 @njit

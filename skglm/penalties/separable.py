@@ -608,7 +608,14 @@ class L2_3(BasePenalty):
 
 
 class LogSumPenalty(BasePenalty):
-    """Log sum penalty."""
+    """Log sum penalty.
+
+    The penalty value reads
+
+    .. math::
+
+        "value"(w) = sum_(j=1)^(n_"features") log(1 + abs(w_j) / epsilon)
+    """
 
     def __init__(self, alpha, eps):
         self.alpha = alpha
@@ -625,7 +632,7 @@ class LogSumPenalty(BasePenalty):
         return dict(alpha=self.alpha, eps=self.eps)
 
     def value(self, w):
-        """Compute the value of the log-sum penalty at w."""
+        """Compute the value of the log-sum penalty at ``w``."""
         return self.alpha * np.sum(np.log(1 + np.abs(w) / self.eps))
 
     def derivative(self, w):

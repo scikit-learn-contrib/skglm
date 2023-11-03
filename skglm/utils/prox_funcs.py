@@ -213,7 +213,7 @@ def log_1p_exp_vec(x, eps):
 
 
 @njit
-def _root_prox_log_vec(x, alpha, eps):
+def _r2(x, alpha, eps):
     return (x - eps) / 2. + np.sqrt(((x + eps) ** 2) / 4 - alpha)
 
 
@@ -231,7 +231,7 @@ def _r(x, alpha, eps):
     .. [1] Ashley Prater-Bennette, Lixin Shen, Erin E. Tripp
         The Proximity Operator of the Log-Sum Penalty (2021)
     """
-    r_z = _log_sum_prox_val(_root_prox_log_vec(x, alpha, eps), x, alpha, eps)
+    r_z = _log_sum_prox_val(_r2(x, alpha, eps), x, alpha, eps)
     r_0 = _log_sum_prox_val(0, x, alpha, eps)
     return r_z - r_0
 
@@ -272,7 +272,7 @@ def prox_log_sum(x, alpha, eps):
         if abs(x) <= alpha / eps:
             return 0.
         else:
-            return np.sign(x) * _root_prox_log_vec(abs(x), alpha, eps)
+            return np.sign(x) * _r2(abs(x), alpha, eps)
     else:
         a = 2 * np.sqrt(alpha) - eps
         b = alpha / eps
@@ -281,4 +281,4 @@ def prox_log_sum(x, alpha, eps):
         if abs(x) <= x_star:
             return 0.
         else:
-            return np.sign(x) * _root_prox_log_vec(abs(x), alpha, eps)
+            return np.sign(x) * _r2(abs(x), alpha, eps)

@@ -131,7 +131,7 @@ def test_logsum_prox():
 
     for z, eps in zip(grid_z, grid_eps):
         prox = prox_log_sum(z, alpha, eps)
-        obj_at_prox = _log_sum_prox_val(z, prox, alpha, eps)
+        obj_at_prox = _log_sum_prox_val(prox, z, alpha, eps)
 
         is_lowest = all(
             obj_at_prox <= _log_sum_prox_val(x, z, alpha, eps) for x in grid_test
@@ -141,4 +141,5 @@ def test_logsum_prox():
 
 
 if __name__ == "__main__":
+    test_logsum_prox()
     pass

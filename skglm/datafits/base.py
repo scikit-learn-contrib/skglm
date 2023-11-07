@@ -32,6 +32,24 @@ class BaseDatafit:
             Target vector.
         """
 
+    def initialize_sparse(self, X_data, X_indptr, X_indices, y):
+        """Pre-computations before fitting on X and y when X is a sparse matrix.
+
+        Parameters
+        ----------
+        X_data : array, shape (n_elements,)
+            `data` attribute of the sparse CSC matrix X.
+
+        X_indptr : array, shape (n_features + 1,)
+            `indptr` attribute of the sparse CSC matrix X.
+
+        X_indices : array, shape (n_elements,)
+            `indices` attribute of the sparse CSC matrix X.
+
+        y : array, shape (n_samples,)
+            Target vector.
+        """
+
     def value(self, y, w, Xw):
         """Value of datafit at vector w.
 
@@ -84,6 +102,24 @@ class BaseMultitaskDatafit:
 
         Y : array, shape (n_samples, n_tasks)
             Multitask target.
+        """
+
+    def initialize_sparse(self, X_data, X_indptr, X_indices, Y):
+        """Store useful values before fitting on X and Y, when X is sparse.
+
+        Parameters
+        ----------
+        X_data : array-like
+            `data` attribute of the sparse CSC matrix X.
+
+        X_indptr : array-like
+            `indptr` attribute of the sparse CSC matrix X.
+
+        X_indices : array-like
+            `indices` attribute of the sparse CSC matrix X.
+
+        Y : array, shape (n_samples, n_tasks)
+            Target matrix.
         """
 
     def value(self, Y, W, XW):

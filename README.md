@@ -1,6 +1,6 @@
 <section align="center">
 
-# ``skglm``
+<img src="doc/_static/images/logo.svg" alt="skglm logo" width="34%" align="center"/>
 
 ## A fast ⚡ and modular ⚒️ scikit-learn replacement for sparse GLMs
 
@@ -10,7 +10,6 @@
 [![Downloads](https://static.pepy.tech/badge/skglm/month)](https://pepy.tech/project/skglm)
 [![PyPI version](https://badge.fury.io/py/skglm.svg)](https://pypi.org/project/skglm/)
 
-<img src="./images/logo.png" alt="logo" width="50%" align="center"/>
 
 </section>
 

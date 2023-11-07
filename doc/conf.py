@@ -158,14 +158,14 @@ html_theme = 'furo'
 # documentation.
 html_theme_options = {
     "light_css_variables": {
-        "color-brand-primary": "#b91c1c",
-        "color-brand-content": "#b91c1c",
+        "color-brand-primary": "#991b1b",
+        "color-brand-content": "#991b1b",
         "font-stack": 'ui-sans-serif, system-ui',
-        "color-background-secondary": "#fef2f2"
+        "color-background-secondary": "#fafafa"
     },
     "dark_css_variables": {
-        "color-brand-primary": "#f87171",
-        "color-brand-content": "#f87171",
+        "color-brand-primary": "#fca5a5",
+        "color-brand-content": "#fca5a5",
     },
     "footer_icons": [
         {
@@ -215,12 +215,12 @@ copybutton_prompt_is_regexp = True
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = None
+html_logo = "_static/images/logo.svg"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-#html_favicon = None
+html_favicon = "_static/images/logo.svg"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

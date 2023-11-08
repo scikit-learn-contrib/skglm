@@ -266,7 +266,7 @@ if not is_stable_doc:
         "announcement": (
             "You are viewing the documentation of the dev version of "
             "<code>skglm</code> which contains WIP features. "
-            "View <a href='#'>stable version</a>."
+            "View <a href='stable/index.html'>stable version</a>."
         )
     }
 

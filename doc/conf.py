@@ -251,7 +251,7 @@ html_sidebars = {
         "sidebar/brand.html",
         "sidebar/search.html",
         "sidebar/navigation.html",
-        "sidebar/version.html",
+        "sidebar/version_toggler.html",
     ]
 }
 

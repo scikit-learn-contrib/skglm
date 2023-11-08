@@ -15,6 +15,7 @@ Estimators
    :toctree: generated/
 
    GeneralizedLinearEstimator
+   CoxEstimator
    ElasticNet
    Lasso
    LinearSVC
@@ -37,10 +38,14 @@ Penalties
    L0_5
    L1
    L1_plus_L2
+   L2
    L2_3
+   LogSumPenalty
    MCPenalty
+   PositiveConstraint
    WeightedL1
    WeightedGroupL2
+   WeightedMCPenalty
    SCAD
    BlockSCAD
    SLOPE
@@ -54,6 +59,7 @@ Datafits
 .. autosummary::
    :toctree: generated/
 
+   Cox
    Gamma
    Huber
    Logistic
@@ -77,6 +83,7 @@ Solvers
    GramCD
    GroupBCD
    GroupProxNewton
+   LBFGS
    MultiTaskBCD
    ProxNewton
 
@@ -89,4 +96,8 @@ Experimental
 .. autosummary::
    :toctree: generated/
 
+   IterativeReweightedL1
+   PDCD_WS
+   Pinball
+   SqrtQuadratic
    SqrtLasso

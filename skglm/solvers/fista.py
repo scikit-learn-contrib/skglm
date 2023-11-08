@@ -48,26 +48,35 @@ class FISTA(BaseSolver):
 
         try:
             if X_is_sparse:
-                datafit.init_global_lipschitz_sparse(X.data, X.indptr, X.indices, y)
+                lipschitz = datafit.get_global_lipschitz_sparse(
+                    X.data, X.indptr, X.indices, y
+                )
             else:
-                datafit.init_global_lipschitz(X, y)
-        except AttributeError:
+                lipschitz = datafit.get_global_lipschitz(X, y)
+        except AttributeError as e:
             sparse_suffix = '_sparse' if X_is_sparse else ''
 
             raise Exception(
                 "Datafit is not compatible with FISTA solver.\n Datafit must "
-                f"implement `init_global_lipschitz{sparse_suffix}` method")
+                f"implement `get_global_lipschitz{sparse_suffix}` method") from e
 
-        lipschitz = datafit.global_lipschitz
         for n_iter in range(self.max_iter):
             t_old = t_new
             t_new = (1 + np.sqrt(1 + 4 * t_old ** 2)) / 2
             w_old = w.copy()
+
             if X_is_sparse:
-                grad = construct_grad_sparse(
-                    X.data, X.indptr, X.indices, y, z, X @ z, datafit, all_features)
+                if hasattr(datafit, "gradient_sparse"):
+                    grad = datafit.gradient_sparse(
+                        X.data, X.indptr, X.indices, y, X @ z)
+                else:
+                    grad = construct_grad_sparse(
+                        X.data, X.indptr, X.indices, y, z, X @ z, datafit, all_features)
             else:
-                grad = construct_grad(X, y, z, X @ z, datafit, all_features)
+                if hasattr(datafit, "gradient"):
+                    grad = datafit.gradient(X, y, X @ z)
+                else:
+                    grad = construct_grad(X, y, z, X @ z, datafit, all_features)
 
             step = 1 / lipschitz
             z -= step * grad

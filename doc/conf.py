@@ -15,16 +15,18 @@
 import os
 import sys
 import warnings
-# import os
+
 import sphinx_gallery  # noqa
-import sphinx_bootstrap_theme
+import sphinx_bootstrap_theme  # noqa
 from numpydoc import numpydoc, docscrape  # noqa
-from doc.github_link import make_linkcode_resolve
 
 from skglm import __version__ as version
 
-curdir = os.path.dirname(__file__)
-sys.path.append(os.path.abspath(os.path.join(curdir, 'sphinxext')))
+# include custom extension
+curdir = os.path.dirname(__file__)  # noqa
+sys.path.append(os.path.abspath(os.path.join(curdir, 'sphinxext')))  # noqa
+
+from github_link import make_linkcode_resolve
 
 
 # Mathurin: disable agg warnings in doc
@@ -156,14 +158,14 @@ html_theme = 'furo'
 # documentation.
 html_theme_options = {
     "light_css_variables": {
-        "color-brand-primary": "#b91c1c",
-        "color-brand-content": "#b91c1c",
+        "color-brand-primary": "#991b1b",
+        "color-brand-content": "#991b1b",
         "font-stack": 'ui-sans-serif, system-ui',
-        "color-background-secondary": "#fef2f2"
+        "color-background-secondary": "#fafafa"
     },
     "dark_css_variables": {
-        "color-brand-primary": "#f87171",
-        "color-brand-content": "#f87171",
+        "color-brand-primary": "#fca5a5",
+        "color-brand-content": "#fca5a5",
     },
     "footer_icons": [
         {
@@ -178,6 +180,22 @@ html_theme_options = {
         },
     ],
 }
+
+# Enable asciimath parsing in MathJax and configure the HTML renderer to output
+# the default asciimath delimiters. Asciimath will not be correctly rendered in
+# other output formats, but can likely be fixed using py-asciimath[1] to convert
+# to Latex.
+# [1]: https://pypi.org/project/py-asciimath/
+mathjax3_config = {
+  "loader": {
+    "load": ['input/asciimath']
+  },
+}
+mathjax_inline = ['`', '`']
+mathjax_display = ['`', '`']
+
+html_static_path = ['_static']
+html_js_files = ["scripts/asciimath-defines.js"]
 
 # -- Options for copybutton ---------------------------------------------
 # complete explanation of the regex expression can be found here
@@ -197,12 +215,12 @@ copybutton_prompt_is_regexp = True
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = None
+html_logo = "_static/images/logo.svg"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-#html_favicon = None
+html_favicon = "_static/images/logo.svg"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

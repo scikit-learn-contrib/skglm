@@ -8,18 +8,14 @@ from skglm.datafits.base import BaseMultitaskDatafit
 class QuadraticMultiTask(BaseMultitaskDatafit):
     """Quadratic datafit used for multi-task regression.
 
-    The datafit reads::
+    The datafit reads:
 
-    (1 / (2 * n_samples)) * ||Y - X W||^2_F
+    .. math: 1 / (2 xx n_"samples") ||Y - XW||_F ^ 2
 
     Attributes
     ----------
     XtY : array, shape (n_features, n_tasks)
         Pre-computed quantity used during the gradient evaluation.
-
-    lipschitz : array, shape (n_features,)
-        The coordinatewise gradient Lipschitz constants. Equal to
-        norm(X, axis=0) ** 2 / n_samples.
     """
 
     def __init__(self):
@@ -28,36 +24,51 @@ class QuadraticMultiTask(BaseMultitaskDatafit):
     def get_spec(self):
         spec = (
             ('XtY', float64[:, :]),
-            ('lipschitz', float64[:]),
         )
         return spec
 
     def params_to_dict(self):
         return dict()
 
+    def get_lipschitz(self, X, Y):
+        n_samples, n_features = X.shape
+
+        lipschitz = np.zeros(n_features)
+        for j in range(n_features):
+            lipschitz[j] = norm(X[:, j]) ** 2 / n_samples
+
+        return lipschitz
+
+    def get_lipschitz_sparse(self, X_data, X_indptr, X_indices, Y):
+        n_samples, n_tasks = Y.shape
+        n_features = len(X_indptr) - 1
+
+        lipschitz = np.zeros(n_features)
+        for j in range(n_features):
+            nrm2 = 0.
+            for idx in range(X_indptr[j], X_indptr[j + 1]):
+                nrm2 += X_data[idx] ** 2
+
+            lipschitz[j] = nrm2 / n_samples
+
+        return lipschitz
+
     def initialize(self, X, Y):
         """Compute optimization quantities before fitting on X and Y."""
         self.XtY = X.T @ Y
-        n_samples, n_features = X.shape
-        self.lipschitz = np.zeros(n_features)
-        for j in range(n_features):
-            self.lipschitz[j] = norm(X[:, j]) ** 2 / n_samples
 
     def initialize_sparse(self, X_data, X_indptr, X_indices, Y):
         """Pre-computations before fitting on X and Y, when X is sparse."""
-        n_samples, n_tasks = Y.shape
+        _, n_tasks = Y.shape
         n_features = len(X_indptr) - 1
+
         self.XtY = np.zeros((n_features, n_tasks))
-        self.lipschitz = np.zeros(n_features)
         for j in range(n_features):
-            nrm2 = 0.
             xtY = np.zeros(n_tasks)
             for idx in range(X_indptr[j], X_indptr[j + 1]):
-                nrm2 += X_data[idx] ** 2
                 for t in range(n_tasks):
                     xtY[t] += X_data[idx] * Y[X_indices[idx], t]
 
-            self.lipschitz[j] = nrm2 / n_samples
             self.XtY[j, :] = xtY
 
     def value(self, Y, W, XW):

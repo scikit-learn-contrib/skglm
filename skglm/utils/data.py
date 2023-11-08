@@ -1,6 +1,8 @@
 import numpy as np
+import scipy.sparse
 from numpy.linalg import norm
 from sklearn.utils import check_random_state
+from sklearn.preprocessing import StandardScaler
 
 
 def make_correlated_data(
@@ -120,6 +122,76 @@ def make_correlated_data(
         return X, Y.flatten(), w_true.flatten()
     else:
         return X, Y, w_true
+
+
+def make_dummy_survival_data(n_samples, n_features, normalize=False, X_density=1.,
+                             with_ties=False, use_float_32=False, random_state=None):
+    """Generate a random dataset for survival analysis.
+
+    The design matrix ``X`` is generated according to standard normal, the vector of
+    time ``tm`` is chosen according to a Weibull(1, 1) (aka. Exponential), and the
+    vector of censorship ``s`` is drawn from a Bernoulli with parameter ``0.5``.
+
+    Parameters
+    ----------
+    n_samples : int
+        Number of samples in the design matrix.
+
+    n_features : int
+        Number of features in the design matrix.
+
+    normalize : bool, default=False
+        If ``True``, features are centered and divided by their
+        standard deviation. This argument is ineffective when ``X_density < 1``.
+
+    X_density : float, default=1
+        The density, proportion of non zero elements, of the design matrix ``X``.
+        X_density must be in ``(0, 1]``.
+
+    with_ties : bool, default=False
+        Determine if the data contains tied observations: observations with the same
+        occurrences times ``tm``.
+
+    use_float_32 : bool, default=False
+        It ``True`` returns data with type ``float32``, otherwise, it is ``float64``.
+
+    random_state : int, default=None
+        Determines random number generation for data generation.
+
+    Returns
+    -------
+    X : array-like, shape (n_samples, n_features)
+        The matrix of predictors. If ``density < 1``, a CSC sparse matrix is returned.
+
+    y : array-like, shape (n_samples, 2)
+        Two-column array where the first column ``tm`` is the vector
+        recording the time of event occurrences, and the second column ``s``
+        is the vector of sample censoring.
+    """
+    rng = np.random.RandomState(random_state)
+    dtype = np.float64 if use_float_32 is False else np.float32
+
+    if X_density == 1.:
+        X = rng.randn(n_samples, n_features).astype(dtype, order='F')
+    else:
+        X = scipy.sparse.rand(
+            n_samples, n_features, density=X_density, format="csc", dtype=dtype)
+
+    if not with_ties:
+        tm = rng.weibull(a=1, size=n_samples).astype(dtype)
+    else:
+        unique_tm = rng.weibull(a=1, size=n_samples // 10 + 1).astype(dtype)
+        tm = rng.choice(unique_tm, size=n_samples)
+
+    s = rng.choice(2, size=n_samples).astype(dtype)
+
+    if normalize and X_density == 1.:
+        X = StandardScaler().fit_transform(X)
+
+    # stack (tm, s)
+    y = np.column_stack((tm, s)).astype(dtype, order='F')
+
+    return X, y
 
 
 def grp_converter(groups, n_features):

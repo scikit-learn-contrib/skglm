@@ -60,15 +60,23 @@ def value_MCP(w, alpha, gamma):
 
 
 @njit
-def prox_MCP(value, stepsize, alpha, gamma):
-    """Compute the proximal operator of stepsize * MCP penalty."""
-    tau = alpha * stepsize
-    g = gamma / stepsize  # what does g stand for ?
-    if np.abs(value) <= tau:
+def value_weighted_MCP(w, alpha, gamma, weights):
+    """Compute the value of the weighted MCP."""
+    s0 = np.abs(w) < gamma * alpha
+    value = np.full_like(w, gamma * alpha ** 2 / 2.)
+    value[s0] = alpha * np.abs(w[s0]) - w[s0]**2 / (2 * gamma)
+    return np.sum(weights * value)
+
+
+@njit
+def prox_MCP(value, stepsize, alpha, gamma, positive=False, weight=1.):
+    """Compute the proximal operator of stepsize * weight MCP penalty."""
+    wstepsize = weight * stepsize  # weighted stepsize
+    if (np.abs(value) <= alpha * wstepsize) or (positive and value <= 0.):
         return 0.
-    if np.abs(value) > g * tau:
+    if np.abs(value) > alpha * gamma:
         return value
-    return np.sign(value) * (np.abs(value) - tau) / (1. - 1./g)
+    return np.sign(value) * (np.abs(value) - alpha * wstepsize) / (1. - wstepsize/gamma)
 
 
 @njit
@@ -196,3 +204,71 @@ def prox_SLOPE(z, alphas):
             x[i] = d
 
     return x
+
+
+@njit
+def prox_log_sum(x, alpha, eps):
+    """Proximal operator of log-sum penalty.
+
+    Parameters
+    ----------
+    x : float
+        Coefficient.
+
+    alpha : float
+        Regularization hyperparameter.
+
+    eps : float
+        Curvature hyperparameter.
+
+    References
+    ----------
+    .. [1] Ashley Prater-Bennette, Lixin Shen, Erin E. Tripp
+        The Proximity Operator of the Log-Sum Penalty (2021)
+    """
+    if np.sqrt(alpha) <= eps:
+        if abs(x) <= alpha / eps:
+            return 0.
+        else:
+            return np.sign(x) * _r2(abs(x), alpha, eps)
+    else:
+        a = 2 * np.sqrt(alpha) - eps
+        b = alpha / eps
+        # f is continuous and f(a) * f(b) < 0, the root can be found by bisection
+        x_star = _find_root_by_bisection(a, b, alpha, eps)
+        if abs(x) <= x_star:
+            return 0.
+        else:
+            return np.sign(x) * _r2(abs(x), alpha, eps)
+
+
+@njit
+def _r2(x, alpha, eps):
+    # compute r2 as in (eq. 7), ref [1] in `prox_log_sum`
+    return (x - eps) / 2. + np.sqrt(((x + eps) ** 2) / 4 - alpha)
+
+
+@njit
+def _log_sum_prox_val(x, z, alpha, eps):
+    # prox objective of log-sum `log(1 + abs(x) / eps)`
+    return ((x - z) ** 2) / (2 * alpha) + np.log1p(np.abs(x) / eps)
+
+
+@njit
+def _r(x, alpha, eps):
+    # compute r as defined in (eq. 9), ref [1] in `prox_log_sum`
+    r_z = _log_sum_prox_val(_r2(x, alpha, eps), x, alpha, eps)
+    r_0 = _log_sum_prox_val(0, x, alpha, eps)
+    return r_z - r_0
+
+
+@njit
+def _find_root_by_bisection(a, b, alpha, eps, tol=1e-8):
+    # find root of function func in interval [a, b] by bisection."""
+    while b - a > tol:
+        c = (a + b) / 2.
+        if _r(a, alpha, eps) * _r(c, alpha, eps) < 0:
+            b = c
+        else:
+            a = c
+    return c

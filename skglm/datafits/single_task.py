@@ -1,32 +1,24 @@
 import numpy as np
 from numpy.linalg import norm
 from numba import njit
-from numba import float64
+from numba import float64, int64, bool_
 
 from skglm.datafits.base import BaseDatafit
-from skglm.utils.sparse_ops import spectral_norm
+from skglm.utils.sparse_ops import spectral_norm, _sparse_xj_dot
 
 
 class Quadratic(BaseDatafit):
     """Quadratic datafit.
 
-    The datafit reads::
+    The datafit reads:
 
-    (1 / (2 * n_samples)) * ||y - X w||^2_2
+    .. math:: 1 / (2 xx  n_"samples") ||y - Xw||_2 ^ 2
 
     Attributes
     ----------
     Xty : array, shape (n_features,)
         Pre-computed quantity used during the gradient evaluation.
         Equal to ``X.T @ y``.
-
-    lipschitz : array, shape (n_features,)
-        The coordinatewise gradient Lipschitz constants. Equal to
-        norm(X, axis=0) ** 2 / n_samples.
-
-    global_lipschitz : float
-        Global Lipschitz constant. Equal to
-        norm(X, ord=2) ** 2 / n_samples.
 
     Note
     ----
@@ -40,43 +32,53 @@ class Quadratic(BaseDatafit):
     def get_spec(self):
         spec = (
             ('Xty', float64[:]),
-            ('lipschitz', float64[:]),
-            ('global_lipschitz', float64),
         )
         return spec
 
     def params_to_dict(self):
         return dict()
 
-    def initialize(self, X, y):
-        self.Xty = X.T @ y
+    def get_lipschitz(self, X, y):
         n_features = X.shape[1]
 
-        self.lipschitz = np.zeros(n_features, dtype=X.dtype)
+        lipschitz = np.zeros(n_features, dtype=X.dtype)
         for j in range(n_features):
-            self.lipschitz[j] = (X[:, j] ** 2).sum() / len(y)
+            lipschitz[j] = (X[:, j] ** 2).sum() / len(y)
+
+        return lipschitz
+
+    def get_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+        n_features = len(X_indptr) - 1
+        lipschitz = np.zeros(n_features, dtype=X_data.dtype)
+
+        for j in range(n_features):
+            nrm2 = 0.
+            for idx in range(X_indptr[j], X_indptr[j + 1]):
+                nrm2 += X_data[idx] ** 2
+
+            lipschitz[j] = nrm2 / len(y)
+
+        return lipschitz
+
+    def initialize(self, X, y):
+        self.Xty = X.T @ y
 
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
         n_features = len(X_indptr) - 1
         self.Xty = np.zeros(n_features, dtype=X_data.dtype)
 
-        self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
         for j in range(n_features):
-            nrm2 = 0.
             xty = 0
             for idx in range(X_indptr[j], X_indptr[j + 1]):
-                nrm2 += X_data[idx] ** 2
                 xty += X_data[idx] * y[X_indices[idx]]
 
-            self.lipschitz[j] = nrm2 / len(y)
             self.Xty[j] = xty
 
-    def init_global_lipschitz(self, X, y):
-        self.global_lipschitz = norm(X, ord=2) ** 2 / len(y)
+    def get_global_lipschitz(self, X, y):
+        return norm(X, ord=2) ** 2 / len(y)
 
-    def init_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
-        self.global_lipschitz = spectral_norm(
-            X_data, X_indptr, X_indices, len(y)) ** 2 / len(y)
+    def get_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+        return spectral_norm(X_data, X_indptr, X_indices, len(y)) ** 2 / len(y)
 
     def value(self, y, w, Xw):
         return np.sum((y - Xw) ** 2) / (2 * len(Xw))
@@ -116,22 +118,12 @@ def sigmoid(x):
 class Logistic(BaseDatafit):
     r"""Logistic datafit with labels in {-1, 1}.
 
-    The datafit reads::
+    The datafit reads:
 
-    (1 / n_samples) * \sum_i log(1 + exp(-y_i * Xw_i))
+    .. math:: 1 / n_"samples" \sum_(i=1)^(n_"samples") log(1 + exp(-y_i (Xw)_i))
 
-    Attributes
-    ----------
-    lipschitz : array, shape (n_features,)
-        The coordinatewise gradient Lipschitz constants. Equal to
-        norm(X, axis=0) ** 2 / (4 * n_samples).
-
-    global_lipschitz : float
-        Global Lipschitz constant. Equal to
-        norm(X, ord=2) ** 2 / (4 * n_samples).
-
-    Note
-    ----
+    Notes
+    -----
     The class is jit compiled at fit time using Numba compiler.
     This allows for faster computations.
     """
@@ -140,11 +132,7 @@ class Logistic(BaseDatafit):
         pass
 
     def get_spec(self):
-        spec = (
-            ('lipschitz', float64[:]),
-            ('global_lipschitz', float64),
-        )
-        return spec
+        pass
 
     def params_to_dict(self):
         return dict()
@@ -158,22 +146,24 @@ class Logistic(BaseDatafit):
         exp_minus_yXw = np.exp(-y * Xw)
         return exp_minus_yXw / (1 + exp_minus_yXw) ** 2 / len(y)
 
-    def initialize(self, X, y):
-        self.lipschitz = (X ** 2).sum(axis=0) / (len(y) * 4)
+    def get_lipschitz(self, X, y):
+        return (X ** 2).sum(axis=0) / (4 * len(y))
 
-    def initialize_sparse(self, X_data, X_indptr, X_indices, y):
+    def get_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
         n_features = len(X_indptr) - 1
 
-        self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
+        lipschitz = np.zeros(n_features, dtype=X_data.dtype)
         for j in range(n_features):
             Xj = X_data[X_indptr[j]:X_indptr[j+1]]
-            self.lipschitz[j] = (Xj ** 2).sum() / (len(y) * 4)
+            lipschitz[j] = (Xj ** 2).sum() / (len(y) * 4)
 
-    def init_global_lipschitz(self, X, y):
-        self.global_lipschitz = norm(X, ord=2) ** 2 / (4 * len(y))
+        return lipschitz
 
-    def init_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
-        self.global_lipschitz = spectral_norm(
+    def get_global_lipschitz(self, X, y):
+        return norm(X, ord=2) ** 2 / (4 * len(y))
+
+    def get_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+        return spectral_norm(
             X_data, X_indptr, X_indices, len(y)) ** 2 / (4 * len(y))
 
     def value(self, y, w, Xw):
@@ -181,6 +171,19 @@ class Logistic(BaseDatafit):
 
     def gradient_scalar(self, X, y, w, Xw, j):
         return (- X[:, j] @ (y * sigmoid(- y * Xw))) / len(y)
+
+    def gradient(self, X, y, Xw):
+        return X.T @ self.raw_grad(y, Xw)
+
+    def gradient_sparse(self, X_data, X_indptr, X_indices, y, Xw):
+        n_features = X_indptr.shape[0] - 1
+        out = np.zeros(n_features, dtype=X_data.dtype)
+        raw_grad = self.raw_grad(y, Xw)
+
+        for j in range(n_features):
+            out[j] = _sparse_xj_dot(X_data, X_indptr, X_indices, j, raw_grad)
+
+        return out
 
     def full_grad_sparse(
             self, X_data, X_indptr, X_indices, y, Xw):
@@ -207,22 +210,12 @@ class Logistic(BaseDatafit):
 class QuadraticSVC(BaseDatafit):
     """A Quadratic SVC datafit used for classification tasks.
 
-    The datafit reads::
+    The datafit reads:
 
-    1 / 2 * ||(y X).T w||^2_2
+    .. math:: 1/2 ||(yX)^T w||_2 ^ 2
 
-    Attributes
-    ----------
-    lipschitz : array, shape (n_features,)
-        The coordinatewise gradient Lipschitz constants.
-        Equal to norm(yXT, axis=0) ** 2.
-
-    global_lipschitz : float
-        Global Lipschitz constant. Equal to
-        norm(yXT, ord=2) ** 2.
-
-    Note
-    ----
+    Notes
+    -----
     The class is jit compiled at fit time using Numba compiler.
     This allows for faster computations.
     """
@@ -231,37 +224,37 @@ class QuadraticSVC(BaseDatafit):
         pass
 
     def get_spec(self):
-        spec = (
-            ('lipschitz', float64[:]),
-            ('global_lipschitz', float64),
-        )
-        return spec
+        pass
 
     def params_to_dict(self):
         return dict()
 
-    def initialize(self, yXT, y):
+    def get_lipschitz(self, yXT, y):
         n_features = yXT.shape[1]
-        self.lipschitz = np.zeros(n_features, dtype=yXT.dtype)
+        lipschitz = np.zeros(n_features, dtype=yXT.dtype)
 
         for j in range(n_features):
-            self.lipschitz[j] = norm(yXT[:, j]) ** 2
+            lipschitz[j] = norm(yXT[:, j]) ** 2
 
-    def initialize_sparse(self, yXT_data, yXT_indptr, yXT_indices, y):
+        return lipschitz
+
+    def get_lipschitz_sparse(self, yXT_data, yXT_indptr, yXT_indices, y):
         n_features = len(yXT_indptr) - 1
 
-        self.lipschitz = np.zeros(n_features, dtype=yXT_data.dtype)
+        lipschitz = np.zeros(n_features, dtype=yXT_data.dtype)
         for j in range(n_features):
             nrm2 = 0.
             for idx in range(yXT_indptr[j], yXT_indptr[j + 1]):
                 nrm2 += yXT_data[idx] ** 2
-            self.lipschitz[j] = nrm2
+            lipschitz[j] = nrm2
 
-    def init_global_lipschitz(self, yXT, y):
-        self.global_lipschitz = norm(yXT, ord=2) ** 2
+        return lipschitz
 
-    def init_global_lipschitz_sparse(self, yXT_data, yXT_indptr, yXT_indices, y):
-        self.global_lipschitz = spectral_norm(
+    def get_global_lipschitz(self, yXT, y):
+        return norm(yXT, ord=2) ** 2
+
+    def get_global_lipschitz_sparse(self, yXT_data, yXT_indptr, yXT_indices, y):
+        return spectral_norm(
             yXT_data, yXT_indptr, yXT_indices, max(yXT_indices)+1) ** 2
 
     def value(self, y, w, yXTw):
@@ -294,28 +287,20 @@ class QuadraticSVC(BaseDatafit):
 class Huber(BaseDatafit):
     """Huber datafit.
 
-    The datafit reads::
+    The datafit reads:
 
-    (1 / n_samples) * sum_{i=1}^{n_samples} f(y_i - Xw_i)
+    .. math:: 1 / n_"samples" sum_(i=1)^(n_"samples") f(y_i - (Xw)_i)
 
-    where f is the Huber function:
+    where :math:`f` is the Huber function:
 
-    f(x) =
-    1 / 2 * x^2                      if x <= delta
-    delta * |x| - 1/2 * delta^2      if x > delta
+    .. math::
+        f(x) = {(1/2 x^2                   , if x <= delta),
+                (delta abs(x) - 1/2 delta^2, if x > delta):}
 
     Attributes
     ----------
     delta : float
         Threshold hyperparameter.
-
-    lipschitz : array, shape (n_features,)
-        The coordinatewise gradient Lipschitz constants. Equal to
-        norm(X, axis=0) ** 2 / n_samples.
-
-    global_lipschitz : float
-        Global Lipschitz constant. Equal to
-        norm(X, ord=2) ** 2 / n_samples.
 
     Note
     ----
@@ -329,35 +314,38 @@ class Huber(BaseDatafit):
     def get_spec(self):
         spec = (
             ('delta', float64),
-            ('lipschitz', float64[:]),
-            ('global_lipschitz', float64),
         )
         return spec
 
     def params_to_dict(self):
         return dict(delta=self.delta)
 
-    def initialize(self, X, y):
+    def get_lipschitz(self, X, y):
         n_features = X.shape[1]
-        self.lipschitz = np.zeros(n_features, dtype=X.dtype)
-        for j in range(n_features):
-            self.lipschitz[j] = (X[:, j] ** 2).sum() / len(y)
 
-    def initialize_sparse(self, X_data, X_indptr, X_indices, y):
+        lipschitz = np.zeros(n_features, dtype=X.dtype)
+        for j in range(n_features):
+            lipschitz[j] = (X[:, j] ** 2).sum() / len(y)
+
+        return lipschitz
+
+    def get_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
         n_features = len(X_indptr) - 1
 
-        self.lipschitz = np.zeros(n_features, dtype=X_data.dtype)
+        lipschitz = np.zeros(n_features, dtype=X_data.dtype)
         for j in range(n_features):
             nrm2 = 0.
             for idx in range(X_indptr[j], X_indptr[j + 1]):
                 nrm2 += X_data[idx] ** 2
-            self.lipschitz[j] = nrm2 / len(y)
+            lipschitz[j] = nrm2 / len(y)
 
-    def init_global_lipschitz(self, X, y):
-        self.global_lipschitz = norm(X, ord=2) ** 2 / len(y)
+        return lipschitz
 
-    def init_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
-        self.global_lipschitz = spectral_norm(
+    def get_global_lipschitz(self, X, y):
+        return norm(X, ord=2) ** 2 / len(y)
+
+    def get_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+        return spectral_norm(
             X_data, X_indptr, X_indices, len(y)) ** 2 / len(y)
 
     def value(self, y, w, Xw):
@@ -423,12 +411,12 @@ class Huber(BaseDatafit):
 class Poisson(BaseDatafit):
     r"""Poisson datafit.
 
-    The datafit reads::
+    The datafit reads:
 
-    (1 / n_samples) * \sum_i (exp(Xw_i) - y_i * Xw_i)
+    .. math:: 1 / n_"samples" sum_(i=1)^(n_"samples") (exp((Xw)_i) - y_i (Xw)_i)
 
-    Note:
-    ----
+    Notes
+    -----
     The class is jit compiled at fit time using Numba compiler.
     This allows for faster computations.
     """
@@ -485,19 +473,21 @@ class Poisson(BaseDatafit):
             grad += X_data[i] * (np.exp(Xw[idx_i]) - y[idx_i])
         return grad / len(y)
 
-    def intercept_update_self(self, y, Xw):
-        pass
+    def intercept_update_step(self, y, Xw):
+        return np.sum(self.raw_grad(y, Xw))
 
 
 class Gamma(BaseDatafit):
     r"""Gamma datafit.
 
-    The datafit reads::
+    The datafit reads:
 
-    (1 / n_samples) * \sum_i (Xw_i + y_i * exp(-Xw_i) - 1 - log(y_i))
+    .. math::
+        1 / n_"samples" \sum_(i=1)^(n_"samples")
+        ((Xw)_i + y_i exp(-(Xw)_i) - 1 - log(y_i))
 
-    Note:
-    ----
+    Notes
+    -----
     The class is jit compiled at fit time using Numba compiler.
     This allows for faster computations.
     """
@@ -540,5 +530,233 @@ class Gamma(BaseDatafit):
     def gradient_scalar_sparse(self, X_data, X_indptr, X_indices, y, Xw, j):
         pass
 
-    def intercept_update_self(self, y, Xw):
-        pass
+    def intercept_update_step(self, y, Xw):
+        return np.sum(self.raw_grad(y, Xw))
+
+
+class Cox(BaseDatafit):
+    r"""Cox datafit for survival analysis.
+
+    Refer to :ref:`Mathematics behind Cox datafit <maths_cox_datafit>` for details.
+
+    Parameters
+    ----------
+    use_efron : bool, default=False
+        If ``True`` uses Efron estimate to handle tied observations.
+
+    Attributes
+    ----------
+    T_indices : array-like, shape (n_samples,)
+        Indices of observations with the same occurrence times stacked horizontally as
+        ``[group_1, group_2, ...]`` in ascending order. It is initialized
+        with the ``.initialize`` method (or ``initialize_sparse`` for sparse ``X``).
+
+    T_indptr : array-like, (np.unique(tm) + 1,)
+        Array where two consecutive elements delimit a group of
+        observations having the same occurrence times.
+
+    H_indices : array-like, shape (n_samples,)
+        Indices of uncensored observations with the same occurrence times stacked
+        horizontally as ``[group_1, group_2, ...]`` in ascending order.
+        It is initialized when calling the ``.initialize`` method
+        (or ``initialize_sparse`` for sparse ``X``) when ``use_efron=True``.
+
+    H_indptr : array-like, shape (np.unique(tm[s != 0]) + 1,)
+        Array where two consecutive elements delimits a group of uncensored
+        observations having the same occurrence time.
+    """
+
+    def __init__(self, use_efron=False):
+        self.use_efron = use_efron
+
+    def get_spec(self):
+        return (
+            ('use_efron', bool_),
+            ('T_indptr', int64[:]), ('T_indices', int64[:]),
+            ('H_indptr', int64[:]), ('H_indices', int64[:]),
+        )
+
+    def params_to_dict(self):
+        return dict(use_efron=self.use_efron)
+
+    def value(self, y, w, Xw):
+        """Compute the value of the datafit."""
+        tm, s = y[:, 0], y[:, 1]  # noqa
+        n_samples = Xw.shape[0]
+
+        # compute inside log term
+        exp_Xw = np.exp(Xw)
+        B_exp_Xw = self._B_dot_vec(exp_Xw)
+        if self.use_efron:
+            B_exp_Xw -= self._A_dot_vec(exp_Xw)
+
+        out = -(s @ Xw) + s @ np.log(B_exp_Xw)
+        return out / n_samples
+
+    def raw_grad(self, y, Xw):
+        r"""Compute gradient of datafit w.r.t. ``Xw``.
+
+        Refer to :ref:`Mathematics behind Cox datafit <maths_cox_datafit>`
+        equation 4 for details.
+        """
+        tm, s = y[:, 0], y[:, 1]  # noqa
+        n_samples = Xw.shape[0]
+
+        exp_Xw = np.exp(Xw)
+        B_exp_Xw = self._B_dot_vec(exp_Xw)
+        if self.use_efron:
+            B_exp_Xw -= self._A_dot_vec(exp_Xw)
+
+        s_over_B_exp_Xw = s / B_exp_Xw
+        out = -s + exp_Xw * self._B_T_dot_vec(s_over_B_exp_Xw)
+        if self.use_efron:
+            out -= exp_Xw * self._AT_dot_vec(s_over_B_exp_Xw)
+
+        return out / n_samples
+
+    def raw_hessian(self, y, Xw):
+        """Compute a diagonal upper bound of the datafit's Hessian w.r.t. ``Xw``.
+
+        Refer to :ref:`Mathematics behind Cox datafit <maths_cox_datafit>`
+        equation 6 for details.
+        """
+        tm, s = y[:, 0], y[:, 1]  # noqa
+        n_samples = Xw.shape[0]
+
+        exp_Xw = np.exp(Xw)
+        B_exp_Xw = self._B_dot_vec(exp_Xw)
+        if self.use_efron:
+            B_exp_Xw -= self._A_dot_vec(exp_Xw)
+
+        s_over_B_exp_Xw = s / B_exp_Xw
+        out = exp_Xw * self._B_T_dot_vec(s_over_B_exp_Xw)
+        if self.use_efron:
+            out -= exp_Xw * self._AT_dot_vec(s_over_B_exp_Xw)
+
+        return out / n_samples
+
+    def gradient(self, X, y, Xw):
+        """Compute gradient of the datafit."""
+        return X.T @ self.raw_grad(y, Xw)
+
+    def gradient_sparse(self, X_data, X_indptr, X_indices, y, Xw):
+        """Compute gradient of the datafit in case ``X`` is sparse."""
+        n_features = X_indptr.shape[0] - 1
+        out = np.zeros(n_features, dtype=X_data.dtype)
+        raw_grad = self.raw_grad(y, Xw)
+
+        for j in range(n_features):
+            out[j] = _sparse_xj_dot(X_data, X_indptr, X_indices, j, raw_grad)
+
+        return out
+
+    def initialize(self, X, y):
+        """Initialize the datafit attributes."""
+        tm, s = y[:, 0], y[:, 1]  # noqa
+
+        self.T_indices = np.argsort(tm)
+        self.T_indptr = self._get_indptr(tm, self.T_indices)
+
+        if self.use_efron:
+            # filter out censored data
+            self.H_indices = self.T_indices[s[self.T_indices] != 0]
+            self.H_indptr = self._get_indptr(tm, self.H_indices)
+
+    def initialize_sparse(self, X_data, X_indptr, X_indices, y):
+        """Initialize the datafit attributes in sparse dataset case."""
+        # `initialize_sparse` and `initialize` have the same implementation
+        # small hack to avoid repetitive code: pass in X_data as only its dtype is used
+        self.initialize(X_data, y)
+
+    def get_global_lipschitz(self, X, y):
+        s = y[:, 1]
+
+        n_samples = X.shape[0]
+        return s.sum() * norm(X, ord=2) ** 2 / n_samples
+
+    def get_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+        s = y[:, 1]
+
+        n_samples = s.shape[0]
+        norm_X = spectral_norm(X_data, X_indptr, X_indices, n_samples)
+
+        return s.sum() * norm_X ** 2 / n_samples
+
+    def _B_dot_vec(self, vec):
+        # compute `B @ vec` in O(n) instead of O(n^2)
+        out = np.zeros_like(vec)
+        n_T = self.T_indptr.shape[0] - 1
+        cum_sum = 0.
+
+        # reverse loop to avoid starting from cum_sum and subtracting vec coordinates
+        # subtracting big numbers results in 'cancellation errors' and hence erroneous
+        # results. Ref. J Nocedal, "Numerical optimization", page 615
+        for idx in range(n_T - 1, -1, -1):
+            current_T_idx = self.T_indices[self.T_indptr[idx]: self.T_indptr[idx+1]]
+
+            cum_sum += np.sum(vec[current_T_idx])
+            out[current_T_idx] = cum_sum
+
+        return out
+
+    def _B_T_dot_vec(self, vec):
+        # compute `B.T @ vec` in O(n) instead of O(n^2)
+        out = np.zeros_like(vec)
+        n_T = self.T_indptr.shape[0] - 1
+        cum_sum = 0.
+
+        for idx in range(n_T):
+            current_T_idx = self.T_indices[self.T_indptr[idx]: self.T_indptr[idx+1]]
+
+            cum_sum += np.sum(vec[current_T_idx])
+            out[current_T_idx] = cum_sum
+
+        return out
+
+    def _A_dot_vec(self, vec):
+        # compute `A @ vec` in O(n) instead of O(n^2)
+        out = np.zeros_like(vec)
+        n_H = self.H_indptr.shape[0] - 1
+
+        for idx in range(n_H):
+            current_H_idx = self.H_indices[self.H_indptr[idx]: self.H_indptr[idx+1]]
+            size_current_H = current_H_idx.shape[0]
+            frac_range = np.arange(size_current_H, dtype=vec.dtype) / size_current_H
+
+            sum_vec_H = np.sum(vec[current_H_idx])
+            out[current_H_idx] = sum_vec_H * frac_range
+
+        return out
+
+    def _AT_dot_vec(self, vec):
+        # compute `A.T @ vec` in O(n) instead of O(n^2)
+        out = np.zeros_like(vec)
+        n_H = self.H_indptr.shape[0] - 1
+
+        for idx in range(n_H):
+            current_H_idx = self.H_indices[self.H_indptr[idx]: self.H_indptr[idx+1]]
+            size_current_H = current_H_idx.shape[0]
+            frac_range = np.arange(size_current_H, dtype=vec.dtype) / size_current_H
+
+            weighted_sum_vec_H = vec[current_H_idx] @ frac_range
+            out[current_H_idx] = weighted_sum_vec_H * np.ones(size_current_H)
+
+        return out
+
+    def _get_indptr(self, vals, indices):
+        # given `indices = argsort(vals)`
+        # build and array `indptr` where two consecutive elements
+        # delimit indices with the same val
+        n_indices = indices.shape[0]
+
+        indptr = [0]
+        count = 1
+        for i in range(n_indices - 1):
+            if vals[indices[i]] == vals[indices[i+1]]:
+                count += 1
+            else:
+                indptr.append(count + indptr[-1])
+                count = 1
+        indptr.append(n_indices)
+
+        return np.asarray(indptr, dtype=np.int64)

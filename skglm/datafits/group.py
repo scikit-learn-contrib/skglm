@@ -9,9 +9,9 @@ from skglm.datafits.single_task import Logistic
 class QuadraticGroup(BaseDatafit):
     r"""Quadratic datafit used with group penalties.
 
-    The datafit reads::
+    The datafit reads:
 
-    (1 / (2 * n_samples)) * ||y - X w||^2_2
+    .. math:: 1 / (2 xx n_"samples") ||y - Xw||_2 ^ 2
 
     Attributes
     ----------
@@ -22,9 +22,6 @@ class QuadraticGroup(BaseDatafit):
     grp_ptr : array, shape (n_groups + 1,)
         The group pointers such that two consecutive elements delimit
         the indices of a group in ``grp_indices``.
-
-    lipschitz : array, shape (n_groups,)
-        The lipschitz constants for each group.
     """
 
     def __init__(self, grp_ptr, grp_indices):
@@ -34,7 +31,6 @@ class QuadraticGroup(BaseDatafit):
         spec = (
             ('grp_ptr', int32[:]),
             ('grp_indices', int32[:]),
-            ('lipschitz', float64[:])
         )
         return spec
 
@@ -42,7 +38,7 @@ class QuadraticGroup(BaseDatafit):
         return dict(grp_ptr=self.grp_ptr,
                     grp_indices=self.grp_indices)
 
-    def initialize(self, X, y):
+    def get_lipschitz(self, X, y):
         grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
         n_groups = len(grp_ptr) - 1
 
@@ -52,7 +48,7 @@ class QuadraticGroup(BaseDatafit):
             X_g = X[:, grp_g_indices]
             lipschitz[g] = norm(X_g, ord=2) ** 2 / len(y)
 
-        self.lipschitz = lipschitz
+        return lipschitz
 
     def value(self, y, w, Xw):
         return norm(y - Xw) ** 2 / (2 * len(y))
@@ -77,15 +73,15 @@ class QuadraticGroup(BaseDatafit):
 class LogisticGroup(Logistic):
     r"""Logistic datafit used with group penalties.
 
-    The datafit reads::
+    The datafit reads:
 
-    (1 / n_samples) * \sum_i log(1 + exp(-y_i * Xw_i))
+    .. math:: 1 / n_"samples" sum_(i=1)^(n_"samples") log(1 + exp(-y_i (Xw)_i))
 
     Attributes
     ----------
     grp_indices : array, shape (n_features,)
         The group indices stacked contiguously
-        ([grp1_indices, grp2_indices, ...]).
+        ``[grp1_indices, grp2_indices, ...]``.
 
     grp_ptr : array, shape (n_groups + 1,)
         The group pointers such that two consecutive elements delimit

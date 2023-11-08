@@ -66,7 +66,7 @@ extensions = [
     # custom ext, see ./sphinxext/gh_substitutions.py
 ]
 
-# TODO comment this variable
+# set it to True to build a stable version of the documentation
 is_stable_doc = False
 
 myst_enable_extensions = [
@@ -251,16 +251,18 @@ html_sidebars = {
         "sidebar/brand.html",
         "sidebar/search.html",
         "sidebar/navigation.html",
-        "sidebar/version_toggler.html",
+        "sidebar/version_toggler.html",  # version toggler template
     ]
 }
 
-# TODO write a comment
+# these variables will be available in the sphinx templates
 html_context = {
     "is_stable_doc": is_stable_doc
 }
 
-# TODO write a comment
+
+# when it's the dev version of the documentation, put a banner to warn the user
+# and a link to switch to the dev version of doc
 if not is_stable_doc:
     html_theme_options = {
         "announcement": (

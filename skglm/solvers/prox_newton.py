@@ -4,6 +4,7 @@ import numpy as np
 from numba import njit
 from scipy.sparse import issparse
 from skglm.solvers.base import BaseSolver
+from skglm.solvers.common import dist_fix_point_cd
 
 from sklearn.exceptions import ConvergenceWarning
 from skglm.utils.sparse_ops import _sparse_xj_dot
@@ -28,6 +29,9 @@ class ProxNewton(BaseSolver):
     tol : float, default 1e-4
         Tolerance for convergence.
 
+    ws_strategy : ('subdiff'|'fixpoint'), optional
+        The score used to build the working set.
+
     fit_intercept : bool, default True
         If ``True``, fits an unpenalized intercept.
 
@@ -49,11 +53,13 @@ class ProxNewton(BaseSolver):
     """
 
     def __init__(self, p0=10, max_iter=20, max_pn_iter=1000, tol=1e-4,
-                 fit_intercept=True, warm_start=False, verbose=0):
+                 ws_strategy="subdiff", fit_intercept=True, warm_start=False,
+                 verbose=0):
         self.p0 = p0
         self.max_iter = max_iter
         self.max_pn_iter = max_pn_iter
         self.tol = tol
+        self.ws_strategy = ws_strategy
         self.fit_intercept = fit_intercept
         self.warm_start = warm_start
         self.verbose = verbose
@@ -72,6 +78,9 @@ class ProxNewton(BaseSolver):
         is_sparse = issparse(X)
         if is_sparse:
             X_bundles = (X.data, X.indptr, X.indices)
+
+        if self.ws_strategy == "fixpoint":
+            X_square = X.multiply(X) if is_sparse else X ** 2
 
         if len(w) != n_features + self.fit_intercept:
             if self.fit_intercept:
@@ -92,7 +101,13 @@ class ProxNewton(BaseSolver):
             else:
                 grad = _construct_grad(X, y, w[:n_features], Xw, datafit, all_features)
 
-            opt = penalty.subdiff_distance(w[:n_features], grad, all_features)
+            if self.ws_strategy == "subdiff":
+                opt = penalty.subdiff_distance(w[:n_features], grad, all_features)
+            elif self.ws_strategy == "fixpoint":
+                lipschitz = datafit.raw_hessian(y, Xw) @ X_square
+                opt = dist_fix_point_cd(
+                    w[:n_features], grad, lipschitz, datafit, penalty, all_features
+                )
 
             # optimality of intercept
             if fit_intercept:
@@ -128,13 +143,13 @@ class ProxNewton(BaseSolver):
             for pn_iter in range(self.max_pn_iter):
                 # find descent direction
                 if is_sparse:
-                    delta_w_ws, X_delta_w_ws = _descent_direction_s(
+                    delta_w_ws, X_delta_w_ws, lipschitz_ws = _descent_direction_s(
                         *X_bundles, y, w, Xw, fit_intercept, grad_ws, datafit,
-                        penalty, ws, tol=EPS_TOL*tol_in)
+                        penalty, ws, tol=EPS_TOL*tol_in, ws_strategy=self.ws_strategy)
                 else:
-                    delta_w_ws, X_delta_w_ws = _descent_direction(
+                    delta_w_ws, X_delta_w_ws, lipschitz_ws = _descent_direction(
                         X, y, w, Xw, fit_intercept, grad_ws, datafit,
-                        penalty, ws, tol=EPS_TOL*tol_in)
+                        penalty, ws, tol=EPS_TOL*tol_in, ws_strategy=self.ws_strategy)
 
                 # backtracking line search with inplace update of w, Xw
                 if is_sparse:
@@ -147,7 +162,12 @@ class ProxNewton(BaseSolver):
                         delta_w_ws, X_delta_w_ws, ws)
 
                 # check convergence
-                opt_in = penalty.subdiff_distance(w, grad_ws, ws)
+                if self.ws_strategy == "subdiff":
+                    opt_in = penalty.subdiff_distance(w, grad_ws, ws)
+                elif self.ws_strategy == "fixpoint":
+                    opt_in = dist_fix_point_cd(
+                        w, grad_ws, lipschitz_ws, datafit, penalty, ws
+                    )
                 stop_crit_in = np.max(opt_in)
 
                 if max(self.verbose-1, 0):
@@ -176,7 +196,7 @@ class ProxNewton(BaseSolver):
 
 @njit
 def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
-                       penalty, ws, tol):
+                       penalty, ws, tol, ws_strategy):
     # Given:
     #   1) b = \nabla F(X w_epoch)
     #   2) D = \nabla^2 F(X w_epoch)  <------>  raw_hess
@@ -229,7 +249,12 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
             # TODO: can be improved by passing in w_ws but breaks for WeightedL1
             current_w = w_epoch.copy()
             current_w[ws_intercept] = w_ws
-            opt = penalty.subdiff_distance(current_w, past_grads, ws)
+            if ws_strategy == "subdiff":
+                opt = penalty.subdiff_distance(current_w, past_grads, ws)
+            elif ws_strategy == "fixpoint":
+                opt = dist_fix_point_cd(
+                    current_w, past_grads, lipschitz, datafit, penalty, ws
+                )
             stop_crit = np.max(opt)
 
             if fit_intercept:
@@ -239,13 +264,14 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
                 break
 
     # descent direction
-    return w_ws - w_epoch[ws_intercept], X_delta_w_ws
+    return w_ws - w_epoch[ws_intercept], X_delta_w_ws, lipschitz
 
 
 # sparse version of _descent_direction
 @njit
 def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
-                         Xw_epoch, fit_intercept, grad_ws, datafit, penalty, ws, tol):
+                         Xw_epoch, fit_intercept, grad_ws, datafit, penalty, ws, tol,
+                         ws_strategy):
     dtype = X_data.dtype
     raw_hess = datafit.raw_hessian(y, Xw_epoch)
 
@@ -298,7 +324,12 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
             # TODO: could be improved by passing in w_ws
             current_w = w_epoch.copy()
             current_w[ws_intercept] = w_ws
-            opt = penalty.subdiff_distance(current_w, past_grads, ws)
+            if ws_strategy == "subdiff":
+                opt = penalty.subdiff_distance(current_w, past_grads, ws)
+            elif ws_strategy == "fixpoint":
+                opt = dist_fix_point_cd(
+                    current_w, past_grads, lipschitz, datafit, penalty, ws
+                )
             stop_crit = np.max(opt)
 
             if fit_intercept:
@@ -308,7 +339,7 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
                 break
 
     # descent direction
-    return w_ws - w_epoch[ws_intercept], X_delta_w_ws
+    return w_ws - w_epoch[ws_intercept], X_delta_w_ws, lipschitz
 
 
 @njit

@@ -31,7 +31,7 @@ def dist_fix_point_cd(w, grad_ws, lipschitz, datafit, penalty, ws):
     dist : array, shape (n_features,)
         Violation score for every feature.
     """
-    dist = np.zeros(ws.shape[0])
+    dist = np.zeros(ws.shape[0], dtype=w.dtype)
 
     for idx, j in enumerate(ws):
         if lipschitz[j] == 0.:

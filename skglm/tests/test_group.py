@@ -6,7 +6,7 @@ from numpy.linalg import norm
 
 from skglm.penalties import L1
 from skglm.datafits import Quadratic
-from skglm.penalties.block_separable import WeightedGroupL2
+from skglm.penalties.block_separable import WeightedGroupL2, WeightedGroupL2_Plus_L1
 from skglm.datafits.group import QuadraticGroup, LogisticGroup
 from skglm.solvers import GroupBCD, GroupProxNewton
 
@@ -224,6 +224,40 @@ def test_group_logreg(solver, n_groups, rho, fit_intercept):
         X, y, group_logistic, group_penalty)[2]
 
     np.testing.assert_array_less(stop_crit, 1e-12)
+
+
+@pytest.mark.parametrize("fit_intercept", [True, False])
+def test_sparse_group_lasso(fit_intercept):
+    tau = 0.5
+    n_groups = 15
+    n_samples, n_features = 100, 60
+    rnd = np.random.RandomState(42)
+    X, y, _ = make_correlated_data(n_samples, n_features, random_state=rnd)
+
+    grp_indices, grp_ptr, _ = _generate_random_grp(n_groups, n_features)
+    weights = abs(rnd.randn(n_groups))
+
+    # lambda_max of group lasso is greater than the sparse group lasso
+    alpha_max = _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights)
+    alpha = alpha_max / 50
+
+    quad_group = QuadraticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
+    group_penalty = WeightedGroupL2_Plus_L1(
+        alpha, tau, weights,
+        grp_ptr=grp_ptr, grp_indices=grp_indices
+    )
+
+    # compile classes
+    quad_group = compiled_clone(quad_group, to_float32=X.dtype == np.float32)
+    group_penalty = compiled_clone(group_penalty)
+
+    _, _, stop_crit = GroupBCD(
+        fit_intercept=fit_intercept, tol=1e-12, ws_strategy="fixpoint"
+    ).solve(
+        X, y, quad_group, group_penalty
+    )
+
+    np.testing.assert_allclose(stop_crit, 0, rtol=1e-5)
 
 
 def test_anderson_acceleration():

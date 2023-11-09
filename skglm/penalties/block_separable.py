@@ -5,7 +5,8 @@ from numba import float64, int32
 
 from skglm.penalties.base import BasePenalty
 from skglm.utils.prox_funcs import (
-    BST, prox_block_2_05, prox_SCAD, value_SCAD, prox_MCP, value_MCP)
+    BST, ST_vec, prox_block_2_05, prox_SCAD, value_SCAD, prox_MCP, value_MCP
+)
 
 
 class L2_1(BasePenalty):
@@ -319,6 +320,104 @@ class WeightedGroupL2(BasePenalty):
                 scores[idx] = norm(grad_g + subdiff)
 
         return scores
+
+    def is_penalized(self, n_groups):
+        return np.ones(n_groups, dtype=np.bool_)
+
+    def generalized_support(self, w):
+        grp_indices, grp_ptr = self.grp_indices, self.grp_ptr
+        n_groups = len(grp_ptr) - 1
+        is_penalized = self.is_penalized(n_groups)
+
+        gsupp = np.zeros(n_groups, dtype=np.bool_)
+        for g in range(n_groups):
+            if not is_penalized[g]:
+                gsupp[g] = True
+                continue
+
+            grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
+            if np.any(w[grp_g_indices]):
+                gsupp[g] = True
+
+        return gsupp
+
+
+class WeightedGroupL2_Plus_L1(BasePenalty):
+    r"""Weighted Group L2 plus L1 penalty.
+
+    The penalty reads
+
+    .. math::
+        \tau ||w||_1 + sum_{g=1}^{n_"groups"} (1 - \tau) "weights"_g xx ||w_{[g]}||
+
+    with :math:`w_{[g]}` being the coefficients of the g-th group.
+
+    Attributes
+    ----------
+    alpha : float
+        The regularization parameter.
+
+    tau : float
+        The mixing parameter between the weighted group L2 and L1 penalties.
+        It must be ``0 <= tau < 1``. When ``tau=0``, the penalty is equivalent
+        to ``WeightedGroupL2``.
+
+    weights : array, shape (n_groups,)
+        The weights of the groups.
+
+    grp_indices : array, shape (n_features,)
+        The group indices stacked contiguously
+        ([grp1_indices, grp2_indices, ...]).
+
+    grp_ptr : array, shape (n_groups + 1,)
+        The group pointers such that two consecutive elements delimit
+        the indices of a group in ``grp_indices``.
+    """
+
+    def __init__(self, alpha, tau, weights, grp_ptr, grp_indices):
+        self.alpha = alpha
+        self.tau, self.weights = tau, weights
+        self.grp_ptr, self.grp_indices = grp_ptr, grp_indices
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+            ('tau', float64)
+            ('weights', float64[:]),
+            ('grp_ptr', int32[:]),
+            ('grp_indices', int32[:]),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(
+            alpha=self.alpha, weights=self.weights,
+            grp_ptr=self.grp_ptr, grp_indices=self.grp_indices
+        )
+
+    def value(self, w):
+        """Value of penalty at vector ``w``."""
+        alpha = self.alpha
+        tau, weights = self.tau, self.weights
+        grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
+        n_grp = len(grp_ptr) - 1
+
+        sum_weighted_L2 = 0.
+        for g in range(n_grp):
+            grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
+            w_g = w[grp_g_indices]
+
+            sum_weighted_L2 += alpha * (1 - tau) * weights[g] * norm(w_g)
+
+        l1_pen = alpha * tau * np.sum(np.abs(w))
+        return l1_pen + sum_weighted_L2
+
+    def prox_1group(self, value, stepsize, g):
+        """Compute the proximal operator of group ``g``."""
+        return BST(
+            ST_vec(value, self.alpha * self.tau * stepsize),
+            self.alpha * (1 - self.tau) * stepsize * self.weights[g]
+        )
 
     def is_penalized(self, n_groups):
         return np.ones(n_groups, dtype=np.bool_)

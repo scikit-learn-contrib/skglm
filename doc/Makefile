@@ -146,14 +146,14 @@ add-stable-doc:
 	pwd
 	ls
 
-	cd ..
+	cd ..;
 
 	pwd
 	ls
 # switch to GITHUB_PAGES_BRANCH where stable build is located
-	git fetch origin $(GITHUB_PAGES_BRANCH)
-	git checkout $(GITHUB_PAGES_BRANCH)
-	git pull origin $(GITHUB_PAGES_BRANCH)
+	git fetch origin $(GITHUB_PAGES_BRANCH);
+	git checkout $(GITHUB_PAGES_BRANCH);
+	git pull origin $(GITHUB_PAGES_BRANCH);
 # move the content of the stable build to the output dir
 	pwd
 	ls
@@ -162,7 +162,7 @@ add-stable-doc:
         mv $(STABLE_DOC_DIR)/ $(DOC_DIR)/$(OUTPUTDIR); \
     fi
 # switch back to main and get to doc directory
-	git checkout main
+	git checkout main;
 	pwd
 	ls
-	cd $(DOC_DIR)
+	cd $(DOC_DIR);

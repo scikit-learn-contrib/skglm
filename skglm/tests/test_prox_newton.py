@@ -1,6 +1,5 @@
 import pytest
 import numpy as np
-from itertools import product
 from sklearn.linear_model import LogisticRegression
 
 from skglm.penalties import L1
@@ -11,8 +10,10 @@ from skglm.utils.jit_compilation import compiled_clone
 from skglm.utils.data import make_correlated_data
 
 
-@pytest.mark.parametrize("X_density, fit_intercept", product([1., 0.5], [True, False]))
-def test_pn_vs_sklearn(X_density, fit_intercept):
+@pytest.mark.parametrize("X_density", [1., 0.5])
+@pytest.mark.parametrize("fit_intercept", [True, False])
+@pytest.mark.parametrize("ws_strategy", ["subdiff", "fixpoint"])
+def test_pn_vs_sklearn(X_density, fit_intercept, ws_strategy):
     n_samples, n_features = 12, 25
     rho = 1e-1
 
@@ -30,7 +31,8 @@ def test_pn_vs_sklearn(X_density, fit_intercept):
 
     log_datafit = compiled_clone(Logistic())
     l1_penalty = compiled_clone(L1(alpha))
-    prox_solver = ProxNewton(fit_intercept=fit_intercept, tol=1e-12)
+    prox_solver = ProxNewton(
+        fit_intercept=fit_intercept, tol=1e-12, ws_strategy=ws_strategy)
     w = prox_solver.solve(X, y, log_datafit, l1_penalty)[0]
 
     np.testing.assert_allclose(w[:n_features], sk_log_reg.coef_.flatten())

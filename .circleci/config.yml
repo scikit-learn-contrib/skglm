@@ -78,8 +78,20 @@ jobs:
                 chmod og= ~/.ssh/config
                 cd doc;
                 pip install ghp-import;
+                make add-stable-doc
                 make install
               fi
+
+        # Add stable documentation
+        - run:
+          name: stable_doc
+          command: |
+              set -e
+              mkdir -p ~/.ssh
+              echo -e "Host *\nStrictHostKeyChecking no" > ~/.ssh/config
+              chmod og= ~/.ssh/config
+              cd doc;
+              make add-stable-doc
 
         # Save the outputs
         - store_artifacts:

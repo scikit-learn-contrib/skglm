@@ -143,15 +143,19 @@ install:
 
 .PHONY: add-stable-doc
 add-stable-doc:
+	pwd
+	ls
 	cd ..
 # switch to GITHUB_PAGES_BRANCH where stable build is located
 	git fetch origin $(GITHUB_PAGES_BRANCH)
 	git checkout $(GITHUB_PAGES_BRANCH)
 # move the content of the stable build to the output dir
 	if [ -d "$(STABLE_DOC_DIR)" ]; then \
+		echo "stable copied"; \
         mv $(STABLE_DOC_DIR)/ $(DOC_DIR)/$(OUTPUTDIR); \
     fi
 # switch back to main and get to doc directory
 	git checkout main
+	pwd
 	ls
 	cd $(DOC_DIR)

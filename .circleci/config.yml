@@ -84,8 +84,8 @@ jobs:
 
         # Add stable documentation
         - run:
-          name: stable_doc
-          command: |
+            name: stable_doc
+            command: |
               set -e
               mkdir -p ~/.ssh
               echo -e "Host *\nStrictHostKeyChecking no" > ~/.ssh/config

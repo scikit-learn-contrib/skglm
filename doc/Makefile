@@ -138,7 +138,11 @@ coverage:
 
 install:
 	touch $(OUTPUTDIR)/.nojekyll
+	ghp-import -m "Generate Pelican site [ci skip]" -b $(GITHUB_PAGES_BRANCH) $(OUTPUTDIR)
+	git push origin $(GITHUB_PAGES_BRANCH)
 
+.PHONY: add-stable-doc
+add-stable-doc:
 	cd ..
 # switch to GITHUB_PAGES_BRANCH where stable build is located
 	git fetch origin $(GITHUB_PAGES_BRANCH)
@@ -150,6 +154,3 @@ install:
 # switch back to main and get to doc directory
 	git checkout main
 	cd $(DOC_DIR)
-
-	ghp-import -m "Generate Pelican site [ci skip]" -b $(GITHUB_PAGES_BRANCH) $(OUTPUTDIR)
-	git push origin $(GITHUB_PAGES_BRANCH)

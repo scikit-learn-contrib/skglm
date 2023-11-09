@@ -9,7 +9,6 @@ BUILDDIR      = _build
 
 GITHUB_PAGES_BRANCH = gh-pages
 OUTPUTDIR = _build/html
-DOC_DIR = doc
 STABLE_DOC_DIR = stable
 
 # User-friendly check for sphinx-build
@@ -145,11 +144,6 @@ install:
 add-stable-doc:
 	pwd
 	ls
-
-	cd ..;
-
-	pwd
-	ls
 # switch to GITHUB_PAGES_BRANCH where stable build is located
 	git fetch origin $(GITHUB_PAGES_BRANCH);
 	git checkout $(GITHUB_PAGES_BRANCH);
@@ -157,12 +151,8 @@ add-stable-doc:
 # move the content of the stable build to the output dir
 	pwd
 	ls
-	if [ -d "$(STABLE_DOC_DIR)" ]; then \
-		echo "stable copied"; \
-        mv $(STABLE_DOC_DIR)/ $(DOC_DIR)/$(OUTPUTDIR); \
-    fi
+    mv ../$(STABLE_DOC_DIR)/ $(OUTPUTDIR);
 # switch back to main and get to doc directory
 	git checkout main;
 	pwd
 	ls
-	cd $(DOC_DIR);

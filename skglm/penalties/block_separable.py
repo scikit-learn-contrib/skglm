@@ -358,7 +358,7 @@ class WeightedGroupL2_Plus_L1(BasePenalty):
         The regularization parameter.
 
     tau : float
-        The mixing parameter between the weighted group L2 and L1 penalties.
+        The mixing parameter of the weighted group L2 and L1 penalties.
         It must be ``0 <= tau < 1``. When ``tau=0``, the penalty is equivalent
         to ``WeightedGroupL2``.
 

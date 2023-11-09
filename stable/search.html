@@ -2,12 +2,9 @@
 <html class="no-js" lang="en" data-content_root="./">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Getting started" href="getting_started.html" />
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="#" />
 
-    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
-        <title>skglm 0.3(stable) documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 --><title>Search - skglm 0.3(stable) documentation</title><link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery.css?v=61a4c737" />
@@ -136,7 +133,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="#"><div class="brand">skglm 0.3(stable) documentation</div></a>
+      <a href="index.html"><div class="brand">skglm 0.3(stable) documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -147,7 +144,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -156,12 +153,12 @@
   <aside class="sidebar-drawer">
     <div class="sidebar-container">
       
-      <div class="sidebar-sticky"><a class="sidebar-brand" href="#">
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
   
   
   <span class="sidebar-brand-text">skglm 0.3(stable) documentation</span>
   
-</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+</a><form class="sidebar-search-container" method="get" action="#" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
   <input type="hidden" name="area" value="default">
@@ -249,8 +246,7 @@
           <span>Back to top</span>
         </a>
         <div class="content-icon-container">
-          
-<div class="theme-toggle-container theme-toggle-content">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -258,110 +254,30 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
         <article role="main">
-          <section id="skglm">
-<h1><code class="docutils literal notranslate"><span class="pre">skglm</span></code><a class="headerlink" href="#skglm" title="Link to this heading">#</a></h1>
-<p><em>— A fast and modular scikit-learn replacement for sparse GLMs —</em></p>
-<hr class="docutils" />
-<p><code class="docutils literal notranslate"><span class="pre">skglm</span></code> is a Python package that offers <strong>fast estimators</strong> for sparse Generalized Linear Models (GLMs)
-that are <strong>100% compatible with</strong> <code class="docutils literal notranslate"><span class="pre">scikit-learn</span></code>. It is <strong>highly flexible</strong> and supports a wide range of GLMs.
-You get to choose from <code class="docutils literal notranslate"><span class="pre">skglm</span></code>’s already-made estimators or <strong>customize your own</strong> by combining the available datafits and penalties.</p>
-<p>Get a hands-on glimpse on <code class="docutils literal notranslate"><span class="pre">skglm</span></code> through the <a class="reference internal" href="getting_started.html#getting-started"><span class="std std-ref">Getting started page</span></a>.</p>
-<section id="why-skglm">
-<h2>Why <code class="docutils literal notranslate"><span class="pre">skglm</span></code>?<a class="headerlink" href="#why-skglm" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">skglm</span></code> is specifically conceived to solve sparse GLMs.
-It supports many missing models in <code class="docutils literal notranslate"><span class="pre">scikit-learn</span></code> and ensures high performance.</p>
-<p>There are several reasons to opt for <code class="docutils literal notranslate"><span class="pre">skglm</span></code> among which:</p>
-<div class="table-wrapper colwidths-given docutils container">
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 20.0%" />
-<col style="width: 80.0%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p><strong>Speed</strong></p></td>
-<td><p>Fast solvers able to tackle large datasets, either dense or sparse, with millions of features <strong>up to 100 times faster</strong> than <code class="docutils literal notranslate"><span class="pre">scikit-learn</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p><strong>Modularity</strong></p></td>
-<td><p>User-friendly API that enables <strong>composing custom estimators</strong> with any combination of its existing datafits and penalties</p></td>
-</tr>
-<tr class="row-odd"><td><p><strong>Extensibility</strong></p></td>
-<td><p>Flexible design that makes it <strong>simple and easy to implement new datafits and penalties</strong>, a matter of few lines of code</p></td>
-</tr>
-<tr class="row-even"><td><p><strong>Compatibility</strong></p></td>
-<td><p>Estimators <strong>fully compatible with the</strong> <code class="docutils literal notranslate"><span class="pre">scikit-learn</span></code> <strong>API</strong> and drop-in replacements of its GLM estimators</p></td>
-</tr>
-</tbody>
-</table>
+          
+<noscript>
+<div class="admonition error">
+  <p class="admonition-title">Error</p>
+  <p>
+    Please activate JavaScript to enable the search functionality.
+  </p>
 </div>
-</section>
-<section id="installing-skglm">
-<h2>Installing <code class="docutils literal notranslate"><span class="pre">skglm</span></code><a class="headerlink" href="#installing-skglm" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">skglm</span></code> is available on PyPi. Get the latest version of the package by running</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>skglm
-</pre></div>
-</div>
-<p>It is also available on Conda and can be installed via the command</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>conda<span class="w"> </span>install<span class="w"> </span>skglm
-</pre></div>
-</div>
-<p>With <code class="docutils literal notranslate"><span class="pre">skglm</span></code> being installed, Get the first steps with the package via the <a class="reference internal" href="getting_started.html#getting-started"><span class="std std-ref">Getting started section</span></a>.
-Other advanced topics and uses-cases are covered in <a class="reference internal" href="tutorials/tutorials.html#tutorials"><span class="std std-ref">Tutorials</span></a>.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<ul class="simple">
-<li><p>Currently, <code class="docutils literal notranslate"><span class="pre">skglm</span></code> is unavailable on Conda but will be released very soon…</p></li>
-</ul>
-</div>
-</section>
-<section id="cite">
-<h2>Cite<a class="headerlink" href="#cite" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">skglm</span></code> is the result of perseverant research. It is licensed under
-<a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/main/LICENSE">BSD 3-Clause</a>.
-You are free to use it and if you do so, please cite</p>
-<div class="highlight-bibtex notranslate"><div class="highlight"><pre><span></span><span class="nc">@inproceedings</span><span class="p">{</span><span class="nl">skglm</span><span class="p">,</span>
-<span class="w">    </span><span class="na">title</span><span class="w">     </span><span class="p">=</span><span class="w"> </span><span class="s">{Beyond L1: Faster and better sparse models with skglm}</span><span class="p">,</span>
-<span class="w">    </span><span class="na">author</span><span class="w">    </span><span class="p">=</span><span class="w"> </span><span class="s">{Q. Bertrand and Q. Klopfenstein and P.-A. Bannier</span>
-<span class="s">                 and G. Gidel and M. Massias}</span><span class="p">,</span>
-<span class="w">    </span><span class="na">booktitle</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{NeurIPS}</span><span class="p">,</span>
-<span class="w">    </span><span class="na">year</span><span class="w">      </span><span class="p">=</span><span class="w"> </span><span class="s">{2022}</span><span class="p">,</span>
-</pre></div>
-</div>
-</section>
-<section id="explore-the-documentation">
-<h2>Explore the documentation<a class="headerlink" href="#explore-the-documentation" title="Link to this heading">#</a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/tutorials.html">Tutorials</a></li>
-<li class="toctree-l1"><a class="reference internal" href="auto_examples/index.html">Examples Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="contribute.html">Contribute to <code class="docutils literal notranslate"><span class="pre">skglm</span></code></a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes/whats_new.html">What’s new</a></li>
-</ul>
-</div>
-</section>
-</section>
+</noscript>
+
+<div id="search-results"></div>
 
         </article>
       </div>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="getting_started.html">
-              <div class="page-info">
-                <div class="context">
-                  <span>Next</span>
-                </div>
-                <div class="title">Getting started</div>
-              </div>
-              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
-            </a>
+          
           
         </div>
         <div class="bottom-of-page">
@@ -388,30 +304,8 @@ You are free to use it and if you do so, please cite</p>
         
       </footer>
     </div>
-    <aside class="toc-drawer">
+    <aside class="toc-drawer no-toc">
       
-      
-      <div class="toc-sticky toc-scroll">
-        <div class="toc-title-container">
-          <span class="toc-title">
-            On this page
-          </span>
-        </div>
-        <div class="toc-tree-container">
-          <div class="toc-tree">
-            <ul>
-<li><a class="reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">skglm</span></code></a><ul>
-<li><a class="reference internal" href="#why-skglm">Why <code class="docutils literal notranslate"><span class="pre">skglm</span></code>?</a></li>
-<li><a class="reference internal" href="#installing-skglm">Installing <code class="docutils literal notranslate"><span class="pre">skglm</span></code></a></li>
-<li><a class="reference internal" href="#cite">Cite</a></li>
-<li><a class="reference internal" href="#explore-the-documentation">Explore the documentation</a></li>
-</ul>
-</li>
-</ul>
-
-          </div>
-        </div>
-      </div>
       
       
     </aside>
@@ -423,5 +317,8 @@ You are free to use it and if you do so, please cite</p>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="_static/copybutton.js?v=30646c52"></script>
     <script src="_static/scripts/asciimath-defines.js?v=d20fafab"></script>
-    </body>
+    
+<script src="_static/searchtools.js"></script>
+<script src="_static/language_data.js"></script>
+<script src="searchindex.js"></script></body>
 </html>

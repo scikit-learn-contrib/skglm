@@ -1,0 +1,33 @@
+﻿skglm.datafits.Quadratic
+========================
+
+.. currentmodule:: skglm.datafits
+
+.. autoclass:: Quadratic
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Quadratic.__init__
+      ~Quadratic.full_grad_sparse
+      ~Quadratic.get_spec
+      ~Quadratic.gradient_scalar
+      ~Quadratic.gradient_scalar_sparse
+      ~Quadratic.init_global_lipschitz
+      ~Quadratic.init_global_lipschitz_sparse
+      ~Quadratic.initialize
+      ~Quadratic.initialize_sparse
+      ~Quadratic.intercept_update_step
+      ~Quadratic.params_to_dict
+      ~Quadratic.value
+   
+   
+
+   
+   
+   

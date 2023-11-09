@@ -1,0 +1,29 @@
+﻿skglm.penalties.IndicatorBox
+============================
+
+.. currentmodule:: skglm.penalties
+
+.. autoclass:: IndicatorBox
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~IndicatorBox.__init__
+      ~IndicatorBox.generalized_support
+      ~IndicatorBox.get_spec
+      ~IndicatorBox.is_penalized
+      ~IndicatorBox.params_to_dict
+      ~IndicatorBox.prox_1d
+      ~IndicatorBox.subdiff_distance
+      ~IndicatorBox.value
+   
+   
+
+   
+   
+   

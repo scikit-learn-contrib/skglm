@@ -1,0 +1,23 @@
+﻿skglm.solvers.LBFGS
+===================
+
+.. currentmodule:: skglm.solvers
+
+.. autoclass:: LBFGS
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~LBFGS.__init__
+      ~LBFGS.solve
+   
+   
+
+   
+   
+   

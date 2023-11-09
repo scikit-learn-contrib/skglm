@@ -1,0 +1,23 @@
+﻿skglm.solvers.GramCD
+====================
+
+.. currentmodule:: skglm.solvers
+
+.. autoclass:: GramCD
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~GramCD.__init__
+      ~GramCD.solve
+   
+   
+
+   
+   
+   

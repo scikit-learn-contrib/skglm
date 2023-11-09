@@ -1,0 +1,33 @@
+﻿skglm.SparseLogisticRegression
+==============================
+
+.. currentmodule:: skglm
+
+.. autoclass:: SparseLogisticRegression
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~SparseLogisticRegression.__init__
+      ~SparseLogisticRegression.decision_function
+      ~SparseLogisticRegression.densify
+      ~SparseLogisticRegression.fit
+      ~SparseLogisticRegression.get_metadata_routing
+      ~SparseLogisticRegression.get_params
+      ~SparseLogisticRegression.predict
+      ~SparseLogisticRegression.predict_proba
+      ~SparseLogisticRegression.score
+      ~SparseLogisticRegression.set_params
+      ~SparseLogisticRegression.set_score_request
+      ~SparseLogisticRegression.sparsify
+   
+   
+
+   
+   
+   

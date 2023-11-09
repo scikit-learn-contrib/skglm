@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Getting started" href="getting_started.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Tutorials" href="tutorials/tutorials.html" /><link rel="prev" title="skglm" href="index.html" />
 
     <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
-        <title>skglm 0.3(stable) documentation</title>
+        <title>Getting started - skglm 0.3(stable) documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -136,7 +136,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="#"><div class="brand">skglm 0.3(stable) documentation</div></a>
+      <a href="index.html"><div class="brand">skglm 0.3(stable) documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -156,7 +156,7 @@
   <aside class="sidebar-drawer">
     <div class="sidebar-container">
       
-      <div class="sidebar-sticky"><a class="sidebar-brand" href="#">
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
   
   
   <span class="sidebar-brand-text">skglm 0.3(stable) documentation</span>
@@ -167,8 +167,8 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <ul>
-<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting started</a></li>
+  <ul class="current">
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/tutorials.html">Tutorials</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="auto_examples/index.html">Examples Gallery</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Examples Gallery</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="auto_examples/plot_pen_prox.html">Value and proximal operators of penalties</a></li>
@@ -264,87 +264,128 @@
           </label>
         </div>
         <article role="main">
-          <section id="skglm">
-<h1><code class="docutils literal notranslate"><span class="pre">skglm</span></code><a class="headerlink" href="#skglm" title="Link to this heading">#</a></h1>
-<p><em>— A fast and modular scikit-learn replacement for sparse GLMs —</em></p>
+          <section id="getting-started">
+<span id="id1"></span><h1>Getting started<a class="headerlink" href="#getting-started" title="Link to this heading">#</a></h1>
 <hr class="docutils" />
-<p><code class="docutils literal notranslate"><span class="pre">skglm</span></code> is a Python package that offers <strong>fast estimators</strong> for sparse Generalized Linear Models (GLMs)
-that are <strong>100% compatible with</strong> <code class="docutils literal notranslate"><span class="pre">scikit-learn</span></code>. It is <strong>highly flexible</strong> and supports a wide range of GLMs.
-You get to choose from <code class="docutils literal notranslate"><span class="pre">skglm</span></code>’s already-made estimators or <strong>customize your own</strong> by combining the available datafits and penalties.</p>
-<p>Get a hands-on glimpse on <code class="docutils literal notranslate"><span class="pre">skglm</span></code> through the <a class="reference internal" href="getting_started.html#getting-started"><span class="std std-ref">Getting started page</span></a>.</p>
-<section id="why-skglm">
-<h2>Why <code class="docutils literal notranslate"><span class="pre">skglm</span></code>?<a class="headerlink" href="#why-skglm" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">skglm</span></code> is specifically conceived to solve sparse GLMs.
-It supports many missing models in <code class="docutils literal notranslate"><span class="pre">scikit-learn</span></code> and ensures high performance.</p>
-<p>There are several reasons to opt for <code class="docutils literal notranslate"><span class="pre">skglm</span></code> among which:</p>
-<div class="table-wrapper colwidths-given docutils container">
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 20.0%" />
-<col style="width: 80.0%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p><strong>Speed</strong></p></td>
-<td><p>Fast solvers able to tackle large datasets, either dense or sparse, with millions of features <strong>up to 100 times faster</strong> than <code class="docutils literal notranslate"><span class="pre">scikit-learn</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p><strong>Modularity</strong></p></td>
-<td><p>User-friendly API that enables <strong>composing custom estimators</strong> with any combination of its existing datafits and penalties</p></td>
-</tr>
-<tr class="row-odd"><td><p><strong>Extensibility</strong></p></td>
-<td><p>Flexible design that makes it <strong>simple and easy to implement new datafits and penalties</strong>, a matter of few lines of code</p></td>
-</tr>
-<tr class="row-even"><td><p><strong>Compatibility</strong></p></td>
-<td><p>Estimators <strong>fully compatible with the</strong> <code class="docutils literal notranslate"><span class="pre">scikit-learn</span></code> <strong>API</strong> and drop-in replacements of its GLM estimators</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</section>
-<section id="installing-skglm">
-<h2>Installing <code class="docutils literal notranslate"><span class="pre">skglm</span></code><a class="headerlink" href="#installing-skglm" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">skglm</span></code> is available on PyPi. Get the latest version of the package by running</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>skglm
+<p>This page provides a starter example to get familiar with <code class="docutils literal notranslate"><span class="pre">skglm</span></code> and explore some of its features.</p>
+<p>In the first section, we fit a Lasso estimator on a high dimensional
+toy dataset (number of features is largely greater than the number of samples). Linear models don’t generalize well
+for unseen dataset. By adding a penalty, <span class="math notranslate nohighlight">`\ell_1`</span> penalty, we can train estimator that overcome this drawback.</p>
+<p>The last section, we explore other combinations of datafit and penalty to create a custom estimator that achieves a lower prediction error,
+in the sequel <span class="math notranslate nohighlight">`\ell_1`</span> Huber regression. We show that <code class="docutils literal notranslate"><span class="pre">skglm</span></code> is perfectly adapted to these experiments thanks to its modular design.</p>
+<p>Beforehand, make sure that you have already installed <code class="docutils literal notranslate"><span class="pre">skglm</span></code></p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># using pip</span>
+pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>skglm
+
+<span class="c1"># using conda</span>
+conda<span class="w"> </span>install<span class="w"> </span>skglm
 </pre></div>
 </div>
-<p>It is also available on Conda and can be installed via the command</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>conda<span class="w"> </span>install<span class="w"> </span>skglm
+<hr class="docutils" />
+<section id="fitting-a-lasso-estimator">
+<h2>Fitting a Lasso estimator<a class="headerlink" href="#fitting-a-lasso-estimator" title="Link to this heading">#</a></h2>
+<p>Let’s start first by generating a toy dataset and splitting it to train and test sets.
+For that, we will use <code class="docutils literal notranslate"><span class="pre">scikit-learn</span></code>
+<a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.datasets.make_regression.html#sklearn.datasets.make_regression">make_regression</a></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># imports</span>
+<span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">make_regression</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
+
+<span class="c1"># generate toy data</span>
+<span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">make_regression</span><span class="p">(</span><span class="n">n_samples</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">n_features</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+
+<span class="c1"># split data</span>
+<span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>With <code class="docutils literal notranslate"><span class="pre">skglm</span></code> being installed, Get the first steps with the package via the <a class="reference internal" href="getting_started.html#getting-started"><span class="std std-ref">Getting started section</span></a>.
-Other advanced topics and uses-cases are covered in <a class="reference internal" href="tutorials/tutorials.html#tutorials"><span class="std std-ref">Tutorials</span></a>.</p>
+<p>Then let’s fit <code class="docutils literal notranslate"><span class="pre">skglm</span></code> <a class="reference internal" href="generated/skglm.Lasso.html#skglm-lasso"><span class="std std-ref">Lasso</span></a> estimator and prints its score on the test set.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># import estimator</span>
+<span class="kn">from</span> <span class="nn">skglm</span> <span class="kn">import</span> <span class="n">Lasso</span>
+
+<span class="c1"># init and fit</span>
+<span class="n">estimator</span> <span class="o">=</span> <span class="n">Lasso</span><span class="p">()</span>
+<span class="n">estimator</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+
+<span class="c1"># compute R²</span>
+<span class="n">estimator</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">y_test</span><span class="p">)</span>
+</pre></div>
+</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <ul class="simple">
-<li><p>Currently, <code class="docutils literal notranslate"><span class="pre">skglm</span></code> is unavailable on Conda but will be released very soon…</p></li>
+<li><p>The first fit after importing <code class="docutils literal notranslate"><span class="pre">skglm</span></code> has an overhead as <code class="docutils literal notranslate"><span class="pre">skglm</span></code> uses <a class="reference external" href="https://numba.pydata.org/">Numba</a>
+The subsequent fits will achieve top speed since Numba compilation is cached.</p></li>
 </ul>
 </div>
+<p><code class="docutils literal notranslate"><span class="pre">skglm</span></code> has several other <code class="docutils literal notranslate"><span class="pre">scikit-learn</span></code> compatible estimators.
+Check the <a class="reference internal" href="api.html#estimators"><span class="std std-ref">API</span></a> for more information about the available estimators.</p>
 </section>
-<section id="cite">
-<h2>Cite<a class="headerlink" href="#cite" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">skglm</span></code> is the result of perseverant research. It is licensed under
-<a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/main/LICENSE">BSD 3-Clause</a>.
-You are free to use it and if you do so, please cite</p>
-<div class="highlight-bibtex notranslate"><div class="highlight"><pre><span></span><span class="nc">@inproceedings</span><span class="p">{</span><span class="nl">skglm</span><span class="p">,</span>
-<span class="w">    </span><span class="na">title</span><span class="w">     </span><span class="p">=</span><span class="w"> </span><span class="s">{Beyond L1: Faster and better sparse models with skglm}</span><span class="p">,</span>
-<span class="w">    </span><span class="na">author</span><span class="w">    </span><span class="p">=</span><span class="w"> </span><span class="s">{Q. Bertrand and Q. Klopfenstein and P.-A. Bannier</span>
-<span class="s">                 and G. Gidel and M. Massias}</span><span class="p">,</span>
-<span class="w">    </span><span class="na">booktitle</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{NeurIPS}</span><span class="p">,</span>
-<span class="w">    </span><span class="na">year</span><span class="w">      </span><span class="p">=</span><span class="w"> </span><span class="s">{2022}</span><span class="p">,</span>
+<section id="fitting-ell-1-huber-regression">
+<h2>Fitting <span class="math notranslate nohighlight">`\ell_1`</span> Huber regression<a class="headerlink" href="#fitting-ell-1-huber-regression" title="Link to this heading">#</a></h2>
+<p>Suppose that the latter dataset contains outliers and we would like to mitigate their effects on the learned coefficients
+while having an estimator that generalizes well to unseen data. Ideally, we would like to fit a <span class="math notranslate nohighlight">`\ell_1`</span> Huber regressor.</p>
+<p><code class="docutils literal notranslate"><span class="pre">skglm</span></code> offers high flexibility to compose custom estimators. Through a simple API, it is possible to combine any
+<code class="docutils literal notranslate"><span class="pre">skglm</span></code> <a class="reference internal" href="api.html#datafits"><span class="std std-ref">datafit</span></a> and <a class="reference internal" href="api.html#penalties"><span class="std std-ref">penalty</span></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">`\ell_1`</span> regularization is not supported in <code class="docutils literal notranslate"><span class="pre">scikit-learn</span></code> for HuberRegressor</p></li>
+</ul>
+</div>
+<p>Let’s explore how to achieve that.</p>
+<section id="generate-corrupt-data">
+<h3>Generate corrupt data<a class="headerlink" href="#generate-corrupt-data" title="Link to this heading">#</a></h3>
+<p>We will use the same script as before except that we will take 10 samples and corrupt their values.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># imports</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">make_regression</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
+
+<span class="c1"># generate toy data</span>
+<span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">make_regression</span><span class="p">(</span><span class="n">n_samples</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">n_features</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+
+<span class="c1"># select and corrupt 10 random samples</span>
+<span class="n">y</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="mi">10</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">y</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+<span class="c1"># split data</span>
+<span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
 </pre></div>
 </div>
-</section>
-<section id="explore-the-documentation">
-<h2>Explore the documentation<a class="headerlink" href="#explore-the-documentation" title="Link to this heading">#</a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/tutorials.html">Tutorials</a></li>
-<li class="toctree-l1"><a class="reference internal" href="auto_examples/index.html">Examples Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="contribute.html">Contribute to <code class="docutils literal notranslate"><span class="pre">skglm</span></code></a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes/whats_new.html">What’s new</a></li>
+<p>Now let’s compose a custom estimator using <a class="reference internal" href="generated/skglm.GeneralizedLinearEstimator.html#skglm-generalizedlinearestimator"><span class="std std-ref">GeneralizedLinearEstimator</span></a>.
+It’s the go-to way to create custom estimator by combining a datafit and a penalty.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># import penalty and datafit</span>
+<span class="kn">from</span> <span class="nn">skglm.penalties</span> <span class="kn">import</span> <span class="n">L1</span>
+<span class="kn">from</span> <span class="nn">skglm.datafits</span> <span class="kn">import</span> <span class="n">Huber</span>
+
+<span class="c1"># import GLM estimator</span>
+<span class="kn">from</span> <span class="nn">skglm</span> <span class="kn">import</span> <span class="n">GeneralizedLinearEstimator</span>
+
+<span class="c1"># build and fit estimator</span>
+<span class="n">estimator</span> <span class="o">=</span> <span class="n">GeneralizedLinearEstimator</span><span class="p">(</span>
+    <span class="n">Huber</span><span class="p">(</span><span class="mf">1.</span><span class="p">),</span>
+    <span class="n">L1</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">estimator</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul class="simple">
+<li><p>Here the arguments given to the datafit and penalty are arbitrary and given just for sake of illustration.</p></li>
 </ul>
 </div>
+<p><code class="docutils literal notranslate"><span class="pre">GeneralizedLinearEstimator</span></code> allows to combine any penalties and datafits implemented in <code class="docutils literal notranslate"><span class="pre">skglm</span></code>.
+If you don’t find an estimator in the <code class="docutils literal notranslate"><span class="pre">estimators</span></code> module, you can build it by combining the appropriate datafit and penalty
+and pass it to <code class="docutils literal notranslate"><span class="pre">GeneralizedLinearEstimator</span></code>. Explore the list of supported <a class="reference internal" href="api.html#datafits"><span class="std std-ref">datafits</span></a> and <a class="reference internal" href="api.html#penalties"><span class="std std-ref">penalties</span></a>.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<ul class="simple">
+<li><p>It is possible to create your own datafit and penalties. Check the tutorials on <a class="reference internal" href="tutorials/add_datafit.html#how-to-add-custom-datafit"><span class="std std-ref">how to add a custom datafit</span></a>
+and <a class="reference internal" href="tutorials/add_penalty.html#how-to-add-custom-penalty"><span class="std std-ref">how to add a custom penalty</span></a>.</p></li>
+</ul>
+</div>
+<p>Explore further advanced topics and get hands-on examples on the <a class="reference internal" href="tutorials/tutorials.html#tutorials"><span class="std std-ref">tutorials page</span></a></p>
+</section>
 </section>
 </section>
 
@@ -353,16 +394,26 @@ You are free to use it and if you do so, please cite</p>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="getting_started.html">
+          <a class="next-page" href="tutorials/tutorials.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Getting started</div>
+                <div class="title">Tutorials</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          
+          <a class="prev-page" href="index.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Home</div>
+                
+              </div>
+            </a>
         </div>
         <div class="bottom-of-page">
           <div class="left-details">
@@ -400,11 +451,12 @@ You are free to use it and if you do so, please cite</p>
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">skglm</span></code></a><ul>
-<li><a class="reference internal" href="#why-skglm">Why <code class="docutils literal notranslate"><span class="pre">skglm</span></code>?</a></li>
-<li><a class="reference internal" href="#installing-skglm">Installing <code class="docutils literal notranslate"><span class="pre">skglm</span></code></a></li>
-<li><a class="reference internal" href="#cite">Cite</a></li>
-<li><a class="reference internal" href="#explore-the-documentation">Explore the documentation</a></li>
+<li><a class="reference internal" href="#">Getting started</a><ul>
+<li><a class="reference internal" href="#fitting-a-lasso-estimator">Fitting a Lasso estimator</a></li>
+<li><a class="reference internal" href="#fitting-ell-1-huber-regression">Fitting <span class="math notranslate nohighlight">`\ell_1`</span> Huber regression</a><ul>
+<li><a class="reference internal" href="#generate-corrupt-data">Generate corrupt data</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -422,6 +474,8 @@ You are free to use it and if you do so, please cite</p>
     <script src="_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="_static/copybutton.js?v=30646c52"></script>
+    <script>window.MathJax = {"loader": {"load": ["input/asciimath"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/scripts/asciimath-defines.js?v=d20fafab"></script>
     </body>
 </html>

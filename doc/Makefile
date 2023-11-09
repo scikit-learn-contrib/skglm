@@ -153,4 +153,5 @@ add-stable-doc:
     fi
 # switch back to main and get to doc directory
 	git checkout main
+	ls
 	cd $(DOC_DIR)

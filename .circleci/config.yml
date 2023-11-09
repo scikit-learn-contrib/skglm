@@ -63,7 +63,7 @@ jobs:
             command: |
               cd doc;
               make clean;
-              make SPHINXOPTS=-v html-noplot;
+              make SPHINXOPTS=-v html;
               cd ..;
 
 

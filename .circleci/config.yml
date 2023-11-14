@@ -81,12 +81,12 @@ jobs:
 
         # upload to gh-pages
         - run:
-          name: deploy
-          command: |
-            if [[ ${CIRCLE_BRANCH} == "main" ]]; then
-              pip install ghp-import;
-              make install
-            fi
+            name: deploy
+            command: |
+              if [[ ${CIRCLE_BRANCH} == "main" ]]; then
+                pip install ghp-import;
+                make install
+              fi
 
 
         # Save the outputs

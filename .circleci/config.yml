@@ -76,7 +76,7 @@ jobs:
               echo -e "Host *\nStrictHostKeyChecking no" > ~/.ssh/config
               chmod og= ~/.ssh/config
               cd doc;
-              make add-stable-doc
+              make add-stable-doc;
         # upload to gh-pages if branch is main
               if [[ ${CIRCLE_BRANCH} == "main" ]]; then
                 pip install ghp-import;

@@ -66,6 +66,9 @@ extensions = [
     # custom ext, see ./sphinxext/gh_substitutions.py
 ]
 
+# set it to True to build a stable version of the documentation
+is_stable_doc = False
+
 myst_enable_extensions = [
     "dollarmath",
     "amsmath"
@@ -75,6 +78,8 @@ autosummary_generate = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
+
+html_css_files = ["style.css"]
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
@@ -208,7 +213,7 @@ copybutton_prompt_is_regexp = True
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-#html_title = None
+html_title = f"skglm {version} documentation"
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #html_short_title = None
@@ -241,7 +246,32 @@ html_favicon = "_static/images/logo.svg"
 #html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
-#html_sidebars = {}
+html_sidebars = {
+    "**": [
+        "sidebar/brand.html",
+        "sidebar/version_toggler.html",  # version toggler template
+        "sidebar/search.html",
+        "sidebar/navigation.html",
+    ]
+}
+
+# these variables will be available in the sphinx templates
+html_context = {
+    "is_stable_doc": is_stable_doc
+}
+
+
+# when it's the dev version of the documentation, put a banner to warn the user
+# and a link to switch to the dev version of doc
+if not is_stable_doc:
+    html_theme_options = {
+        "announcement": (
+            "You are viewing the documentation of the dev version of "
+            "<code>skglm</code> which contains WIP features. "
+            "View <a href='stable/index.html'>stable version</a>."
+        )
+    }
+
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.

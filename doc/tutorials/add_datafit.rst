@@ -37,7 +37,7 @@ A ``Datafit`` is a jitclass that must inherit from the ``BaseDatafit`` class:
 
 
 To define a custom datafit, you need to inherit from ``BaseDatafit`` class and implement methods required by the targeted solver.
-Theses methods can be found in the solver documentation.
+These methods can be found in the solver documentation.
 Optionally, overloading the methods with the suffix ``_sparse`` adds support for sparse datasets (CSC matrix).
 
 This tutorial shows how to implement :ref:`Poisson <skglm.datafits.Poisson>` datafit to be fitted with :ref:`ProxNewton <skglm.solvers.ProxNewton>` solver.

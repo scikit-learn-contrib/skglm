@@ -67,9 +67,9 @@ jobs:
               cd ..;
 
 
-        # Deploy docs
+        # Add stable doc
         - run:
-            name: deploy
+            name: add stable doc
             command: |
               set -e
               mkdir -p ~/.ssh
@@ -77,11 +77,16 @@ jobs:
               chmod og= ~/.ssh/config
               cd doc;
               make add-stable-doc;
-        # upload to gh-pages if branch is main
-              if [[ ${CIRCLE_BRANCH} == "main" ]]; then
-                pip install ghp-import;
-                make install
-              fi
+
+
+        # upload to gh-pages
+        - run:
+          name: deploy
+          command: |
+            if [[ ${CIRCLE_BRANCH} == "main" ]]; then
+              pip install ghp-import;
+              make install
+            fi
 
 
         # Save the outputs

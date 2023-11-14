@@ -249,9 +249,9 @@ html_favicon = "_static/images/logo.svg"
 html_sidebars = {
     "**": [
         "sidebar/brand.html",
+        "sidebar/version_toggler.html",  # version toggler template
         "sidebar/search.html",
         "sidebar/navigation.html",
-        "sidebar/version_toggler.html",  # version toggler template
     ]
 }
 

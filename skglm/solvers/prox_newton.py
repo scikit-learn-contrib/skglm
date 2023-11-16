@@ -196,6 +196,14 @@ class ProxNewton(BaseSolver):
             )
         return w, np.asarray(p_objs_out), stop_crit
 
+    def custom_compatibility_check(self, X, y, datafit, penalty):
+        # ws strategy
+        if self.ws_strategy == "subdiff" and not hasattr(penalty, "subdiff_distance"):
+            raise AttributeError(
+                "Penalty must implement `subdiff_distance` "
+                "to use self.ws_strategy='subdiff'."
+            )
+
 
 @njit
 def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,

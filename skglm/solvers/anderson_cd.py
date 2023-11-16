@@ -279,6 +279,13 @@ class AndersonCD(BaseSolver):
             support_sparse=sparse.issparse(X)
         )
 
+        # ws strategy
+        if self.ws_strategy == "subdiff" and not hasattr(penalty, "subdiff_distance"):
+            raise AttributeError(
+                "Penalty must implement `subdiff_distance` "
+                "to use self.ws_strategy='subdiff'."
+            )
+
 
 @njit
 def _cd_epoch(X, y, w, Xw, lc, datafit, penalty, ws):

@@ -116,3 +116,10 @@ class FISTA(BaseSolver):
             required_attr=self._datafit_required_attr,
             support_sparse=issparse(X)
         )
+
+        # optimality check
+        if self.opt_strategy == "subdiff" and not hasattr(penalty, "subdiff_distance"):
+            raise AttributeError(
+                "Penalty must implement `subdiff_distance` "
+                "to use self.opt_strategy='subdiff'."
+            )

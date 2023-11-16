@@ -241,6 +241,13 @@ class MultiTaskBCD(BaseSolver):
             support_sparse=sparse.issparse(X)
         )
 
+        # ws strategy
+        if self.ws_strategy == "subdiff" and not hasattr(penalty, "subdiff_distance"):
+            raise AttributeError(
+                "Penalty must implement `subdiff_distance` "
+                "to use self.ws_strategy='subdiff'."
+            )
+
 
 @njit
 def dist_fix_point_bcd(W, grad_ws, lipschitz, datafit, penalty, ws):

@@ -9,6 +9,7 @@ BUILDDIR      = _build
 
 GITHUB_PAGES_BRANCH = gh-pages
 OUTPUTDIR = _build/html
+STABLE_DOC_DIR = stable
 
 # User-friendly check for sphinx-build
 ifeq ($(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?), 1)
@@ -138,3 +139,14 @@ install:
 	touch $(OUTPUTDIR)/.nojekyll
 	ghp-import -m "Generate Pelican site [ci skip]" -b $(GITHUB_PAGES_BRANCH) $(OUTPUTDIR)
 	git push origin $(GITHUB_PAGES_BRANCH)
+
+.PHONY: add-stable-doc
+add-stable-doc:
+# switch to GITHUB_PAGES_BRANCH where stable build is located
+	git fetch origin $(GITHUB_PAGES_BRANCH)
+	git checkout $(GITHUB_PAGES_BRANCH)
+	git pull origin $(GITHUB_PAGES_BRANCH)
+# move the content of the stable build to the output dir
+	mv ../$(STABLE_DOC_DIR) $(OUTPUTDIR)
+# switch back to main and get to doc directory
+	git checkout main

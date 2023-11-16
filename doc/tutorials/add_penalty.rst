@@ -10,10 +10,12 @@ skglm supports any arbitrary proximable penalty.
 
 It is implemented as a jitclass which must inherit from the ``BasePenalty`` class:
 
-.. literalinclude:: ../skglm/penalties/base.py
+.. literalinclude:: ../../skglm/penalties/base.py
    :pyobject: BasePenalty
 
-To implement your own penalty, you only need to define a new jitclass, inheriting from ``BasePenalty`` and define how its value, proximal operator, distance to subdifferential (for KKT violation) and penalized features are computed.
+To implement your own penalty, you only need to define a new jitclass, inheriting from ``BasePenalty`` and implement the methods required by the targeted solver.
+Theses methods can be found in the solver documentation.
+
 
 A case in point: defining L1 penalty
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -66,6 +68,6 @@ Note that since ``lambda`` is a reserved keyword in Python, ``alpha`` in skglm c
 When putting all together, this gives the implementation of the ``L1`` penalty:
 
 
-.. literalinclude:: ../skglm/penalties/separable.py
+.. literalinclude:: ../../skglm/penalties/separable.py
    :pyobject: L1
 

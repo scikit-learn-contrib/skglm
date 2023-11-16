@@ -15,16 +15,18 @@
 import os
 import sys
 import warnings
-# import os
+
 import sphinx_gallery  # noqa
-import sphinx_bootstrap_theme
+import sphinx_bootstrap_theme  # noqa
 from numpydoc import numpydoc, docscrape  # noqa
-from doc.github_link import make_linkcode_resolve
 
 from skglm import __version__ as version
 
-curdir = os.path.dirname(__file__)
-sys.path.append(os.path.abspath(os.path.join(curdir, 'sphinxext')))
+# include custom extension
+curdir = os.path.dirname(__file__)  # noqa
+sys.path.append(os.path.abspath(os.path.join(curdir, 'sphinxext')))  # noqa
+
+from github_link import make_linkcode_resolve
 
 
 # Mathurin: disable agg warnings in doc
@@ -64,6 +66,9 @@ extensions = [
     # custom ext, see ./sphinxext/gh_substitutions.py
 ]
 
+# set it to True to build a stable version of the documentation
+is_stable_doc = False
+
 myst_enable_extensions = [
     "dollarmath",
     "amsmath"
@@ -73,6 +78,8 @@ autosummary_generate = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
+
+html_css_files = ["style.css"]
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
@@ -156,14 +163,14 @@ html_theme = 'furo'
 # documentation.
 html_theme_options = {
     "light_css_variables": {
-        "color-brand-primary": "#b91c1c",
-        "color-brand-content": "#b91c1c",
+        "color-brand-primary": "#991b1b",
+        "color-brand-content": "#991b1b",
         "font-stack": 'ui-sans-serif, system-ui',
-        "color-background-secondary": "#fef2f2"
+        "color-background-secondary": "#fafafa"
     },
     "dark_css_variables": {
-        "color-brand-primary": "#f87171",
-        "color-brand-content": "#f87171",
+        "color-brand-primary": "#fca5a5",
+        "color-brand-content": "#fca5a5",
     },
     "footer_icons": [
         {
@@ -206,19 +213,19 @@ copybutton_prompt_is_regexp = True
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-#html_title = None
+html_title = f"skglm {version} documentation"
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #html_short_title = None
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = None
+html_logo = "_static/images/logo.svg"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-#html_favicon = None
+html_favicon = "_static/images/logo.svg"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -239,7 +246,32 @@ copybutton_prompt_is_regexp = True
 #html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
-#html_sidebars = {}
+html_sidebars = {
+    "**": [
+        "sidebar/brand.html",
+        "sidebar/version_toggler.html",  # version toggler template
+        "sidebar/search.html",
+        "sidebar/navigation.html",
+    ]
+}
+
+# these variables will be available in the sphinx templates
+html_context = {
+    "is_stable_doc": is_stable_doc
+}
+
+
+# when it's the dev version of the documentation, put a banner to warn the user
+# and a link to switch to the dev version of doc
+if not is_stable_doc:
+    html_theme_options = {
+        "announcement": (
+            "You are viewing the documentation of the dev version of "
+            "<code>skglm</code> which contains WIP features. "
+            "View <a href='stable/index.html'>stable version</a>."
+        )
+    }
+
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.

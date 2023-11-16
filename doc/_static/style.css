@@ -1,0 +1,24 @@
+.announcement {
+    background-color: #1f77b4;
+}
+
+.sidebar-version {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+
+    padding-left: var(--sidebar-item-spacing-horizontal);
+    padding-right: var(--sidebar-item-spacing-horizontal);
+    margin-top: 0px;
+}
+
+.sidebar-version-selected>* {
+    display: flex;
+    align-items: center;
+    padding: 0.25em;
+    border-radius: 0.25rem;
+    background-color: #ff7f0e;
+    color: white;
+    pointer-events: none;
+}

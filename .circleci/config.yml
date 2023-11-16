@@ -41,8 +41,8 @@ jobs:
             name: Get Python running
             command: |
               python -m pip install --user --upgrade --progress-bar off pip
-              python -m pip install --user --upgrade --progress-bar off -r doc/doc-requirements.txt
               python -m pip install --user -e .
+              python -m pip install --user .[doc]
 
         - save_cache:
             key: pip-cache
@@ -78,8 +78,20 @@ jobs:
                 chmod og= ~/.ssh/config
                 cd doc;
                 pip install ghp-import;
+                make add-stable-doc
                 make install
               fi
+
+        # Add stable documentation
+        - run:
+            name: stable_doc
+            command: |
+              set -e
+              mkdir -p ~/.ssh
+              echo -e "Host *\nStrictHostKeyChecking no" > ~/.ssh/config
+              chmod og= ~/.ssh/config
+              cd doc;
+              make add-stable-doc
 
         # Save the outputs
         - store_artifacts:

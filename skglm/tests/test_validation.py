@@ -7,28 +7,27 @@ from skglm.utils.data import make_correlated_data
 
 
 def test_datafit_penalty_solver_compatibility():
-    X_sparse, y, _ = make_correlated_data(n_samples=3, n_features=5, X_density=0.5)
-    X_dense = X_sparse.todense()
+    X, y, _ = make_correlated_data(n_samples=3, n_features=5)
 
     with pytest.raises(
         AttributeError, match="Missing `raw_grad` and `raw_hessian`"
     ):
         ProxNewton()._validate(
-            X_dense, y, compiled_clone(Quadratic()), compiled_clone(L1(1.))
+            X, y, compiled_clone(Quadratic()), compiled_clone(L1(1.))
         )
 
     with pytest.raises(
         AttributeError, match="Missing `get_global_lipschitz`"
     ):
         FISTA()._validate(
-            X_dense, y, compiled_clone(Poisson()), compiled_clone(L1(1.))
+            X, y, compiled_clone(Poisson()), compiled_clone(L1(1.))
         )
 
     with pytest.raises(
         AttributeError, match="Missing `get_global_lipschitz`"
     ):
         FISTA()._validate(
-            X_dense, y, compiled_clone(Poisson()), compiled_clone(L1(1.))
+            X, y, compiled_clone(Poisson()), compiled_clone(L1(1.))
         )
 
 

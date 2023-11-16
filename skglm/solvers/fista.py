@@ -3,6 +3,7 @@ from scipy.sparse import issparse
 from skglm.solvers.base import BaseSolver
 from skglm.solvers.common import construct_grad, construct_grad_sparse
 from skglm.utils.prox_funcs import _prox_vec
+from skglm.utils.validation import check_obj_solver_attr
 
 
 class FISTA(BaseSolver):
@@ -49,19 +50,12 @@ class FISTA(BaseSolver):
         z = w_init.copy() if w_init is not None else np.zeros(n_features)
         Xw = Xw_init.copy() if Xw_init is not None else np.zeros(n_samples)
 
-        try:
-            if X_is_sparse:
-                lipschitz = datafit.get_global_lipschitz_sparse(
-                    X.data, X.indptr, X.indices, y
-                )
-            else:
-                lipschitz = datafit.get_global_lipschitz(X, y)
-        except AttributeError as e:
-            sparse_suffix = '_sparse' if X_is_sparse else ''
-
-            raise Exception(
-                "Datafit is not compatible with FISTA solver.\n Datafit must "
-                f"implement `get_global_lipschitz{sparse_suffix}` method") from e
+        if X_is_sparse:
+            lipschitz = datafit.get_global_lipschitz_sparse(
+                X.data, X.indptr, X.indices, y
+            )
+        else:
+            lipschitz = datafit.get_global_lipschitz(X, y)
 
         for n_iter in range(self.max_iter):
             t_old = t_new
@@ -114,3 +108,11 @@ class FISTA(BaseSolver):
                     print(f"Stopping criterion max violation: {stop_crit:.2e}")
                 break
         return w, np.array(p_objs_out), stop_crit
+
+    def custom_compatibility_check(self, X, y, datafit, penalty):
+        # check datafit support sparse data
+        check_obj_solver_attr(
+            datafit, solver=self,
+            required_attr=self._datafit_required_attr,
+            support_sparse=issparse(X)
+        )

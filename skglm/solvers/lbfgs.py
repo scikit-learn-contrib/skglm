@@ -7,6 +7,7 @@ from numpy.linalg import norm
 from scipy.sparse import issparse
 
 from skglm.solvers import BaseSolver
+from skglm.utils.validation import check_obj_solver_attr
 
 
 class LBFGS(BaseSolver):
@@ -105,3 +106,11 @@ class LBFGS(BaseSolver):
         stop_crit = norm(result.jac, ord=np.inf)
 
         return w, np.asarray(p_objs_out), stop_crit
+
+    def custom_compatibility_check(self, X, y, datafit, penalty):
+        # check datafit support sparse data
+        check_obj_solver_attr(
+            datafit, solver=self,
+            required_attr=self._datafit_required_attr,
+            support_sparse=issparse(X)
+        )

@@ -1,6 +1,9 @@
 import re
 
 
+SPARSE_SUFFIX = "_sparse"
+
+
 def check_group_compatible(obj):
     """Check whether ``obj`` is compatible with ``bcd_solver``.
 
@@ -27,7 +30,7 @@ def check_group_compatible(obj):
             )
 
 
-def check_obj_solver_attr(obj, solver, required_attr):
+def check_obj_solver_attr(obj, solver, required_attr, support_sparse=False):
     """Check whether datafit or penalty is compatible with solver.
 
     Parameters
@@ -41,6 +44,9 @@ def check_obj_solver_attr(obj, solver, required_attr):
     required_attr : List or tuple of strings
         The attributes that ``obj`` must have.
 
+    support_sparse : bool, default False
+        If ``True`` adds a ``SPARSE_SUFFIX`` to check compatibility with sparse data.
+
     Raises
     ------
         AttributeError
@@ -48,19 +54,21 @@ def check_obj_solver_attr(obj, solver, required_attr):
             from ``obj`` attributes.
     """
     missing_attrs = []
+    suffix = SPARSE_SUFFIX if support_sparse else ""
+
+    # if `attr` is a list check that at least one of them
+    # is within `obj` attributes
     for attr in required_attr:
         attributes = attr if not isinstance(attr, str) else (attr,)
 
-        # if `attr` is a list check that at least one of them
-        # is within `obj` attributes
         for a in attributes:
-            if hasattr(obj, a):
+            if hasattr(obj, f"{a}{suffix}"):
                 break
         else:
-            missing_attrs.append(_join_attrs_with_or(attributes))
+            missing_attrs.append(_join_attrs_with_or(attributes, suffix))
 
     if len(missing_attrs):
-        required_attr = [_join_attrs_with_or(attrs) for attrs in required_attr]
+        required_attr = [_join_attrs_with_or(attrs, suffix) for attrs in required_attr]
 
         # get name obj and solver
         name_matcher = re.compile(r"\.(\w+)'>")
@@ -69,18 +77,19 @@ def check_obj_solver_attr(obj, solver, required_attr):
         solver_name = name_matcher.search(str(solver.__class__)).group(1)
 
         raise AttributeError(
-            f"{obj_name} is not compatible with {solver_name}. "
+            f"{obj_name} is not compatible with {solver_name}"
+            " with sparse data. " if support_sparse else ". "
             f"It must implement {' and '.join(required_attr)}\n"
             f"Missing {' and '.join(missing_attrs)}."
         )
 
 
-def _join_attrs_with_or(attrs):
+def _join_attrs_with_or(attrs, suffix=""):
     if isinstance(attrs, str):
-        return f"`{attrs}`"
+        return f"`{attrs}{suffix}`"
 
     if len(attrs) == 1:
-        return f"`{attrs[0]}`"
+        return f"`{attrs[0]}{suffix}`"
 
-    out = " or ".join([f"`{a}`" for a in attrs])
+    out = " or ".join([f"`{a}{suffix}`" for a in attrs])
     return f"({out})"

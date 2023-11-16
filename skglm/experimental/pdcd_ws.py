@@ -96,8 +96,6 @@ class PDCD_WS(BaseSolver):
         if issparse(X):
             raise ValueError("Sparse matrices are not yet support in `PDCD_WS` solver.")
 
-        self.validate(datafit_, penalty_)
-
         # jit compile classes
         datafit = compiled_clone(datafit_)
         penalty = compiled_clone(penalty_)

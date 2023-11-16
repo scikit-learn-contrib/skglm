@@ -28,7 +28,6 @@ from skglm.penalties import (L1, WeightedL1, L1_plus_L2, L2,
 def _glm_fit(X, y, model, datafit, penalty, solver):
     is_classif = isinstance(datafit, (Logistic, QuadraticSVC))
     fit_intercept = solver.fit_intercept
-    solver.validate(datafit, penalty)
 
     if is_classif:
         check_classification_targets(y)

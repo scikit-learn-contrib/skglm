@@ -51,6 +51,8 @@ def check_obj_solver_attr(obj, solver, required_attr):
     for attr in required_attr:
         attributes = attr if not isinstance(attr, str) else (attr,)
 
+        # if `attr` is a list check that at least one of them
+        # is within `obj` attributes
         for a in attributes:
             if hasattr(obj, a):
                 break
@@ -74,7 +76,6 @@ def check_obj_solver_attr(obj, solver, required_attr):
 
 
 def _join_attrs_with_or(attrs):
-    #
     if isinstance(attrs, str):
         return f"`{attrs}`"
 
@@ -82,4 +83,4 @@ def _join_attrs_with_or(attrs):
         return f"`{attrs[0]}`"
 
     out = " or ".join([f"`{a}`" for a in attrs])
-    return f'"{out}"'
+    return f"({out})"

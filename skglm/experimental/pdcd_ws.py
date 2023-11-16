@@ -93,9 +93,6 @@ class PDCD_WS(BaseSolver):
         self.verbose = verbose
 
     def solve(self, X, y, datafit_, penalty_, w_init=None, Xw_init=None):
-        if issparse(X):
-            raise ValueError("Sparse matrices are not yet support in `PDCD_WS` solver.")
-
         # jit compile classes
         datafit = compiled_clone(datafit_)
         penalty = compiled_clone(penalty_)
@@ -203,6 +200,12 @@ class PDCD_WS(BaseSolver):
 
                 if stop_crit_in <= tol_in:
                     break
+
+    def custom_compatibility_check(self, X, y, datafit, penalty):
+        if issparse(X):
+            raise ValueError(
+                "Sparse matrices are not yet support in `PDCD_WS` solver."
+            )
 
 
 @njit

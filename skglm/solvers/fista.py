@@ -27,8 +27,8 @@ class FISTA(BaseSolver):
            https://epubs.siam.org/doi/10.1137/080716542
     """
 
-    _datafit_required_attr = ("get_global_lipschitz",)
-    _penalty_required_attr = ()
+    _datafit_required_attr = ("get_global_lipschitz", ("gradient", "gradient_scalar"))
+    _penalty_required_attr = (("prox_1d", "prox_vec"),)
 
     def __init__(self, max_iter=100, tol=1e-4, opt_strategy="subdiff", verbose=0):
         self.max_iter = max_iter

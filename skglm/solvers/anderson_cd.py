@@ -48,7 +48,7 @@ class AndersonCD(BaseSolver):
     """
 
     _datafit_required_attr = ("get_lipschitz", "gradient_scalar")
-    _penalty_required_attr = ()
+    _penalty_required_attr = ("prox_1d",)
 
     def __init__(self, max_iter=50, max_epochs=50_000, p0=10,
                  tol=1e-4, ws_strategy="subdiff", fit_intercept=True,

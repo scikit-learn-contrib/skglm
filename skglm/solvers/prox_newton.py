@@ -54,7 +54,7 @@ class ProxNewton(BaseSolver):
     """
 
     _datafit_required_attr = ("raw_grad", "raw_hessian")
-    _penalty_required_attr = ("prox_1d", "subdiff_distance")
+    _penalty_required_attr = ("prox_1d",)
 
     def __init__(self, p0=10, max_iter=20, max_pn_iter=1000, tol=1e-4,
                  ws_strategy="subdiff", fit_intercept=True, warm_start=False,

@@ -1,8 +1,8 @@
-from abc import abstractmethod
-from skglm.utils.validation import check_obj_solver_attr_compatibility
+from abc import abstractmethod, ABC
+from skglm.utils.validation import check_obj_solver_attr
 
 
-class BaseSolver():
+class BaseSolver(ABC):
     """Base class for solvers.
 
     Attributes
@@ -53,8 +53,7 @@ class BaseSolver():
             Value of stopping criterion at convergence.
         """
 
-    @abstractmethod
-    def validate(self, datafit, penalty):
+    def custom_compatibility_check(self, datafit, penalty):
         """Ensure the solver is suited for the `datafit` + `penalty` problem.
 
         Parameters
@@ -66,10 +65,14 @@ class BaseSolver():
             Penalty.
         """
 
-    def __call__(self, X, y, datafit, penalty, w_init, Xw_init, **kwargs):
-        check_obj_solver_attr_compatibility(datafit, self, self._datafit_required_attr)
-        check_obj_solver_attr_compatibility(datafit, self, self._penalty_required_attr)
+    def __call__(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+        """"""
+        self._validate(datafit, penalty)
+        self.solve(X, y, datafit, penalty, w_init, Xw_init)
 
-        self.validate(datafit, penalty)
+    def _validate(self, datafit, penalty):
+        #
+        check_obj_solver_attr(datafit, self, self._datafit_required_attr)
+        check_obj_solver_attr(datafit, self, self._penalty_required_attr)
 
-        self.solve(X, y, datafit, penalty, w_init, Xw_init, **kwargs)
+        self.custom_compatibility_check(datafit, penalty)

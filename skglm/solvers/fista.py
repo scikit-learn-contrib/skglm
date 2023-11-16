@@ -3,7 +3,6 @@ from scipy.sparse import issparse
 from skglm.solvers.base import BaseSolver
 from skglm.solvers.common import construct_grad, construct_grad_sparse
 from skglm.utils.prox_funcs import _prox_vec
-from skglm.utils.validation import check_obj_solver_attr_compatibility
 
 
 class FISTA(BaseSolver):
@@ -115,7 +114,3 @@ class FISTA(BaseSolver):
                     print(f"Stopping criterion max violation: {stop_crit:.2e}")
                 break
         return w, np.array(p_objs_out), stop_crit
-
-    def validate(self, datafit, penalty):
-        check_obj_solver_attr_compatibility(datafit, self, self._datafit_required_attr)
-        check_obj_solver_attr_compatibility(penalty, self, self._penalty_required_attr)

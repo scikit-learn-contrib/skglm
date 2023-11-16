@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from skglm.utils.validation import check_obj_solver_attr_compatibility
 
 
 class BaseSolver():
@@ -64,3 +65,11 @@ class BaseSolver():
         penalty : instance of BasePenalty
             Penalty.
         """
+
+    def __call__(self, X, y, datafit, penalty, w_init, Xw_init, **kwargs):
+        check_obj_solver_attr_compatibility(datafit, self, self._datafit_required_attr)
+        check_obj_solver_attr_compatibility(datafit, self, self._penalty_required_attr)
+
+        self.validate(datafit, penalty)
+
+        self.solve(X, y, datafit, penalty, w_init, Xw_init, **kwargs)

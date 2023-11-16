@@ -3,9 +3,7 @@ from numba import njit
 
 from skglm.solvers.base import BaseSolver
 from skglm.utils.anderson import AndersonAcceleration
-from skglm.utils.validation import (
-    check_group_compatible, check_obj_solver_attr_compatibility
-)
+from skglm.utils.validation import check_group_compatible
 
 
 class GroupBCD(BaseSolver):
@@ -146,9 +144,6 @@ class GroupBCD(BaseSolver):
         return w, p_objs_out, stop_crit
 
     def validate(self, datafit, penalty):
-        check_obj_solver_attr_compatibility(datafit, self, self._datafit_required_attr)
-        check_obj_solver_attr_compatibility(penalty, self, self._penalty_required_attr)
-
         check_group_compatible(datafit)
         check_group_compatible(penalty)
 

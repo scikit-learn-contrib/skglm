@@ -4,7 +4,6 @@ from numba import njit
 from numpy.linalg import norm
 from sklearn.utils import check_array
 from skglm.solvers.base import BaseSolver
-from skglm.utils.validation import check_obj_solver_attr_compatibility
 
 
 class MultiTaskBCD(BaseSolver):
@@ -232,10 +231,6 @@ class MultiTaskBCD(BaseSolver):
             results += (n_iters,)
 
         return results
-
-    def validate(self, datafit, penalty):
-        check_obj_solver_attr_compatibility(datafit, self, self._datafit_required_attr)
-        check_obj_solver_attr_compatibility(penalty, self, self._penalty_required_attr)
 
 
 @njit

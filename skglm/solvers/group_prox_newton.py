@@ -143,7 +143,7 @@ class GroupProxNewton(BaseSolver):
             p_objs_out.append(p_obj)
         return w, np.asarray(p_objs_out), stop_crit
 
-    def validate(self, datafit, penalty):
+    def custom_compatibility_check(self, X, y, datafit, penalty):
         check_group_compatible(datafit)
         check_group_compatible(penalty)
 

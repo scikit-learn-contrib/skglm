@@ -9,7 +9,6 @@ from skglm.solvers.common import dist_fix_point_cd
 from sklearn.exceptions import ConvergenceWarning
 from skglm.utils.sparse_ops import _sparse_xj_dot
 
-
 EPS_TOL = 0.3
 MAX_CD_ITER = 20
 MAX_BACKTRACK_ITER = 20

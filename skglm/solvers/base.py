@@ -53,7 +53,7 @@ class BaseSolver(ABC):
             Value of stopping criterion at convergence.
         """
 
-    def custom_compatibility_check(self, datafit, penalty):
+    def custom_compatibility_check(self, X, y, datafit, penalty):
         """Ensure the solver is suited for the `datafit` + `penalty` problem.
 
         Parameters
@@ -66,12 +66,21 @@ class BaseSolver(ABC):
         """
 
     def __call__(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
-        """"""
+        """Solve the optimization problem after validating its compatibility.
+
+        A proxy of ``solve`` method that implicitly ensures the compatibility
+        of datafit and penalty with the solver.
+
+        Examples
+        --------
+        >>> ...
+        >>> coefs, obj_out, stop_crit = solver(X, y, datafit, penalty)
+        """
         self._validate(datafit, penalty)
         self.solve(X, y, datafit, penalty, w_init, Xw_init)
 
-    def _validate(self, datafit, penalty):
-        #
+    def _validate(self, X, y, datafit, penalty):
+        # execute both attributes checks and `custom_compatibility_check`
         check_obj_solver_attr(datafit, self, self._datafit_required_attr)
         check_obj_solver_attr(datafit, self, self._penalty_required_attr)
 

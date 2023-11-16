@@ -27,7 +27,7 @@ def check_group_compatible(obj):
             )
 
 
-def check_obj_solver_attr_compatibility(obj, solver, required_attr):
+def check_obj_solver_attr(obj, solver, required_attr):
     """Check whether datafit or penalty is compatible with solver.
 
     Parameters
@@ -47,10 +47,18 @@ def check_obj_solver_attr_compatibility(obj, solver, required_attr):
             if any of the attribute in ``required_attr`` is missing
             from ``obj`` attributes.
     """
-    missing_attrs = [f"`{attr}`" for attr in required_attr if not hasattr(obj, attr)]
+    missing_attrs = []
+    for attr in required_attr:
+        attributes = attr if not isinstance(attr, str) else (attr,)
+
+        for a in attributes:
+            if hasattr(obj, a):
+                break
+        else:
+            missing_attrs.append(_join_attrs_with_or(attributes))
 
     if len(missing_attrs):
-        required_attr = [f"`{attr}`" for attr in required_attr]
+        required_attr = [_join_attrs_with_or(attrs) for attrs in required_attr]
 
         # get name obj and solver
         name_matcher = re.compile(r"\.(\w+)'>")
@@ -63,3 +71,15 @@ def check_obj_solver_attr_compatibility(obj, solver, required_attr):
             f"It must implement {' and '.join(required_attr)}\n"
             f"Missing {' and '.join(missing_attrs)}."
         )
+
+
+def _join_attrs_with_or(attrs):
+    #
+    if isinstance(attrs, str):
+        return f"`{attrs}`"
+
+    if len(attrs) == 1:
+        return f"`{attrs[0]}`"
+
+    out = " or ".join([f"`{a}`" for a in attrs])
+    return f'"{out}"'

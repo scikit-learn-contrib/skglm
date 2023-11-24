@@ -151,7 +151,7 @@ class GroupProxNewton(BaseSolver):
 
         if issparse(X):
             raise ValueError(
-                "Sparse matrices are not yet support in `GroupBCD` solver."
+                "Sparse matrices are not yet supported in `GroupBCD` solver."
             )
 
 

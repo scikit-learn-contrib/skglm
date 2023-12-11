@@ -48,11 +48,11 @@ Installing ``skglm``
 
     $ pip install -U skglm
 
-It is also available on Conda and can be installed via the command
+It is also available on conda-forge and can be installed using, for instance:
 
 .. code-block:: shell
 
-    $ conda install skglm
+    $ conda install -c conda-forge skglm
 
 With ``skglm`` being installed, Get the first steps with the package via the :ref:`Getting started section <getting_started>`.
 Other advanced topics and uses-cases are covered in :ref:`Tutorials <tutorials>`.

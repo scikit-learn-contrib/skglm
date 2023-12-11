@@ -45,10 +45,10 @@ There are several reasons to opt for ``skglm`` among which:
 pip install -U skglm
 ```
 
-It is also available on Conda _(not yet, but very soon...)_ and can be installed via the command
+It is also available on conda-forge and can be installed using, for instance:
 
 ```shell
-conda install skglm
+conda install -c conda-forge skglm
 ```
 
 ## First steps with ``skglm``

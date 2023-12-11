@@ -59,7 +59,7 @@ Once you installed ``skglm``, you can run the following code snippet to fit a MC
 # import model to fit
 from skglm.estimators import MCPRegression
 # import util to create a toy dataset
-from skglm.utils import make_correlated_data
+from skglm.utils.data import make_correlated_data
 
 # generate a toy dataset
 X, y, _ = make_correlated_data(n_samples=10, n_features=100)
@@ -83,12 +83,14 @@ from skglm.penalties import MCPenalty
 from skglm.estimators import GeneralizedLinearEstimator
 
 from skglm.utils import make_correlated_data
+from skglm.solvers import AndersonCD
 
 X, y, _ = make_correlated_data(n_samples=10, n_features=100)
 # create and fit GLM estimator with Huber loss and MCP penalty
 estimator = GeneralizedLinearEstimator(
     datafit=Huber(delta=1.),
     penalty=MCPenalty(alpha=1e-2, gamma=3),
+    solver=AndersonCD()
 )
 estimator.fit(X, y)
 ```

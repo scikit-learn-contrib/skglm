@@ -18,11 +18,11 @@ Beforehand, make sure that you have already installed ``skglm``
 
 .. code-block:: shell
 
-    # using pip
+    # Installing from PyPI using pip
     pip install -U skglm
 
-    # using conda
-    conda install skglm
+    # Installing from conda-forge using conda
+    conda install -c conda-forge skglm
 
 -------------------------
 

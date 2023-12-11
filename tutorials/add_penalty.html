@@ -284,7 +284,39 @@
 <span id="how-to-add-custom-penalty"></span><h1>How to add a custom penalty<a class="headerlink" href="#how-to-add-a-custom-penalty" title="Permalink to this heading">#</a></h1>
 <p>skglm supports any arbitrary proximable penalty.</p>
 <p>It is implemented as a jitclass which must inherit from the <code class="docutils literal notranslate"><span class="pre">BasePenalty</span></code> class:</p>
-<p>To implement your own penalty, you only need to define a new jitclass, inheriting from <code class="docutils literal notranslate"><span class="pre">BasePenalty</span></code> and define how its value, proximal operator, distance to subdifferential (for KKT violation) and penalized features are computed.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">BasePenalty</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for penalty subclasses.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">get_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Specify the numba types of the class attributes.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        spec: Tuple of (attribute_name, dtype)</span>
+<span class="sd">            spec to be passed to Numba jitclass to compile the class.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">params_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the parameters to initialize an instance of the class.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict_of_params : dict</span>
+<span class="sd">            The parameters to instantiate an object of the class.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Value of penalty at vector w.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">is_penalized</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_features</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a binary mask with the penalized features.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">generalized_support</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a mask which is True for coefficients in the generalized support.&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p>To implement your own penalty, you only need to define a new jitclass, inheriting from <code class="docutils literal notranslate"><span class="pre">BasePenalty</span></code> and implement the methods required by the targeted solver.
+Theses methods can be found in the solver documentation.</p>
 </section>
 <section id="a-case-in-point-defining-l1-penalty">
 <h1>A case in point: defining L1 penalty<a class="headerlink" href="#a-case-in-point-defining-l1-penalty" title="Permalink to this heading">#</a></h1>
@@ -323,6 +355,66 @@ It is typically the non-zero coefficients of the solution vector for <span class
 <p>Optionally, a penalty might implement <code class="docutils literal notranslate"><span class="pre">alpha_max</span></code> which returns the smallest <span class="math notranslate nohighlight">`\lambda`</span> for which the optimal solution is a null vector.
 Note that since <code class="docutils literal notranslate"><span class="pre">lambda</span></code> is a reserved keyword in Python, <code class="docutils literal notranslate"><span class="pre">alpha</span></code> in skglm codebase corresponds to <span class="math notranslate nohighlight">`\lambda`</span>.</p>
 <p>When putting all together, this gives the implementation of the <code class="docutils literal notranslate"><span class="pre">L1</span></code> penalty:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">L1</span><span class="p">(</span><span class="n">BasePenalty</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;:math:`ell_1` penalty.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">positive</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">positive</span> <span class="o">=</span> <span class="n">positive</span>
+
+    <span class="k">def</span> <span class="nf">get_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="n">float64</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;positive&#39;</span><span class="p">,</span> <span class="n">bool_</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">spec</span>
+
+    <span class="k">def</span> <span class="nf">params_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span> <span class="n">positive</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">positive</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute L1 penalty value.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">w</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">prox_1d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">stepsize</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute proximal operator of the L1 penalty (soft-thresholding operator).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ST</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">*</span> <span class="n">stepsize</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">positive</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">subdiff_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">grad</span><span class="p">,</span> <span class="n">ws</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute distance of negative gradient to the subdifferential at w.&quot;&quot;&quot;</span>
+        <span class="n">subdiff_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">grad</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ws</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">positive</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">w</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">subdiff_dist</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+                <span class="k">elif</span> <span class="n">w</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c1"># distance of -grad_j to (-infty, alpha]</span>
+                    <span class="n">subdiff_dist</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">grad</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># distance of -grad_j to {alpha}</span>
+                    <span class="n">subdiff_dist</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">grad</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">w</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c1"># distance of -grad_j to  [-alpha, alpha]</span>
+                    <span class="n">subdiff_dist</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">grad</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># distance of -grad_j to {alpha * sign(w[j])}</span>
+                    <span class="n">subdiff_dist</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">grad</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">w</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">subdiff_dist</span>
+
+    <span class="k">def</span> <span class="nf">is_penalized</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_features</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a binary mask with the penalized features.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_features</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">generalized_support</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a mask with non-zero coefficients.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">w</span> <span class="o">!=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">alpha_max</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gradient0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return penalization value for which 0 is solution.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">gradient0</span><span class="p">))</span>
+</pre></div>
+</div>
 </section>
 
         </article>

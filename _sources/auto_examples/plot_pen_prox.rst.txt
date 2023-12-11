@@ -36,7 +36,7 @@ Illustrate the value and proximal operators of some sparse penalties.
 
 
 
-.. code-block:: default
+.. code-block:: Python
 
     # Author: Mathurin Massias <mathurin.massias@gmail.com>
 
@@ -77,7 +77,7 @@ Illustrate the value and proximal operators of some sparse penalties.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.289 seconds)
+   **Total running time of the script:** (0 minutes 2.674 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_pen_prox.py:
@@ -86,16 +86,13 @@ Illustrate the value and proximal operators of some sparse penalties.
 
   .. container:: sphx-glr-footer sphx-glr-footer-example
 
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-
+      :download:`Download Jupyter notebook: plot_pen_prox.ipynb <plot_pen_prox.ipynb>`
 
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_pen_prox.py <plot_pen_prox.py>`
-
-    .. container:: sphx-glr-download sphx-glr-download-jupyter
-
-      :download:`Download Jupyter notebook: plot_pen_prox.ipynb <plot_pen_prox.ipynb>`
 
 
 .. only:: html

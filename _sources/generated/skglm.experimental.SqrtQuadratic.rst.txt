@@ -15,8 +15,6 @@
    
       ~SqrtQuadratic.__init__
       ~SqrtQuadratic.get_spec
-      ~SqrtQuadratic.gradient_scalar
-      ~SqrtQuadratic.gradient_scalar_sparse
       ~SqrtQuadratic.initialize
       ~SqrtQuadratic.initialize_sparse
       ~SqrtQuadratic.params_to_dict

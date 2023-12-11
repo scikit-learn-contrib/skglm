@@ -18,7 +18,6 @@
       ~BlockSCAD.get_spec
       ~BlockSCAD.is_penalized
       ~BlockSCAD.params_to_dict
-      ~BlockSCAD.prox_1d
       ~BlockSCAD.prox_1feat
       ~BlockSCAD.subdiff_distance
       ~BlockSCAD.value

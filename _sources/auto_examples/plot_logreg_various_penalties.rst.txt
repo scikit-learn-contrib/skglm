@@ -51,7 +51,7 @@ Illustrate the modularity of ``skglm`` by using ``GeneralizedLinearEstimator`` w
 
 |
 
-.. code-block:: default
+.. code-block:: Python
 
 
     # Author: Pierre-Antoine Bannier
@@ -130,7 +130,7 @@ Illustrate the modularity of ``skglm`` by using ``GeneralizedLinearEstimator`` w
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 11.168 seconds)
+   **Total running time of the script:** (0 minutes 8.898 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_logreg_various_penalties.py:
@@ -139,16 +139,13 @@ Illustrate the modularity of ``skglm`` by using ``GeneralizedLinearEstimator`` w
 
   .. container:: sphx-glr-footer sphx-glr-footer-example
 
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-
+      :download:`Download Jupyter notebook: plot_logreg_various_penalties.ipynb <plot_logreg_various_penalties.ipynb>`
 
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_logreg_various_penalties.py <plot_logreg_various_penalties.py>`
-
-    .. container:: sphx-glr-download sphx-glr-download-jupyter
-
-      :download:`Download Jupyter notebook: plot_logreg_various_penalties.ipynb <plot_logreg_various_penalties.ipynb>`
 
 
 .. only:: html

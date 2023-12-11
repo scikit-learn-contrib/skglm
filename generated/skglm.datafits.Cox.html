@@ -284,7 +284,7 @@
 <h1>skglm.datafits.Cox<a class="headerlink" href="#skglm-datafits-cox" title="Permalink to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="skglm.datafits.Cox">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">Cox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_efron</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/c67a885/skglm/datafits/single_task.py#L537"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.Cox" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">Cox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_efron</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/08e4245/skglm/datafits/single_task.py#L537"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.Cox" title="Permalink to this definition">#</a></dt>
 <dd><p>Cox datafit for survival analysis.</p>
 <p>Refer to <a class="reference internal" href="../tutorials/cox_datafit.html#maths-cox-datafit"><span class="std std-ref">Mathematics behind Cox datafit</span></a> for details.</p>
 <dl class="field-list simple">
@@ -316,7 +316,7 @@ observations having the same occurrence time.</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="skglm.datafits.Cox.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_efron</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/c67a885/skglm/datafits/single_task.py#L569"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.Cox.__init__" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_efron</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/08e4245/skglm/datafits/single_task.py#L569"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.Cox.__init__" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
@@ -337,12 +337,6 @@ observations having the same occurrence time.</p>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient</span></code>(X, y, Xw)</p></td>
 <td><p>Compute gradient of the datafit.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient_scalar</span></code>(X, y, w, Xw, j)</p></td>
-<td><p>Gradient with respect to j-th coordinate of w.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient_scalar_sparse</span></code>(X_data, X_indptr, ...)</p></td>
-<td><p>Gradient with respect to j-th coordinate of w when X is sparse.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient_sparse</span></code>(X_data, X_indptr, X_indices, ...)</p></td>
 <td><p>Compute gradient of the datafit in case <code class="docutils literal notranslate"><span class="pre">X</span></code> is sparse.</p></td>

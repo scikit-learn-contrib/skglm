@@ -35,7 +35,7 @@ using ``skglm`` data utils.
 
 .. GENERATED FROM PYTHON SOURCE LINES 18-29
 
-.. code-block:: default
+.. code-block:: Python
 
     from skglm.utils.data import make_dummy_survival_data
 
@@ -67,7 +67,7 @@ Let's inspect the data quickly:
 
 .. GENERATED FROM PYTHON SOURCE LINES 37-54
 
-.. code-block:: default
+.. code-block:: Python
 
     import matplotlib.pyplot as plt
 
@@ -110,7 +110,7 @@ We set the intensity of the :math:`\ell_1` regularization to ``alpha=1e-2``.
 
 .. GENERATED FROM PYTHON SOURCE LINES 62-83
 
-.. code-block:: default
+.. code-block:: Python
 
     from skglm.datafits import Cox
     from skglm.penalties import L1
@@ -146,7 +146,7 @@ For this data a regularization value a relatively sparse solution is found:
 
 .. GENERATED FROM PYTHON SOURCE LINES 85-90
 
-.. code-block:: default
+.. code-block:: Python
 
     print(
         "Number of nonzero coefficients in solution: "
@@ -173,7 +173,7 @@ estimator and compare the objectives found by the two packages.
 
 .. GENERATED FROM PYTHON SOURCE LINES 93-109
 
-.. code-block:: default
+.. code-block:: Python
 
     import numpy as np
     import pandas as pd
@@ -204,7 +204,7 @@ Check that both solvers find solutions having the same objective value:
 
 .. GENERATED FROM PYTHON SOURCE LINES 111-117
 
-.. code-block:: default
+.. code-block:: Python
 
     obj_sk = datafit.value(y, w_sk, X @ w_sk) + penalty.value(w_sk)
     obj_ll = datafit.value(y, w_ll, X @ w_ll) + penalty.value(w_ll)
@@ -233,7 +233,7 @@ We can do the same to check how close the two solutions are.
 
 .. GENERATED FROM PYTHON SOURCE LINES 119-121
 
-.. code-block:: default
+.. code-block:: Python
 
     print(f"Euclidean distance between solutions: {np.linalg.norm(w_sk - w_ll):.3e}")
 
@@ -262,7 +262,7 @@ iterations.
 
 .. GENERATED FROM PYTHON SOURCE LINES 129-179
 
-.. code-block:: default
+.. code-block:: Python
 
     import time
     import warnings
@@ -328,7 +328,7 @@ Results
 
 .. GENERATED FROM PYTHON SOURCE LINES 182-202
 
-.. code-block:: default
+.. code-block:: Python
 
 
     fig, ax = plt.subplots(1, 1, tight_layout=True, figsize=(6, 3))
@@ -369,7 +369,7 @@ with more than x100 less time!
 
 .. GENERATED FROM PYTHON SOURCE LINES 205-208
 
-.. code-block:: default
+.. code-block:: Python
 
     speed_up = records["lifelines"]["times"][-1] / records["skglm"]["times"][-1]
     print(f"speed up ratio: {speed_up:.0f}")
@@ -382,7 +382,7 @@ with more than x100 less time!
 
  .. code-block:: none
 
-    speed up ratio: 530
+    speed up ratio: 756
 
 
 
@@ -400,7 +400,7 @@ by passing in a ``with_ties=True`` to ``make_dummy_survival_data`` function.
 
 .. GENERATED FROM PYTHON SOURCE LINES 217-228
 
-.. code-block:: default
+.. code-block:: Python
 
     X, y = make_dummy_survival_data(
         n_samples, n_features,
@@ -433,7 +433,7 @@ We only need to pass in ``use_efron=True`` to the ``Cox`` datafit.
 
 .. GENERATED FROM PYTHON SOURCE LINES 231-240
 
-.. code-block:: default
+.. code-block:: Python
 
 
     # ensure using Efron estimate
@@ -457,7 +457,7 @@ Again a relatively sparse solution is found:
 
 .. GENERATED FROM PYTHON SOURCE LINES 242-247
 
-.. code-block:: default
+.. code-block:: Python
 
     print(
         "Number of nonzero coefficients in solution: "
@@ -483,7 +483,7 @@ Let's do the same with ``lifelines`` and compare the results
 
 .. GENERATED FROM PYTHON SOURCE LINES 249-273
 
-.. code-block:: default
+.. code-block:: Python
 
 
     # format data
@@ -531,7 +531,7 @@ Finally, let's compare the timings of both solvers
 
 .. GENERATED FROM PYTHON SOURCE LINES 275-300
 
-.. code-block:: default
+.. code-block:: Python
 
 
     # time skglm
@@ -566,7 +566,7 @@ Finally, let's compare the timings of both solvers
 
  .. code-block:: none
 
-    speed up ratio: 1131
+    speed up ratio: 793
 
 
 
@@ -579,7 +579,7 @@ even for the Efron estimate.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 2.230 seconds)
+   **Total running time of the script:** (0 minutes 46.042 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_survival_analysis.py:
@@ -588,16 +588,13 @@ even for the Efron estimate.
 
   .. container:: sphx-glr-footer sphx-glr-footer-example
 
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-
+      :download:`Download Jupyter notebook: plot_survival_analysis.ipynb <plot_survival_analysis.ipynb>`
 
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_survival_analysis.py <plot_survival_analysis.py>`
-
-    .. container:: sphx-glr-download sphx-glr-download-jupyter
-
-      :download:`Download Jupyter notebook: plot_survival_analysis.ipynb <plot_survival_analysis.ipynb>`
 
 
 .. only:: html

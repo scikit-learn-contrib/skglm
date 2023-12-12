@@ -84,6 +84,7 @@ jobs:
             name: deploy
             command: |
               if [[ ${CIRCLE_BRANCH} == "main" ]]; then
+                cd doc;
                 pip install ghp-import;
                 make install
               fi

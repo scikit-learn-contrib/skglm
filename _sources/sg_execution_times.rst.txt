@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**02:15.657** total execution time for 8 files **from all galleries**:
+**02:00.049** total execution time for 8 files **from all galleries**:
 
 .. container::
 
@@ -32,27 +32,27 @@ Computation times
    * - Example
      - Time
      - Mem (MB)
-   * - :ref:`sphx_glr_auto_examples_plot_survival_analysis.py` (``../examples/plot_survival_analysis.py``)
-     - 00:52.802
-     - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_compare_time.py` (``../examples/plot_compare_time.py``)
-     - 00:50.422
+     - 00:47.497
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_survival_analysis.py` (``../examples/plot_survival_analysis.py``)
+     - 00:42.491
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_logreg_various_penalties.py` (``../examples/plot_logreg_various_penalties.py``)
-     - 00:09.016
+     - 00:08.528
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_sparse_recovery.py` (``../examples/plot_sparse_recovery.py``)
-     - 00:08.752
+     - 00:07.687
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_lasso_vs_weighted.py` (``../examples/plot_lasso_vs_weighted.py``)
-     - 00:06.164
+     - 00:05.919
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_reweighted_l1.py` (``../examples/plot_reweighted_l1.py``)
-     - 00:05.324
+     - 00:04.870
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_pen_prox.py` (``../examples/plot_pen_prox.py``)
-     - 00:02.728
+     - 00:02.634
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_zero_weights_lasso.py` (``../examples/plot_zero_weights_lasso.py``)
-     - 00:00.450
+     - 00:00.422
      - 0.0

@@ -79,7 +79,7 @@ You are free to use it and if you do so, please cite
         year      = {2022},
 
 
-.. it mandatory to keep the toctree here although it doesn't show up in the page
+.. it is mandatory to keep the toctree here although it doesn't show up in the page
 .. when adding/modifying pages, don't forget to update the toctree
 
 .. toctree::

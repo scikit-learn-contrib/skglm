@@ -134,7 +134,7 @@ def _glm_fit(X, y, model, datafit, penalty, solver):
                 "The size of the WeightedL1 penalty weights should be n_features, "
                 "expected %i, got %i." % (X_.shape[1], len(penalty.weights)))
 
-    coefs, p_obj, kkt = solver.solve(X_, y, datafit_jit, penalty_jit, w, Xw)
+    coefs, p_obj, kkt = solver(X_, y, datafit_jit, penalty_jit, w, Xw)
     model.coef_, model.stop_crit_ = coefs[:n_features], kkt
     if y.ndim == 1:
         model.intercept_ = coefs[-1] if fit_intercept else 0.
@@ -1350,7 +1350,7 @@ class CoxEstimator(LinearModel):
         else:
             datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
 
-        w, _, stop_crit = solver.solve(X, y, datafit, penalty)
+        w, _, stop_crit = solver(X, y, datafit, penalty)
 
         # save to attribute
         self.coef_ = w
@@ -1482,7 +1482,7 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
             ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
             warm_start=self.warm_start, verbose=self.verbose)
-        W, obj_out, kkt = solver.solve(X, Y, datafit_jit, penalty_jit)
+        W, obj_out, kkt = solver(X, Y, datafit_jit, penalty_jit)
 
         self.coef_ = W[:X.shape[1], :].T
         self.intercept_ = self.fit_intercept * W[-1, :]

@@ -7,6 +7,7 @@ from skglm.solvers.common import (
 )
 from skglm.solvers.base import BaseSolver
 from skglm.utils.anderson import AndersonAcceleration
+from skglm.utils.validation import check_obj_solver_attr
 
 
 class AndersonCD(BaseSolver):
@@ -46,6 +47,9 @@ class AndersonCD(BaseSolver):
            https://proceedings.mlr.press/v130/bertrand21a.html
            code: https://github.com/mathurinm/andersoncd
     """
+
+    _datafit_required_attr = ("get_lipschitz", "gradient_scalar")
+    _penalty_required_attr = ("prox_1d",)
 
     def __init__(self, max_iter=50, max_epochs=50_000, p0=10,
                  tol=1e-4, ws_strategy="subdiff", fit_intercept=True,
@@ -266,6 +270,21 @@ class AndersonCD(BaseSolver):
         if return_n_iter:
             results += (n_iters,)
         return results
+
+    def custom_compatibility_check(self, X, y, datafit, penalty):
+        # check datafit support sparse data
+        check_obj_solver_attr(
+            datafit, solver=self,
+            required_attr=self._datafit_required_attr,
+            support_sparse=sparse.issparse(X)
+        )
+
+        # ws strategy
+        if self.ws_strategy == "subdiff" and not hasattr(penalty, "subdiff_distance"):
+            raise AttributeError(
+                "Penalty must implement `subdiff_distance` "
+                "to use self.ws_strategy='subdiff'."
+            )
 
 
 @njit

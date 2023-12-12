@@ -4,10 +4,14 @@ from numba import njit
 from numpy.linalg import norm
 from sklearn.utils import check_array
 from skglm.solvers.base import BaseSolver
+from skglm.utils.validation import check_obj_solver_attr
 
 
 class MultiTaskBCD(BaseSolver):
     """Block coordinate descent solver for multi-task problems."""
+
+    _datafit_required_attr = ("get_lipschitz", "gradient_j")
+    _penalty_required_attr = ("prox_1feat",)
 
     def __init__(self, max_iter=100, max_epochs=50_000, p0=10, tol=1e-6,
                  use_acc=True, ws_strategy="subdiff", fit_intercept=True,
@@ -228,6 +232,21 @@ class MultiTaskBCD(BaseSolver):
             results += (n_iters,)
 
         return results
+
+    def custom_compatibility_check(self, X, y, datafit, penalty):
+        # check datafit support sparse data
+        check_obj_solver_attr(
+            datafit, solver=self,
+            required_attr=self._datafit_required_attr,
+            support_sparse=sparse.issparse(X)
+        )
+
+        # ws strategy
+        if self.ws_strategy == "subdiff" and not hasattr(penalty, "subdiff_distance"):
+            raise AttributeError(
+                "Penalty must implement `subdiff_distance` "
+                "to use self.ws_strategy='subdiff'."
+            )
 
 
 @njit

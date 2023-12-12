@@ -82,7 +82,7 @@ from skglm.datafits import Huber
 from skglm.penalties import MCPenalty
 from skglm.estimators import GeneralizedLinearEstimator
 
-from skglm.utils import make_correlated_data
+from skglm.utils.data import make_correlated_data
 from skglm.solvers import AndersonCD
 
 X, y, _ = make_correlated_data(n_samples=10, n_features=100)

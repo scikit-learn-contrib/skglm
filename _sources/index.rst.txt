@@ -79,11 +79,13 @@ You are free to use it and if you do so, please cite
         year      = {2022},
 
 
-Explore the documentation
--------------------------
+.. it is mandatory to keep the toctree here although it doesn't show up in the page
+.. when adding/modifying pages, don't forget to update the toctree
 
 .. toctree::
     :maxdepth: 1
+    :hidden:
+    :includehidden:
 
     getting_started.rst
     tutorials/tutorials.rst

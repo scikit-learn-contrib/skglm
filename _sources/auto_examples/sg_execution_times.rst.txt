@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**02:00.049** total execution time for 8 files **from auto_examples**:
+**02:13.127** total execution time for 8 files **from auto_examples**:
 
 .. container::
 
@@ -32,27 +32,27 @@ Computation times
    * - Example
      - Time
      - Mem (MB)
-   * - :ref:`sphx_glr_auto_examples_plot_compare_time.py` (``plot_compare_time.py``)
-     - 00:47.497
-     - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_survival_analysis.py` (``plot_survival_analysis.py``)
-     - 00:42.491
+     - 00:51.527
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_compare_time.py` (``plot_compare_time.py``)
+     - 00:49.376
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_logreg_various_penalties.py` (``plot_logreg_various_penalties.py``)
-     - 00:08.528
+     - 00:08.828
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_sparse_recovery.py` (``plot_sparse_recovery.py``)
-     - 00:07.687
+     - 00:08.427
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_lasso_vs_weighted.py` (``plot_lasso_vs_weighted.py``)
-     - 00:05.919
+     - 00:06.317
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_reweighted_l1.py` (``plot_reweighted_l1.py``)
-     - 00:04.870
+     - 00:05.258
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_pen_prox.py` (``plot_pen_prox.py``)
-     - 00:02.634
+     - 00:02.945
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_zero_weights_lasso.py` (``plot_zero_weights_lasso.py``)
-     - 00:00.422
+     - 00:00.448
      - 0.0

@@ -200,7 +200,8 @@ class SqrtLasso(LinearModel, RegressorMixin):
 
             l1_penalty.alpha = alphas[i]
             # no warm start for the first alpha
-            coef_init = coefs[i].copy() if i else np.zeros(n_features + self.fit_intercept)
+            coef_init = coefs[i].copy() if i else np.zeros(n_features
+                                                           + self.fit_intercept)
 
             try:
                 if self.fit_intercept:

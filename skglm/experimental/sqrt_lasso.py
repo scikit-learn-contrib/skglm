@@ -207,11 +207,11 @@ class SqrtLasso(LinearModel, RegressorMixin):
                 if self.fit_intercept:
                     coef, _, _ = self.solver_.solve(
                         X, y, sqrt_quadratic, l1_penalty,
-                        w_init=coef_init, Xw_init=X @ coef_init)
+                        w_init=coef_init, Xw_init=X @ coef_init[:-1] + coef_init[-1])
                 else:
                     coef, _, _ = self.solver_.solve(
                         X, y, sqrt_quadratic, l1_penalty,
-                        w_init=coef_init, Xw_init=X @ coef_init[:-1] + coef_init[-1])
+                        w_init=coef_init, Xw_init=X @ coef_init)
                 coefs[i] = coef
             except ValueError as val_exception:
                 # make sure to catch residual error
@@ -222,10 +222,8 @@ class SqrtLasso(LinearModel, RegressorMixin):
                 # save coef despite not converging
                 # coef_init holds a ref to coef
                 coef = coef_init
-                if self.fit_intercept:
-                    res_norm = norm(y - X @ coef[:-1] - coef[-1])
-                else:
-                    res_norm = norm(y - X @ coef)
+                X_coef = X @ coef[:-1] + coef[-1] if self.fit_intercept else X @ coef
+                res_norm = norm(y - X_coeff)
                 warnings.warn(
                     f"Small residuals prevented the solver from converging "
                     f"at alpha={alphas[i]:.2e} (residuals' norm: {res_norm:.4e}). "

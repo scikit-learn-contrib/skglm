@@ -59,6 +59,7 @@ extensions = [
     'sphinx_gallery.gen_gallery',
     'sphinx.ext.autosectionlabel',
     'sphinx_copybutton',
+    'sphinx_design',
     'numpydoc',
     'sphinx.ext.linkcode',
     'gh_substitutions',

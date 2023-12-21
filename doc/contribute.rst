@@ -53,10 +53,23 @@ contribute with code or documentation.
     $ pip install -e .
 
 
-3. To run the gallery of examples and build the documentation, run
+3. To build the documentation, run
 
-.. code-block:: shell
 
-    $ cd doc
-    $ pip install .[doc]
-    $ make html
+.. tab-set::
+
+    .. tab-item:: with the gallery of example
+
+        .. code-block:: shell
+
+            $ cd doc
+            $ pip install .[doc]
+            $ make html
+
+    .. tab-item:: without the gallery of example
+
+        .. code-block:: shell
+
+            $ cd doc
+            $ pip install .[doc]
+            $ make html-noplot

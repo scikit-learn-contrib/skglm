@@ -37,7 +37,7 @@ jobs:
       #     TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
       #   run: |
       #     pip install twine
-      #     twine upload --skip-existing --repository testpypi dist/*.tar.gz
+      #     twine upload --skip-existing --verbose --repository testpypi dist/*.tar.gz
 
       - name: publish to PyPI
         env:
@@ -45,4 +45,4 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: |
           pip install twine
-          twine upload --skip-existing dist/*.tar.gz
+          twine upload --skip-existing --verbose dist/*.tar.gz

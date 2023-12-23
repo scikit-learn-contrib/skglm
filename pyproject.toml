@@ -50,6 +50,7 @@ doc = [
     "sphinx-bootstrap-theme",
     "sphinx_copybutton",
     "sphinx-gallery",
+    "sphinx-design",
     "pytest",
     "furo",
     "lifelines",

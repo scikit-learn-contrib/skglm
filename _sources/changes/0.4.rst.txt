@@ -2,6 +2,10 @@
 
 Version 0.4 (in progress)
 -------------------------
+
+
+Version 0.3.1 (2023/12/21)
+--------------------------
 - Add support for weights and positive coefficients to :ref:`MCPRegression Estimator <skglm.MCPRegression>` (PR: :gh:`184`)
 - Move solver specific computations from ``Datafit.initialize()`` to separate ``Datafit`` methods to ease ``Solver`` - ``Datafit`` compatibility check (PR: :gh:`192`)
 - Add :ref:`LogSumPenalty <skglm.penalties.LogSumPenalty>` (PR: :gh:`#127`)

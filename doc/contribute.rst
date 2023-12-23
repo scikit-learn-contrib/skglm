@@ -23,10 +23,12 @@ Your contribution is welcome and highly valuable. It can be
     You can submit a `pull request <https://github.com/scikit-learn-contrib/skglm/pulls>`_
     to integrate your changes and we will reach out to you shortly.
 
+
+As part of the `scikit-learn-contrib <https://github.com/scikit-learn-contrib>`_ GitHub organization, we adopt the scikit-learn `code of conduct <https://github.com/scikit-learn/scikit-learn/blob/main/CODE_OF_CONDUCT.md>`_.
+
 .. note::
 
-    - If you are willing to contribute with code to ``skglm``, check the section below to learn how to install
-    the development version of ``skglm``
+    If you are willing to contribute with code to ``skglm``, check the section below to learn how to install the development version of ``skglm``
 
 
 
@@ -51,10 +53,23 @@ contribute with code or documentation.
     $ pip install -e .
 
 
-3. To run the gallery of examples and build the documentation, run
+3. To build the documentation, run
 
-.. code-block:: shell
 
-    $ cd doc
-    $ pip install .[doc]
-    $ make html
+.. tab-set::
+
+    .. tab-item:: with the gallery of example
+
+        .. code-block:: shell
+
+            $ cd doc
+            $ pip install .[doc]
+            $ make html
+
+    .. tab-item:: without the gallery of example
+
+        .. code-block:: shell
+
+            $ cd doc
+            $ pip install .[doc]
+            $ make html-noplot

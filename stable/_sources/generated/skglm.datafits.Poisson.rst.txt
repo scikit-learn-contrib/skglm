@@ -20,7 +20,7 @@
       ~Poisson.gradient_scalar_sparse
       ~Poisson.initialize
       ~Poisson.initialize_sparse
-      ~Poisson.intercept_update_self
+      ~Poisson.intercept_update_step
       ~Poisson.params_to_dict
       ~Poisson.raw_grad
       ~Poisson.raw_hessian

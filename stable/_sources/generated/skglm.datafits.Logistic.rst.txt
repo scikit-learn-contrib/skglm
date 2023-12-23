@@ -15,13 +15,15 @@
    
       ~Logistic.__init__
       ~Logistic.full_grad_sparse
+      ~Logistic.get_global_lipschitz
+      ~Logistic.get_global_lipschitz_sparse
+      ~Logistic.get_lipschitz
+      ~Logistic.get_lipschitz_sparse
       ~Logistic.get_spec
       ~Logistic.gradient
       ~Logistic.gradient_scalar
       ~Logistic.gradient_scalar_sparse
       ~Logistic.gradient_sparse
-      ~Logistic.init_global_lipschitz
-      ~Logistic.init_global_lipschitz_sparse
       ~Logistic.initialize
       ~Logistic.initialize_sparse
       ~Logistic.intercept_update_step

@@ -15,8 +15,6 @@
    
       ~Pinball.__init__
       ~Pinball.get_spec
-      ~Pinball.gradient_scalar
-      ~Pinball.gradient_scalar_sparse
       ~Pinball.initialize
       ~Pinball.initialize_sparse
       ~Pinball.params_to_dict

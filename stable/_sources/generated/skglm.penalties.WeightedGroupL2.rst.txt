@@ -18,7 +18,6 @@
       ~WeightedGroupL2.get_spec
       ~WeightedGroupL2.is_penalized
       ~WeightedGroupL2.params_to_dict
-      ~WeightedGroupL2.prox_1d
       ~WeightedGroupL2.prox_1group
       ~WeightedGroupL2.subdiff_distance
       ~WeightedGroupL2.value

@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="skglm.penalties.SCAD" href="skglm.penalties.SCAD.html" /><link rel="prev" title="skglm.penalties.WeightedL1" href="skglm.penalties.WeightedL1.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="skglm.penalties.WeightedMCPenalty" href="skglm.penalties.WeightedMCPenalty.html" /><link rel="prev" title="skglm.penalties.WeightedL1" href="skglm.penalties.WeightedL1.html" />
 
-    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
-        <title>skglm.penalties.WeightedGroupL2 - skglm 0.3(stable) documentation</title>
+    <link rel="shortcut icon" href="../_static/logo.svg"/><!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
+        <title>skglm.penalties.WeightedGroupL2 - skglm 0.3.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -15,6 +15,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=36a5483c" />
+    <link rel="stylesheet" type="text/css" href="../_static/style.css?v=30bc89f7" />
     
     
 
@@ -23,26 +24,26 @@
   body {
     --color-code-background: #eeffcc;
   --color-code-foreground: black;
-  --color-brand-primary: #b91c1c;
-  --color-brand-content: #b91c1c;
+  --color-brand-primary: #991b1b;
+  --color-brand-content: #991b1b;
   --font-stack: ui-sans-serif, system-ui;
-  --color-background-secondary: #fef2f2;
+  --color-background-secondary: #fafafa;
   
   }
   @media not print {
     body[data-theme="dark"] {
       --color-code-background: #202020;
   --color-code-foreground: #d0d0d0;
-  --color-brand-primary: #f87171;
-  --color-brand-content: #f87171;
+  --color-brand-primary: #fca5a5;
+  --color-brand-content: #fca5a5;
   
     }
     @media (prefers-color-scheme: dark) {
       body:not([data-theme="light"]) {
         --color-code-background: #202020;
   --color-code-foreground: #d0d0d0;
-  --color-brand-primary: #f87171;
-  --color-brand-content: #f87171;
+  --color-brand-primary: #fca5a5;
+  --color-brand-content: #fca5a5;
   
       }
     }
@@ -136,7 +137,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">skglm 0.3(stable) documentation</div></a>
+      <a href="../index.html"><div class="brand">skglm 0.3.1 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -158,15 +159,34 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
   
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="../_static/logo.svg" alt="Logo"/>
+  </div>
   
-  <span class="sidebar-brand-text">skglm 0.3(stable) documentation</span>
+  <span class="sidebar-brand-text">skglm 0.3.1 documentation</span>
   
-</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+</a><div class="sidebar-tree sidebar-version">
+   <span style="color: #767676;">Version</span>
+
+   <div style="display: flex; align-items: center; gap: 0.25em;">
+      <span class="sidebar-version-selected">
+         <a style=" text-decoration: none;" href="stable/index.html">
+            Stable
+         </a>
+      </span>
+
+      <span class="">
+         <a style="text-decoration: none;" href="../index.html">
+            Dev
+         </a>
+      </span>
+   </div>
+</div><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
   <input type="hidden" name="area" value="default">
 </form>
-<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+<div id="searchbox"></div><div class="sidebar-tree">
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/tutorials.html">Tutorials</a></li>
@@ -197,10 +217,12 @@
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L1_plus_L2.html">skglm.penalties.L1_plus_L2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L2.html">skglm.penalties.L2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L2_3.html">skglm.penalties.L2_3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="skglm.penalties.LogSumPenalty.html">skglm.penalties.LogSumPenalty</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.MCPenalty.html">skglm.penalties.MCPenalty</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.PositiveConstraint.html">skglm.penalties.PositiveConstraint</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.WeightedL1.html">skglm.penalties.WeightedL1</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">skglm.penalties.WeightedGroupL2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="skglm.penalties.WeightedMCPenalty.html">skglm.penalties.WeightedMCPenalty</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.SCAD.html">skglm.penalties.SCAD</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.BlockSCAD.html">skglm.penalties.BlockSCAD</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.SLOPE.html">skglm.penalties.SLOPE</a></li>
@@ -233,8 +255,6 @@
 </ul>
 
 </div>
-</div>
-
       </div>
       
     </div>
@@ -268,7 +288,7 @@
 <h1>skglm.penalties.WeightedGroupL2<a class="headerlink" href="#skglm-penalties-weightedgroupl2" title="Link to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="skglm.penalties.WeightedGroupL2">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.penalties.</span></span><span class="sig-name descname"><span class="pre">WeightedGroupL2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp_ptr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp_indices</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/562f42b/skglm/penalties/block_separable.py#L232"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.penalties.WeightedGroupL2" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.penalties.</span></span><span class="sig-name descname"><span class="pre">WeightedGroupL2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp_ptr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp_indices</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/5e0adea/skglm/penalties/block_separable.py#L232"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.penalties.WeightedGroupL2" title="Link to this definition">#</a></dt>
 <dd><p>Weighted Group L2 penalty.</p>
 <p>The penalty reads</p>
 <div class="math-wrapper docutils container">
@@ -294,7 +314,7 @@ the indices of a group in <code class="docutils literal notranslate"><span class
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="skglm.penalties.WeightedGroupL2.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp_ptr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp_indices</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/562f42b/skglm/penalties/block_separable.py#L259"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.penalties.WeightedGroupL2.__init__" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp_ptr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp_indices</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/5e0adea/skglm/penalties/block_separable.py#L259"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.penalties.WeightedGroupL2.__init__" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
@@ -316,16 +336,13 @@ the indices of a group in <code class="docutils literal notranslate"><span class
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
 <td><p>Get the parameters to initialize an instance of the class.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">prox_1d</span></code>(value, stepsize, j)</p></td>
-<td><p>Proximal operator of penalty for feature j.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">prox_1group</span></code>(value, stepsize, g)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">prox_1group</span></code>(value, stepsize, g)</p></td>
 <td><p>Compute the proximal operator of group <code class="docutils literal notranslate"><span class="pre">g</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">subdiff_distance</span></code>(w, grad_ws, ws)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">subdiff_distance</span></code>(w, grad_ws, ws)</p></td>
 <td><p>Compute distance to the subdifferential at <code class="docutils literal notranslate"><span class="pre">w</span></code> of negative gradient.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(w)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(w)</p></td>
 <td><p>Value of penalty at vector <code class="docutils literal notranslate"><span class="pre">w</span></code>.</p></td>
 </tr>
 </tbody>
@@ -340,12 +357,12 @@ the indices of a group in <code class="docutils literal notranslate"><span class
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="skglm.penalties.SCAD.html">
+          <a class="next-page" href="skglm.penalties.WeightedMCPenalty.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">skglm.penalties.SCAD</div>
+                <div class="title">skglm.penalties.WeightedMCPenalty</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -413,7 +430,7 @@ the indices of a group in <code class="docutils literal notranslate"><span class
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=f809545a"></script>
+</div><script src="../_static/documentation_options.js?v=4621528c"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=32e29ea5"></script>

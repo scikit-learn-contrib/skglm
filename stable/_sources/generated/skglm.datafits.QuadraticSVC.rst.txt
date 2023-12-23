@@ -15,11 +15,13 @@
    
       ~QuadraticSVC.__init__
       ~QuadraticSVC.full_grad_sparse
+      ~QuadraticSVC.get_global_lipschitz
+      ~QuadraticSVC.get_global_lipschitz_sparse
+      ~QuadraticSVC.get_lipschitz
+      ~QuadraticSVC.get_lipschitz_sparse
       ~QuadraticSVC.get_spec
       ~QuadraticSVC.gradient_scalar
       ~QuadraticSVC.gradient_scalar_sparse
-      ~QuadraticSVC.init_global_lipschitz
-      ~QuadraticSVC.init_global_lipschitz_sparse
       ~QuadraticSVC.initialize
       ~QuadraticSVC.initialize_sparse
       ~QuadraticSVC.params_to_dict

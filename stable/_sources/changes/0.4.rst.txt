@@ -1,0 +1,9 @@
+.. _changes_0_4:
+
+Version 0.3.1 (2023/12/21)
+--------------------------
+- Add support for weights and positive coefficients to :ref:`MCPRegression Estimator <skglm.MCPRegression>` (PR: :gh:`184`)
+- Move solver specific computations from ``Datafit.initialize()`` to separate ``Datafit`` methods to ease ``Solver`` - ``Datafit`` compatibility check (PR: :gh:`192`)
+- Add :ref:`LogSumPenalty <skglm.penalties.LogSumPenalty>` (PR: :gh:`#127`)
+- Remove abstract methods in ``BaseDatafit`` and ``BasePenalty`` to make solver/penalty/datafit compatibility check easier (PR :gh:`#205`)
+- Add fixed-point distance to build working sets in :ref:`ProxNewton <skglm.solvers.ProxNewton>` solver (:gh:`138`)

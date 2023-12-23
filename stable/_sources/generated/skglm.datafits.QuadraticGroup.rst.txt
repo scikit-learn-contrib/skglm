@@ -14,10 +14,10 @@
    .. autosummary::
    
       ~QuadraticGroup.__init__
+      ~QuadraticGroup.get_lipschitz
       ~QuadraticGroup.get_spec
       ~QuadraticGroup.gradient_g
       ~QuadraticGroup.gradient_scalar
-      ~QuadraticGroup.gradient_scalar_sparse
       ~QuadraticGroup.initialize
       ~QuadraticGroup.initialize_sparse
       ~QuadraticGroup.intercept_update_step

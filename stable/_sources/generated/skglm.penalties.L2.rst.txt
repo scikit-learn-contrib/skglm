@@ -19,8 +19,6 @@
       ~L2.gradient
       ~L2.is_penalized
       ~L2.params_to_dict
-      ~L2.prox_1d
-      ~L2.subdiff_distance
       ~L2.value
    
    

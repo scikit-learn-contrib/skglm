@@ -30,16 +30,17 @@ They can then be passed to a :class:`~skglm.GeneralizedLinearEstimator`.
    )
 
 
-A ``Datafit`` is a jitclass which must inherit from the ``BaseDatafit`` class:
+A ``Datafit`` is a jitclass that must inherit from the ``BaseDatafit`` class:
 
-.. literalinclude:: ../skglm/datafits/base.py
+.. literalinclude:: ../../skglm/datafits/base.py
    :pyobject: BaseDatafit
 
 
-To define a custom datafit, you need to implement the methods declared in the ``BaseDatafit`` class.
-One needs to overload at least the ``value`` and ``gradient`` methods for skglm to support the datafit.
+To define a custom datafit, you need to inherit from ``BaseDatafit`` class and implement methods required by the targeted solver.
+These methods can be found in the solver documentation.
 Optionally, overloading the methods with the suffix ``_sparse`` adds support for sparse datasets (CSC matrix).
-As an example, we show how to implement the Poisson datafit in skglm.
+
+This tutorial shows how to implement :ref:`Poisson <skglm.datafits.Poisson>` datafit to be fitted with :ref:`ProxNewton <skglm.solvers.ProxNewton>` solver.
 
 
 A case in point: defining Poisson datafit
@@ -104,18 +105,16 @@ For the Poisson datafit, this yields
 .. math::
     \frac{\partial F(\beta)}{\partial \beta_j} = \frac{1}{n}
       \sum_{i=1}^n X_{i,j} \left(
-         \exp([X\beta]_i) - y 
+         \exp([X\beta]_i) - y
       \right)
       \ .
 
 
 When implementing these quantities in the ``Poisson`` datafit class, this gives:
 
-.. literalinclude:: ../skglm/datafits/single_task.py
+.. literalinclude:: ../../skglm/datafits/single_task.py
    :pyobject: Poisson
 
 
 Note that we have not initialized any quantities in the ``initialize`` method.
-Usually it serves to compute a Lipschitz constant of the datafit, whose inverse is used by the solver as a step size.
-However, in this example, the Poisson datafit has no Lipschitz constant since the eigenvalues of the Hessian matrix are unbounded. 
-This implies that a step size is not known in advance and a line search has to be performed at every epoch by the solver.
+Usually, it serves to compute datafit attributes specific to a dataset ``X, y`` for computational efficiency, for example the computation of ``X.T @ y`` in :ref:`Quadratic <skglm.datafits.Quadratic>` datafit.

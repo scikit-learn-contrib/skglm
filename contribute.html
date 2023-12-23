@@ -14,6 +14,7 @@
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=36a5483c" />
     <link rel="stylesheet" type="text/css" href="_static/style.css?v=30bc89f7" />
     
@@ -299,12 +300,10 @@ You can submit a <a class="reference external" href="https://github.com/scikit-l
 to integrate your changes and we will reach out to you shortly.</p>
 </dd>
 </dl>
+<p>As part of the <a class="reference external" href="https://github.com/scikit-learn-contrib">scikit-learn-contrib</a> GitHub organization, we adopt the scikit-learn <a class="reference external" href="https://github.com/scikit-learn/scikit-learn/blob/main/CODE_OF_CONDUCT.md">code of conduct</a>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<ul class="simple">
-<li><p>If you are willing to contribute with code to <code class="docutils literal notranslate"><span class="pre">skglm</span></code>, check the section below to learn how to install</p></li>
-</ul>
-<p>the development version of <code class="docutils literal notranslate"><span class="pre">skglm</span></code></p>
+<p>If you are willing to contribute with code to <code class="docutils literal notranslate"><span class="pre">skglm</span></code>, check the section below to learn how to install the development version of <code class="docutils literal notranslate"><span class="pre">skglm</span></code></p>
 </div>
 <section id="setup-skglm-on-your-local-machine">
 <h2>Setup <code class="docutils literal notranslate"><span class="pre">skglm</span></code> on your local machine<a class="headerlink" href="#setup-skglm-on-your-local-machine" title="Permalink to this heading">#</a></h2>
@@ -324,12 +323,27 @@ $<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </sp
 </pre></div>
 </div>
 <ol class="arabic simple" start="3">
-<li><p>To run the gallery of examples and build the documentation, run</p></li>
+<li><p>To build the documentation, run</p></li>
 </ol>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-0">
+with the gallery of example</label><div class="sd-tab-content docutils">
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>doc
 $<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.<span class="o">[</span>doc<span class="o">]</span>
 $<span class="w"> </span>make<span class="w"> </span>html
 </pre></div>
+</div>
+</div>
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-1">
+without the gallery of example</label><div class="sd-tab-content docutils">
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>doc
+$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.<span class="o">[</span>doc<span class="o">]</span>
+$<span class="w"> </span>make<span class="w"> </span>html-noplot
+</pre></div>
+</div>
+</div>
 </div>
 </section>
 </section>
@@ -408,6 +422,7 @@ $<span class="w"> </span>make<span class="w"> </span>html
     <script src="_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="_static/copybutton.js?v=30646c52"></script>
+    <script src="_static/design-tabs.js?v=36754332"></script>
     <script src="_static/scripts/asciimath-defines.js?v=d20fafab"></script>
     </body>
 </html>

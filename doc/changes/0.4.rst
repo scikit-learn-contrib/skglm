@@ -1,6 +1,6 @@
 .. _changes_0_4:
 
-Version 0.3 (in progress)
+Version 0.4 (in progress)
 -------------------------
 
 

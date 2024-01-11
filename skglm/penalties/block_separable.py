@@ -255,6 +255,9 @@ class WeightedGroupL2(BasePenalty):
     grp_ptr : array, shape (n_groups + 1,)
         The group pointers such that two consecutive elements delimit
         the indices of a group in ``grp_indices``.
+
+    positive : bool, optional
+        When set to ``True``, forces the coefficient vector to be positive.
     """
 
     def __init__(self, alpha, weights, grp_ptr, grp_indices, positive=False):

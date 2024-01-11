@@ -2,6 +2,7 @@ import numpy as np
 from numpy.linalg import norm
 
 from numba import float64, int32
+from numba.types import bool_
 
 from skglm.penalties.base import BasePenalty
 from skglm.utils.prox_funcs import (
@@ -256,9 +257,10 @@ class WeightedGroupL2(BasePenalty):
         the indices of a group in ``grp_indices``.
     """
 
-    def __init__(self, alpha, weights, grp_ptr, grp_indices):
+    def __init__(self, alpha, weights, grp_ptr, grp_indices, positive=False):
         self.alpha, self.weights = alpha, weights
         self.grp_ptr, self.grp_indices = grp_ptr, grp_indices
+        self.positive = positive
 
     def get_spec(self):
         spec = (
@@ -266,12 +268,14 @@ class WeightedGroupL2(BasePenalty):
             ('weights', float64[:]),
             ('grp_ptr', int32[:]),
             ('grp_indices', int32[:]),
+            ('positive', bool_)
         )
         return spec
 
     def params_to_dict(self):
         return dict(alpha=self.alpha, weights=self.weights,
-                    grp_ptr=self.grp_ptr, grp_indices=self.grp_indices)
+                    grp_ptr=self.grp_ptr, grp_indices=self.grp_indices,
+                    positive=self.positive)
 
     def value(self, w):
         """Value of penalty at vector ``w``."""
@@ -290,7 +294,8 @@ class WeightedGroupL2(BasePenalty):
 
     def prox_1group(self, value, stepsize, g):
         """Compute the proximal operator of group ``g``."""
-        return BST(value, self.alpha * stepsize * self.weights[g])
+        return BST(
+            value, self.alpha * stepsize * self.weights[g], positive=self.positive)
 
     def subdiff_distance(self, w, grad_ws, ws):
         """Compute distance to the subdifferential at ``w`` of negative gradient.

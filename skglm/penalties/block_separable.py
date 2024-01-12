@@ -271,7 +271,7 @@ class WeightedGroupL2(BasePenalty):
             ('weights', float64[:]),
             ('grp_ptr', int32[:]),
             ('grp_indices', int32[:]),
-            ('positive', bool_)
+            ('positive', bool_),
         )
         return spec
 
@@ -323,13 +323,13 @@ class WeightedGroupL2(BasePenalty):
             if self.positive and np.any(w_g < 0):
                 scores[idx] = np.inf
             if self.positive and norm_w_g == 0:
-                # distance of -norm(grad_j) to )-infty, alpha * weights[g]]
+                # distance of -norm(grad_g) to )-infty, alpha * weights[g]]
                 scores[idx] = max(0, - norm(grad_g) - self.alpha * weights[g])
             if (not self.positive) and norm_w_g == 0:
-                # distance of -norm(grad_j) to weights[g] * [-alpha, alpha]
+                # distance of -norm(grad_g) to weights[g] * [-alpha, alpha]
                 scores[idx] = max(0, norm(grad_g) - alpha * weights[g])
             else:
-                # distance of -grad_j to the subdiff (here a singleton)
+                # distance of -grad_g to the subdiff (here a singleton)
                 subdiff = alpha * weights[g] * w_g / norm_w_g
                 scores[idx] = norm(grad_g + subdiff)
 

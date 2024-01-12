@@ -36,14 +36,14 @@ def BST(x, u, positive=False):
     If positive=False:
 
     .. math::
-        "BST"(x, u) = \max(1 - u / ||x||, 0) x ,
+        "BST"(x, u) = max(1 - u / ||x||, 0) x ,
 
     the proof can be found in [1].
 
-    If positive=True, let :math:`S = {j \in 1, ..., p | x_j > 0}`
+    If positive=True, let :math:`S = {j in 1, ..., p | x_j > 0}`
 
     .. math::
-        "BST"(x, u)_S = \max(1 - u / ||x_S||, 0) x_S
+        "BST"(x, u)_S = max(1 - u / ||x_S||, 0) x_S
 
     .. math::
         "BST"(x, u)_{S^c} = 0 ,
@@ -52,7 +52,8 @@ def BST(x, u, positive=False):
 
     References
     ----------
-    [1] https://math.stackexchange.com/questions/1681658/closed-form-solution-of-arg-min-x-left-x-y-right-22-lamb
+    [1] https://math.stackexchange.com/questions/1681658/
+    closed-form-solution-of-arg-min-x-left-x-y-right-22-lamb
     """
     if positive:
         result = np.zeros_like(x)

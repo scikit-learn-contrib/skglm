@@ -31,7 +31,32 @@ def proj_L2ball(u):
 
 @njit
 def BST(x, u, positive=False):
-    """Block soft-thresholding of vector x at level u."""
+    """Block soft-thresholding of vector x at level u.
+
+    If positive=False:
+
+    .. math::
+
+    "BST"(x, u) = \max(1 - u / ||x||, 0) x ,
+
+    the proof can be found in [1].
+
+    If positive=True, let :math:`S = {j \in 1, ..., p | x_j > 0}`
+
+    .. math::
+
+    "BST"(x, u)_S = \max(1 - u / ||x_S||, 0) x_S
+
+    .. math::
+
+    "BST"(x, u)_{S^c} = 0 ,
+
+    the proof can be adapted from [1].
+
+    References
+    ----------
+    [1] https://math.stackexchange.com/questions/1681658/closed-form-solution-of-arg-min-x-left-x-y-right-22-lamb
+    """
     if positive:
         result = np.zeros_like(x)
         positive_entries = x > 0

@@ -282,6 +282,8 @@ class WeightedGroupL2(BasePenalty):
 
     def value(self, w):
         """Value of penalty at vector ``w``."""
+        if self.positive and any(w < 0):
+            return np.inf
         alpha, weights = self.alpha, self.weights
         grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
         n_grp = len(grp_ptr) - 1

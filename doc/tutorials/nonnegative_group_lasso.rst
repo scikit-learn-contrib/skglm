@@ -71,7 +71,69 @@ A similar formula can be derived for the group Lasso with nonnegative constraint
 Proximity operator of the group Lasso with positivity constraints
 =============
 
-TODO
+
+Let
+
+.. math::
+    h:x \mapsto \norm{x}_2
+    + i_{x \geq 0}
+    .
+
+Let :math:`x \in \mathbb{R}^p` and :math:`S =  \{ j \in 1, ..., p | x_j > 0 \} \in \mathbb{R}^p`, then
+
+
+.. math::
+    :label: fenchel_nn
+
+    h^{\star}(x) \mapsto i_{\norm{x_S}_2 \leq 1}
+    ,
+
+and for all :math:`x \in \mathbb{R}^p`
+
+.. math::
+    :label: prox_projection_nn_Sc
+
+    \text{prox}_{h^{\star}}(x)_{S^c}
+    =
+    x_{S^c}
+
+
+.. math::
+    :label: prox_projection_nn_S
+
+    \text{prox}_{h^{\star}}(x)_S
+    =
+    \text{proj}_{\mathcal{B}_2}(x_S) = \frac{x_S}{\max(\norm{x_S}_2, 1)}
+    .
+
+As before, using the Moreau decomposition yields
+
+
+.. math::
+
+    \text{prox}_{\lambda g}(x)
+    =
+    x
+    - \lambda \text{prox}_{\lambda g^\star}(x/\lambda)
+
+.. math::
+
+    = x
+    - \lambda \text{prox}_{g^\star}(x/\lambda)
+
+and thus
+
+.. math::
+
+    \text{prox}_{\lambda g}(x)_{S^c} = 0
+
+.. math::
+
+    \text{prox}_{\lambda g}(x)_{S}
+    =
+    (1 - \frac{\lambda}{\norm{x_S}})_{+} x_S
+    .
+
 
 References
 ==========

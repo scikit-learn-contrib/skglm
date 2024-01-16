@@ -111,26 +111,26 @@ As before, using the Moreau decomposition and Equation :eq:`fenchel_nn` yields
 
 .. math::
 
-    \text{prox}_{\lambda g}(x)
+    \text{prox}_{\lambda h}(x)
     =
     x
-    - \lambda \text{prox}_{\lambda g^\star}(x/\lambda)
+    - \lambda \text{prox}_{\lambda h^\star}(x/\lambda)
 
 .. math::
 
     = x
-    - \lambda \text{prox}_{g^\star}(x/\lambda)
+    - \lambda \text{prox}_{h^\star}(x/\lambda)
     ,
 
 and thus, combined with Equations :eq:`prox_projection_nn_Sc` and :eq:`prox_projection_nn_S` it leads to
 
 .. math::
 
-    \text{prox}_{\lambda g}(x)_{S^c} = 0
+    \text{prox}_{\lambda h}(x)_{S^c} = 0
 
 .. math::
 
-    \text{prox}_{\lambda g}(x)_{S}
+    \text{prox}_{\lambda h}(x)_{S}
     =
     (1 - \frac{\lambda}{\norm{x_S}})_{+} x_S
     .

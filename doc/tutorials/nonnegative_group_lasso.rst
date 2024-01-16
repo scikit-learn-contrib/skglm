@@ -88,7 +88,7 @@ Let :math:`x \in \mathbb{R}^p` and :math:`S =  \{ j \in 1, ..., p | x_j > 0 \} \
     h^{\star}(x) \mapsto i_{\norm{x_S}_2 \leq 1}
     ,
 
-and for all :math:`x \in \mathbb{R}^p`
+and
 
 .. math::
     :label: prox_projection_nn_Sc

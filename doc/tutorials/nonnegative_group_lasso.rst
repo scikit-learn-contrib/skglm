@@ -35,7 +35,7 @@ and for all :math:`x \in \mathbb{R}^p`
     \text{proj}_{\mathcal{B}_2}(x) = \frac{x}{\max(\norm{x}_2, 1)}
     .
 
-Using the Moreau decomposition and the two equations above one has
+Using the Moreau decomposition, Equations :eq:`fenchel` and :eq:`prox_projection`, one has
 
 
 .. math::
@@ -106,7 +106,7 @@ and for all :math:`x \in \mathbb{R}^p`
     \text{proj}_{\mathcal{B}_2}(x_S) = \frac{x_S}{\max(\norm{x_S}_2, 1)}
     .
 
-As before, using the Moreau decomposition yields
+As before, using the Moreau decomposition and Equation :eq:`fenchel_nn` yields
 
 
 .. math::
@@ -120,8 +120,9 @@ As before, using the Moreau decomposition yields
 
     = x
     - \lambda \text{prox}_{g^\star}(x/\lambda)
+    ,
 
-and thus
+and thus, combined with Equations :eq:`prox_projection_nn_Sc` and :eq:`prox_projection_nn_S` it leads to
 
 .. math::
 

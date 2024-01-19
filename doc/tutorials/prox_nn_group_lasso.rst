@@ -1,15 +1,14 @@
 .. _prox_nn_group_lasso:
 
-=============================
+====================================================
 Details on the proximity operator of the group Lasso
-=============================
-
+====================================================
 
 This tutorial presents how to derive the proximity operator of the :math:`l_2`-penalty, and the :math:`l_2`-penalty with nonnegative constraints.
 
 
 Proximity operator of the group Lasso
-=============
+=====================================
 
 Let
 
@@ -69,7 +68,7 @@ A similar formula can be derived for the group Lasso with nonnegative constraint
 
 
 Proximity operator of the group Lasso with positivity constraints
-=============
+=================================================================
 
 
 Let
@@ -85,7 +84,7 @@ Let :math:`x \in \mathbb{R}^p` and :math:`S =  \{ j \in 1, ..., p | x_j > 0 \} \
 .. math::
     :label: fenchel_nn
 
-    h^{\star}(x) \mapsto i_{\norm{x_S}_2 \leq 1}
+    h^{\star} :x  \mapsto i_{\norm{x_S}_2 \leq 1}
     ,
 
 and

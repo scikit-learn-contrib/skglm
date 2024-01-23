@@ -28,3 +28,8 @@ Explore how ``skglm`` fits an unpenalized intercept.
 -----------------------------------------------------------------
 
 Get details about Cox datafit equations.
+
+:ref:`Details on the group Lasso <prox_nn_group_lasso>`
+-----------------------------------------------------------------
+
+Get details about how to compute the prox of the group Lasso with and without nonnegativity constraints.

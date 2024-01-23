@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="skglm.datafits.QuadraticGroup" href="skglm.datafits.QuadraticGroup.html" /><link rel="prev" title="skglm.datafits.Poisson" href="skglm.datafits.Poisson.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" />
 
     <link rel="shortcut icon" href="../_static/logo.svg"/><!-- Generated with Sphinx 7.1.2 and Furo 2023.09.10 -->
-        <title>skglm.datafits.Quadratic - skglm 0.3.2dev documentation</title>
+        <title>Details on the proximity operator of the group Lasso - skglm 0.3.2dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -184,9 +184,9 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-tree">
-  <ul class="current">
+  <ul>
 <li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorials/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../auto_examples/index.html">Examples Gallery</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Examples Gallery</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../auto_examples/plot_pen_prox.html">Value and proximal operators of penalties</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../auto_examples/plot_lasso_vs_weighted.html">Comparison of Lasso and Weighted Lasso</a></li>
@@ -198,53 +198,53 @@
 <li class="toctree-l2"><a class="reference internal" href="../auto_examples/plot_survival_analysis.html">Comparison of lifelines with skglm for survival analysis</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current has-children"><a class="reference internal" href="../api.html">API Documentation</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of API Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="skglm.GeneralizedLinearEstimator.html">skglm.GeneralizedLinearEstimator</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.CoxEstimator.html">skglm.CoxEstimator</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.ElasticNet.html">skglm.ElasticNet</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.Lasso.html">skglm.Lasso</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.LinearSVC.html">skglm.LinearSVC</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.SparseLogisticRegression.html">skglm.SparseLogisticRegression</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.MCPRegression.html">skglm.MCPRegression</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.MultiTaskLasso.html">skglm.MultiTaskLasso</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.WeightedLasso.html">skglm.WeightedLasso</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.penalties.IndicatorBox.html">skglm.penalties.IndicatorBox</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L0_5.html">skglm.penalties.L0_5</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L1.html">skglm.penalties.L1</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L1_plus_L2.html">skglm.penalties.L1_plus_L2</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L2.html">skglm.penalties.L2</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L2_3.html">skglm.penalties.L2_3</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.penalties.LogSumPenalty.html">skglm.penalties.LogSumPenalty</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.penalties.MCPenalty.html">skglm.penalties.MCPenalty</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.penalties.PositiveConstraint.html">skglm.penalties.PositiveConstraint</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.penalties.WeightedL1.html">skglm.penalties.WeightedL1</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.penalties.WeightedGroupL2.html">skglm.penalties.WeightedGroupL2</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.penalties.WeightedMCPenalty.html">skglm.penalties.WeightedMCPenalty</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.penalties.SCAD.html">skglm.penalties.SCAD</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.penalties.BlockSCAD.html">skglm.penalties.BlockSCAD</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.penalties.SLOPE.html">skglm.penalties.SLOPE</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.datafits.Cox.html">skglm.datafits.Cox</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.datafits.Gamma.html">skglm.datafits.Gamma</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.datafits.Huber.html">skglm.datafits.Huber</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.datafits.Logistic.html">skglm.datafits.Logistic</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.datafits.LogisticGroup.html">skglm.datafits.LogisticGroup</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.datafits.Poisson.html">skglm.datafits.Poisson</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">skglm.datafits.Quadratic</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.datafits.QuadraticGroup.html">skglm.datafits.QuadraticGroup</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.datafits.QuadraticSVC.html">skglm.datafits.QuadraticSVC</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.solvers.AndersonCD.html">skglm.solvers.AndersonCD</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.solvers.FISTA.html">skglm.solvers.FISTA</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.solvers.GramCD.html">skglm.solvers.GramCD</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.solvers.GroupBCD.html">skglm.solvers.GroupBCD</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.solvers.GroupProxNewton.html">skglm.solvers.GroupProxNewton</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.solvers.LBFGS.html">skglm.solvers.LBFGS</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.solvers.MultiTaskBCD.html">skglm.solvers.MultiTaskBCD</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.solvers.ProxNewton.html">skglm.solvers.ProxNewton</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.experimental.IterativeReweightedL1.html">skglm.experimental.IterativeReweightedL1</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.experimental.PDCD_WS.html">skglm.experimental.PDCD_WS</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.experimental.Pinball.html">skglm.experimental.Pinball</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.experimental.SqrtQuadratic.html">skglm.experimental.SqrtQuadratic</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.experimental.SqrtLasso.html">skglm.experimental.SqrtLasso</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api.html">API Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of API Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.GeneralizedLinearEstimator.html">skglm.GeneralizedLinearEstimator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.CoxEstimator.html">skglm.CoxEstimator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.ElasticNet.html">skglm.ElasticNet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.Lasso.html">skglm.Lasso</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.LinearSVC.html">skglm.LinearSVC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.SparseLogisticRegression.html">skglm.SparseLogisticRegression</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.MCPRegression.html">skglm.MCPRegression</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.MultiTaskLasso.html">skglm.MultiTaskLasso</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.WeightedLasso.html">skglm.WeightedLasso</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.IndicatorBox.html">skglm.penalties.IndicatorBox</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.L0_5.html">skglm.penalties.L0_5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.L1.html">skglm.penalties.L1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.L1_plus_L2.html">skglm.penalties.L1_plus_L2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.L2.html">skglm.penalties.L2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.L2_3.html">skglm.penalties.L2_3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.LogSumPenalty.html">skglm.penalties.LogSumPenalty</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.MCPenalty.html">skglm.penalties.MCPenalty</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.PositiveConstraint.html">skglm.penalties.PositiveConstraint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.WeightedL1.html">skglm.penalties.WeightedL1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.WeightedGroupL2.html">skglm.penalties.WeightedGroupL2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.WeightedMCPenalty.html">skglm.penalties.WeightedMCPenalty</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.SCAD.html">skglm.penalties.SCAD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.BlockSCAD.html">skglm.penalties.BlockSCAD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.penalties.SLOPE.html">skglm.penalties.SLOPE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.datafits.Cox.html">skglm.datafits.Cox</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.datafits.Gamma.html">skglm.datafits.Gamma</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.datafits.Huber.html">skglm.datafits.Huber</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.datafits.Logistic.html">skglm.datafits.Logistic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.datafits.LogisticGroup.html">skglm.datafits.LogisticGroup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.datafits.Poisson.html">skglm.datafits.Poisson</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.datafits.Quadratic.html">skglm.datafits.Quadratic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.datafits.QuadraticGroup.html">skglm.datafits.QuadraticGroup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.datafits.QuadraticSVC.html">skglm.datafits.QuadraticSVC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.solvers.AndersonCD.html">skglm.solvers.AndersonCD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.solvers.FISTA.html">skglm.solvers.FISTA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.solvers.GramCD.html">skglm.solvers.GramCD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.solvers.GroupBCD.html">skglm.solvers.GroupBCD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.solvers.GroupProxNewton.html">skglm.solvers.GroupProxNewton</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.solvers.LBFGS.html">skglm.solvers.LBFGS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.solvers.MultiTaskBCD.html">skglm.solvers.MultiTaskBCD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.solvers.ProxNewton.html">skglm.solvers.ProxNewton</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.experimental.IterativeReweightedL1.html">skglm.experimental.IterativeReweightedL1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.experimental.PDCD_WS.html">skglm.experimental.PDCD_WS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.experimental.Pinball.html">skglm.experimental.Pinball</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.experimental.SqrtQuadratic.html">skglm.experimental.SqrtQuadratic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.experimental.SqrtLasso.html">skglm.experimental.SqrtLasso</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../contribute.html">Contribute to <code class="docutils literal notranslate"><span class="pre">skglm</span></code></a></li>
@@ -281,82 +281,120 @@
           </label>
         </div>
         <article role="main">
-          <section id="skglm-datafits-quadratic">
-<h1>skglm.datafits.Quadratic<a class="headerlink" href="#skglm-datafits-quadratic" title="Permalink to this heading">#</a></h1>
-<dl class="py class">
-<dt class="sig sig-object py" id="skglm.datafits.Quadratic">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">Quadratic</span></span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/1dcbfff/skglm/datafits/single_task.py#L10"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.Quadratic" title="Permalink to this definition">#</a></dt>
-<dd><p>Quadratic datafit.</p>
-<p>The datafit reads:</p>
+          <section id="details-on-the-proximity-operator-of-the-group-lasso">
+<span id="prox-nn-group-lasso"></span><h1>Details on the proximity operator of the group Lasso<a class="headerlink" href="#details-on-the-proximity-operator-of-the-group-lasso" title="Permalink to this heading">#</a></h1>
+<p>This tutorial presents how to derive the proximity operator of the <span class="math notranslate nohighlight">`l_2`</span>-penalty, and the <span class="math notranslate nohighlight">`l_2`</span>-penalty with nonnegative constraints.</p>
+<section id="proximity-operator-of-the-group-lasso">
+<h2>Proximity operator of the group Lasso<a class="headerlink" href="#proximity-operator-of-the-group-lasso" title="Permalink to this heading">#</a></h2>
+<p>Let</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
-`1 / (2 xx  n_&quot;samples&quot;) ||y - Xw||_2 ^ 2`</div>
+`g:x \mapsto \norm{x}_2
+,`</div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>Xty</strong><span class="classifier">array, shape (n_features,)</span></dt><dd><p>Pre-computed quantity used during the gradient evaluation.
-Equal to <code class="docutils literal notranslate"><span class="pre">X.T</span> <span class="pre">&#64;</span> <span class="pre">y</span></code>.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="skglm.datafits.Quadratic.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/1dcbfff/skglm/datafits/single_task.py#L29"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.Quadratic.__init__" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<p class="rubric">Methods</p>
-<div class="table-wrapper autosummary longtable docutils container">
-<table class="autosummary longtable docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#skglm.datafits.Quadratic.__init__" title="skglm.datafits.Quadratic.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>()</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">full_grad_sparse</span></code>(X_data, X_indptr, ...)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_global_lipschitz</span></code>(X, y)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_global_lipschitz_sparse</span></code>(X_data, ...)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_lipschitz</span></code>(X, y)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_lipschitz_sparse</span></code>(X_data, X_indptr, ...)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_spec</span></code>()</p></td>
-<td><p>Specify the numba types of the class attributes.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient_scalar</span></code>(X, y, w, Xw, j)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient_scalar_sparse</span></code>(X_data, X_indptr, ...)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize</span></code>(X, y)</p></td>
-<td><p>Pre-computations before fitting on X and y.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_sparse</span></code>(X_data, X_indptr, X_indices, y)</p></td>
-<td><p>Pre-computations before fitting on X and y when X is a sparse matrix.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">intercept_update_step</span></code>(y, Xw)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
-<td><p>Get the parameters to initialize an instance of the class.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(y, w, Xw)</p></td>
-<td><p>Value of datafit at vector w.</p></td>
-</tr>
-</tbody>
-</table>
+<p>then</p>
+<div class="math-wrapper docutils container" id="equation-fenchel">
+<div class="math notranslate nohighlight" id="equation-fenchel">
+<span class="eqno">(1)<a class="headerlink" href="#equation-fenchel" title="Permalink to this equation">#</a></span>`g^{\star}:x \mapsto i_{\norm{x}_2 \leq 1}
+,`</div>
 </div>
-</dd></dl>
-
+<p>and for all <span class="math notranslate nohighlight">`x \in \mathbb{R}^p`</span></p>
+<div class="math-wrapper docutils container" id="equation-prox-projection">
+<div class="math notranslate nohighlight" id="equation-prox-projection">
+<span class="eqno">(2)<a class="headerlink" href="#equation-prox-projection" title="Permalink to this equation">#</a></span>`\text{prox}_{g^{\star}}(x)
+=
+\text{proj}_{\mathcal{B}_2}(x) = \frac{x}{\max(\norm{x}_2, 1)}
+.`</div>
+</div>
+<p>Using the Moreau decomposition, Equations <a class="reference internal" href="#equation-fenchel">(1)</a> and <a class="reference internal" href="#equation-prox-projection">(2)</a>, one has</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`\text{prox}_{\lambda g}(x)
+=
+x
+- \lambda \text{prox}_{\lambda g^\star}(x/\lambda)`</div>
+</div>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`= x
+- \lambda \text{prox}_{g^\star}(x/\lambda)`</div>
+</div>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`= x
+- \lambda  \frac{x/\lambda}{\max(\norm{x/\lambda}_2, 1)}`</div>
+</div>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`= x
+- \frac{\lambda x}{\max(\norm{x}_2, \lambda)}`</div>
+</div>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`= (1 - \frac{\lambda}{\norm{x}})_{+} x
+.`</div>
+</div>
+<p>A similar formula can be derived for the group Lasso with nonnegative constraints.</p>
+</section>
+<section id="proximity-operator-of-the-group-lasso-with-positivity-constraints">
+<h2>Proximity operator of the group Lasso with positivity constraints<a class="headerlink" href="#proximity-operator-of-the-group-lasso-with-positivity-constraints" title="Permalink to this heading">#</a></h2>
+<p>Let</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`h:x \mapsto \norm{x}_2
++ i_{x \geq 0}
+.`</div>
+</div>
+<p>Let <span class="math notranslate nohighlight">`x \in \mathbb{R}^p`</span> and <span class="math notranslate nohighlight">`S =  \{ j \in 1, ..., p | x_j &gt; 0 \} \in \mathbb{R}^p`</span>, then</p>
+<div class="math-wrapper docutils container" id="equation-fenchel-nn">
+<div class="math notranslate nohighlight" id="equation-fenchel-nn">
+<span class="eqno">(3)<a class="headerlink" href="#equation-fenchel-nn" title="Permalink to this equation">#</a></span>`h^{\star} :x  \mapsto i_{\norm{x_S}_2 \leq 1}
+,`</div>
+</div>
+<p>and</p>
+<div class="math-wrapper docutils container" id="equation-prox-projection-nn-sc">
+<div class="math notranslate nohighlight" id="equation-prox-projection-nn-sc">
+<span class="eqno">(4)<a class="headerlink" href="#equation-prox-projection-nn-sc" title="Permalink to this equation">#</a></span>`\text{prox}_{h^{\star}}(x)_{S^c}
+=
+x_{S^c}`</div>
+</div>
+<div class="math-wrapper docutils container" id="equation-prox-projection-nn-s">
+<div class="math notranslate nohighlight" id="equation-prox-projection-nn-s">
+<span class="eqno">(5)<a class="headerlink" href="#equation-prox-projection-nn-s" title="Permalink to this equation">#</a></span>`\text{prox}_{h^{\star}}(x)_S
+=
+\text{proj}_{\mathcal{B}_2}(x_S) = \frac{x_S}{\max(\norm{x_S}_2, 1)}
+.`</div>
+</div>
+<p>As before, using the Moreau decomposition and Equation <a class="reference internal" href="#equation-fenchel-nn">(3)</a> yields</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`\text{prox}_{\lambda h}(x)
+=
+x
+- \lambda \text{prox}_{\lambda h^\star}(x/\lambda)`</div>
+</div>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`= x
+- \lambda \text{prox}_{h^\star}(x/\lambda)
+,`</div>
+</div>
+<p>and thus, combined with Equations <a class="reference internal" href="#equation-prox-projection-nn-sc">(4)</a> and <a class="reference internal" href="#equation-prox-projection-nn-s">(5)</a> it leads to</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`\text{prox}_{\lambda h}(x)_{S^c} = 0`</div>
+</div>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`\text{prox}_{\lambda h}(x)_{S}
+=
+(1 - \frac{\lambda}{\norm{x_S}})_{+} x_S
+.`</div>
+</div>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this heading">#</a></h2>
+</section>
 </section>
 
         </article>
@@ -364,26 +402,8 @@ Equal to <code class="docutils literal notranslate"><span class="pre">X.T</span>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="skglm.datafits.QuadraticGroup.html">
-              <div class="page-info">
-                <div class="context">
-                  <span>Next</span>
-                </div>
-                <div class="title">skglm.datafits.QuadraticGroup</div>
-              </div>
-              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
-            </a>
-          <a class="prev-page" href="skglm.datafits.Poisson.html">
-              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
-              <div class="page-info">
-                <div class="context">
-                  <span>Previous</span>
-                </div>
-                
-                <div class="title">skglm.datafits.Poisson</div>
-                
-              </div>
-            </a>
+          
+          
         </div>
         <div class="bottom-of-page">
           <div class="left-details">
@@ -414,11 +434,10 @@ Equal to <code class="docutils literal notranslate"><span class="pre">X.T</span>
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">skglm.datafits.Quadratic</a><ul>
-<li><a class="reference internal" href="#skglm.datafits.Quadratic"><code class="docutils literal notranslate"><span class="pre">Quadratic</span></code></a><ul>
-<li><a class="reference internal" href="#skglm.datafits.Quadratic.__init__"><code class="docutils literal notranslate"><span class="pre">Quadratic.__init__()</span></code></a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#">Details on the proximity operator of the group Lasso</a><ul>
+<li><a class="reference internal" href="#proximity-operator-of-the-group-lasso">Proximity operator of the group Lasso</a></li>
+<li><a class="reference internal" href="#proximity-operator-of-the-group-lasso-with-positivity-constraints">Proximity operator of the group Lasso with positivity constraints</a></li>
+<li><a class="reference internal" href="#references">References</a></li>
 </ul>
 </li>
 </ul>

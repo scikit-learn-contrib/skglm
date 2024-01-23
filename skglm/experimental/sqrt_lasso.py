@@ -223,7 +223,7 @@ class SqrtLasso(LinearModel, RegressorMixin):
                 # coef_init holds a ref to coef
                 coef = coef_init
                 X_coef = X @ coef[:-1] + coef[-1] if self.fit_intercept else X @ coef
-                res_norm = norm(y - X_coeff)
+                res_norm = norm(y - X_coef)
                 warnings.warn(
                     f"Small residuals prevented the solver from converging "
                     f"at alpha={alphas[i]:.2e} (residuals' norm: {res_norm:.4e}). "

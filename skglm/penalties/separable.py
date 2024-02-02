@@ -532,6 +532,7 @@ class L0_5(BasePenalty):
         for j in range(x.shape[0]):
             res[j] = self.prox_1d(x[j], stepsize, j)
         return res
+
     def subdiff_distance(self, w, grad, ws):
         """Compute distance of negative gradient to the subdifferential at w."""
         subdiff_dist = np.zeros_like(grad)

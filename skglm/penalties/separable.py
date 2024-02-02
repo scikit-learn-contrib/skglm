@@ -527,6 +527,11 @@ class L0_5(BasePenalty):
         """Compute the proximal operator of L0_5."""
         return prox_05(value, self.alpha * stepsize)
 
+    def prox_vec(self, x, stepsize):
+        res = np.zeros_like(x)
+        for j in range(x.shape[0]):
+            res[j] = self.prox_1d(x[j], stepsize, j)
+        return res
     def subdiff_distance(self, w, grad, ws):
         """Compute distance of negative gradient to the subdifferential at w."""
         subdiff_dist = np.zeros_like(grad)

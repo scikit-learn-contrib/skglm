@@ -20,6 +20,7 @@
       ~L0_5.is_penalized
       ~L0_5.params_to_dict
       ~L0_5.prox_1d
+      ~L0_5.prox_vec
       ~L0_5.subdiff_distance
       ~L0_5.value
    

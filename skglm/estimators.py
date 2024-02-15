@@ -22,7 +22,7 @@ from skglm.utils.jit_compilation import compiled_clone
 from skglm.solvers import AndersonCD, MultiTaskBCD
 from skglm.datafits import Cox, Quadratic, Logistic, QuadraticSVC, QuadraticMultiTask
 from skglm.penalties import (L1, WeightedL1, L1_plus_L2, L2,
-                             MCPenalty, WeightedMCPenalty, IndicatorBox, L2_1)
+                             MCPenalty, WeightedMCPenalty, IndicatorBox, L2_1, SCAD)
 
 
 def _glm_fit(X, y, model, datafit, penalty, solver):
@@ -124,7 +124,8 @@ def _glm_fit(X, y, model, datafit, penalty, solver):
             w = np.zeros(n_features + fit_intercept, dtype=X_.dtype)
             Xw = np.zeros(n_samples, dtype=X_.dtype)
         else:  # multitask
-            w = np.zeros((n_features + fit_intercept, y.shape[1]), dtype=X_.dtype)
+            w = np.zeros((n_features + fit_intercept,
+                         y.shape[1]), dtype=X_.dtype)
             Xw = np.zeros(y.shape, dtype=X_.dtype)
 
     # check consistency of weights for WeightedL1
@@ -574,7 +575,8 @@ class WeightedLasso(LinearModel, RegressorMixin):
             raise ValueError("The number of weights must match the number of \
                               features. Got %s, expected %s." % (
                 len(weights), X.shape[1]))
-        penalty = compiled_clone(WeightedL1(self.alpha, weights, self.positive))
+        penalty = compiled_clone(WeightedL1(
+            self.alpha, weights, self.positive))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
         solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
@@ -599,7 +601,8 @@ class WeightedLasso(LinearModel, RegressorMixin):
             Fitted estimator.
         """
         if self.weights is None:
-            warnings.warn('Weights are not provided, fitting with Lasso penalty')
+            warnings.warn(
+                'Weights are not provided, fitting with Lasso penalty')
             penalty = L1(self.alpha, self.positive)
         else:
             penalty = WeightedL1(self.alpha, self.weights, self.positive)
@@ -732,7 +735,8 @@ class ElasticNet(LinearModel, RegressorMixin):
             The number of iterations along the path. If return_n_iter is set to
             ``True``.
         """
-        penalty = compiled_clone(L1_plus_L2(self.alpha, self.l1_ratio, self.positive))
+        penalty = compiled_clone(L1_plus_L2(
+            self.alpha, self.l1_ratio, self.positive))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
         solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
@@ -910,7 +914,8 @@ class MCPRegression(LinearModel, RegressorMixin):
                     f"Got {len(self.weights)}, expected {X.shape[1]}."
                 )
             penalty = compiled_clone(
-                WeightedMCPenalty(self.alpha, self.gamma, self.weights, self.positive)
+                WeightedMCPenalty(self.alpha, self.gamma,
+                                  self.weights, self.positive)
             )
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
         solver = AndersonCD(
@@ -950,6 +955,174 @@ class MCPRegression(LinearModel, RegressorMixin):
             ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
             warm_start=self.warm_start, verbose=self.verbose)
         return _glm_fit(X, y, self, Quadratic(), penalty, solver)
+
+
+class SCADRegression(LinearModel, RegressorMixin):
+
+    r"""Linear regression with SCAD penalty estimator.
+
+    The optimization objective for SCADRegression is, with :math:`x >= 0`:
+
+    .. math::
+        "pen"(x) = {
+            (alpha x                  , if \ \ \ \ \ \ \ \ \ \ x <= alpha),
+            (2 alpha gamma x - x^2 - alpha^2 / 2 (gamma - 1)
+                                      , if       alpha \ \   < x <= alpha gamma),
+            (alpha^2 (gamma + 1) / 2  , if       alpha gamma < x  )
+        :}
+
+    .. math::
+        "value" = sum_(j=1)^(n_"features") "pen"(abs(w_j))
+
+    For more details see
+    `Coordinate descent algorithms for nonconvex penalized regression,
+    with applications to biological feature selection, Breheny and Huang
+    <https://doi.org/10.1214/10-aoas388>`_.
+
+    Parameters
+    ----------
+    alpha : float, optional
+        Penalty strength.
+
+    gamma : float, default=3.7
+        If `` gammma = 1 `` this corresponds to hard thresholding
+
+        If `` gamma = np.inf `` his corresponds to soft thresholding
+
+
+    weights : array, shape (n_features,), optional (default=None)
+        Positive weights used in the L1 penalty part of the Lasso
+        objective. If ``None``, weights equal to 1 are used.
+
+    max_iter : int, optional
+        The maximum number of iterations (subproblem definitions).
+
+    max_epochs : int
+        Maximum number of CD epochs on each subproblem.
+
+    p0 : int
+        First working set size.
+
+    verbose : bool or int
+        Amount of verbosity.
+
+    tol : float, optional
+        Stopping criterion for the optimization.
+
+    fit_intercept : bool, optional (default=True)
+        Whether or not to fit an intercept.
+
+    warm_start : bool, optional (default=False)
+        When set to ``True``, reuse the solution of the previous call to fit as
+        initialization, otherwise, just erase the previous solution.
+
+    ws_strategy : str
+        The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
+
+    Attributes
+    ----------
+    coef_ : array, shape (n_features,)
+        parameter vector (:math:`w` in the cost function formula)
+
+    sparse_coef_ : scipy.sparse matrix, shape (n_features, 1)
+        ``sparse_coef_`` is a readonly property derived from ``coef_``
+
+    intercept_ : float
+        constant term in decision function.
+
+    n_iter_ : int
+        Number of subproblems solved to reach the specified tolerance.
+
+    See Also
+    --------
+    Lasso : Lasso regularization.
+    """
+
+    def __init__(self, alpha=1., gamma=3.7, max_iter=50, max_epochs=50_000,
+                 p0=10, verbose=0, tol=1e-4, fit_intercept=True,
+                 warm_start=False, ws_strategy="subdiff"):
+        super().__init__()
+        self.alpha = alpha
+        self.gamma = gamma
+        self.max_iter = max_iter
+        self.max_epochs = max_epochs
+        self.p0 = p0
+        self.verbose = verbose
+        self.tol = tol
+        self.fit_intercept = fit_intercept
+        self.warm_start = warm_start
+        self.ws_strategy = ws_strategy
+
+    def path(self, X, y, alphas, coef_init=None, return_n_iter=True, **params):
+        """Compute SCADRegression path.
+
+        Parameters
+        ----------
+        X : array, shape (n_samples, n_features)
+            Design matrix.
+
+        y : array, shape (n_samples,)
+            Target vector.
+
+        alphas : array, shape (n_alphas,)
+            Grid of alpha.
+
+        coef_init : array, shape (n_features,), optional
+            If warm start is enabled, the optimization problem restarts from
+            ``coef_init``.
+
+        return_n_iter : bool
+            Returns the number of iterations along the path.
+
+        **params : kwargs
+            All parameters supported by path.
+
+        Returns
+        -------
+        alphas : array, shape (n_alphas,)
+            The alphas along the path where models are computed.
+
+        coefs : array, shape (n_features, n_alphas)
+            Coefficients along the path.
+
+        stop_crit : array, shape (n_alphas,)
+            Value of stopping criterion at convergence along the path.
+
+        n_iters : array, shape (n_alphas,), optional
+            The number of iterations along the path. If return_n_iter is set to
+            ``True``.
+        """
+
+        penalty = compiled_clone(SCAD(self.alpha, self.gamma))
+        datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
+        solver = AndersonCD(max_iter=self.max_iter, max_epochs=self.max_epochs, p0=self.p0,
+                            tol=self.tol, ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
+                            warm_start=self.warm_start, verbose=self.verbose)
+
+        return solver.path(X, y, datafit, penalty, alphas, coef_init, return_n_iter)
+
+    def fit(self, X, y):
+        """Fit the model according to the given training data.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            Training data, where n_samples is the number of samples and
+            n_features is the number of features.
+        y : array-like, shape (n_samples,)
+            Target vector relative to X.
+
+        Returns
+        -------
+        self :
+            Fitted estimator.
+        """
+
+        solver = AndersonCD(max_iter=self.max_iter, max_epochs=self.max_epochs, p0=self.p0,
+                            tol=self.tol, ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
+                            warm_start=self.warm_start, verbose=self.verbose)
+
+        return _glm_fit(X, y, self, Quadratic(), SCAD(alpha=self.alpha, gamma=self.gamma), solver=solver)
 
 
 class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
@@ -1297,7 +1470,8 @@ class CoxEstimator(LinearModel):
             # copy/paste from https://github.com/scikit-learn/scikit-learn/blob/ \
             # 23ff51c07ebc03c866984e93c921a8993e96d1f9/sklearn/utils/ \
             # estimator_checks.py#L3886
-            raise ValueError("requires y to be passed, but the target y is None")
+            raise ValueError(
+                "requires y to be passed, but the target y is None")
         y = check_array(
             y,
             accept_sparse=False,
@@ -1312,7 +1486,8 @@ class CoxEstimator(LinearModel):
                 f"two columns. Got one column.\nAssuming that `y` "
                 "is the vector of times and there is no censoring."
             )
-            y = np.column_stack((y, np.ones_like(y))).astype(X.dtype, order="F")
+            y = np.column_stack((y, np.ones_like(y))).astype(
+                X.dtype, order="F")
         elif y.shape[1] > 2:
             raise ValueError(
                 f"{repr(self)} requires the vector of response `y` to have "
@@ -1337,7 +1512,8 @@ class CoxEstimator(LinearModel):
 
         # init solver
         if self.l1_ratio == 0.:
-            solver = LBFGS(max_iter=self.max_iter, tol=self.tol, verbose=self.verbose)
+            solver = LBFGS(max_iter=self.max_iter,
+                           tol=self.tol, verbose=self.verbose)
         else:
             solver = ProxNewton(
                 max_iter=self.max_iter, tol=self.tol, verbose=self.verbose,
@@ -1475,7 +1651,8 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
         if not self.warm_start or not hasattr(self, "coef_"):
             self.coef_ = None
 
-        datafit_jit = compiled_clone(QuadraticMultiTask(), X.dtype == np.float32)
+        datafit_jit = compiled_clone(
+            QuadraticMultiTask(), X.dtype == np.float32)
         penalty_jit = compiled_clone(L2_1(self.alpha), X.dtype == np.float32)
 
         solver = MultiTaskBCD(
@@ -1530,7 +1707,8 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
             The number of iterations along the path. If return_n_iter is set to
             ``True``.
         """
-        datafit = compiled_clone(QuadraticMultiTask(), to_float32=X.dtype == np.float32)
+        datafit = compiled_clone(QuadraticMultiTask(),
+                                 to_float32=X.dtype == np.float32)
         penalty = compiled_clone(L2_1(self.alpha))
         solver = MultiTaskBCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,

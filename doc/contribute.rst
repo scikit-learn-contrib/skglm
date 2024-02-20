@@ -36,7 +36,7 @@ Setup ``skglm`` on your local machine
 Here are the key steps to help you setup ``skglm`` on your machine in case you want to
 contribute with code or documentation.
 
-1. Fork the repository and run the following command to clone it on your local machine
+1. `Fork the repository <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo>`_ and run the following command to clone it on your local machine, make sure to replace ``{YOUR_GITHUB_USERNAME}`` with your GitHub username
 
 .. code-block:: shell
 
@@ -52,7 +52,6 @@ contribute with code or documentation.
 
 
 3. To build the documentation locally, run
-
 
 .. tab-set::
 

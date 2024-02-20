@@ -283,36 +283,36 @@
         <article role="main">
           <section id="contribute-to-skglm">
 <span id="contribute"></span><h1>Contribute to <code class="docutils literal notranslate"><span class="pre">skglm</span></code><a class="headerlink" href="#contribute-to-skglm" title="Permalink to this heading">#</a></h1>
-<hr class="docutils" />
-<p><code class="docutils literal notranslate"><span class="pre">skglm</span></code> is a continuous endeavour that relies on the community efforts to last and evolve.
-Your contribution is welcome and highly valuable. It can be</p>
+<p><code class="docutils literal notranslate"><span class="pre">skglm</span></code> is a continuous endeavour that relies on community efforts to last and evolve.
+Your contribution is welcome and highly valuable. You can help with</p>
 <dl class="simple">
-<dt><strong>bug report</strong></dt><dd><p><code class="docutils literal notranslate"><span class="pre">skglm</span></code> runs continuously unit tests on the code base to prevent bugs.
-Help us tighten these tests by reporting any bug that you encountered while using <code class="docutils literal notranslate"><span class="pre">skglm</span></code>.
-To do so, use the <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/issues">issue section</a> <code class="docutils literal notranslate"><span class="pre">skglm</span></code> repository.</p>
+<dt><strong>bug report</strong></dt><dd><p><code class="docutils literal notranslate"><span class="pre">skglm</span></code> runs unit tests on the codebase to prevent bugs.
+Help us tighten these tests by reporting any bug that you encounter.
+To do so, use the <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/issues">issue section</a>.</p>
 </dd>
 <dt><strong>feature request</strong></dt><dd><p>We are constantly improving <code class="docutils literal notranslate"><span class="pre">skglm</span></code> and we would like to align that with the user needs.
 We highly appreciate any suggestion to extend or add new features to <code class="docutils literal notranslate"><span class="pre">skglm</span></code>.
 You can use the <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/issues">the issue section</a> to make suggestions.</p>
 </dd>
-<dt><strong>pull request</strong></dt><dd><p>you may have fixed a bug, added a feature, or even fixed a small typo in the documentation, …
+<dt><strong>pull request</strong></dt><dd><p>You may have fixed a bug, added a feature, or even fixed a small typo in the documentation…
 You can submit a <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pulls">pull request</a>
-to integrate your changes and we will reach out to you shortly.</p>
+to integrate your changes and we will reach out to you shortly.
+If this is your first pull request, you can refer to <a class="reference external" href="https://scikit-learn.org/stable/developers/contributing.html#how-to-contribute">this scikit-learn guide</a>.</p>
 </dd>
 </dl>
 <p>As part of the <a class="reference external" href="https://github.com/scikit-learn-contrib">scikit-learn-contrib</a> GitHub organization, we adopt the scikit-learn <a class="reference external" href="https://github.com/scikit-learn/scikit-learn/blob/main/CODE_OF_CONDUCT.md">code of conduct</a>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If you are willing to contribute with code to <code class="docutils literal notranslate"><span class="pre">skglm</span></code>, check the section below to learn how to install the development version of <code class="docutils literal notranslate"><span class="pre">skglm</span></code></p>
+<p>If you are willing to contribute with code to <code class="docutils literal notranslate"><span class="pre">skglm</span></code>, check the section below to learn how to install the development version.</p>
 </div>
 <section id="setup-skglm-on-your-local-machine">
 <h2>Setup <code class="docutils literal notranslate"><span class="pre">skglm</span></code> on your local machine<a class="headerlink" href="#setup-skglm-on-your-local-machine" title="Permalink to this heading">#</a></h2>
-<p>Here are key steps to help you setup <code class="docutils literal notranslate"><span class="pre">skglm</span></code> on your local machine in case you wanted to
+<p>Here are the key steps to help you setup <code class="docutils literal notranslate"><span class="pre">skglm</span></code> on your machine in case you want to
 contribute with code or documentation.</p>
 <ol class="arabic simple">
-<li><p>Fork the repository and run the following command to clone it on your local machine</p></li>
+<li><p><a class="reference external" href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo">Fork the repository</a> and run the following command to clone it on your local machine, make sure to replace <code class="docutils literal notranslate"><span class="pre">{YOUR_GITHUB_USERNAME}</span></code> with your GitHub username</p></li>
 </ol>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/<span class="o">{</span>YOUR_GITHUB_USERNAME<span class="o">}</span>/skglm.git
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/<span class="o">{</span>YOUR_GITHUB_USERNAME<span class="o">}</span>/skglm
 </pre></div>
 </div>
 <ol class="arabic simple" start="2">
@@ -323,12 +323,12 @@ $<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </sp
 </pre></div>
 </div>
 <ol class="arabic simple" start="3">
-<li><p>To build the documentation, run</p></li>
+<li><p>To build the documentation locally, run</p></li>
 </ol>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
 </input><label class="sd-tab-label" for="sd-tab-item-0">
-with the gallery of example</label><div class="sd-tab-content docutils">
+with plots in the example gallery</label><div class="sd-tab-content docutils">
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>doc
 $<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.<span class="o">[</span>doc<span class="o">]</span>
 $<span class="w"> </span>make<span class="w"> </span>html
@@ -337,7 +337,7 @@ $<span class="w"> </span>make<span class="w"> </span>html
 </div>
 <input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
 </input><label class="sd-tab-label" for="sd-tab-item-1">
-without the gallery of example</label><div class="sd-tab-content docutils">
+without plots in the example gallery</label><div class="sd-tab-content docutils">
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>doc
 $<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.<span class="o">[</span>doc<span class="o">]</span>
 $<span class="w"> </span>make<span class="w"> </span>html-noplot

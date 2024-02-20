@@ -2,16 +2,14 @@
 
 Contribute to ``skglm``
 =======================
------------------------
 
-
-``skglm`` is a continuous endeavour that relies on the community efforts to last and evolve.
-Your contribution is welcome and highly valuable. It can be
+``skglm`` is a continuous endeavour that relies on community efforts to last and evolve.
+Your contribution is welcome and highly valuable. You can help with
 
 **bug report**
-    ``skglm`` runs continuously unit tests on the code base to prevent bugs.
-    Help us tighten these tests by reporting any bug that you encountered while using ``skglm``.
-    To do so, use the `issue section <https://github.com/scikit-learn-contrib/skglm/issues>`_ ``skglm`` repository.
+    ``skglm`` runs unit tests on the codebase to prevent bugs.
+    Help us tighten these tests by reporting any bug that you encounter.
+    To do so, use the `issue section <https://github.com/scikit-learn-contrib/skglm/issues>`_.
 
 **feature request**
     We are constantly improving ``skglm`` and we would like to align that with the user needs.
@@ -19,30 +17,30 @@ Your contribution is welcome and highly valuable. It can be
     You can use the `the issue section <https://github.com/scikit-learn-contrib/skglm/issues>`_ to make suggestions.
 
 **pull request**
-    you may have fixed a bug, added a feature, or even fixed a small typo in the documentation, ...
+    You may have fixed a bug, added a feature, or even fixed a small typo in the documentation...
     You can submit a `pull request <https://github.com/scikit-learn-contrib/skglm/pulls>`_
     to integrate your changes and we will reach out to you shortly.
-
+    If this is your first pull request, you can refer to `this scikit-learn guide <https://scikit-learn.org/stable/developers/contributing.html#how-to-contribute>`_.
 
 As part of the `scikit-learn-contrib <https://github.com/scikit-learn-contrib>`_ GitHub organization, we adopt the scikit-learn `code of conduct <https://github.com/scikit-learn/scikit-learn/blob/main/CODE_OF_CONDUCT.md>`_.
 
 .. note::
 
-    If you are willing to contribute with code to ``skglm``, check the section below to learn how to install the development version of ``skglm``
+    If you are willing to contribute with code to ``skglm``, check the section below to learn how to install the development version.
 
 
 
 Setup ``skglm`` on your local machine
 ---------------------------------------
 
-Here are key steps to help you setup ``skglm`` on your local machine in case you wanted to
+Here are the key steps to help you setup ``skglm`` on your machine in case you want to
 contribute with code or documentation.
 
 1. Fork the repository and run the following command to clone it on your local machine
 
 .. code-block:: shell
 
-    $ git clone https://github.com/{YOUR_GITHUB_USERNAME}/skglm.git
+    $ git clone https://github.com/{YOUR_GITHUB_USERNAME}/skglm
 
 
 2. ``cd`` to ``skglm`` directory and install it in edit mode by running
@@ -53,12 +51,12 @@ contribute with code or documentation.
     $ pip install -e .
 
 
-3. To build the documentation, run
+3. To build the documentation locally, run
 
 
 .. tab-set::
 
-    .. tab-item:: with the gallery of example
+    .. tab-item:: with plots in the example gallery
 
         .. code-block:: shell
 
@@ -66,7 +64,7 @@ contribute with code or documentation.
             $ pip install .[doc]
             $ make html
 
-    .. tab-item:: without the gallery of example
+    .. tab-item:: without plots in the example gallery
 
         .. code-block:: shell
 

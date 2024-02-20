@@ -1,0 +1,13 @@
+## sample_weights
+Sklearn comes with support to add weights for samples. These weights assign
+importance to samples. For a dataset that contains very samples belonging to a
+particular class the training algorithm must be made aware of the importance of
+those samples to make sure the algorithm pays closer attention to them.
+
+## This file contains all the changes that will made in an attempt to add
+support for 'sample_weights' feature for Minimax Concave Penalty.
+
+- solvers
+- penalties
+- datafits
+

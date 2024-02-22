@@ -16,7 +16,10 @@ def test_alpha_max():
 
     sqrt_lasso = SqrtLasso(alpha=alpha_max).fit(X, y)
 
-    np.testing.assert_equal(sqrt_lasso.coef_, 0)
+    if sqrt_lasso.fit_intercept:
+        np.testing.assert_equal(sqrt_lasso.coef_[:-1], 0)
+    else:
+        np.testing.assert_equal(sqrt_lasso.coef_, 0)
 
 
 def test_vs_statsmodels():

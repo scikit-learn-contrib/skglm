@@ -176,7 +176,7 @@ class SqrtLasso(LinearModel, RegressorMixin):
         if not hasattr(self, "solver_"):
             self.solver_ = ProxNewton(
                 tol=self.tol, max_iter=self.max_iter, verbose=self.verbose,
-                fit_intercept=False)
+                fit_intercept=self.fit_intercept)
         # build path
         if alphas is None:
             alpha_max = norm(X.T @ y, ord=np.inf) / (np.sqrt(len(y)) * norm(y))

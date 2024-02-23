@@ -102,8 +102,8 @@ class SqrtLasso(LinearModel, RegressorMixin):
     verbose : bool, default False
         Amount of verbosity. 0/False is silent.
 
-    fit_intercept: bool, default True
-        xxx
+    fit_intercept: bool, optional (default=True)
+        Whether or not to fit an intercept.
     """
 
     def __init__(self, alpha=1., max_iter=100, max_pn_iter=100, p0=10,
@@ -204,14 +204,10 @@ class SqrtLasso(LinearModel, RegressorMixin):
                                                            + self.fit_intercept)
 
             try:
-                if self.fit_intercept:
-                    coef, _, _ = self.solver_.solve(
-                        X, y, sqrt_quadratic, l1_penalty,
-                        w_init=coef_init, Xw_init=X @ coef_init[:-1] + coef_init[-1])
-                else:
-                    coef, _, _ = self.solver_.solve(
-                        X, y, sqrt_quadratic, l1_penalty,
-                        w_init=coef_init, Xw_init=X @ coef_init)
+                coef, _, _ = self.solver_.solve(
+                    X, y, sqrt_quadratic, l1_penalty,
+                    w_init=coef_init, Xw_init=X @ coef_init[:-1] + coef_init[-1]
+                    if self.fit_intercept else X @ coef_init)
                 coefs[i] = coef
             except ValueError as val_exception:
                 # make sure to catch residual error

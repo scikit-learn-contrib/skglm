@@ -324,10 +324,11 @@ class WeightedGroupL2(BasePenalty):
 
             if self.positive and np.any(w_g < 0):
                 scores[idx] = np.inf
-            if self.positive and norm_w_g == 0:
-                # distance of -norm(grad_g) to )-infty, alpha * weights[g]]
-                scores[idx] = max(0, - norm(grad_g) - self.alpha * weights[g])
-            if (not self.positive) and norm_w_g == 0:
+            elif self.positive and norm_w_g == 0:
+                # distance of -norm(neg_grad_g) to weights[g] * [-alpha, alpha]
+                neg_grad_g = np.where(grad_g < 0., grad_g, 0.)
+                scores[idx] = max(0, norm(neg_grad_g) - self.alpha * weights[g])
+            elif (not self.positive) and norm_w_g == 0:
                 # distance of -norm(grad_g) to weights[g] * [-alpha, alpha]
                 scores[idx] = max(0, norm(grad_g) - alpha * weights[g])
             else:

@@ -240,6 +240,16 @@ class WeightedGroupL2(BasePenalty):
 
     with :math:`w_{[g]}` being the coefficients of the g-th group.
 
+    When ``positive=True``, it reads
+
+    .. math::
+        sum_{g=1}^{n_"groups"} "weights"_g xx ||w_{[g]}|| + i_{w_{[g]} \geq 0}
+
+    Where :math:`i_{w_{[g]} \geq 0}` is the indicator function of the positive orthant.
+
+    Refer to :ref:`prox_nn_group_lasso` for details on the derivation of the proximal
+    operator and the distance to subdifferential.
+
     Attributes
     ----------
     alpha : float
@@ -305,8 +315,11 @@ class WeightedGroupL2(BasePenalty):
     def subdiff_distance(self, w, grad_ws, ws):
         """Compute distance to the subdifferential at ``w`` of negative gradient.
 
-        Note: ``grad_ws`` is a stacked array of gradients.
-        ([grad_ws_1, grad_ws_2, ...])
+        Refer to :ref:`subdiff_positive_group_lasso` for details of the derivation.
+
+        Note
+        ----
+        ``grad_ws`` is a stacked array of gradients ``[grad_ws_1, grad_ws_2, ...]``.
         """
         alpha, weights = self.alpha, self.weights
         grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
@@ -322,7 +335,6 @@ class WeightedGroupL2(BasePenalty):
             w_g = w[grp_g_indices]
             norm_w_g = norm(w_g)
 
-            # see the documentation for mathematical details
             if self.positive and np.any(w_g < 0):
                 scores[idx] = np.inf
             elif self.positive and norm_w_g == 0:

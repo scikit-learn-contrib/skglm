@@ -70,7 +70,6 @@ A similar formula can be derived for the group Lasso with nonnegative constraint
 Proximity operator of the group Lasso with positivity constraints
 =================================================================
 
-
 Let
 
 .. math::
@@ -136,6 +135,7 @@ and thus, combined with Equations :eq:`prox_projection_nn_Sc` and :eq:`prox_proj
 
 
 
+.. _subdiff_positive_group_lasso:
 Subdifferential of the positive Group Lasso penalty
 ===================================================
 
@@ -164,20 +164,35 @@ At a non zero point with strictly positive entries, the penalty is differentiabl
     .
 
 Case :math:`w = 0`
--------------------------------------
+------------------
 
 At :math:`w = 0`, the subdifferential is:
 
 .. math::
 
     \lambda \partial || \cdot ||_2 + \partial \iota_{x \geq 0} = \lambda \mathcal{B}_2 + \mathbb{R}_-^g
+    ,
 
 where :math:`\mathcal{B}_2` is the unit ball.
 
-Let :math:`v \in \mathbb{R}^g`, and :math:`\hat v`` its projection onto :math:`\lambda \mathcal{B}_2 + \mathbb{R}_-^g`.
-It is clear that for :math:`j` such that :math:`v_j \leq 0`, :math:`v_j = \hat v_j`.
-Then, the entries in :math:`\mathcal{S} = \{j : v_j > 0}` are simply given by the projection of :math:`v_\mathcal{S}` onto :math:`\lambda \mathcal{B}_2`.
+Therefore, the distance to the subdifferential writes
+
+.. math::
+
+    D(v) = \min_{u \in \lambda \mathcal{B}_2, n \in \mathbb{R}_{-}^g} \ || u + n - v ||
+    .
+
+Computing the :math:`\min` over :math:`\mathbb{R}_{-}^g` then :math:`\lambda \mathcal{B}_2`, thanks to [`1 <https://math.stackexchange.com/questions/2885223/can-i-switch-the-order-of-taking-minimums>`_], yields
+
+.. math::
+
+    D(v) = \max(0, ||v^+|| - \lambda)
+    ,
+
+Where :math:`v^+` are the positive coordinates of :math:`v`.
 
 
 References
 ==========
+
+[1] Refer to the answer in `<https://math.stackexchange.com/questions/2885223/can-i-switch-the-order-of-taking-minimums>`_

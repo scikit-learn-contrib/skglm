@@ -16,7 +16,7 @@ Let
     g:x \mapsto \norm{x}_2
     ,
 
-then
+then its Fenchel-Legendre conjugate is
 
 .. math::
     :label: fenchel
@@ -42,7 +42,7 @@ Using the Moreau decomposition, Equations :eq:`fenchel` and :eq:`prox_projection
     \text{prox}_{\lambda g}(x)
     =
     x
-    - \lambda \text{prox}_{\lambda g^\star}(x/\lambda)
+    - \lambda \text{prox}_{g^\star/\lambda }(x/\lambda)
 
 .. math::
 
@@ -112,7 +112,7 @@ As before, using the Moreau decomposition and Equation :eq:`fenchel_nn` yields
     \text{prox}_{\lambda h}(x)
     =
     x
-    - \lambda \text{prox}_{\lambda h^\star}(x/\lambda)
+    - \lambda \text{prox}_{h^\star / \lambda }(x/\lambda)
 
 .. math::
 

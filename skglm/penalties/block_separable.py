@@ -317,7 +317,7 @@ class WeightedGroupL2(BasePenalty):
 
         Refer to :ref:`subdiff_positive_group_lasso` for details of the derivation.
 
-        Note
+        Note:
         ----
         ``grad_ws`` is a stacked array of gradients ``[grad_ws_1, grad_ws_2, ...]``.
         """

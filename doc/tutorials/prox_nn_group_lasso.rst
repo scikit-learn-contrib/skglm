@@ -139,21 +139,40 @@ and thus, combined with Equations :eq:`prox_projection_nn_Sc` and :eq:`prox_proj
 Subdifferential of the positive Group Lasso penalty
 ===================================================
 
-For the ```subdiff_diff``` working set strategy, we compute the (distance to the) subdifferential of
-the :math:`|| \cdot || + \iota_{\geq 0}`` penalty at a point :math:`w`.
-Because the penalty is separable over group, we consider a block of variables, in :math:`\mathbb{R}^g`.
+For the ``subdiff_diff`` working set strategy, we compute the distance :math:`D(v)` for some :math:`v` to the subdifferential of the :math:`h` penalty at a point :math:`w`.
+Since the penalty is group-separable, we consider a block of variables, in :math:`\mathbb{R}^g`.
+
+Case :math:`w` has a strictly negative coordinate
+-------------------------------------------------
 
 If any component of :math:`w` is strictly negative, the subdifferential is empty, and the distance is :math:`+ \infty`.
 
-At a non zero point with strictly positive entries, the penalty is differentiable with only subgradient :math:`w/ {|| w ||}`.
+.. math::
+
+    D(v) = + \infty, \quad \forall v \in \mathbb{R}^g
+    .
+
+
+Case :math:`w` is a strictly positive
+-------------------------------------
+
+At a non zero point with strictly positive entries, the penalty is differentiable hence its subgradient is the singleton :math:`w / {|| w ||}`.
+
+.. math::
+
+    D(v) = || v - w / {|| w ||} ||, \quad \forall v \in \mathbb{R}^g
+    .
+
+Case :math:`w = 0`
+-------------------------------------
 
 At :math:`w = 0`, the subdifferential is:
 
 .. math::
 
-    \lambda \partial || \cdot ||_2 + \partial \iota_{\geq 0} = \lambda \mathcal{B}_2 + \mathbb{R}_-^g
+    \lambda \partial || \cdot ||_2 + \partial \iota_{x \geq 0} = \lambda \mathcal{B}_2 + \mathbb{R}_-^g
 
-where :math:`\mathcal{B}_2`` is the unit ball.
+where :math:`\mathcal{B}_2` is the unit ball.
 
 Let :math:`v \in \mathbb{R}^g`, and :math:`\hat v`` its projection onto :math:`\lambda \mathcal{B}_2 + \mathbb{R}_-^g`.
 It is clear that for :math:`j` such that :math:`v_j \leq 0`, :math:`v_j = \hat v_j`.
@@ -162,4 +181,3 @@ Then, the entries in :math:`\mathcal{S} = \{j : v_j > 0}` are simply given by th
 
 References
 ==========
-

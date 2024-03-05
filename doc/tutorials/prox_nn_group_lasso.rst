@@ -135,5 +135,27 @@ and thus, combined with Equations :eq:`prox_projection_nn_Sc` and :eq:`prox_proj
     .
 
 
+
+Subdifferential of the positive Group Lasso penalty
+===================================================
+
+For the `subdiff_diff` working set strategy, we compute the distance to the subdifferential of
+the $\Vert \cdot \Vert + \iota_{\mathbb{R}_+}$ penalty.
+
+If any component is strictly negative, the subdifferential is empty, and the distance is $+ \infty$.
+
+At a non zero point with strictly positive entries, the penalty is differentiable with only subgradient $w_g/\Vert w_g \Vert$.
+
+At 0, the subdifferential is
+.. math::
+
+    \lambda \partial \lVert \cdot \lVert_2 + \partial \delta_{\mathbb{R}_{+}^g} = \lambda \mathcal{B}_2 + \mathbb{R}^{-}_g
+
+Let $v \in \mathbb{R}^g$, and $\hat v$ its projection onto $\lambda \mathcal{B}_2 + \mathbb{R}^{-}_g$.
+It is clear that for $j$ such that $v_j \leq 0$, $v_j = \hat v_j$.
+Then, the entries in $\mathcal{S} = \{j : v_j > 0}$ are simply given by the projection of $v_\mathcal{S}$ onto $\lambda \mathcal{B}_2$.
+
+
 References
 ==========
+

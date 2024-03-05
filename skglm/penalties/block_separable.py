@@ -322,6 +322,7 @@ class WeightedGroupL2(BasePenalty):
             w_g = w[grp_g_indices]
             norm_w_g = norm(w_g)
 
+            # see the documentation for mathematical details
             if self.positive and np.any(w_g < 0):
                 scores[idx] = np.inf
             elif self.positive and norm_w_g == 0:

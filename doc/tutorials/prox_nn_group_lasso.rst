@@ -139,24 +139,25 @@ and thus, combined with Equations :eq:`prox_projection_nn_Sc` and :eq:`prox_proj
 Subdifferential of the positive Group Lasso penalty
 ===================================================
 
-For the `subdiff_diff` working set strategy, we compute the distance to the subdifferential of
-the $\Vert \cdot \Vert + \iota_{\mathbb{R}_+}$ penalty.
+For the ```subdiff_diff``` working set strategy, we compute the (distance to the) subdifferential of
+the :math:`|| \cdot || + \iota_{\geq 0}`` penalty at a point :math:`w`.
+Because the penalty is separable over group, we consider a block of variables, in :math:`\mathbb{R}^g`.
 
-If any component is strictly negative, the subdifferential is empty, and the distance is $+ \infty$.
+If any component of :math:`w` is strictly negative, the subdifferential is empty, and the distance is :math:`+ \infty`.
 
-At a non zero point with strictly positive entries, the penalty is differentiable with only subgradient $w_g/\Vert w_g \Vert$.
+At a non zero point with strictly positive entries, the penalty is differentiable with only subgradient :math:`w/ {|| w ||}`.
 
-At 0, the subdifferential is
+At :math:`w = 0`, the subdifferential is:
 
 .. math::
 
-    \lambda \partial \Vert \cdot \Vert_2 + \partial \delta_{\mathbb{R}_{+}^g} = \lambda B_2 + \mathbb{R}^{-}_g
+    \lambda \partial || \cdot ||_2 + \partial \iota_{\geq 0} = \lambda \mathcal{B}_2 + \mathbb{R}_-^g
 
-where :math:`B_2`` is the unit ball.
+where :math:`\mathcal{B}_2`` is the unit ball.
 
-Let :math:`v \in \mathbb{R}^g`, and :math:`\hat v`` its projection onto :math:`\lambda B_2 + \mathbb{R}^{-}_g`.
+Let :math:`v \in \mathbb{R}^g`, and :math:`\hat v`` its projection onto :math:`\lambda \mathcal{B}_2 + \mathbb{R}_-^g`.
 It is clear that for :math:`j` such that :math:`v_j \leq 0`, :math:`v_j = \hat v_j`.
-Then, the entries in :math:`\mathcal{S} = \{j : v_j > 0}` are simply given by the projection of :math:`v_\mathcal{S}` onto :math:`\lambda B_2`.
+Then, the entries in :math:`\mathcal{S} = \{j : v_j > 0}` are simply given by the projection of :math:`v_\mathcal{S}` onto :math:`\lambda \mathcal{B}_2`.
 
 
 References

@@ -1,10 +1,10 @@
 .. _prox_nn_group_lasso:
 
-====================================================
-Details on the proximity operator of the group Lasso
-====================================================
+===================================
+Details on the Positive Group Lasso
+===================================
 
-This tutorial presents how to derive the proximity operator of the :math:`l_2`-penalty, and the :math:`l_2`-penalty with nonnegative constraints.
+This tutorial presents how to derive the proximity operator and subdifferential of the :math:`l_2`-penalty, and the :math:`l_2`-penalty with nonnegative constraints.
 
 
 Proximity operator of the group Lasso
@@ -147,13 +147,16 @@ If any component is strictly negative, the subdifferential is empty, and the dis
 At a non zero point with strictly positive entries, the penalty is differentiable with only subgradient $w_g/\Vert w_g \Vert$.
 
 At 0, the subdifferential is
+
 .. math::
 
-    \lambda \partial \lVert \cdot \lVert_2 + \partial \delta_{\mathbb{R}_{+}^g} = \lambda \mathcal{B}_2 + \mathbb{R}^{-}_g
+    \lambda \partial \Vert \cdot \Vert_2 + \partial \delta_{\mathbb{R}_{+}^g} = \lambda B_2 + \mathbb{R}^{-}_g
 
-Let $v \in \mathbb{R}^g$, and $\hat v$ its projection onto $\lambda \mathcal{B}_2 + \mathbb{R}^{-}_g$.
-It is clear that for $j$ such that $v_j \leq 0$, $v_j = \hat v_j$.
-Then, the entries in $\mathcal{S} = \{j : v_j > 0}$ are simply given by the projection of $v_\mathcal{S}$ onto $\lambda \mathcal{B}_2$.
+where :math:`B_2`` is the unit ball.
+
+Let :math:`v \in \mathbb{R}^g`, and :math:`\hat v`` its projection onto :math:`\lambda B_2 + \mathbb{R}^{-}_g`.
+It is clear that for :math:`j` such that :math:`v_j \leq 0`, :math:`v_j = \hat v_j`.
+Then, the entries in :math:`\mathcal{S} = \{j : v_j > 0}` are simply given by the projection of :math:`v_\mathcal{S}` onto :math:`\lambda B_2`.
 
 
 References

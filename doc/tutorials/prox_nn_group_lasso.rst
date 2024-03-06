@@ -153,8 +153,8 @@ If any component of :math:`w` is strictly negative, the subdifferential is empty
     .
 
 
-Case :math:`w` is a strictly positive
--------------------------------------
+Case :math:`w` is strictly positive
+-----------------------------------
 
 At a non zero point with strictly positive entries, the penalty is differentiable hence its subgradient is the singleton :math:`w / {|| w ||}`.
 
@@ -182,17 +182,17 @@ Therefore, the distance to the subdifferential writes
     D(v) = \min_{u \in \lambda \mathcal{B}_2, n \in \mathbb{R}_{-}^g} \ || u + n - v ||
     .
 
-Computing the :math:`\min` over :math:`\mathbb{R}_{-}^g` then :math:`\lambda \mathcal{B}_2`, thanks to [`1 <https://math.stackexchange.com/questions/2885223/can-i-switch-the-order-of-taking-minimums>`_], yields
+Minimizing over :math:`n` then over :math:`u`, thanks to [`1 <https://math.stackexchange.com/a/2887332/167258>`_], yields
 
 .. math::
 
     D(v) = \max(0, ||v^+|| - \lambda)
     ,
 
-Where :math:`v^+` are the positive coordinates of :math:`v`.
+Where :math:`v^+` is :math:`v` restricted to its positive coordinates.
 
 
 References
 ==========
 
-[1] Refer to the answer in `<https://math.stackexchange.com/questions/2885223/can-i-switch-the-order-of-taking-minimums>`_
+[1] `<https://math.stackexchange.com/a/2887332/167258>`_

@@ -17,10 +17,11 @@ from sklearn.utils.estimator_checks import check_estimator
 import scipy.optimize
 from scipy.sparse import csc_matrix, issparse
 
-from skglm.utils.data import make_correlated_data, make_dummy_survival_data
+from skglm.utils.data import (make_correlated_data, make_dummy_survival_data, 
+    _alpha_max_group_lasso, grp_converter)
 from skglm.estimators import (
     GeneralizedLinearEstimator, Lasso, MultiTaskLasso, WeightedLasso, ElasticNet,
-    MCPRegression, SparseLogisticRegression, LinearSVC)
+    MCPRegression, SparseLogisticRegression, LinearSVC, GroupLasso)
 from skglm.datafits import Logistic, Quadratic, QuadraticSVC, QuadraticMultiTask, Cox
 from skglm.penalties import L1, IndicatorBox, L1_plus_L2, MCPenalty, WeightedL1, SLOPE
 from skglm.solvers import AndersonCD, FISTA
@@ -29,8 +30,9 @@ import pandas as pd
 from skglm.solvers import ProxNewton
 from skglm.utils.jit_compilation import compiled_clone
 from skglm.estimators import CoxEstimator
+from celer import GroupLasso as GroupLasso_celer
 
-
+from skglm.utils.data import grp_converter
 n_samples = 50
 n_tasks = 9
 n_features = 60
@@ -50,6 +52,7 @@ alpha = 0.05 * alpha_max
 C = 1 / alpha
 tol = 1e-10
 l1_ratio = 0.3
+groups = [20,30,10]
 
 dict_estimators_sk = {}
 dict_estimators_ours = {}
@@ -119,7 +122,7 @@ def test_estimator(estimator_name, X, fit_intercept, positive):
     if fit_intercept and estimator_name == "SVC":
         pytest.xfail("Intercept is not supported for SVC.")
     if positive and estimator_name not in (
-            "Lasso", "ElasticNet", "wLasso", "MCP", "wMCP"):
+            "Lasso", "ElasticNet", "wLasso", "MCP", "wMCP", "GroupLasso"):
         pytest.xfail("`positive` option is only supported by L1, L1_plus_L2 and wL1.")
 
     estimator_sk = clone(dict_estimators_sk[estimator_name])
@@ -530,6 +533,54 @@ def test_warm_start(estimator_name):
     np.testing.assert_array_less(0, model.n_iter_)
     model.fit(X, y)  # already fitted + warm_start so 0 iter done
     np.testing.assert_equal(0, model.n_iter_)
+
+@pytest.mark.parametrize("fit_intercept",
+                         [False, True])
+def test_GroupLasso_estimator(fit_intercept):
+
+    grp_indices, grp_ptr = grp_converter(groups, X.shape[1]) 
+    n_groups = len(grp_ptr)-1
+    weights = np.ones(n_groups)
+    alpha = _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights)/10.
+    estimator_ours = GroupLasso(groups=groups, alpha=alpha, tol=tol, 
+                                weights=weights, fit_intercept=fit_intercept,
+                                positive=False)
+    estimator_celer = GroupLasso_celer(groups=groups, alpha=alpha, tol=tol, 
+                                       weights=weights, fit_intercept=fit_intercept)
+
+    estimator_celer.fit(X, y)
+    estimator_ours.fit(X, y)
+    coef_celer = estimator_celer.coef_
+    coef_ours = estimator_ours.coef_
+
+    np.testing.assert_allclose(coef_ours, coef_celer, atol=1e-6)
+    np.testing.assert_allclose(
+        estimator_celer.intercept_, estimator_ours.intercept_, rtol=1e-4)
+    if fit_intercept:
+        np.testing.assert_array_less(1e-4, estimator_ours.intercept_)
+
+
+@pytest.mark.parametrize("fit_intercept",
+                         [False, True])
+def test_GroupLasso_estimator_positive(fit_intercept):
+
+    grp_indices, grp_ptr = grp_converter(groups, X.shape[1]) 
+    n_groups = len(grp_ptr)-1
+    weights = np.ones(n_groups)
+    alpha = _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights)/10.
+    estimator_ours = GroupLasso(groups=groups, alpha=alpha, tol=tol, 
+                                weights=weights, fit_intercept=fit_intercept,
+                                positive=True)
+
+    estimator_ours.fit(X, y)
+
+    assert np.all(estimator_ours.coef_>=0)
+    np.testing.assert_array_less(1e-5, norm(estimator_ours.coef_))
+
+    if fit_intercept:
+        np.testing.assert_array_less(1e-4, estimator_ours.intercept_)
+
+
 
 
 if __name__ == "__main__":

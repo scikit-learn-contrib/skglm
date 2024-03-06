@@ -19,10 +19,12 @@ from sklearn.utils._param_validation import Interval, StrOptions
 from sklearn.multiclass import OneVsRestClassifier, check_classification_targets
 
 from skglm.utils.jit_compilation import compiled_clone
-from skglm.solvers import AndersonCD, MultiTaskBCD
-from skglm.datafits import Cox, Quadratic, Logistic, QuadraticSVC, QuadraticMultiTask
-from skglm.penalties import (L1, WeightedL1, L1_plus_L2, L2,
+from skglm.solvers import AndersonCD, MultiTaskBCD, GroupBCD
+from skglm.datafits import (Cox, Quadratic, Logistic, QuadraticSVC, 
+                            QuadraticMultiTask, QuadraticGroup)
+from skglm.penalties import (L1, WeightedL1, L1_plus_L2, L2, WeightedGroupL2,
                              MCPenalty, WeightedMCPenalty, IndicatorBox, L2_1)
+from skglm.utils.data import grp_converter
 
 
 def _glm_fit(X, y, model, datafit, penalty, solver):
@@ -1537,3 +1539,140 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
             ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
             warm_start=self.warm_start, verbose=self.verbose)
         return solver.path(X, Y, datafit, penalty, alphas, coef_init, return_n_iter)
+
+
+
+
+
+
+
+
+class GroupLasso(LinearModel, RegressorMixin):
+    r"""GroupLasso estimator based on Celer solver and primal extrapolation.
+
+    The optimization objective for GroupLasso is:
+
+    .. math::
+        1 / (2 xx n_"samples") \sum_g ||y - X_g w_g||_2 ^ 2 + alpha \sum_g  weights_g ||w_g||_2
+
+    Parameters
+    ----------
+    groups : int | list of ints | list of lists of ints
+        Partition of features used in the penalty on `w`.
+        If an int is passed, groups are contiguous blocks of features, of size
+        `groups`.
+        If a list of ints is passed, groups are assumed to be contiguous,
+        group number `g` being of size `groups[g]`.
+        If a list of lists of ints is passed, `groups[g]` contains the
+        feature indices of the group number `g`
+
+    alpha : float, optional
+        Penalty strength.
+
+    weights : array, shape (n_groups,), optional (default=None)
+        Positive weights used in the L1 penalty part of the Lasso
+        objective. If ``None``, weights equal to 1 are used.
+
+    max_iter : int, optional
+        The maximum number of iterations (subproblem definitions).
+
+    max_epochs : int
+        Maximum number of CD epochs on each subproblem.
+
+    p0 : int
+        First working set size.
+
+    verbose : bool or int
+        Amount of verbosity.
+
+    tol : float, optional
+        Stopping criterion for the optimization.
+
+    positive : bool, optional
+        When set to ``True``, forces the coefficient vector to be positive.
+
+    fit_intercept : bool, optional (default=True)
+        Whether or not to fit an intercept.
+
+    warm_start : bool, optional (default=False)
+        When set to ``True``, reuse the solution of the previous call to fit as
+        initialization, otherwise, just erase the previous solution.
+
+    ws_strategy : str
+        The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
+
+    Attributes
+    ----------
+    coef_ : array, shape (n_features,)
+        parameter vector (:math:`w` in the cost function formula)
+
+    sparse_coef_ : scipy.sparse matrix, shape (n_features, 1)
+        ``sparse_coef_`` is a readonly property derived from ``coef_``
+
+    intercept_ : float
+        constant term in decision function.
+
+    n_iter_ : int
+        Number of subproblems solved to reach the specified tolerance.
+
+    See Also
+    --------
+    MCPRegression : Sparser regularization than L1 norm.
+    Lasso : Unweighted Lasso regularization.
+
+    Notes
+    -----
+    Supports weights equal to 0, i.e. unpenalized features.
+    """
+
+    def __init__(self, groups, alpha=1., weights=None, max_iter=50, max_epochs=50_000, p0=10,
+                 verbose=0, tol=1e-4, positive=False, fit_intercept=True,
+                 warm_start=False, ws_strategy="subdiff"):
+        super().__init__()
+        self.alpha = alpha
+        self.groups = groups
+        self.weights = weights
+        self.tol = tol
+        self.max_iter = max_iter
+        self.max_epochs = max_epochs
+        self.p0 = p0
+        self.ws_strategy = ws_strategy
+        self.positive = positive
+        self.fit_intercept = fit_intercept
+        self.warm_start = warm_start
+        self.verbose = verbose
+
+    def fit(self, X, y):
+        """Fit the model according to the given training data.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            Training data, where n_samples is the number of samples and
+            n_features is the number of features.
+        y : array-like, shape (n_samples,)
+            Target vector relative to X.
+
+        Returns
+        -------
+        self :
+            Fitted estimator.
+        """
+        grp_indices, grp_ptr = grp_converter(self.groups, X.shape[1])
+        group_sizes = np.diff(grp_ptr)
+
+        if X.shape[1] != np.sum(group_sizes):
+            raise ValueError("The number total number of group members \
+                              must equal the number of features. Got %s, expected %s." % (
+                np.sum(group_sizes), X.shape[1]))
+
+        group_penalty = WeightedGroupL2(alpha=self.alpha, grp_ptr=grp_ptr, 
+                                        grp_indices=grp_indices, weights=self.weights, 
+                                        positive=self.positive)
+        quad_group = QuadraticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
+        solver = GroupBCD(
+            self.max_iter, self.max_epochs, self.p0, tol=self.tol,
+            fit_intercept=self.fit_intercept, warm_start=self.warm_start, 
+            verbose=self.verbose)
+        
+        return _glm_fit(X, y, self, quad_group, group_penalty, solver)

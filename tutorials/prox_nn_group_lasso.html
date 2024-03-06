@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" />
 
     <link rel="shortcut icon" href="../_static/logo.svg"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.01.29 -->
-        <title>Details on the proximity operator of the group Lasso - skglm 0.3.2dev documentation</title>
+        <title>Details on the Positive Group Lasso - skglm 0.3.2dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -281,9 +281,9 @@
           </label>
         </div>
         <article role="main">
-          <section id="details-on-the-proximity-operator-of-the-group-lasso">
-<span id="prox-nn-group-lasso"></span><h1>Details on the proximity operator of the group Lasso<a class="headerlink" href="#details-on-the-proximity-operator-of-the-group-lasso" title="Permalink to this heading">#</a></h1>
-<p>This tutorial presents how to derive the proximity operator of the <span class="math notranslate nohighlight">`l_2`</span>-penalty, and the <span class="math notranslate nohighlight">`l_2`</span>-penalty with nonnegative constraints.</p>
+          <section id="details-on-the-positive-group-lasso">
+<span id="prox-nn-group-lasso"></span><h1>Details on the Positive Group Lasso<a class="headerlink" href="#details-on-the-positive-group-lasso" title="Permalink to this heading">#</a></h1>
+<p>This tutorial presents how to derive the proximity operator and subdifferential of the <span class="math notranslate nohighlight">`l_2`</span>-penalty, and the <span class="math notranslate nohighlight">`l_2`</span>-penalty with nonnegative constraints.</p>
 <section id="proximity-operator-of-the-group-lasso">
 <h2>Proximity operator of the group Lasso<a class="headerlink" href="#proximity-operator-of-the-group-lasso" title="Permalink to this heading">#</a></h2>
 <p>Let</p>
@@ -292,7 +292,7 @@
 `g:x \mapsto \norm{x}_2
 ,`</div>
 </div>
-<p>then</p>
+<p>then its Fenchel-Legendre conjugate is</p>
 <div class="math-wrapper docutils container" id="equation-fenchel">
 <div class="math notranslate nohighlight" id="equation-fenchel">
 <span class="eqno">(1)<a class="headerlink" href="#equation-fenchel" title="Permalink to this equation">#</a></span>`g^{\star}:x \mapsto i_{\norm{x}_2 \leq 1}
@@ -312,7 +312,7 @@
 `\text{prox}_{\lambda g}(x)
 =
 x
-- \lambda \text{prox}_{\lambda g^\star}(x/\lambda)`</div>
+- \lambda \text{prox}_{g^\star/\lambda }(x/\lambda)`</div>
 </div>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
@@ -371,7 +371,7 @@ x_{S^c}`</div>
 `\text{prox}_{\lambda h}(x)
 =
 x
-- \lambda \text{prox}_{\lambda h^\star}(x/\lambda)`</div>
+- \lambda \text{prox}_{h^\star / \lambda }(x/\lambda)`</div>
 </div>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
@@ -392,8 +392,55 @@ x
 .`</div>
 </div>
 </section>
+<section id="subdifferential-of-the-positive-group-lasso-penalty">
+<span id="subdiff-positive-group-lasso"></span><h2>Subdifferential of the positive Group Lasso penalty<a class="headerlink" href="#subdifferential-of-the-positive-group-lasso-penalty" title="Permalink to this heading">#</a></h2>
+<p>For the <code class="docutils literal notranslate"><span class="pre">subdiff_diff</span></code> working set strategy, we compute the distance <span class="math notranslate nohighlight">`D(v)`</span> for some <span class="math notranslate nohighlight">`v`</span> to the subdifferential of the <span class="math notranslate nohighlight">`h`</span> penalty at a point <span class="math notranslate nohighlight">`w`</span>.
+Since the penalty is group-separable, we consider a block of variables, in <span class="math notranslate nohighlight">`\mathbb{R}^g`</span>.</p>
+<section id="case-w-has-a-strictly-negative-coordinate">
+<h3>Case <span class="math notranslate nohighlight">`w`</span> has a strictly negative coordinate<a class="headerlink" href="#case-w-has-a-strictly-negative-coordinate" title="Permalink to this heading">#</a></h3>
+<p>If any component of <span class="math notranslate nohighlight">`w`</span> is strictly negative, the subdifferential is empty, and the distance is <span class="math notranslate nohighlight">`+ \infty`</span>.</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`D(v) = + \infty, \quad \forall v \in \mathbb{R}^g
+.`</div>
+</div>
+</section>
+<section id="case-w-is-strictly-positive">
+<h3>Case <span class="math notranslate nohighlight">`w`</span> is strictly positive<a class="headerlink" href="#case-w-is-strictly-positive" title="Permalink to this heading">#</a></h3>
+<p>At a non zero point with strictly positive entries, the penalty is differentiable hence its subgradient is the singleton <span class="math notranslate nohighlight">`w / {|| w ||}`</span>.</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`D(v) = || v - w / {|| w ||} ||, \quad \forall v \in \mathbb{R}^g
+.`</div>
+</div>
+</section>
+<section id="case-w-0">
+<h3>Case <span class="math notranslate nohighlight">`w = 0`</span><a class="headerlink" href="#case-w-0" title="Permalink to this heading">#</a></h3>
+<p>At <span class="math notranslate nohighlight">`w = 0`</span>, the subdifferential is:</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`\lambda \partial || \cdot ||_2 + \partial \iota_{x \geq 0} = \lambda \mathcal{B}_2 + \mathbb{R}_-^g
+,`</div>
+</div>
+<p>where <span class="math notranslate nohighlight">`\mathcal{B}_2`</span> is the unit ball.</p>
+<p>Therefore, the distance to the subdifferential writes</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`D(v) = \min_{u \in \lambda \mathcal{B}_2, n \in \mathbb{R}_{-}^g} \ || u + n - v ||
+.`</div>
+</div>
+<p>Minimizing over <span class="math notranslate nohighlight">`n`</span> then over <span class="math notranslate nohighlight">`u`</span>, thanks to [<a class="reference external" href="https://math.stackexchange.com/a/2887332/167258">1</a>], yields</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`D(v) = \max(0, ||v^+|| - \lambda)
+,`</div>
+</div>
+<p>Where <span class="math notranslate nohighlight">`v^+`</span> is <span class="math notranslate nohighlight">`v`</span> restricted to its positive coordinates.</p>
+</section>
+</section>
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this heading">#</a></h2>
+<p>[1] <a class="reference external" href="https://math.stackexchange.com/a/2887332/167258">https://math.stackexchange.com/a/2887332/167258</a></p>
 </section>
 </section>
 
@@ -434,9 +481,15 @@ x
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">Details on the proximity operator of the group Lasso</a><ul>
+<li><a class="reference internal" href="#">Details on the Positive Group Lasso</a><ul>
 <li><a class="reference internal" href="#proximity-operator-of-the-group-lasso">Proximity operator of the group Lasso</a></li>
 <li><a class="reference internal" href="#proximity-operator-of-the-group-lasso-with-positivity-constraints">Proximity operator of the group Lasso with positivity constraints</a></li>
+<li><a class="reference internal" href="#subdifferential-of-the-positive-group-lasso-penalty">Subdifferential of the positive Group Lasso penalty</a><ul>
+<li><a class="reference internal" href="#case-w-has-a-strictly-negative-coordinate">Case <span class="math notranslate nohighlight">`w`</span> has a strictly negative coordinate</a></li>
+<li><a class="reference internal" href="#case-w-is-strictly-positive">Case <span class="math notranslate nohighlight">`w`</span> is strictly positive</a></li>
+<li><a class="reference internal" href="#case-w-0">Case <span class="math notranslate nohighlight">`w = 0`</span></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#references">References</a></li>
 </ul>
 </li>

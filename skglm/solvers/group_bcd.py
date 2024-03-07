@@ -163,7 +163,7 @@ class GroupBCD(BaseSolver):
         return w, p_objs_out, stop_crit
 
 
-@njit
+# @njit
 def _bcd_epoch(X, y, w, Xw, lipschitz, datafit, penalty, ws):
     # perform a single BCD epoch on groups in ws
     grp_ptr, grp_indices = penalty.grp_ptr, penalty.grp_indices
@@ -185,7 +185,7 @@ def _bcd_epoch(X, y, w, Xw, lipschitz, datafit, penalty, ws):
                 Xw += (w[j] - old_w_g[idx]) * X[:, j]
 
 
-@njit
+# @njit
 def _bcd_epoch_sparse(X_data, X_indptr, X_indices, y, w, Xw, lipschitz, datafit, penalty, ws):
     # perform a single BCD epoch on groups in ws
     grp_ptr, grp_indices = penalty.grp_ptr, penalty.grp_indices
@@ -211,7 +211,7 @@ def _bcd_epoch_sparse(X_data, X_indptr, X_indices, y, w, Xw, lipschitz, datafit,
                     Xw[X_indices[i]] += (w[j] - old_w_g[idx]) * X_data[i]
 
 
-@njit
+# @njit
 def _construct_grad(X, y, w, Xw, datafit, ws):
     # compute the -gradient according to each group in ws
     # note: -gradients are stacked in a 1d array ([-grad_ws_1, -grad_ws_2, ...])
@@ -227,7 +227,7 @@ def _construct_grad(X, y, w, Xw, datafit, ws):
     return grads
 
 
-@njit
+# @njit
 def _construct_grad_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, ws):
     # compute the -gradient according to each group in ws
     # note: -gradients are stacked in a 1d array ([-grad_ws_1, -grad_ws_2, ...])

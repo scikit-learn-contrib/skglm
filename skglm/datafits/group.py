@@ -5,6 +5,7 @@ from scipy import sparse
 
 from skglm.datafits.base import BaseDatafit
 from skglm.datafits.single_task import Logistic
+from skglm.utils.sparse_ops import spectral_norm, sparse_subselect_cols
 
 
 class QuadraticGroup(BaseDatafit):
@@ -54,13 +55,22 @@ class QuadraticGroup(BaseDatafit):
     def get_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
         grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
         n_groups = len(grp_ptr) - 1
+        n_rows = len(y)
+        lipschitz_ = np.zeros(n_groups, dtype=X_data.dtype)
         lipschitz = np.zeros(n_groups, dtype=X_data.dtype)
 
         X = sparse.csc_matrix((X_data, X_indices, X_indptr))
         for g in range(n_groups):
             grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
             X_g = X[:, grp_g_indices]
-            lipschitz[g] = sparse.linalg.norm(X_g, ord=2) ** 2 / len(y)
+            lipschitz_[g] = sparse.linalg.norm(X_g, ord=2) ** 2 / len(y)
+
+        for g in range(n_groups):
+            grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
+            X_data_g, X_indptr_g, X_indices_g = sparse_subselect_cols(
+                grp_g_indices, X_data, X_indptr, X_indices)
+            lipschitz[g] = spectral_norm(
+                X_data_g, X_indptr_g, X_indices_g, n_rows) ** 2 / len(y)
 
         return lipschitz
 
@@ -81,10 +91,10 @@ class QuadraticGroup(BaseDatafit):
         grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
         grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
 
-
         grad_g = np.zeros(len(grp_g_indices))
         for idx, j in enumerate(grp_g_indices):
-            grad_g[idx] = self.gradient_scalar_sparse(X_data, X_indptr, X_indices, y, w, Xw, j)
+            grad_g[idx] = self.gradient_scalar_sparse(
+                X_data, X_indptr, X_indices, y, w, Xw, j)
 
         return grad_g
 

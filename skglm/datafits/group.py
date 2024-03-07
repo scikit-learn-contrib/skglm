@@ -64,7 +64,6 @@ class QuadraticGroup(BaseDatafit):
 
         return lipschitz
 
-
     def value(self, y, w, Xw):
         return norm(y - Xw) ** 2 / (2 * len(y))
 

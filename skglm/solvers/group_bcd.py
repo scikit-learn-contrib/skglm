@@ -67,7 +67,6 @@ class GroupBCD(BaseSolver):
                     f"expected {n_features}, got {len(w)}.")
             raise ValueError(val_error_message)
 
-
         is_sparse = sparse.issparse(X)
         if is_sparse:
             datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
@@ -113,10 +112,12 @@ class GroupBCD(BaseSolver):
                 # inplace update of w and Xw
 
                 if sparse.issparse(X):
-                    _bcd_epoch_sparse(X.data, X.indptr, X.indices, y, w, Xw, lipschitz, datafit, penalty, ws)
-                    
+                    _bcd_epoch_sparse(X.data, X.indptr, X.indices, y,
+                                      w, Xw, lipschitz, datafit, penalty, ws)
+
                 else:
-                    _bcd_epoch(X, y, w[:n_features], Xw, lipschitz, datafit, penalty, ws)
+                    _bcd_epoch(X, y, w[:n_features], Xw,
+                               lipschitz, datafit, penalty, ws)
 
                 # update intercept
                 if self.fit_intercept:
@@ -138,8 +139,9 @@ class GroupBCD(BaseSolver):
                 if epoch % 10 == 0:
 
                     if sparse.issparse(X):
-                        grad_ws = _construct_grad_sparse(X.data, X.indptr, X.indices, y, w, Xw, datafit, ws)
-                    
+                        grad_ws = _construct_grad_sparse(
+                            X.data, X.indptr, X.indices, y, w, Xw, datafit, ws)
+
                     else:
                         grad_ws = _construct_grad(X, y, w, Xw, datafit, ws)
 
@@ -182,6 +184,7 @@ def _bcd_epoch(X, y, w, Xw, lipschitz, datafit, penalty, ws):
             if old_w_g[idx] != w[j]:
                 Xw += (w[j] - old_w_g[idx]) * X[:, j]
 
+
 @njit
 def _bcd_epoch_sparse(X_data, X_indptr, X_indices, y, w, Xw, lipschitz, datafit, penalty, ws):
     # perform a single BCD epoch on groups in ws
@@ -207,6 +210,7 @@ def _bcd_epoch_sparse(X_data, X_indptr, X_indices, y, w, Xw, lipschitz, datafit,
                 for i in range(X_indptr[j], X_indptr[j+1]):
                     Xw[X_indices[i]] += (w[j] - old_w_g[idx]) * X_data[i]
 
+
 @njit
 def _construct_grad(X, y, w, Xw, datafit, ws):
     # compute the -gradient according to each group in ws
@@ -221,7 +225,6 @@ def _construct_grad(X, y, w, Xw, datafit, ws):
         grads[grad_ptr: grad_ptr+len(grad_g)] = grad_g
         grad_ptr += len(grad_g)
     return grads
-
 
 
 @njit

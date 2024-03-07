@@ -20,11 +20,12 @@ from sklearn.multiclass import OneVsRestClassifier, check_classification_targets
 
 from skglm.utils.jit_compilation import compiled_clone
 from skglm.solvers import AndersonCD, MultiTaskBCD, GroupBCD
-from skglm.datafits import (Cox, Quadratic, Logistic, QuadraticSVC, 
+from skglm.datafits import (Cox, Quadratic, Logistic, QuadraticSVC,
                             QuadraticMultiTask, QuadraticGroup)
 from skglm.penalties import (L1, WeightedL1, L1_plus_L2, L2, WeightedGroupL2,
                              MCPenalty, WeightedMCPenalty, IndicatorBox, L2_1)
 from skglm.utils.data import grp_converter
+
 
 def _glm_fit(X, y, model, datafit, penalty, solver):
     is_classif = isinstance(datafit, (Logistic, QuadraticSVC))
@@ -1541,12 +1542,6 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
         return solver.path(X, Y, datafit, penalty, alphas, coef_init, return_n_iter)
 
 
-
-
-
-
-
-
 class GroupLasso(LinearModel, RegressorMixin):
     r"""GroupLasso estimator based on Celer solver and primal extrapolation.
 
@@ -1666,13 +1661,16 @@ class GroupLasso(LinearModel, RegressorMixin):
                               must equal the number of features. Got %s, expected %s." % (
                 np.sum(group_sizes), X.shape[1]))
 
-        group_penalty = WeightedGroupL2(alpha=self.alpha, grp_ptr=grp_ptr, 
-                                        grp_indices=grp_indices, weights=self.weights, 
+        if self.weights is None:
+            weights = np.ones(len(group_sizes))
+
+        group_penalty = WeightedGroupL2(alpha=self.alpha, grp_ptr=grp_ptr,
+                                        grp_indices=grp_indices, weights=weights,
                                         positive=self.positive)
         quad_group = QuadraticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
         solver = GroupBCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
-            fit_intercept=self.fit_intercept, warm_start=self.warm_start, 
+            fit_intercept=self.fit_intercept, warm_start=self.warm_start,
             verbose=self.verbose)
-        
+
         return _glm_fit(X, y, self, quad_group, group_penalty, solver)

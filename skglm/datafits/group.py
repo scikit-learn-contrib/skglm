@@ -56,15 +56,8 @@ class QuadraticGroup(BaseDatafit):
         grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
         n_groups = len(grp_ptr) - 1
         n_rows = len(y)
-        lipschitz_ = np.zeros(n_groups, dtype=X_data.dtype)
+        
         lipschitz = np.zeros(n_groups, dtype=X_data.dtype)
-
-        X = sparse.csc_matrix((X_data, X_indices, X_indptr))
-        for g in range(n_groups):
-            grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
-            X_g = X[:, grp_g_indices]
-            lipschitz_[g] = sparse.linalg.norm(X_g, ord=2) ** 2 / len(y)
-
         for g in range(n_groups):
             grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
             X_data_g, X_indptr_g, X_indices_g = sparse_subselect_cols(

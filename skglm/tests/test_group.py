@@ -264,6 +264,7 @@ def test_anderson_acceleration():
     np.testing.assert_allclose(w, w_star)
     np.testing.assert_allclose(Xw, X @ w_star)
 
+    print(n_iter_acc)
     np.testing.assert_array_equal(n_iter_acc, 13)
     np.testing.assert_array_equal(n_iter, 99)
 

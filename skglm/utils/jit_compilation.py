@@ -4,7 +4,6 @@ import numba
 from numba import float32, float64
 from numba.experimental import jitclass
 
-
 def spec_to_float32(spec):
     """Convert a numba specification to an equivalent float32 one.
 

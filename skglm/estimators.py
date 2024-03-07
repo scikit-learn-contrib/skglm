@@ -1661,8 +1661,8 @@ class GroupLasso(LinearModel, RegressorMixin):
                               must equal the number of features. Got %s, expected %s." % (
                 np.sum(group_sizes), X.shape[1]))
 
-        if self.weights is None:
-            weights = np.ones(len(group_sizes))
+        
+        weights = np.ones(len(group_sizes)) if self.weights is None else self.weights
 
         group_penalty = WeightedGroupL2(alpha=self.alpha, grp_ptr=grp_ptr,
                                         grp_indices=grp_indices, weights=weights,

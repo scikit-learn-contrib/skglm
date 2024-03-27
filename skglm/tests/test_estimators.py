@@ -585,40 +585,25 @@ def test_GroupLasso_estimator_positive(fit_intercept, issparse):
         np.testing.assert_array_less(1e-4, estimator_ours.intercept_)
 
 
-
-# @pytest.mark.parametrize("fit_intercept", 
-#                          [False, True])
-@pytest.mark.parametrize("fit_intercept, positive", 
-                         product([False, True], [False, True]))
+@pytest.mark.parametrize("positive", [False, True])
 def test_GroupLasso_estimator_sparse_vs_dense(fit_intercept, positive):
-
     grp_indices, grp_ptr = grp_converter(groups, X.shape[1]) 
     n_groups = len(grp_ptr)-1
     weights = np.ones(n_groups)
-    alpha = _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights)/10.
+    alpha = _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights) / 10.
 
-    print('positive', positive)
-        
     tol = 1e-3
-    estimator_dense = GroupLasso(groups=groups, alpha=alpha, tol=tol, 
+    glasso = GroupLasso(groups=groups, alpha=alpha, tol=tol, 
                                  weights=weights, fit_intercept=fit_intercept,
                                  positive=positive)
 
-    estimator_sparse = GroupLasso(groups=groups, alpha=alpha, tol=tol, 
-                                  weights=weights, fit_intercept=fit_intercept,
-                                  positive=positive)
-
     X_sparse = csc_matrix(X)
+    glasso.fit(X, y)
+    coef_dense = glasso.coef_
+    glasso.fit(X_sparse, y)
+    coef_sparse = glasso.coef_
 
-    print('fit dense')
-    estimator_dense.fit(X, y)
-    print('fit sparse')
-    estimator_sparse.fit(X_sparse, y)
-
-    np.testing.assert_allclose(estimator_sparse.coef_, estimator_sparse.coef_)
-
-    if fit_intercept:
-        np.testing.assert_allclose(estimator_sparse.intercept_, estimator_sparse.intercept_)
+    np.testing.assert_allclose(coef_sparse, coef_dense)
 
    
 

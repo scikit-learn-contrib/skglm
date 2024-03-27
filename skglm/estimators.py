@@ -1620,8 +1620,8 @@ class GroupLasso(LinearModel, RegressorMixin):
     Supports weights equal to 0, i.e. unpenalized features.
     """
 
-    def __init__(self, groups, alpha=1., weights=None, max_iter=50, max_epochs=50_000, p0=10,
-                 verbose=0, tol=1e-4, positive=False, fit_intercept=True,
+    def __init__(self, groups, alpha=1., weights=None, max_iter=50, max_epochs=50_000, 
+                 p0=10, verbose=0, tol=1e-4, positive=False, fit_intercept=True,
                  warm_start=False, ws_strategy="subdiff"):
         super().__init__()
         self.alpha = alpha
@@ -1657,8 +1657,9 @@ class GroupLasso(LinearModel, RegressorMixin):
         group_sizes = np.diff(grp_ptr)
 
         if X.shape[1] != np.sum(group_sizes):
-            raise ValueError("The number total number of group members \
-                              must equal the number of features. Got %s, expected %s." % (
+            raise ValueError(
+                "The number total number of group members "
+                "must equal the number of features. Got %s, expected %s." % (
                 np.sum(group_sizes), X.shape[1]))
 
         

@@ -74,8 +74,6 @@ class GroupBCD(BaseSolver):
         else:
             datafit.initialize(X, y)
             lipschitz = datafit.get_lipschitz(X, y)
-        # datafit.initialize(X, y)
-        # lipschitz = datafit.get_lipschitz(X, y)
 
         all_groups = np.arange(n_groups)
         p_objs_out = np.zeros(self.max_iter)
@@ -191,7 +189,8 @@ def _bcd_epoch(X, y, w, Xw, lipschitz, datafit, penalty, ws):
 
 
 @njit
-def _bcd_epoch_sparse(X_data, X_indptr, X_indices, y, w, Xw, lipschitz, datafit, penalty, ws):
+def _bcd_epoch_sparse(
+        X_data, X_indptr, X_indices, y, w, Xw, lipschitz, datafit, penalty, ws):
     # perform a single BCD epoch on groups in ws
     grp_ptr, grp_indices = penalty.grp_ptr, penalty.grp_indices
 

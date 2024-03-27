@@ -1548,7 +1548,8 @@ class GroupLasso(LinearModel, RegressorMixin):
     The optimization objective for GroupLasso is:
 
     .. math::
-        1 / (2 xx n_"samples") \sum_g ||y - X_g w_g||_2 ^ 2 + alpha \sum_g  weights_g ||w_g||_2
+        1 / (2 xx n_"samples") \sum_g ||y - X_g w_g||_2 ^ 2 + alpha \sum_g
+        weights_g ||w_g||_2
 
     Parameters
     ----------
@@ -1620,7 +1621,7 @@ class GroupLasso(LinearModel, RegressorMixin):
     Supports weights equal to 0, i.e. unpenalized features.
     """
 
-    def __init__(self, groups, alpha=1., weights=None, max_iter=50, max_epochs=50_000, 
+    def __init__(self, groups, alpha=1., weights=None, max_iter=50, max_epochs=50_000,
                  p0=10, verbose=0, tol=1e-4, positive=False, fit_intercept=True,
                  warm_start=False, ws_strategy="subdiff"):
         super().__init__()
@@ -1659,12 +1660,10 @@ class GroupLasso(LinearModel, RegressorMixin):
         if X.shape[1] != np.sum(group_sizes):
             raise ValueError(
                 "The number total number of group members "
-                "must equal the number of features. Got %s, expected %s." % (
-                np.sum(group_sizes), X.shape[1]))
+                "must equal the number of features. Got %s, expected %s." % (np.sum(
+                        group_sizes), X.shape[1]))
 
-        
         weights = np.ones(len(group_sizes)) if self.weights is None else self.weights
-
         group_penalty = WeightedGroupL2(alpha=self.alpha, grp_ptr=grp_ptr,
                                         grp_indices=grp_indices, weights=weights,
                                         positive=self.positive)

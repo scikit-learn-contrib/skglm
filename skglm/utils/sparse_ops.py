@@ -102,21 +102,9 @@ def _sparse_xj_dot(X_data, X_indptr, X_indices, j, other):
         res += X_data[i] * other[X_indices[i]]
     return res
 
+
 @njit(fastmath=True)
-def sparse_subselect_cols(cols, X_data, X_indptr, X_indices):
-    """Summary
-    
-    Parameters
-    ----------
-    cols : TYPE
-        Description
-    X_data : TYPE
-        Description
-    X_indices : TYPE
-        Description
-    X_indptr : TYPE
-        Description
-    """
+def _sparse_subselect_cols(cols, X_data, X_indptr, X_indices):
     n_indices_j = np.zeros(len(cols), dtype=X_indices.dtype)
     X_indptr_g = np.zeros(len(cols)+1, dtype=X_indices.dtype)
     for i, j in enumerate(cols):
@@ -127,8 +115,8 @@ def sparse_subselect_cols(cols, X_data, X_indptr, X_indices):
     X_data_g = np.zeros(n_indices_g, dtype=X_data.dtype)
 
     for i, j in enumerate(cols):
-        X_indices_g[X_indptr_g[i]:X_indptr_g[i+1]] = X_indices[X_indptr[j]:X_indptr[j+1]]
+        X_indices_g[X_indptr_g[i]:X_indptr_g[i+1]] = X_indices[
+            X_indptr[j]:X_indptr[j+1]]
         X_data_g[X_indptr_g[i]:X_indptr_g[i+1]] = X_data[X_indptr[j]:X_indptr[j+1]]
 
     return X_data_g, X_indptr_g, X_indices_g
-

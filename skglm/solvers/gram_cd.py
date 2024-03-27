@@ -36,7 +36,7 @@ class GramCD(BaseSolver):
 
     use_acc : bool, default False
         Extrapolate the iterates based on the past 5 iterates if set to ``True``.
-        Can only be used when `greedy_cd` is False.
+        Can only be used when ``greedy_cd`` is ``False``.
 
     greedy_cd : bool, default True
         Use a greedy strategy to select features to update in coordinate descent epochs

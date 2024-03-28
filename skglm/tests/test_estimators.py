@@ -3,7 +3,11 @@ from collections.abc import Iterable
 
 import pytest
 import numpy as np
+import pandas as pd
+import scipy.optimize
 from numpy.linalg import norm
+from scipy.sparse import csc_matrix, issparse
+from celer import GroupLasso as GroupLasso_celer
 
 from sklearn.base import clone
 from sklearn.linear_model import Lasso as Lasso_sklearn
@@ -14,22 +18,15 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.svm import LinearSVC as LinearSVC_sklearn
 from sklearn.utils.estimator_checks import check_estimator
 
-import scipy.optimize
-from scipy.sparse import csc_matrix, issparse
-
-from skglm.utils.data import make_correlated_data, make_dummy_survival_data
+from skglm.utils.data import (make_correlated_data, make_dummy_survival_data,
+                              _alpha_max_group_lasso, grp_converter)
 from skglm.estimators import (
     GeneralizedLinearEstimator, Lasso, MultiTaskLasso, WeightedLasso, ElasticNet,
-    MCPRegression, SparseLogisticRegression, LinearSVC)
+    MCPRegression, SparseLogisticRegression, LinearSVC, GroupLasso, CoxEstimator)
 from skglm.datafits import Logistic, Quadratic, QuadraticSVC, QuadraticMultiTask, Cox
 from skglm.penalties import L1, IndicatorBox, L1_plus_L2, MCPenalty, WeightedL1, SLOPE
-from skglm.solvers import AndersonCD, FISTA
-
-import pandas as pd
-from skglm.solvers import ProxNewton
+from skglm.solvers import AndersonCD, FISTA, ProxNewton
 from skglm.utils.jit_compilation import compiled_clone
-from skglm.estimators import CoxEstimator
-
 
 n_samples = 50
 n_tasks = 9
@@ -50,6 +47,7 @@ alpha = 0.05 * alpha_max
 C = 1 / alpha
 tol = 1e-10
 l1_ratio = 0.3
+groups = [20, 30, 10]
 
 dict_estimators_sk = {}
 dict_estimators_ours = {}
@@ -119,7 +117,7 @@ def test_estimator(estimator_name, X, fit_intercept, positive):
     if fit_intercept and estimator_name == "SVC":
         pytest.xfail("Intercept is not supported for SVC.")
     if positive and estimator_name not in (
-            "Lasso", "ElasticNet", "wLasso", "MCP", "wMCP"):
+            "Lasso", "ElasticNet", "wLasso", "MCP", "wMCP", "GroupLasso"):
         pytest.xfail("`positive` option is only supported by L1, L1_plus_L2 and wL1.")
 
     estimator_sk = clone(dict_estimators_sk[estimator_name])
@@ -530,6 +528,75 @@ def test_warm_start(estimator_name):
     np.testing.assert_array_less(0, model.n_iter_)
     model.fit(X, y)  # already fitted + warm_start so 0 iter done
     np.testing.assert_equal(0, model.n_iter_)
+
+
+@pytest.mark.parametrize("fit_intercept, issparse",
+                         product([False, True], [False, True]))
+def test_GroupLasso_estimator(fit_intercept, issparse):
+    grp_indices, grp_ptr = grp_converter(groups, X.shape[1])
+    n_groups = len(grp_ptr)-1
+    weights = np.ones(n_groups)
+    alpha = _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights)/10.
+    estimator_ours = GroupLasso(groups=groups, alpha=alpha, tol=tol,
+                                weights=weights, fit_intercept=fit_intercept,
+                                positive=False)
+    estimator_celer = GroupLasso_celer(groups=groups, alpha=alpha, tol=tol,
+                                       weights=weights, fit_intercept=fit_intercept)
+
+    X_ = csc_matrix(X) if issparse else X
+
+    estimator_celer.fit(X_, y)
+    estimator_ours.fit(X_, y)
+    coef_celer = estimator_celer.coef_
+    coef_ours = estimator_ours.coef_
+
+    np.testing.assert_allclose(coef_ours, coef_celer, atol=1e-6)
+    np.testing.assert_allclose(
+        estimator_celer.intercept_, estimator_ours.intercept_, rtol=1e-4)
+    if fit_intercept:
+        np.testing.assert_array_less(1e-4, estimator_ours.intercept_)
+
+
+@pytest.mark.parametrize("fit_intercept, issparse",
+                         product([False, True], [True, False]))
+def test_GroupLasso_estimator_positive(fit_intercept, issparse):
+
+    grp_indices, grp_ptr = grp_converter(groups, X.shape[1])
+    n_groups = len(grp_ptr)-1
+    weights = np.ones(n_groups)
+    alpha = _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights) / 10.
+    estimator_ours = GroupLasso(groups=groups, alpha=alpha, tol=tol,
+                                weights=weights, fit_intercept=fit_intercept,
+                                positive=True)
+
+    X_ = csc_matrix(X) if issparse else X
+
+    estimator_ours.fit(X_, y)
+
+    np.testing.assert_array_less(1e-5, norm(estimator_ours.coef_))
+
+    if fit_intercept:
+        np.testing.assert_array_less(1e-4, estimator_ours.intercept_)
+
+
+@pytest.mark.parametrize("positive", [False, True])
+def test_GroupLasso_estimator_sparse_vs_dense(positive):
+    grp_indices, grp_ptr = grp_converter(groups, X.shape[1])
+    n_groups = len(grp_ptr)-1
+    weights = np.ones(n_groups)
+    alpha = _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights) / 10.
+
+    tol = 1e-8
+    glasso = GroupLasso(groups=groups, alpha=alpha, tol=tol,
+                        weights=weights, positive=positive)
+
+    X_sparse = csc_matrix(X)
+    glasso.fit(X, y)
+    coef_dense = glasso.coef_
+    glasso.fit(X_sparse, y)
+    coef_sparse = glasso.coef_
+
+    np.testing.assert_allclose(coef_sparse, coef_dense, atol=1e-6)
 
 
 if __name__ == "__main__":

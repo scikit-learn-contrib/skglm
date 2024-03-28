@@ -606,12 +606,13 @@ if __name__ == "__main__":
     grp_indices, grp_ptr = grp_converter(groups, X.shape[1])
     n_groups = len(grp_ptr)-1
     weights = np.ones(n_groups)
-    alpha = _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights) / 10.
+    alpha = _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights) / 3.
 
-    tol = 1e-3
+    tol = 0
     glasso = GroupLasso(groups=groups, alpha=alpha, tol=tol,
                         weights=weights, fit_intercept=fit_intercept,
-                        positive=positive, verbose=2, max_iter=1, max_epochs=300)
+                        positive=positive, verbose=3, max_iter=10, p0=100,
+                        max_epochs=300)
 
     X_sparse = csc_matrix(X)
     glasso.fit(X, y)

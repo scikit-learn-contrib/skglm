@@ -1560,7 +1560,7 @@ class GroupLasso(LinearModel, RegressorMixin):
         If a list of ints is passed, groups are assumed to be contiguous,
         group number `g` being of size `groups[g]`.
         If a list of lists of ints is passed, `groups[g]` contains the
-        feature indices of the group number `g`
+        feature indices of the group number `g`.
 
     alpha : float, optional
         Penalty strength.

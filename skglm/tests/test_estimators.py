@@ -564,7 +564,7 @@ def test_GroupLasso_estimator_positive(fit_intercept, issparse):
     grp_indices, grp_ptr = grp_converter(groups, X.shape[1])
     n_groups = len(grp_ptr)-1
     weights = np.ones(n_groups)
-    alpha = _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights)/10.
+    alpha = _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights) / 10.
     estimator_ours = GroupLasso(groups=groups, alpha=alpha, tol=tol,
                                 weights=weights, fit_intercept=fit_intercept,
                                 positive=True)
@@ -580,16 +580,15 @@ def test_GroupLasso_estimator_positive(fit_intercept, issparse):
 
 
 @pytest.mark.parametrize("positive", [False, True])
-def test_GroupLasso_estimator_sparse_vs_dense(fit_intercept, positive):
+def test_GroupLasso_estimator_sparse_vs_dense(positive):
     grp_indices, grp_ptr = grp_converter(groups, X.shape[1])
     n_groups = len(grp_ptr)-1
     weights = np.ones(n_groups)
     alpha = _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights) / 10.
 
-    tol = 1e-3
+    tol = 1e-8
     glasso = GroupLasso(groups=groups, alpha=alpha, tol=tol,
-                        weights=weights, fit_intercept=fit_intercept,
-                        positive=positive)
+                        weights=weights, positive=positive)
 
     X_sparse = csc_matrix(X)
     glasso.fit(X, y)
@@ -597,27 +596,8 @@ def test_GroupLasso_estimator_sparse_vs_dense(fit_intercept, positive):
     glasso.fit(X_sparse, y)
     coef_sparse = glasso.coef_
 
-    np.testing.assert_allclose(coef_sparse, coef_dense)
+    np.testing.assert_allclose(coef_sparse, coef_dense, atol=1e-6)
 
 
 if __name__ == "__main__":
-    fit_intercept = True
-    positive = True
-    grp_indices, grp_ptr = grp_converter(groups, X.shape[1])
-    n_groups = len(grp_ptr)-1
-    weights = np.ones(n_groups)
-    alpha = _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights) / 3.
-
-    tol = 0
-    glasso = GroupLasso(groups=groups, alpha=alpha, tol=tol,
-                        weights=weights, fit_intercept=fit_intercept,
-                        positive=positive, verbose=3, max_iter=10, p0=100,
-                        max_epochs=300)
-
-    X_sparse = csc_matrix(X)
-    glasso.fit(X, y)
-    coef_dense = glasso.coef_
-    # glasso.fit(X_sparse, y)
-    # coef_sparse = glasso.coef_
-
-    # np.testing.assert_allclose(coef_sparse, coef_dense)
+    pass

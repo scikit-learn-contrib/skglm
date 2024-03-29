@@ -137,7 +137,6 @@ def _glm_fit(X, y, model, datafit, penalty, solver):
                 "expected %i, got %i." % (X_.shape[1], len(penalty.weights)))
 
     coefs, p_obj, kkt = solver.solve(X_, y, datafit_jit, penalty_jit, w, Xw)
-    # coefs, p_obj, kkt = solver.solve(X_, y, datafit, penalty, w, Xw)
     model.coef_, model.stop_crit_ = coefs[:n_features], kkt
     if y.ndim == 1:
         model.intercept_ = coefs[-1] if fit_intercept else 0.
@@ -1610,11 +1609,6 @@ class GroupLasso(LinearModel, RegressorMixin):
 
     n_iter_ : int
         Number of subproblems solved to reach the specified tolerance.
-
-    See Also
-    --------
-    MCPRegression : Sparser regularization than L1 norm.
-    Lasso : Unweighted Lasso regularization.
 
     Notes
     -----

@@ -81,7 +81,6 @@ class GroupBCD(BaseSolver):
         accelerator = AndersonAcceleration(K=5)
 
         for t in range(self.max_iter):
-
             if sparse.issparse(X):
                 grad = _construct_grad_sparse(
                     X.data, X.indptr, X.indices, y, w, Xw, datafit, all_groups)
@@ -140,11 +139,9 @@ class GroupBCD(BaseSolver):
 
                 # check sub-optimality every 10 epochs
                 if epoch % 10 == 0:
-
                     if sparse.issparse(X):
                         grad_ws = _construct_grad_sparse(
                             X.data, X.indptr, X.indices, y, w, Xw, datafit, ws)
-
                     else:
                         grad_ws = _construct_grad(X, y, w, Xw, datafit, ws)
 
@@ -179,9 +176,7 @@ def _bcd_epoch(X, y, w, Xw, lipschitz, datafit, penalty, ws):
         grad_g = datafit.gradient_g(X, y, w, Xw, g)
 
         w[grp_g_indices] = penalty.prox_1group(
-            old_w_g - grad_g / lipschitz_g,
-            1 / lipschitz_g, g
-        )
+            old_w_g - grad_g / lipschitz_g, 1 / lipschitz_g, g)
 
         for idx, j in enumerate(grp_g_indices):
             if old_w_g[idx] != w[j]:
@@ -201,13 +196,9 @@ def _bcd_epoch_sparse(
         lipschitz_g = lipschitz[g]
         grad_g = datafit.gradient_g_sparse(X_data, X_indptr, X_indices, y, w, Xw, g)
 
-        # X = sparse.csc_matrix((X_data, X_indices, X_indptr)).todense()
-        # grad_g_ = datafit.gradient_g(X, y, w, Xw, g)
 
         w[grp_g_indices] = penalty.prox_1group(
-            old_w_g - grad_g / lipschitz_g,
-            1 / lipschitz_g, g
-        )
+            old_w_g - grad_g / lipschitz_g, 1 / lipschitz_g, g)
 
         for idx, j in enumerate(grp_g_indices):
             if old_w_g[idx] != w[j]:

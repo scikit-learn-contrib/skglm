@@ -54,7 +54,6 @@ class QuadraticGroup(BaseDatafit):
     def get_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
         grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
         n_groups = len(grp_ptr) - 1
-        n_rows = len(y)
 
         lipschitz = np.zeros(n_groups, dtype=X_data.dtype)
         for g in range(n_groups):
@@ -62,7 +61,7 @@ class QuadraticGroup(BaseDatafit):
             X_data_g, X_indptr_g, X_indices_g = _sparse_subselect_cols(
                 grp_g_indices, X_data, X_indptr, X_indices)
             lipschitz[g] = spectral_norm(
-                X_data_g, X_indptr_g, X_indices_g, n_rows) ** 2 / len(y)
+                X_data_g, X_indptr_g, X_indices_g, len(y)) ** 2 / len(y)
 
         return lipschitz
 
@@ -91,7 +90,6 @@ class QuadraticGroup(BaseDatafit):
         return grad_g
 
     def gradient_scalar_sparse(self, X_data, X_indptr, X_indices, y, w, Xw, j):
-
         nrm2 = 0.
         for i in range(X_indptr[j], X_indptr[j+1]):
             nrm2 += X_data[i] * (Xw[X_indices[i]] - y[X_indices[i]])
@@ -99,7 +97,6 @@ class QuadraticGroup(BaseDatafit):
         return nrm2/len(y)
 
     def gradient_scalar(self, X, y, w, Xw, j):
-
         return (Xw - y) @ X[:, j] / len(y)
 
     def intercept_update_step(self, y, Xw):

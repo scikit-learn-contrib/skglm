@@ -17,6 +17,7 @@ Estimators
    GeneralizedLinearEstimator
    CoxEstimator
    ElasticNet
+   GroupLasso
    Lasso
    LinearSVC
    SparseLogisticRegression

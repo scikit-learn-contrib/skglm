@@ -355,7 +355,7 @@ class WeightedGroupL2(BasePenalty):
                             if w_g[j] > 0:
                                 res[j] = -grad_g[j] - thresh
                             else:
-                                res[j] = max(-grad_g[j], thresh)
+                                res[j] = max(-grad_g[j] - thresh, 0)
                         scores[idx] = norm(res)
                 else:
                     # distance of -grad_g to the subdiff (here a singleton)

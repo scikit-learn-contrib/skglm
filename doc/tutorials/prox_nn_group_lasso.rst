@@ -182,15 +182,11 @@ Where :math:`v^+` is :math:`v` restricted to its positive coordinates.
 
 Case :math:`w \geq 0`
 -----------------------------------
-The subdifferential in that case is :math:` \lambda w / {|| w ||} + C_1 \times \ldots \times C_g` where :math:`C_i = {0}` if :math:`w_i = 0` and :math:`C_i = mathbb{R}_-` otherwise.
+The subdifferential in that case is :math:`\lambda w / {|| w ||} + C_1 \times \ldots \times C_g` where :math:`C_i = {0}` if :math:`w_i > 0` and :math:`C_i = mathbb{R}_-` otherwise (:math:`w_i =0`).
 
-The value of the projection :math:`p` of :math:`v` onto this set is given by :math:`p_i = v - \lambda w_i / {||w_i||}` if :math:`w_i > 0`, and :math:`\max(v, \lambda w_i / {||w_i||})` otherwise.
+The value of the projection :math:`p` of :math:`v` onto this set is given by :math:`p_i = \lambda w_i / {||w_i||}` if :math:`w_i > 0`, and :math:`\min(v, \lambda w_i / {||w||})` otherwise.
 
-Then,
 
-.. math::
-
-    D(v) = || v - p ||.
 
 
 References

@@ -196,7 +196,6 @@ def _bcd_epoch_sparse(
         lipschitz_g = lipschitz[g]
         grad_g = datafit.gradient_g_sparse(X_data, X_indptr, X_indices, y, w, Xw, g)
 
-
         w[grp_g_indices] = penalty.prox_1group(
             old_w_g - grad_g / lipschitz_g, 1 / lipschitz_g, g)
 

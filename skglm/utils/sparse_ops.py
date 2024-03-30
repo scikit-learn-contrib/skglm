@@ -59,6 +59,50 @@ def spectral_norm(X_data, X_indptr, X_indices, n_samples,
 
 
 @njit
+def sparse_columns_slice(cols, X_data, X_indptr, X_indices):
+    """Select a sub matrix from CSC sparse matrix.
+
+    Similar to ``X[:, cols]`` but for ``X`` a CSC sparse matrix.
+
+    Parameters
+    ----------
+    cols : array of int
+        Columns to select in matrix ``X``.
+
+    X_data : array, shape (n_elements,)
+        ``data`` attribute of the sparse CSC matrix ``X``.
+
+    X_indptr : array, shape (n_features + 1,)
+        ``indptr`` attribute of the sparse CSC matrix ``X``.
+
+    X_indices : array, shape (n_elements,)
+        ``indices`` attribute of the sparse CSC matrix ``X``.
+
+    Returns
+    -------
+    sub_X_data, sub_X_indptr, sub_X_indices
+        The ``data``, ``indptr``, and ``indices`` attributes of the sub matrix.
+    """
+    nnz = sum([X_indptr[j+1] - X_indptr[j] for j in cols])
+
+    sub_X_indptr = np.zeros(len(cols) + 1, dtype=cols.dtype)
+    sub_X_indices = np.zeros(nnz, dtype=X_indices.dtype)
+    sub_X_data = np.zeros(nnz, dtype=X_data.dtype)
+
+    for idx, j in enumerate(cols):
+        n_elements = X_indptr[j+1] - X_indptr[j]
+        sub_X_indptr[idx + 1] = sub_X_indptr[idx] + n_elements
+
+        col_j_slice = slice(X_indptr[j], X_indptr[j+1])
+        col_idx_slice = slice(sub_X_indptr[idx], sub_X_indptr[idx+1])
+
+        sub_X_indices[col_idx_slice] = X_indices[col_j_slice]
+        sub_X_data[col_idx_slice] = X_data[col_j_slice]
+
+    return sub_X_data, sub_X_indptr, sub_X_indices
+
+
+@njit
 def _XXT_dot_vec(X_data, X_indptr, X_indices, vec, n_samples):
     # computes X @ X.T @ vec, with X csc encoded
     return _X_dot_vec(X_data, X_indptr, X_indices,
@@ -101,22 +145,3 @@ def _sparse_xj_dot(X_data, X_indptr, X_indices, j, other):
     for i in range(X_indptr[j], X_indptr[j+1]):
         res += X_data[i] * other[X_indices[i]]
     return res
-
-
-@njit(fastmath=True)
-def _sparse_subselect_cols(cols, X_data, X_indptr, X_indices):
-    n_indices_j = np.zeros(len(cols), dtype=X_indices.dtype)
-    X_indptr_g = np.zeros(len(cols)+1, dtype=X_indices.dtype)
-    for i, j in enumerate(cols):
-        n_indices_j[i] += X_indptr[j+1]-X_indptr[j]
-        X_indptr_g[i+1] = X_indptr_g[i] + n_indices_j[i]
-    n_indices_g = np.sum(n_indices_j)
-    X_indices_g = np.zeros(n_indices_g, dtype=X_indices.dtype)
-    X_data_g = np.zeros(n_indices_g, dtype=X_data.dtype)
-
-    for i, j in enumerate(cols):
-        X_indices_g[X_indptr_g[i]:X_indptr_g[i+1]] = X_indices[
-            X_indptr[j]:X_indptr[j+1]]
-        X_data_g[X_indptr_g[i]:X_indptr_g[i+1]] = X_data[X_indptr[j]:X_indptr[j+1]]
-
-    return X_data_g, X_indptr_g, X_indices_g

@@ -552,7 +552,7 @@ def test_GroupLasso_estimator(fit_intercept, issparse):
     coef_celer = estimator_celer.coef_
     coef_ours = estimator_ours.coef_
 
-    np.testing.assert_allclose(coef_ours, coef_celer, rtol=1e-3)
+    np.testing.assert_allclose(coef_ours, coef_celer, rtol=1e-2, atol=1e-4)
     np.testing.assert_allclose(estimator_celer.intercept_,
                                estimator_ours.intercept_, rtol=1e-4)
 

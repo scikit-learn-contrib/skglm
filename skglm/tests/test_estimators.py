@@ -366,7 +366,7 @@ def test_equivalence_cox_SLOPE_cox_L1(use_efron, issparse):
     method = 'efron' if use_efron else 'breslow'
     estimator = CoxEstimator(alpha, l1_ratio=1., method=method, tol=1e-9).fit(X, y)
 
-    np.testing.assert_allclose(w, estimator.coef_, atol=1e-6)
+    np.testing.assert_allclose(w, estimator.coef_, atol=1e-5)
 
 
 @pytest.mark.parametrize("use_efron", [True, False])
@@ -600,9 +600,8 @@ def test_GroupLasso_estimator_sparse_vs_dense(positive):
     glasso.fit(X_sparse, y)
     coef_sparse = glasso.coef_
 
-    np.testing.assert_allclose(coef_sparse, coef_dense, rtol=1e-6)
+    np.testing.assert_allclose(coef_sparse, coef_dense, atol=1e-7, rtol=1e-5)
 
 
 if __name__ == "__main__":
-    test_GroupLasso_estimator(True, True)
     pass

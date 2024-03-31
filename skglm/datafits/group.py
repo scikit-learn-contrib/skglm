@@ -97,7 +97,7 @@ class QuadraticGroup(BaseDatafit):
         return grad_j / len(y)
 
     def gradient_scalar(self, X, y, w, Xw, j):
-        return (Xw - y) @ X[:, j] / len(y)
+        return X[:, j] @ (Xw - y) / len(y)
 
     def intercept_update_step(self, y, Xw):
         return np.mean(Xw - y)

@@ -140,10 +140,10 @@ Subdifferential of the positive Group Lasso penalty
 ===================================================
 
 For the ``subdiff_diff`` working set strategy, we compute the distance :math:`D(v)` for some :math:`v` to the subdifferential of the :math:`h` penalty at a point :math:`w`.
-Since the penalty is group-separable, we reduce the case where :\math:`w` is a block of variables, in :math:`\mathbb{R}^g`.
+Since the penalty is group-separable, we reduce the case where :math:`w` is a block of variables in :math:`\mathbb{R}^g`.
 
-Case :math:`w` has a strictly negative coordinate
--------------------------------------------------
+Case :math:`w \notin \mathbb{R}_+^g`
+------------------------------------
 
 If any component of :math:`w` is strictly negative, the subdifferential is empty, and the distance is :math:`+ \infty`.
 
@@ -180,13 +180,18 @@ Minimizing over :math:`n` then over :math:`u`, thanks to [`1 <https://math.stack
 
 Where :math:`v^+` is :math:`v` restricted to its positive coordinates.
 
-Case :math:`w \geq 0`
+Case :math:`|| w  || \ne 0`
 -----------------------------------
 The subdifferential in that case is :math:`\lambda w / {|| w ||} + C_1 \times \ldots \times C_g` where :math:`C_i = {0}` if :math:`w_i > 0` and :math:`C_i = mathbb{R}_-` otherwise (:math:`w_i =0`).
 
-The value of the projection :math:`p` of :math:`v` onto this set is given by :math:`p_i = \lambda w_i / {||w_i||}` if :math:`w_i > 0`, and :math:`\min(v, \lambda w_i / {||w||})` otherwise.
+By letting :math:`p` denotes the projection of :math:`v` onto this set, the distance to the subdifferential is
 
+.. math::
 
+    D(v) = || v - p ||
+    ,
+
+where :math:`p_i = \lambda w_i / {||w_i||}` if :math:`w_i > 0`, and :math:`\min(v, \lambda w_i / {||w||})` otherwise.
 
 
 References

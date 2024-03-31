@@ -90,11 +90,11 @@ class QuadraticGroup(BaseDatafit):
         return grad_g
 
     def gradient_scalar_sparse(self, X_data, X_indptr, X_indices, y, w, Xw, j):
-        nrm2 = 0.
+        grad_j = 0.
         for i in range(X_indptr[j], X_indptr[j+1]):
-            nrm2 += X_data[i] * (Xw[X_indices[i]] - y[X_indices[i]])
+            grad_j += X_data[i] * (Xw[X_indices[i]] - y[X_indices[i]])
 
-        return nrm2/len(y)
+        return grad_j / len(y)
 
     def gradient_scalar(self, X, y, w, Xw, j):
         return (Xw - y) @ X[:, j] / len(y)

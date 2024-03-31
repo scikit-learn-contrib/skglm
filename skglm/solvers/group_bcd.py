@@ -67,7 +67,7 @@ class GroupBCD(BaseSolver):
                     f"expected {n_features}, got {len(w)}.")
             raise ValueError(val_error_message)
 
-        is_sparse = sparse.issparse(X)
+        is_sparse = is_sparse
         if is_sparse:
             datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
             lipschitz = datafit.get_lipschitz_sparse(X.data, X.indptr, X.indices, y)
@@ -81,7 +81,7 @@ class GroupBCD(BaseSolver):
         accelerator = AndersonAcceleration(K=5)
 
         for t in range(self.max_iter):
-            if sparse.issparse(X):
+            if is_sparse:
                 grad = _construct_grad_sparse(
                     X.data, X.indptr, X.indices, y, w, Xw, datafit, all_groups)
             else:
@@ -113,7 +113,7 @@ class GroupBCD(BaseSolver):
             for epoch in range(self.max_epochs):
                 # inplace update of w and Xw
 
-                if sparse.issparse(X):
+                if is_sparse:
                     _bcd_epoch_sparse(X.data, X.indptr, X.indices, y,
                                       w, Xw, lipschitz, datafit, penalty, ws)
 
@@ -139,7 +139,7 @@ class GroupBCD(BaseSolver):
 
                 # check sub-optimality every 10 epochs
                 if epoch % 10 == 0:
-                    if sparse.issparse(X):
+                    if is_sparse:
                         grad_ws = _construct_grad_sparse(
                             X.data, X.indptr, X.indices, y, w, Xw, datafit, ws)
                     else:

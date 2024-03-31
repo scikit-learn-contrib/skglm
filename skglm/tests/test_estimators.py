@@ -540,9 +540,9 @@ def test_GroupLasso_estimator(fit_intercept, issparse):
     weights = np.abs(np.random.randn(n_groups))
     alpha = reg * _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights)
 
-    estimator_ours = GroupLasso(groups=groups, alpha=alpha, tol=1e-6,
+    estimator_ours = GroupLasso(groups=groups, alpha=alpha, tol=tol,
                                 weights=weights, fit_intercept=fit_intercept)
-    estimator_celer = GroupLasso_celer(groups=groups, alpha=alpha, tol=1e-6,
+    estimator_celer = GroupLasso_celer(groups=groups, alpha=alpha, tol=tol,
                                        weights=weights, fit_intercept=fit_intercept)
 
     X_ = csc_matrix(X) if issparse else X
@@ -604,4 +604,5 @@ def test_GroupLasso_estimator_sparse_vs_dense(positive):
 
 
 if __name__ == "__main__":
+    test_GroupLasso_estimator(True, True)
     pass

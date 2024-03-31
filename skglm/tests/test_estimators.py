@@ -533,13 +533,15 @@ def test_warm_start(estimator_name):
 @pytest.mark.parametrize("fit_intercept, issparse",
                          product([False, True], [False, True]))
 def test_GroupLasso_estimator(fit_intercept, issparse):
-    grp_indices, grp_ptr = grp_converter(groups, X.shape[1])
-    n_groups = len(grp_ptr)-1
+    reg = 1e-1
     weights = np.ones(n_groups)
-    alpha = _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights)/10.
+    grp_indices, grp_ptr = grp_converter(groups, X.shape[1])
+
+    n_groups = len(grp_ptr) - 1
+    alpha = reg * _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights)
+
     estimator_ours = GroupLasso(groups=groups, alpha=alpha, tol=tol,
-                                weights=weights, fit_intercept=fit_intercept,
-                                positive=False)
+                                weights=weights, fit_intercept=fit_intercept)
     estimator_celer = GroupLasso_celer(groups=groups, alpha=alpha, tol=tol,
                                        weights=weights, fit_intercept=fit_intercept)
 
@@ -551,8 +553,8 @@ def test_GroupLasso_estimator(fit_intercept, issparse):
     coef_ours = estimator_ours.coef_
 
     np.testing.assert_allclose(coef_ours, coef_celer, atol=1e-6)
-    np.testing.assert_allclose(
-        estimator_celer.intercept_, estimator_ours.intercept_, rtol=1e-4)
+    np.testing.assert_allclose(estimator_celer.intercept_,
+                               estimator_ours.intercept_, rtol=1e-4)
     if fit_intercept:
         np.testing.assert_array_less(1e-4, estimator_ours.intercept_)
 

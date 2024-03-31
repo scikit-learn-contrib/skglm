@@ -114,8 +114,8 @@ class GroupBCD(BaseSolver):
                 # inplace update of w and Xw
 
                 if is_sparse:
-                    _bcd_epoch_sparse(X.data, X.indptr, X.indices, y,
-                                      w, Xw, lipschitz, datafit, penalty, ws)
+                    _bcd_epoch_sparse(X.data, X.indptr, X.indices, y, w[:n_features],
+                                      Xw, lipschitz, datafit, penalty, ws)
 
                 else:
                     _bcd_epoch(X, y, w[:n_features], Xw,

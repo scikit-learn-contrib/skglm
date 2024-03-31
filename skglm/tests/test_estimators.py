@@ -534,10 +534,10 @@ def test_warm_start(estimator_name):
                          product([False, True], [False, True]))
 def test_GroupLasso_estimator(fit_intercept, issparse):
     reg = 1e-1
-    weights = np.ones(n_groups)
     grp_indices, grp_ptr = grp_converter(groups, X.shape[1])
 
     n_groups = len(grp_ptr) - 1
+    weights = np.abs(np.random.randn(n_groups))
     alpha = reg * _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights)
 
     estimator_ours = GroupLasso(groups=groups, alpha=alpha, tol=tol,
@@ -562,43 +562,47 @@ def test_GroupLasso_estimator(fit_intercept, issparse):
 @pytest.mark.parametrize("fit_intercept, issparse",
                          product([False, True], [True, False]))
 def test_GroupLasso_estimator_positive(fit_intercept, issparse):
-
+    reg = 1e-1
     grp_indices, grp_ptr = grp_converter(groups, X.shape[1])
-    n_groups = len(grp_ptr)-1
-    weights = np.ones(n_groups)
-    alpha = _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights) / 10.
+
+    n_groups = len(grp_ptr) - 1
+    weights = np.abs(np.random.randn(n_groups))
+    alpha = reg * _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights)
+
     estimator_ours = GroupLasso(groups=groups, alpha=alpha, tol=tol,
                                 weights=weights, fit_intercept=fit_intercept,
                                 positive=True)
 
     X_ = csc_matrix(X) if issparse else X
-
     estimator_ours.fit(X_, y)
 
-    np.testing.assert_array_less(1e-5, norm(estimator_ours.coef_))
-
-    if fit_intercept:
-        np.testing.assert_array_less(1e-4, estimator_ours.intercept_)
+    # check all coefs are positive
+    coef_ = estimator_ours.coef_
+    np.testing.assert_equal(len(coef_[coef_ < 0]), 0)
+    # check optimality
+    np.testing.assert_array_less(estimator_ours.stop_crit_, tol)
 
 
 @pytest.mark.parametrize("positive", [False, True])
 def test_GroupLasso_estimator_sparse_vs_dense(positive):
+    reg = 1e-1
     grp_indices, grp_ptr = grp_converter(groups, X.shape[1])
-    n_groups = len(grp_ptr)-1
-    weights = np.ones(n_groups)
-    alpha = _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights) / 10.
 
-    tol = 1e-8
-    glasso = GroupLasso(groups=groups, alpha=alpha, tol=tol,
+    n_groups = len(grp_ptr) - 1
+    weights = np.abs(np.random.randn(n_groups))
+    alpha = reg * _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights)
+
+    glasso = GroupLasso(groups=groups, alpha=alpha, tol=1e-8,
                         weights=weights, positive=positive)
 
-    X_sparse = csc_matrix(X)
     glasso.fit(X, y)
     coef_dense = glasso.coef_
+
+    X_sparse = csc_matrix(X)
     glasso.fit(X_sparse, y)
     coef_sparse = glasso.coef_
 
-    np.testing.assert_allclose(coef_sparse, coef_dense, atol=1e-6)
+    np.testing.assert_allclose(coef_sparse, coef_dense, rtol=1e-6)
 
 
 if __name__ == "__main__":

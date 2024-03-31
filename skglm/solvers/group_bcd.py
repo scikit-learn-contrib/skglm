@@ -1,6 +1,6 @@
 import numpy as np
 from numba import njit
-from scipy import sparse
+from scipy.sparse import issparse
 
 from skglm.solvers.base import BaseSolver
 from skglm.utils.anderson import AndersonAcceleration
@@ -67,7 +67,7 @@ class GroupBCD(BaseSolver):
                     f"expected {n_features}, got {len(w)}.")
             raise ValueError(val_error_message)
 
-        is_sparse = is_sparse
+        is_sparse = issparse(X)
         if is_sparse:
             datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
             lipschitz = datafit.get_lipschitz_sparse(X.data, X.indptr, X.indices, y)

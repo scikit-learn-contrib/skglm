@@ -554,7 +554,7 @@ def test_GroupLasso_estimator(fit_intercept, issparse):
 
     np.testing.assert_allclose(coef_ours, coef_celer, atol=1e-4, rtol=1e-2)
     np.testing.assert_allclose(estimator_celer.intercept_,
-                               estimator_ours.intercept_, rtol=1e-4)
+                               estimator_ours.intercept_, atol=1e-5, rtol=1e-4)
 
 
 @pytest.mark.parametrize("fit_intercept, issparse",

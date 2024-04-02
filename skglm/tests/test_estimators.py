@@ -535,7 +535,6 @@ def test_warm_start(estimator_name):
 def test_GroupLasso_estimator(fit_intercept, issparse):
     reg = 1e-1
     grp_indices, grp_ptr = grp_converter(groups, X.shape[1])
-
     n_groups = len(grp_ptr) - 1
     weights = np.abs(np.random.randn(n_groups))
     alpha = reg * _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights)
@@ -562,7 +561,6 @@ def test_GroupLasso_estimator(fit_intercept, issparse):
 def test_GroupLasso_estimator_positive(fit_intercept, issparse):
     reg = 1e-1
     grp_indices, grp_ptr = grp_converter(groups, X.shape[1])
-
     n_groups = len(grp_ptr) - 1
     weights = np.abs(np.random.randn(n_groups))
     alpha = reg * _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights)
@@ -585,7 +583,6 @@ def test_GroupLasso_estimator_positive(fit_intercept, issparse):
 def test_GroupLasso_estimator_sparse_vs_dense(positive):
     reg = 1e-1
     grp_indices, grp_ptr = grp_converter(groups, X.shape[1])
-
     n_groups = len(grp_ptr) - 1
     weights = np.abs(np.random.randn(n_groups))
     alpha = reg * _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights)

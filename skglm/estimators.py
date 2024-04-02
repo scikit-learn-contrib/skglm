@@ -1604,9 +1604,6 @@ class GroupLasso(LinearModel, RegressorMixin):
     coef_ : array, shape (n_features,)
         parameter vector (:math:`w` in the cost function formula)
 
-    sparse_coef_ : scipy.sparse matrix, shape (n_features, 1)
-        ``sparse_coef_`` is a readonly property derived from ``coef_``
-
     intercept_ : float
         constant term in decision function.
 

@@ -112,7 +112,6 @@ class GroupBCD(BaseSolver):
 
             for epoch in range(self.max_epochs):
                 # inplace update of w and Xw
-
                 if is_sparse:
                     _bcd_epoch_sparse(X.data, X.indptr, X.indices, y, w[:n_features],
                                       Xw, lipschitz, datafit, penalty, ws)

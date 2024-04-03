@@ -182,7 +182,7 @@ Where :math:`v^+` is :math:`v` restricted to its positive coordinates.
 
 Case :math:`|| w  || \ne 0`
 -----------------------------------
-The subdifferential in that case is :math:`\lambda w / {|| w ||} + C_1 \times \ldots \times C_g` where :math:`C_i = {0}` if :math:`w_i > 0` and :math:`C_i = mathbb{R}_-` otherwise (:math:`w_i =0`).
+The subdifferential in that case is :math:`\lambda w / {|| w ||} + C_1 \times \ldots \times C_g` where :math:`C_j = {0}` if :math:`w_j > 0` and :math:`C_j = mathbb{R}_-` otherwise (:math:`w_j =0`).
 
 By letting :math:`p` denotes the projection of :math:`v` onto this set, the distance to the subdifferential is
 
@@ -191,7 +191,7 @@ By letting :math:`p` denotes the projection of :math:`v` onto this set, the dist
     D(v) = || v - p ||
     ,
 
-where :math:`p_i = \lambda w_i / {||w_i||}` if :math:`w_i > 0`, and :math:`\min(v, \lambda w_i / {||w||})` otherwise.
+where :math:`p_j = \lambda w_j / {||w||}` if :math:`w_j > 0`, and :math:`\min(v_j, \lambda w_j / {||w||})` otherwise.
 
 
 References

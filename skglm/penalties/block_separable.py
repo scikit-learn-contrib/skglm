@@ -350,9 +350,8 @@ class WeightedGroupL2(BasePenalty):
                         if w_g[j] > 0:
                             res[j] = -grad_g[j] - thresh
                         else:
-                            # thresh is 0
+                            # thresh is 0, we simplify the expression
                             res[j] = max(-grad_g[j], 0)
-                            print(res[j])
                     scores[idx] = norm(res)
             else:
                 if norm_w_g == 0:

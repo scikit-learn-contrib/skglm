@@ -339,10 +339,10 @@ class WeightedGroupL2(BasePenalty):
                 if norm_w_g == 0:
                     # distance of -neg_grad_g to weights[g] * [-alpha, alpha]
                     neg_grad_g = grad_g[grad_g < 0.]
-                    scores[idx] = max(0, norm(neg_grad_g) -
-                                      self.alpha * weights[g])
+                    scores[idx] = max(0,
+                                      norm(neg_grad_g) - self.alpha * weights[g])
                 elif np.any(w_g < 0):
-                        scores[idx] = np.inf
+                    scores[idx] = np.inf
                 else:
                     res = np.zeros_like(grad_g)
                     for j in range(len(w_g)):

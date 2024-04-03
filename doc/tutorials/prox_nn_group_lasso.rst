@@ -202,7 +202,12 @@ one has
 
 .. math::
 
-    p_j = \lambda \frac{w_j}{||w||}  \text{ if } \, w_j > 0 \\
+    p_j = \lambda \frac{w_j}{||w||}  \text{ if }  w_j > 0
+
+and
+
+.. math::
+
     p_j = \min(v_j, 0)  \text{ otherwise}.
 
 The distance to the subdifferential is then:

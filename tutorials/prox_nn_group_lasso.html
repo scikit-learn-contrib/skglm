@@ -202,6 +202,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../generated/skglm.GeneralizedLinearEstimator.html">skglm.GeneralizedLinearEstimator</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../generated/skglm.CoxEstimator.html">skglm.CoxEstimator</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../generated/skglm.ElasticNet.html">skglm.ElasticNet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.GroupLasso.html">skglm.GroupLasso</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../generated/skglm.Lasso.html">skglm.Lasso</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../generated/skglm.LinearSVC.html">skglm.LinearSVC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../generated/skglm.SparseLogisticRegression.html">skglm.SparseLogisticRegression</a></li>
@@ -395,22 +396,13 @@ x
 <section id="subdifferential-of-the-positive-group-lasso-penalty">
 <span id="subdiff-positive-group-lasso"></span><h2>Subdifferential of the positive Group Lasso penalty<a class="headerlink" href="#subdifferential-of-the-positive-group-lasso-penalty" title="Permalink to this heading">#</a></h2>
 <p>For the <code class="docutils literal notranslate"><span class="pre">subdiff_diff</span></code> working set strategy, we compute the distance <span class="math notranslate nohighlight">`D(v)`</span> for some <span class="math notranslate nohighlight">`v`</span> to the subdifferential of the <span class="math notranslate nohighlight">`h`</span> penalty at a point <span class="math notranslate nohighlight">`w`</span>.
-Since the penalty is group-separable, we consider a block of variables, in <span class="math notranslate nohighlight">`\mathbb{R}^g`</span>.</p>
-<section id="case-w-has-a-strictly-negative-coordinate">
-<h3>Case <span class="math notranslate nohighlight">`w`</span> has a strictly negative coordinate<a class="headerlink" href="#case-w-has-a-strictly-negative-coordinate" title="Permalink to this heading">#</a></h3>
+Since the penalty is group-separable, we reduce the case where <span class="math notranslate nohighlight">`w`</span> is a block of variables in <span class="math notranslate nohighlight">`\mathbb{R}^g`</span>.</p>
+<section id="case-w-notin-mathbb-r-g">
+<h3>Case <span class="math notranslate nohighlight">`w \notin \mathbb{R}_+^g`</span><a class="headerlink" href="#case-w-notin-mathbb-r-g" title="Permalink to this heading">#</a></h3>
 <p>If any component of <span class="math notranslate nohighlight">`w`</span> is strictly negative, the subdifferential is empty, and the distance is <span class="math notranslate nohighlight">`+ \infty`</span>.</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
 `D(v) = + \infty, \quad \forall v \in \mathbb{R}^g
-.`</div>
-</div>
-</section>
-<section id="case-w-is-strictly-positive">
-<h3>Case <span class="math notranslate nohighlight">`w`</span> is strictly positive<a class="headerlink" href="#case-w-is-strictly-positive" title="Permalink to this heading">#</a></h3>
-<p>At a non zero point with strictly positive entries, the penalty is differentiable hence its subgradient is the singleton <span class="math notranslate nohighlight">`w / {|| w ||}`</span>.</p>
-<div class="math-wrapper docutils container">
-<div class="math notranslate nohighlight">
-`D(v) = || v - w / {|| w ||} ||, \quad \forall v \in \mathbb{R}^g
 .`</div>
 </div>
 </section>
@@ -435,7 +427,38 @@ Since the penalty is group-separable, we consider a block of variables, in <span
 `D(v) = \max(0, ||v^+|| - \lambda)
 ,`</div>
 </div>
-<p>Where <span class="math notranslate nohighlight">`v^+`</span> is <span class="math notranslate nohighlight">`v`</span> restricted to its positive coordinates.</p>
+<p>where <span class="math notranslate nohighlight">`v^+`</span> is <span class="math notranslate nohighlight">`v`</span> restricted to its positive coordinates.
+Intuitively, it is clear that if <span class="math notranslate nohighlight">`v_i &lt; 0`</span>, we can cancel it exactly in the objective function by taking <span class="math notranslate nohighlight">`n_i = - v_i`</span> and <span class="math notranslate nohighlight">`u_i = 0`</span>; on the other hand, if <span class="math notranslate nohighlight">`v_i&gt;0`</span>, taking a non zero <span class="math notranslate nohighlight">`n_i`</span> will only increase the quantity that <span class="math notranslate nohighlight">`u_i`</span> needs to bring closer to 0.</p>
+<p>For a rigorous derivation of this, introduce the Lagrangian on a squared objective</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`\mathcal{L}(u, n, \nu, \mu) =
+\frac{1}{2}\norm{u + n - v}^2 + \nu(\frac{1}{2} \norm{u}^2 - \lambda^2 / 2) + \langle \mu, n \rangle
+,`</div>
+</div>
+<p>and write down the optimality condition with respect to <span class="math notranslate nohighlight">`u`</span> and <span class="math notranslate nohighlight">`n`</span>.
+Treat the case <span class="math notranslate nohighlight">`nu = 0`</span> separately; in the other case show that :math:<cite>u</cite> must be positive, and that <span class="math notranslate nohighlight">`v = (1 + \nu) u + n`</span>, together with <span class="math notranslate nohighlight">`u = \mu / \nu`</span> and complementary slackness, to reach the conclusion.</p>
+</section>
+<section id="case-w-ne-0">
+<h3>Case <span class="math notranslate nohighlight">`|| w  || \ne 0`</span><a class="headerlink" href="#case-w-ne-0" title="Permalink to this heading">#</a></h3>
+<p>The subdifferential in that case is <span class="math notranslate nohighlight">`\lambda w / {|| w ||} + C_1 \times \ldots \times C_g`</span> where <span class="math notranslate nohighlight">`C_j = {0}`</span> if <span class="math notranslate nohighlight">`w_j &gt; 0`</span> and <span class="math notranslate nohighlight">`C_j = mathbb{R}_-`</span> otherwise (<span class="math notranslate nohighlight">`w_j =0`</span>).</p>
+<p>By letting <span class="math notranslate nohighlight">`p`</span> denotes the projection of <span class="math notranslate nohighlight">`v`</span> onto this set,
+one has</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`p_j = \lambda \frac{w_j}{||w||}  \text{ if }  w_j &gt; 0`</div>
+</div>
+<p>and</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`p_j = \min(v_j, 0)  \text{ otherwise}.`</div>
+</div>
+<p>The distance to the subdifferential is then:</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+`D(v) = || v - p || = \sqrt{\sum_{j, w_j &gt; 0} (v_j - \lambda \frac{w_j}{||w||})^2 + \sum_{j, w_j=0} \max(0, v_j)^2`</div>
+</div>
+<p>since <span class="math notranslate nohighlight">`v_j - \min(v_j, 0) = v_j + \max(-v_j, 0) = \max(0, v_j)`</span>.</p>
 </section>
 </section>
 <section id="references">
@@ -485,9 +508,9 @@ Since the penalty is group-separable, we consider a block of variables, in <span
 <li><a class="reference internal" href="#proximity-operator-of-the-group-lasso">Proximity operator of the group Lasso</a></li>
 <li><a class="reference internal" href="#proximity-operator-of-the-group-lasso-with-positivity-constraints">Proximity operator of the group Lasso with positivity constraints</a></li>
 <li><a class="reference internal" href="#subdifferential-of-the-positive-group-lasso-penalty">Subdifferential of the positive Group Lasso penalty</a><ul>
-<li><a class="reference internal" href="#case-w-has-a-strictly-negative-coordinate">Case <span class="math notranslate nohighlight">`w`</span> has a strictly negative coordinate</a></li>
-<li><a class="reference internal" href="#case-w-is-strictly-positive">Case <span class="math notranslate nohighlight">`w`</span> is strictly positive</a></li>
+<li><a class="reference internal" href="#case-w-notin-mathbb-r-g">Case <span class="math notranslate nohighlight">`w \notin \mathbb{R}_+^g`</span></a></li>
 <li><a class="reference internal" href="#case-w-0">Case <span class="math notranslate nohighlight">`w = 0`</span></a></li>
+<li><a class="reference internal" href="#case-w-ne-0">Case <span class="math notranslate nohighlight">`|| w  || \ne 0`</span></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#references">References</a></li>

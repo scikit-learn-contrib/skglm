@@ -202,6 +202,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../generated/skglm.GeneralizedLinearEstimator.html">skglm.GeneralizedLinearEstimator</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../generated/skglm.CoxEstimator.html">skglm.CoxEstimator</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../generated/skglm.ElasticNet.html">skglm.ElasticNet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/skglm.GroupLasso.html">skglm.GroupLasso</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../generated/skglm.Lasso.html">skglm.Lasso</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../generated/skglm.LinearSVC.html">skglm.LinearSVC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../generated/skglm.SparseLogisticRegression.html">skglm.SparseLogisticRegression</a></li>
@@ -283,6 +284,10 @@
         <article role="main">
           <section id="version-0-4-in-progress">
 <span id="changes-0-4"></span><h1>Version 0.4 (in progress)<a class="headerlink" href="#version-0-4-in-progress" title="Permalink to this heading">#</a></h1>
+<ul class="simple">
+<li><p>Add <a class="reference internal" href="../generated/skglm.GroupLasso.html#skglm-grouplasso"><span class="std std-ref">GroupLasso Estimator</span></a> (PR: <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/228">#228</a>)</p></li>
+<li><p>Add support and tutorial for positive coefficients to <a class="reference internal" href="../generated/skglm.penalties.WeightedGroupL2.html#skglm-penalties-weightedgroupl2"><span class="std std-ref">Group Lasso Penalty</span></a> (PR: <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/221">#221</a>)</p></li>
+</ul>
 </section>
 <section id="version-0-3-1-2023-12-21">
 <h1>Version 0.3.1 (2023/12/21)<a class="headerlink" href="#version-0-3-1-2023-12-21" title="Permalink to this heading">#</a></h1>
@@ -292,7 +297,6 @@
 <li><p>Add <a class="reference internal" href="../generated/skglm.penalties.LogSumPenalty.html#skglm-penalties-logsumpenalty"><span class="std std-ref">LogSumPenalty</span></a> (PR: <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/#127">##127</a>)</p></li>
 <li><p>Remove abstract methods in <code class="docutils literal notranslate"><span class="pre">BaseDatafit</span></code> and <code class="docutils literal notranslate"><span class="pre">BasePenalty</span></code> to make solver/penalty/datafit compatibility check easier (PR <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/#205">##205</a>)</p></li>
 <li><p>Add fixed-point distance to build working sets in <a class="reference internal" href="../generated/skglm.solvers.ProxNewton.html#skglm-solvers-proxnewton"><span class="std std-ref">ProxNewton</span></a> solver (<a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/138">#138</a>)</p></li>
-<li><p>Add support and tutorial for positive coefficients to <span class="xref std std-ref">Group Lasso Penalty</span> (PR: <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/221">#221</a>)</p></li>
 </ul>
 </section>
 

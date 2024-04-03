@@ -202,6 +202,7 @@
 <li class="toctree-l2"><a class="reference internal" href="skglm.GeneralizedLinearEstimator.html">skglm.GeneralizedLinearEstimator</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.CoxEstimator.html">skglm.CoxEstimator</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.ElasticNet.html">skglm.ElasticNet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="skglm.GroupLasso.html">skglm.GroupLasso</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.Lasso.html">skglm.Lasso</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.LinearSVC.html">skglm.LinearSVC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.SparseLogisticRegression.html">skglm.SparseLogisticRegression</a></li>
@@ -285,7 +286,7 @@
 <h1>skglm.experimental.Pinball<a class="headerlink" href="#skglm-experimental-pinball" title="Permalink to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="skglm.experimental.Pinball">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.experimental.</span></span><span class="sig-name descname"><span class="pre">Pinball</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">quantile_level</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/e4650ec/skglm/experimental/quantile_regression.py#L7"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.experimental.Pinball" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.experimental.</span></span><span class="sig-name descname"><span class="pre">Pinball</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">quantile_level</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/ef88450/skglm/experimental/quantile_regression.py#L7"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.experimental.Pinball" title="Permalink to this definition">#</a></dt>
 <dd><p>Pinball datafit.</p>
 <p>The datafit reads:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sum_i</span> <span class="n">quantile_level</span> <span class="o">*</span> <span class="nb">max</span><span class="p">(</span><span class="n">y_i</span> <span class="o">-</span> <span class="n">Xw_i</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span>
@@ -304,7 +305,7 @@ the datafit becomes a Least Absolute Deviation (LAD) datafit.</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="skglm.experimental.Pinball.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">quantile_level</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/e4650ec/skglm/experimental/quantile_regression.py#L24"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.experimental.Pinball.__init__" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">quantile_level</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/ef88450/skglm/experimental/quantile_regression.py#L24"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.experimental.Pinball.__init__" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>

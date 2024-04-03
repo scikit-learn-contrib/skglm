@@ -335,19 +335,31 @@ class WeightedGroupL2(BasePenalty):
             w_g = w[grp_g_indices]
             norm_w_g = norm(w_g)
 
-            if self.positive and np.any(w_g < 0):
-                scores[idx] = np.inf
-            elif self.positive and norm_w_g == 0:
-                # distance of -norm(neg_grad_g) to weights[g] * [-alpha, alpha]
-                neg_grad_g = grad_g[grad_g < 0.]
-                scores[idx] = max(0, norm(neg_grad_g) - self.alpha * weights[g])
-            elif (not self.positive) and norm_w_g == 0:
-                # distance of -norm(grad_g) to weights[g] * [-alpha, alpha]
-                scores[idx] = max(0, norm(grad_g) - alpha * weights[g])
+            if self.positive:
+                if norm_w_g == 0:
+                    # distance of -neg_grad_g to weights[g] * [-alpha, alpha]
+                    neg_grad_g = grad_g[grad_g < 0.]
+                    scores[idx] = max(0,
+                                      norm(neg_grad_g) - self.alpha * weights[g])
+                elif np.any(w_g < 0):
+                    scores[idx] = np.inf
+                else:
+                    res = np.zeros_like(grad_g)
+                    for j in range(len(w_g)):
+                        thresh = alpha * weights[g] * w_g[j] / norm_w_g
+                        if w_g[j] > 0:
+                            res[j] = -grad_g[j] - thresh
+                        else:
+                            # thresh is 0, we simplify the expression
+                            res[j] = max(-grad_g[j], 0)
+                    scores[idx] = norm(res)
             else:
-                # distance of -grad_g to the subdiff (here a singleton)
-                subdiff = alpha * weights[g] * w_g / norm_w_g
-                scores[idx] = norm(grad_g + subdiff)
+                if norm_w_g == 0:
+                    scores[idx] = max(0, norm(grad_g) - alpha * weights[g])
+                else:
+                    # distance of -grad_g to the subdiff (here a singleton)
+                    subdiff = alpha * weights[g] * w_g / norm_w_g
+                    scores[idx] = norm(grad_g + subdiff)
 
         return scores
 

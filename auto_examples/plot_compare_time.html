@@ -189,6 +189,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/tutorials.html">Tutorials</a></li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Examples Gallery</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Examples Gallery</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="plot_pen_prox.html">Value and proximal operators of penalties</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ucurve.html">Show U-curve of regularization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_lasso_vs_weighted.html">Comparison of Lasso and Weighted Lasso</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_zero_weights_lasso.html">Weighted Lasso with some zero weights</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_logreg_various_penalties.html">Logistic regression with Elastic net and minimax concave penalties</a></li>
@@ -291,26 +292,25 @@ to download the full example code</p>
 <span id="sphx-glr-auto-examples-plot-compare-time-py"></span><h1>Timing comparison with scikit-learn for Lasso<a class="headerlink" href="#timing-comparison-with-scikit-learn-for-lasso" title="Permalink to this heading">#</a></h1>
 <p>Compare time to solve large scale Lasso problems with scikit-learn.</p>
 <img src="../_images/sphx_glr_plot_compare_time_001.png" srcset="../_images/sphx_glr_plot_compare_time_001.png" alt="lasso, enet" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>file_sizes:   0%|                                   | 0.00/26.8M [00:00&lt;?, ?B/s]
-file_sizes:   0%|                           | 24.6k/26.8M [00:00&lt;03:42, 120kB/s]
-file_sizes:   0%|                           | 49.2k/26.8M [00:00&lt;03:40, 121kB/s]
-file_sizes:   0%|                            | 106k/26.8M [00:00&lt;02:17, 194kB/s]
-file_sizes:   1%|▏                           | 221k/26.8M [00:00&lt;01:18, 339kB/s]
-file_sizes:   2%|▍                           | 451k/26.8M [00:01&lt;00:42, 622kB/s]
-file_sizes:   3%|▉                          | 909k/26.8M [00:01&lt;00:22, 1.17MB/s]
-file_sizes:   7%|█▊                        | 1.83M/26.8M [00:01&lt;00:11, 2.25MB/s]
-file_sizes:  14%|███▌                      | 3.66M/26.8M [00:01&lt;00:05, 4.37MB/s]
-file_sizes:  20%|█████                     | 5.23M/26.8M [00:01&lt;00:03, 5.41MB/s]
-file_sizes:  25%|██████▌                   | 6.81M/26.8M [00:02&lt;00:03, 6.12MB/s]
-file_sizes:  35%|█████████▏                | 9.43M/26.8M [00:02&lt;00:02, 8.07MB/s]
-file_sizes:  41%|██████████▋               | 11.0M/26.8M [00:02&lt;00:01, 7.98MB/s]
-file_sizes:  47%|████████████▏             | 12.6M/26.8M [00:02&lt;00:01, 7.91MB/s]
-file_sizes:  53%|█████████████▋            | 14.1M/26.8M [00:02&lt;00:01, 7.89MB/s]
-file_sizes:  63%|████████████████▎         | 16.8M/26.8M [00:03&lt;00:01, 9.31MB/s]
-file_sizes:  72%|██████████████████▊       | 19.4M/26.8M [00:03&lt;00:00, 10.3MB/s]
-file_sizes:  78%|████████████████████▎     | 21.0M/26.8M [00:03&lt;00:00, 9.60MB/s]
-file_sizes:  88%|██████████████████████▉   | 23.6M/26.8M [00:03&lt;00:00, 10.5MB/s]
-file_sizes:  98%|█████████████████████████▍| 26.2M/26.8M [00:03&lt;00:00, 11.2MB/s]
-file_sizes: 100%|██████████████████████████| 26.8M/26.8M [00:03&lt;00:00, 6.87MB/s]
+file_sizes:   0%|                           | 24.6k/26.8M [00:00&lt;03:38, 123kB/s]
+file_sizes:   0%|                           | 49.2k/26.8M [00:00&lt;03:38, 122kB/s]
+file_sizes:   0%|                            | 106k/26.8M [00:00&lt;02:15, 196kB/s]
+file_sizes:   1%|▏                           | 221k/26.8M [00:00&lt;01:17, 344kB/s]
+file_sizes:   2%|▍                           | 451k/26.8M [00:01&lt;00:41, 630kB/s]
+file_sizes:   3%|▉                          | 909k/26.8M [00:01&lt;00:21, 1.19MB/s]
+file_sizes:   7%|█▊                        | 1.83M/26.8M [00:01&lt;00:10, 2.29MB/s]
+file_sizes:  14%|███▌                      | 3.66M/26.8M [00:01&lt;00:05, 4.44MB/s]
+file_sizes:  20%|█████                     | 5.23M/26.8M [00:01&lt;00:03, 5.50MB/s]
+file_sizes:  29%|███████▋                  | 7.86M/26.8M [00:02&lt;00:02, 7.73MB/s]
+file_sizes:  33%|████████▋                 | 8.90M/26.8M [00:02&lt;00:02, 7.05MB/s]
+file_sizes:  40%|██████████▍               | 10.7M/26.8M [00:02&lt;00:02, 7.68MB/s]
+file_sizes:  50%|████████████▉             | 13.4M/26.8M [00:02&lt;00:01, 9.25MB/s]
+file_sizes:  60%|███████████████▌          | 16.0M/26.8M [00:02&lt;00:01, 10.3MB/s]
+file_sizes:  66%|█████████████████         | 17.6M/26.8M [00:03&lt;00:00, 9.63MB/s]
+file_sizes:  75%|███████████████████▌      | 20.2M/26.8M [00:03&lt;00:00, 10.6MB/s]
+file_sizes:  85%|██████████████████████▏   | 22.8M/26.8M [00:03&lt;00:00, 11.3MB/s]
+file_sizes:  95%|████████████████████████▋ | 25.4M/26.8M [00:03&lt;00:00, 11.8MB/s]
+file_sizes: 100%|██████████████████████████| 26.8M/26.8M [00:03&lt;00:00, 7.34MB/s]
 </pre></div>
 </div>
 <div class="line-block">
@@ -402,7 +402,7 @@ file_sizes: 100%|█████████████████████
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 48.308 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 43.426 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-compare-time-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/2c9537288a512ce6fe5c8f920df56f33/plot_compare_time.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_compare_time.ipynb</span></code></a></p>

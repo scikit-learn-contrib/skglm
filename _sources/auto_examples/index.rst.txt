@@ -35,6 +35,23 @@ Examples Gallery
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="Show U-curve of regularization">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_ucurve_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_plot_ucurve.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Show U-curve of regularization</div>
+    </div>
+
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="Comparison of Lasso and Weighted Lasso">
 
 .. only:: html
@@ -161,6 +178,7 @@ Examples Gallery
    :hidden:
 
    /auto_examples/plot_pen_prox
+   /auto_examples/plot_ucurve
    /auto_examples/plot_lasso_vs_weighted
    /auto_examples/plot_zero_weights_lasso
    /auto_examples/plot_logreg_various_penalties

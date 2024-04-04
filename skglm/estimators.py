@@ -1547,11 +1547,10 @@ class GroupLasso(LinearModel, RegressorMixin):
     The optimization objective for GroupLasso is:
 
     .. math::
-        1 / (2 xx n_"samples") \sum_g ||y - X_{[g]} w_{[g]}||_2 ^ 2 + alpha \sum_g
+        1 / (2 xx n_"samples") ||y - X w||_2 ^ 2 + alpha \sum_g
         weights_g ||w_{[g]}||_2
 
-    with :math:`w_{[g]}` (respectively :math:`X_{[g]}`) being the coefficients
-    (respectively the columns) of the g-th group.
+    with :math:`w_{[g]}`  the coefficients of the g-th group.
 
     Parameters
     ----------

@@ -1550,7 +1550,7 @@ class GroupLasso(LinearModel, RegressorMixin):
         1 / (2 xx n_"samples") ||y - X w||_2 ^ 2 + alpha \sum_g
         weights_g ||w_{[g]}||_2
 
-    with :math:`w_{[g]}`  the coefficients of the g-th group.
+    with :math:`w_{[g]}` the coefficients of the g-th group.
 
     Parameters
     ----------

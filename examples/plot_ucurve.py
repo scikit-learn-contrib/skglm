@@ -17,8 +17,8 @@ from sklearn.metrics import mean_squared_error
 from skglm import Lasso
 
 # %%
-# First, we load the dataset and keep ``2000`` features.
-# We also retrain ``2000`` samples in training dataset.
+# First, we load the dataset and keep 2000 features.
+# We also retrain 2000 samples in training dataset.
 X, y = fetch_libsvm("rcv1.binary")
 
 X = X[:, :2000]
@@ -27,7 +27,7 @@ X_train, y_train = X_train[:2000], y_train[:2000]
 
 # %%
 # Next, we define the regularization path.
-# For Lasso, it is well know that there is an ``alpha_max`` above which the optimal solution is zero vector.
+# For Lasso, it is well know that there is an ``alpha_max`` above which the optimal solution is the zero vector.
 alpha_max = norm(X_train.T @ y_train, ord=np.inf) / len(y_train)
 alphas = alpha_max * np.geomspace(1, 1e-4)
 
@@ -46,7 +46,7 @@ for idx, alpha in enumerate(alphas):
 
 # %%
 # Finally, we can plot the train and test MSE.
-# Notice the "sweet spot" at around ``1e-4``, it sits at the boundary between underfitting and overfitting.
+# Notice the "sweet spot" at around ``1e-4``, which sits at the boundary between underfitting and overfitting.
 plt.close('all')
 plt.semilogx(alphas, mse_train, label='train MSE')
 plt.semilogx(alphas, mse_test, label='test MSE')

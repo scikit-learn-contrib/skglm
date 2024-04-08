@@ -69,7 +69,7 @@ We also retrain 2000 samples in training dataset.
 
  .. code-block:: none
 
-    file_sizes:   0%|                                   | 0.00/13.7M [00:00<?, ?B/s]    file_sizes:   0%|                           | 24.6k/13.7M [00:00<01:49, 125kB/s]    file_sizes:   0%|                           | 49.2k/13.7M [00:00<01:49, 125kB/s]    file_sizes:   1%|▏                           | 106k/13.7M [00:00<01:08, 200kB/s]    file_sizes:   2%|▍                           | 221k/13.7M [00:00<00:38, 350kB/s]    file_sizes:   3%|▉                           | 451k/13.7M [00:00<00:20, 641kB/s]    file_sizes:   7%|█▊                         | 909k/13.7M [00:01<00:10, 1.21MB/s]    file_sizes:  13%|███▍                      | 1.83M/13.7M [00:01<00:05, 2.33MB/s]    file_sizes:  27%|██████▉                   | 3.66M/13.7M [00:01<00:02, 4.51MB/s]    file_sizes:  38%|█████████▉                | 5.23M/13.7M [00:01<00:01, 5.59MB/s]    file_sizes:  50%|████████████▉             | 6.81M/13.7M [00:01<00:01, 6.31MB/s]    file_sizes:  61%|███████████████▊          | 8.38M/13.7M [00:02<00:00, 6.82MB/s]    file_sizes:  80%|████████████████████▊     | 11.0M/13.7M [00:02<00:00, 8.68MB/s]    file_sizes:  92%|███████████████████████▊  | 12.6M/13.7M [00:02<00:00, 8.48MB/s]    file_sizes: 100%|██████████████████████████| 13.7M/13.7M [00:02<00:00, 5.25MB/s]
+    file_sizes:   0%|                                   | 0.00/13.7M [00:00<?, ?B/s]    file_sizes:   0%|                           | 24.6k/13.7M [00:00<01:55, 119kB/s]    file_sizes:   0%|                           | 49.2k/13.7M [00:00<01:55, 119kB/s]    file_sizes:   1%|▏                           | 106k/13.7M [00:00<01:11, 191kB/s]    file_sizes:   1%|▎                           | 156k/13.7M [00:00<01:04, 210kB/s]    file_sizes:   2%|▌                           | 270k/13.7M [00:01<00:40, 334kB/s]    file_sizes:   6%|█▍                         | 762k/13.7M [00:01<00:12, 1.03MB/s]    file_sizes:   8%|██▏                       | 1.16M/13.7M [00:01<00:09, 1.32MB/s]    file_sizes:  23%|█████▉                    | 3.12M/13.7M [00:01<00:02, 3.88MB/s]    file_sizes:  34%|████████▉                 | 4.69M/13.7M [00:01<00:01, 5.03MB/s]    file_sizes:  46%|███████████▊              | 6.27M/13.7M [00:02<00:01, 5.83MB/s]    file_sizes:  57%|██████████████▊           | 7.84M/13.7M [00:02<00:00, 6.38MB/s]    file_sizes:  69%|█████████████████▊        | 9.41M/13.7M [00:02<00:00, 6.77MB/s]    file_sizes:  80%|████████████████████▊     | 11.0M/13.7M [00:02<00:00, 7.05MB/s]    file_sizes:  99%|█████████████████████████▊| 13.6M/13.7M [00:02<00:00, 8.69MB/s]    file_sizes: 100%|██████████████████████████| 13.7M/13.7M [00:02<00:00, 4.73MB/s]
 
 
 
@@ -150,7 +150,7 @@ Notice the "sweet spot" at around ``1e-4``, which sits at the boundary between u
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 13.789 seconds)
+   **Total running time of the script:** (0 minutes 13.991 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_ucurve.py:

@@ -15,6 +15,7 @@
 import os
 import sys
 import warnings
+from datetime import date
 
 import sphinx_gallery  # noqa
 import sphinx_bootstrap_theme  # noqa
@@ -95,7 +96,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'skglm'
-copyright = u'2022, skglm developers'
+copyright = f'2022-{date.today().year}, skglm developers'
 author = u'skglm developers'
 
 # The version info for the project you're documenting, acts as replacement for

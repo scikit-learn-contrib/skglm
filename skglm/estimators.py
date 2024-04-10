@@ -1003,10 +1003,11 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         Number of subproblems solved to reach the specified tolerance.
     """
 
-    def __init__(self, alpha=1.0, tol=1e-4, max_iter=20, max_epochs=1_000, verbose=0,
+    def __init__(self, alpha=1.0, l1ratio=0.5, tol=1e-4, max_iter=20, max_epochs=1_000, verbose=0,
                  fit_intercept=True, warm_start=False):
         super().__init__()
         self.alpha = alpha
+        self.l1ratio = l1ratio
         self.tol = tol
         self.max_iter = max_iter
         self.max_epochs = max_epochs
@@ -1035,7 +1036,7 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
             max_iter=self.max_iter, max_pn_iter=self.max_epochs, tol=self.tol,
             fit_intercept=self.fit_intercept, warm_start=self.warm_start,
             verbose=self.verbose)
-        return _glm_fit(X, y, self, Logistic(), L1(self.alpha), solver)
+        return _glm_fit(X, y, self, Logistic(), L1_plus_L2(self.alpha,self.l1ratio), solver)
 
     def predict_proba(self, X):
         """Probability estimates.

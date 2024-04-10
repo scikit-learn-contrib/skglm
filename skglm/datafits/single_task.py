@@ -27,10 +27,7 @@ class Quadratic(BaseDatafit):
     """
 
     def __init__(self):
-        self.sample_weights = None
-
-    def set_sample_weights(self, sample_weights):
-        self.sample_weights = sample_weights
+        pass
 
     def get_spec(self):
         spec = (
@@ -43,34 +40,24 @@ class Quadratic(BaseDatafit):
 
     def get_lipschitz(self, X, y):
         n_features = X.shape[1]
-        if self.sample_weights is None:
-            lipschitz = np.zeros(n_features, dtype=X.dtype)
-            for j in range(n_features):
-                lipschitz[j] = (X[:, j] ** 2).sum() / len(y)
-        else:
-            lipschitz = np.zeros(n_features, dtype=X.dtype)
-            for j in range(n_features):
-                lipschitz[j] = np.sum(self.sample_weights * (X[:, j] ** 2))/len(y)
+
+        lipschitz = np.zeros(n_features, dtype=X.dtype)
+        for j in range(n_features):
+            lipschitz[j] = (X[:, j] ** 2).sum() / len(y)
+
         return lipschitz
 
     def get_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
         n_features = len(X_indptr) - 1
-        if self.sample_weights is None:
-            lipschitz = np.zeros(n_features, dtype=X_data.dtype)
-            for j in range(n_features):
-                nrm2 = 0.
-                for idx in range(X_indptr[j], X_indptr[j + 1]):
-                    nrm2 += X_data[idx] ** 2
+        lipschitz = np.zeros(n_features, dtype=X_data.dtype)
 
-                lipschitz[j] = nrm2 / len(y)
-        else:
-           lipschitz = np.zeros(n_features, dtype=X_data.dtype)
-           for j in range(n_features):
-                nrm2 = 0.
-                for idx in range(X_indptr[j], X_indptr[j + 1]):
-                    nrm2 += self.sample_weights[idx]*X_data[idx] ** 2
+        for j in range(n_features):
+            nrm2 = 0.
+            for idx in range(X_indptr[j], X_indptr[j + 1]):
+                nrm2 += X_data[idx] ** 2
 
-                lipschitz[j] = nrm2 / len(y)
+            lipschitz[j] = nrm2 / len(y)
+
         return lipschitz
 
     def initialize(self, X, y):
@@ -88,57 +75,33 @@ class Quadratic(BaseDatafit):
             self.Xty[j] = xty
 
     def get_global_lipschitz(self, X, y):
-        if self.sample_weights is None:
-           return norm(X, ord=2) ** 2 / len(y)
-        else:
-           return (norm(X@self.sample_weights, axis=1, ord=2) ** 2)/len(y)
+        return norm(X, ord=2) ** 2 / len(y)
 
     def get_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
-        if self.sample_weights is None:
-            return spectral_norm(X_data, X_indptr, X_indices, len(y)) ** 2 / len(y)
-        else:
-            return spectral_norm(X_data@self.sample_weights, X_indptr, X_indices, len(y)) ** 2 /len(y)
+        return spectral_norm(X_data, X_indptr, X_indices, len(y)) ** 2 / len(y)
 
     def value(self, y, w, Xw):
-        if self.sample_weights is None:
-            return np.sum((y - Xw) ** 2) / (2 * len(Xw))
-        else:
-            return np.sum(self.sample_weights * (y - Xw) ** 2) / (2 * len(Xw))
+        return np.sum((y - Xw) ** 2) / (2 * len(Xw))
 
     def gradient_scalar(self, X, y, w, Xw, j):
-        if self.sample_weights is None:
-            return (X[:, j] @ Xw - self.Xty[j]) / len(Xw)
-        else:
-            return self.sample_weights * (X[:, j] @ Xw - self.Xty[j])
+        return (X[:, j] @ Xw - self.Xty[j]) / len(Xw)
 
     def gradient_scalar_sparse(self, X_data, X_indptr, X_indices, y, Xw, j):
         XjTXw = 0.
-        if self.sample_weights is None:
-            for i in range(X_indptr[j], X_indptr[j+1]):
-                XjTXw += X_data[i] * Xw[X_indices[i]]
-            return (XjTXw - self.Xty[j]) / len(Xw)
-        else:
-            XjTXw_weighted = 0.
-            for i in range(X_indptr[j], X_indptr[j+1]):
-                XjTXw_weighted += X_data[i] * Xw[X_indices[i]] * self.sample_weights[X_indices[i]]
-            return (XjTXw_weighted - self.Xty[j]) / len(Xw)
+        for i in range(X_indptr[j], X_indptr[j+1]):
+            XjTXw += X_data[i] * Xw[X_indices[i]]
+        return (XjTXw - self.Xty[j]) / len(Xw)
 
-    def full_grad_sparse(self, X_data, X_indptr, X_indices, y, Xw):
+    def full_grad_sparse(
+            self, X_data, X_indptr, X_indices, y, Xw):
         n_features = X_indptr.shape[0] - 1
         n_samples = y.shape[0]
         grad = np.zeros(n_features, dtype=Xw.dtype)
-        if self.sample_weights is None:
-            for j in range(n_features):
-               XjTXw = 0.
-               for i in range(X_indptr[j], X_indptr[j + 1]):
-                    XjTXw += X_data[i] * Xw[X_indices[i]]
-               grad[j] = (XjTXw - self.Xty[j]) / n_samples
-        else:
-            for j in range(n_features):
-                XjTXw_weighted = 0.
-                for i in range(X_indptr[j], X_indptr[j + 1]):
-                    XjTXw_weighted += X_data[i] * Xw[X_indices[i]] * self.sample_weights[X_indices[i]]
-                grad[j] = (XjTXw_weighted - self.Xty[j]) / n_samples
+        for j in range(n_features):
+            XjTXw = 0.
+            for i in range(X_indptr[j], X_indptr[j + 1]):
+                XjTXw += X_data[i] * Xw[X_indices[i]]
+            grad[j] = (XjTXw - self.Xty[j]) / n_samples
         return grad
 
     def intercept_update_step(self, y, Xw):

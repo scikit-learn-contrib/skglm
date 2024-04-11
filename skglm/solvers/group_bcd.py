@@ -168,11 +168,6 @@ class GroupBCD(BaseSolver):
         check_group_compatible(datafit)
         check_group_compatible(penalty)
 
-        if issparse(X):
-            raise ValueError(
-                "Sparse matrices are not yet supported in `GroupBCD` solver."
-            )
-
 
 @njit
 def _bcd_epoch(X, y, w, Xw, lipschitz, datafit, penalty, ws):

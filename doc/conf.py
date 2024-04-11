@@ -15,6 +15,7 @@
 import os
 import sys
 import warnings
+from datetime import date
 
 import sphinx_gallery  # noqa
 import sphinx_bootstrap_theme  # noqa
@@ -59,6 +60,7 @@ extensions = [
     'sphinx_gallery.gen_gallery',
     'sphinx.ext.autosectionlabel',
     'sphinx_copybutton',
+    'sphinx_design',
     'numpydoc',
     'sphinx.ext.linkcode',
     'gh_substitutions',
@@ -94,7 +96,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'skglm'
-copyright = u'2022, skglm developers'
+copyright = f'2022-{date.today().year}, skglm developers'
 author = u'skglm developers'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -268,7 +270,8 @@ if not is_stable_doc:
         "announcement": (
             "You are viewing the documentation of the dev version of "
             "<code>skglm</code> which contains WIP features. "
-            "View <a href='stable/index.html'>stable version</a>."
+            "View <a href='https://contrib.scikit-learn.org/skglm/stable/index.html'>"
+            "stable version</a>."
         )
     }
 

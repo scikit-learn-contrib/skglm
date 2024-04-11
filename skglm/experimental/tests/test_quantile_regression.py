@@ -28,7 +28,8 @@ def test_PDCD_WS(quantile_level):
     clf = QuantileRegressor(
         quantile=quantile_level,
         alpha=alpha/n_samples,
-        fit_intercept=False
+        fit_intercept=False,
+        solver='highs',
     ).fit(X, y)
 
     np.testing.assert_allclose(w, clf.coef_, atol=1e-5)

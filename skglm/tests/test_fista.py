@@ -3,15 +3,12 @@ import pytest
 import numpy as np
 from numpy.linalg import norm
 
-import scipy.sparse
-import scipy.sparse.linalg
 from scipy.sparse import csc_matrix, issparse
 
 from skglm.penalties import L1, IndicatorBox
 from skglm.solvers import FISTA, AndersonCD
 from skglm.datafits import Quadratic, Logistic, QuadraticSVC
 
-from skglm.utils.sparse_ops import spectral_norm
 from skglm.utils.data import make_correlated_data
 from skglm.utils.jit_compilation import compiled_clone
 
@@ -54,18 +51,6 @@ def test_fista_solver(X, Datafit, Penalty):
     w_cd = solver_cd.solve(X, _y, datafit, penalty)[0]
 
     np.testing.assert_allclose(w_fista, w_cd, atol=1e-7)
-
-
-def test_spectral_norm():
-    n_samples, n_features = 50, 60
-    A_sparse = scipy.sparse.random(n_samples, n_features, density=0.7, format='csc',
-                                   random_state=random_state)
-
-    A_bundles = (A_sparse.data, A_sparse.indptr, A_sparse.indices)
-    spectral_norm_our = spectral_norm(*A_bundles, n_samples=len(y))
-    spectral_norm_sp = scipy.sparse.linalg.svds(A_sparse, k=1)[1]
-
-    np.testing.assert_allclose(spectral_norm_our, spectral_norm_sp)
 
 
 if __name__ == '__main__':

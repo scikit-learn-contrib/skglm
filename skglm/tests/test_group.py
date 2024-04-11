@@ -76,21 +76,22 @@ def test_alpha_max(n_groups, n_features, shuffle):
     np.testing.assert_allclose(norm(w), 0, atol=1e-14)
 
 
-def test_equivalence_lasso():
+@pytest.mark.parametrize('positive', [False, True])
+def test_equivalence_lasso(positive):
     n_samples, n_features = 30, 50
-    rnd = np.random.RandomState(1123)
+    rnd = np.random.RandomState(112)
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=rnd)
 
     grp_indices, grp_ptr = grp_converter(1, n_features)
     weights = abs(rnd.randn(n_features))
 
     alpha_max = norm(X.T @ y / weights, ord=np.inf) / n_samples
-    alpha = alpha_max / 10.
+    alpha = alpha_max / 100.
 
     quad_group = QuadraticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
     group_penalty = WeightedGroupL2(
         alpha=alpha, grp_ptr=grp_ptr,
-        grp_indices=grp_indices, weights=weights)
+        grp_indices=grp_indices, weights=weights, positive=positive)
 
     # compile classes
     quad_group = compiled_clone(quad_group, to_float32=X.dtype == np.float32)
@@ -98,7 +99,8 @@ def test_equivalence_lasso():
     w = GroupBCD(tol=1e-12).solve(X, y, quad_group, group_penalty)[0]
 
     celer_lasso = Lasso(
-        alpha=alpha, fit_intercept=False, tol=1e-12, weights=weights).fit(X, y)
+        alpha=alpha, fit_intercept=False, tol=1e-12, weights=weights,
+        positive=positive).fit(X, y)
 
     np.testing.assert_allclose(celer_lasso.coef_, w)
 

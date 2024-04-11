@@ -70,8 +70,13 @@ class GroupBCD(BaseSolver):
                     f"expected {n_features}, got {len(w)}.")
             raise ValueError(val_error_message)
 
-        datafit.initialize(X, y)
-        lipschitz = datafit.get_lipschitz(X, y)
+        is_sparse = issparse(X)
+        if is_sparse:
+            datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
+            lipschitz = datafit.get_lipschitz_sparse(X.data, X.indptr, X.indices, y)
+        else:
+            datafit.initialize(X, y)
+            lipschitz = datafit.get_lipschitz(X, y)
 
         all_groups = np.arange(n_groups)
         p_objs_out = np.zeros(self.max_iter)
@@ -79,7 +84,11 @@ class GroupBCD(BaseSolver):
         accelerator = AndersonAcceleration(K=5)
 
         for t in range(self.max_iter):
-            grad = _construct_grad(X, y, w, Xw, datafit, all_groups)
+            if is_sparse:
+                grad = _construct_grad_sparse(
+                    X.data, X.indptr, X.indices, y, w, Xw, datafit, all_groups)
+            else:
+                grad = _construct_grad(X, y, w, Xw, datafit, all_groups)
             opt = penalty.subdiff_distance(w, grad, all_groups)
 
             if self.fit_intercept:
@@ -106,7 +115,13 @@ class GroupBCD(BaseSolver):
 
             for epoch in range(self.max_epochs):
                 # inplace update of w and Xw
-                _bcd_epoch(X, y, w[:n_features], Xw, lipschitz, datafit, penalty, ws)
+                if is_sparse:
+                    _bcd_epoch_sparse(X.data, X.indptr, X.indices, y, w[:n_features],
+                                      Xw, lipschitz, datafit, penalty, ws)
+
+                else:
+                    _bcd_epoch(X, y, w[:n_features], Xw,
+                               lipschitz, datafit, penalty, ws)
 
                 # update intercept
                 if self.fit_intercept:
@@ -126,7 +141,12 @@ class GroupBCD(BaseSolver):
 
                 # check sub-optimality every 10 epochs
                 if epoch % 10 == 0:
-                    grad_ws = _construct_grad(X, y, w, Xw, datafit, ws)
+                    if is_sparse:
+                        grad_ws = _construct_grad_sparse(
+                            X.data, X.indptr, X.indices, y, w, Xw, datafit, ws)
+                    else:
+                        grad_ws = _construct_grad(X, y, w, Xw, datafit, ws)
+
                     opt_in = penalty.subdiff_distance(w, grad_ws, ws)
                     stop_crit_in = np.max(opt_in)
 
@@ -167,13 +187,33 @@ def _bcd_epoch(X, y, w, Xw, lipschitz, datafit, penalty, ws):
         grad_g = datafit.gradient_g(X, y, w, Xw, g)
 
         w[grp_g_indices] = penalty.prox_1group(
-            old_w_g - grad_g / lipschitz_g,
-            1 / lipschitz_g, g
-        )
+            old_w_g - grad_g / lipschitz_g, 1 / lipschitz_g, g)
 
         for idx, j in enumerate(grp_g_indices):
             if old_w_g[idx] != w[j]:
                 Xw += (w[j] - old_w_g[idx]) * X[:, j]
+
+
+@njit
+def _bcd_epoch_sparse(
+        X_data, X_indptr, X_indices, y, w, Xw, lipschitz, datafit, penalty, ws):
+    # perform a single BCD epoch on groups in ws
+    grp_ptr, grp_indices = penalty.grp_ptr, penalty.grp_indices
+
+    for g in ws:
+        grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
+        old_w_g = w[grp_g_indices].copy()
+
+        lipschitz_g = lipschitz[g]
+        grad_g = datafit.gradient_g_sparse(X_data, X_indptr, X_indices, y, w, Xw, g)
+
+        w[grp_g_indices] = penalty.prox_1group(
+            old_w_g - grad_g / lipschitz_g, 1 / lipschitz_g, g)
+
+        for idx, j in enumerate(grp_g_indices):
+            if old_w_g[idx] != w[j]:
+                for i in range(X_indptr[j], X_indptr[j+1]):
+                    Xw[X_indices[i]] += (w[j] - old_w_g[idx]) * X_data[i]
 
 
 @njit
@@ -187,6 +227,22 @@ def _construct_grad(X, y, w, Xw, datafit, ws):
     grad_ptr = 0
     for g in ws:
         grad_g = datafit.gradient_g(X, y, w, Xw, g)
+        grads[grad_ptr: grad_ptr+len(grad_g)] = grad_g
+        grad_ptr += len(grad_g)
+    return grads
+
+
+@njit
+def _construct_grad_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, ws):
+    # compute the -gradient according to each group in ws
+    # note: -gradients are stacked in a 1d array ([-grad_ws_1, -grad_ws_2, ...])
+    grp_ptr = datafit.grp_ptr
+    n_features_ws = sum([grp_ptr[g+1] - grp_ptr[g] for g in ws])
+
+    grads = np.zeros(n_features_ws)
+    grad_ptr = 0
+    for g in ws:
+        grad_g = datafit.gradient_g_sparse(X_data, X_indptr, X_indices, y, w, Xw, g)
         grads[grad_ptr: grad_ptr+len(grad_g)] = grad_g
         grad_ptr += len(grad_g)
     return grads

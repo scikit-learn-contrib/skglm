@@ -36,8 +36,9 @@ class GramCD(BaseSolver):
         Initial value of coefficients.
         If set to ``None``, a zero vector is used instead.
 
-    use_acc : bool, default True
+    use_acc : bool, default False
         Extrapolate the iterates based on the past 5 iterates if set to ``True``.
+        Can only be used when ``greedy_cd`` is ``False``.
 
     greedy_cd : bool, default True
         Use a greedy strategy to select features to update in coordinate descent epochs
@@ -53,7 +54,7 @@ class GramCD(BaseSolver):
     _datafit_required_attr = ()
     _penalty_required_attr = ("prox_1d", "subdiff_distance")
 
-    def __init__(self, max_iter=100, use_acc=True, greedy_cd=True, tol=1e-4,
+    def __init__(self, max_iter=100, use_acc=False, greedy_cd=True, tol=1e-4,
                  fit_intercept=True, warm_start=False, verbose=0):
         self.max_iter = max_iter
         self.use_acc = use_acc

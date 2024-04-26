@@ -18,6 +18,23 @@ Examples Gallery
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="Group Logistic regression in python">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_group_logistic_regression_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_plot_group_logistic_regression.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Group Logistic regression in python</div>
+    </div>
+
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="Value and proximal operators of penalties">
 
 .. only:: html
@@ -177,6 +194,7 @@ Examples Gallery
 .. toctree::
    :hidden:
 
+   /auto_examples/plot_group_logistic_regression
    /auto_examples/plot_pen_prox
    /auto_examples/plot_ucurve
    /auto_examples/plot_lasso_vs_weighted

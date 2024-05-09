@@ -79,14 +79,14 @@ def test_alpha_max(n_groups, n_features, shuffle):
 @pytest.mark.parametrize('positive', [False, True])
 def test_equivalence_lasso(positive):
     n_samples, n_features = 30, 50
-    rnd = np.random.RandomState(1123)
+    rnd = np.random.RandomState(112)
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=rnd)
 
     grp_indices, grp_ptr = grp_converter(1, n_features)
     weights = abs(rnd.randn(n_features))
 
     alpha_max = norm(X.T @ y / weights, ord=np.inf) / n_samples
-    alpha = alpha_max / 10.
+    alpha = alpha_max / 100.
 
     quad_group = QuadraticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
     group_penalty = WeightedGroupL2(

@@ -48,7 +48,7 @@ def BST(x, u, positive=False):
     .. math::
         "BST"(x, u)_{S^c} = 0 ,
 
-    the proof can be adapted from [1].
+    the proof can be adapted from [1]; see the details in the documentation.
 
     References
     ----------

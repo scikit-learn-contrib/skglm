@@ -240,6 +240,16 @@ class WeightedGroupL2(BasePenalty):
 
     with :math:`w_{[g]}` being the coefficients of the g-th group.
 
+    When ``positive=True``, it reads
+
+    .. math::
+        sum_{g=1}^{n_"groups"} "weights"_g xx ||w_{[g]}|| + i_{w_{[g]} \geq 0}
+
+    Where :math:`i_{w_{[g]} \geq 0}` is the indicator function of the positive orthant.
+
+    Refer to :ref:`prox_nn_group_lasso` for details on the derivation of the proximal
+    operator and the distance to subdifferential.
+
     Attributes
     ----------
     alpha : float
@@ -305,8 +315,11 @@ class WeightedGroupL2(BasePenalty):
     def subdiff_distance(self, w, grad_ws, ws):
         """Compute distance to the subdifferential at ``w`` of negative gradient.
 
-        Note: ``grad_ws`` is a stacked array of gradients.
-        ([grad_ws_1, grad_ws_2, ...])
+        Refer to :ref:`subdiff_positive_group_lasso` for details of the derivation.
+
+        Note:
+        ----
+        ``grad_ws`` is a stacked array of gradients ``[grad_ws_1, grad_ws_2, ...]``.
         """
         alpha, weights = self.alpha, self.weights
         grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
@@ -322,18 +335,31 @@ class WeightedGroupL2(BasePenalty):
             w_g = w[grp_g_indices]
             norm_w_g = norm(w_g)
 
-            if self.positive and np.any(w_g < 0):
-                scores[idx] = np.inf
-            if self.positive and norm_w_g == 0:
-                # distance of -norm(grad_g) to )-infty, alpha * weights[g]]
-                scores[idx] = max(0, - norm(grad_g) - self.alpha * weights[g])
-            if (not self.positive) and norm_w_g == 0:
-                # distance of -norm(grad_g) to weights[g] * [-alpha, alpha]
-                scores[idx] = max(0, norm(grad_g) - alpha * weights[g])
+            if self.positive:
+                if norm_w_g == 0:
+                    # distance of -neg_grad_g to weights[g] * [-alpha, alpha]
+                    neg_grad_g = grad_g[grad_g < 0.]
+                    scores[idx] = max(0,
+                                      norm(neg_grad_g) - self.alpha * weights[g])
+                elif np.any(w_g < 0):
+                    scores[idx] = np.inf
+                else:
+                    res = np.zeros_like(grad_g)
+                    for j in range(len(w_g)):
+                        thresh = alpha * weights[g] * w_g[j] / norm_w_g
+                        if w_g[j] > 0:
+                            res[j] = -grad_g[j] - thresh
+                        else:
+                            # thresh is 0, we simplify the expression
+                            res[j] = max(-grad_g[j], 0)
+                    scores[idx] = norm(res)
             else:
-                # distance of -grad_g to the subdiff (here a singleton)
-                subdiff = alpha * weights[g] * w_g / norm_w_g
-                scores[idx] = norm(grad_g + subdiff)
+                if norm_w_g == 0:
+                    scores[idx] = max(0, norm(grad_g) - alpha * weights[g])
+                else:
+                    # distance of -grad_g to the subdiff (here a singleton)
+                    subdiff = alpha * weights[g] * w_g / norm_w_g
+                    scores[idx] = norm(grad_g + subdiff)
 
         return scores
 

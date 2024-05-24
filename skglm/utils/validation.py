@@ -76,12 +76,16 @@ def check_obj_solver_attr(obj, solver, required_attr, support_sparse=False):
         obj_name = name_matcher.search(str(obj.__class__)).group(1)
         solver_name = name_matcher.search(str(solver.__class__)).group(1)
 
-        raise AttributeError(
-            f"{obj_name} is not compatible with {solver_name}"
-            " with sparse data. " if support_sparse else ". "
-            f"It must implement {' and '.join(required_attr)}\n"
-            f"Missing {' and '.join(missing_attrs)}."
-        )
+        if not support_sparse:
+            err_message = f"{obj_name} is not compatible with {solver_name}."
+        else:
+            err_message = (f"{obj_name} is not compatible with {solver_name}"
+                           "with sparse data.")
+
+        err_message += (f" It must implement {' and '.join(required_attr)}\n"
+                        f"Missing {' and '.join(missing_attrs)}.")
+
+        raise AttributeError(err_message)
 
 
 def _join_attrs_with_or(attrs, suffix=""):

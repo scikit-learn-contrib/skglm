@@ -8,10 +8,10 @@ class BaseSolver(ABC):
     Attributes
     ----------
     _datafit_required_attr : list
-        List of attributes that must implemented in Datafit.
+        List of attributes that must be implemented in Datafit.
 
     _penalty_required_attr : list
-        List of attributes that must implemented in Penalty.
+        List of attributes that must be implemented in Penalty.
 
     Notes
     -----

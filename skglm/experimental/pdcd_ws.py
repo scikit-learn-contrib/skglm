@@ -6,7 +6,6 @@ from scipy.sparse import issparse
 
 from numba import njit
 from skglm.solvers import BaseSolver
-from skglm.utils.jit_compilation import compiled_clone
 
 from sklearn.exceptions import ConvergenceWarning
 

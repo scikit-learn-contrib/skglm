@@ -136,8 +136,8 @@ class CensoredQuadratic(Quadratic):
     #     )
     #     return spec
 
-    # def params_to_dict(self):
-    #     return dict()
+    def params_to_dict(self):
+        return dict(Xty=self.Xty)
 
     # def get_lipschitz(self, X, y):
 

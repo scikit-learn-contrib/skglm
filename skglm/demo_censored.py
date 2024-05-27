@@ -1,3 +1,6 @@
+import numpy as np
+
+
 from skglm.datafits import Quadratic, CensoredQuadratic
 from skglm.penalties import L1
 from skglm.solvers import AndersonCD
@@ -12,8 +15,10 @@ solver = AndersonCD(verbose=3)
 df = Quadratic()
 df = compiled_clone(df)
 
-solver.solve(X, y, df, pen)
+w = solver.solve(X, y, df, pen)[0]
 
+df2 = CensoredQuadratic(X.T @ y)
+df2 = compiled_clone(df2)
 
-
+w2 = solver.solve(X, np.zeros(X.shape[0]), df2, pen)[0]
 

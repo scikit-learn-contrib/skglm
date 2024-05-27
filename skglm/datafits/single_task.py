@@ -75,7 +75,8 @@ class Quadratic(BaseDatafit):
             self.Xty[j] = xty
 
     def get_global_lipschitz(self, X, y):
-        return norm(X, ord=2) ** 2 / len(y)
+        n_samples = X.shape[0]
+        return norm(X, ord=2) ** 2 / n_samples
 
     def get_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
         return spectral_norm(X_data, X_indptr, X_indices, len(y)) ** 2 / len(y)
@@ -106,6 +107,99 @@ class Quadratic(BaseDatafit):
 
     def intercept_update_step(self, y, Xw):
         return np.mean(Xw - y)
+
+class CensoredQuadratic(Quadratic):
+    """Quadratic datafit with access to Xty but not to y.
+
+    The datafit reads:
+
+    .. math:: 1 / (2 xx  n_"samples") ||Xw||_2 ^ 2 - 1 / (n_"samples") w^\top (X^\top y)
+
+    Attributes
+    ----------
+    Xty : array, shape (n_features,)
+        Pre-computed quantity used during the gradient evaluation.
+        Equal to ``X.T @ y``.
+
+    Note
+    ----
+    The class is jit compiled at fit time using Numba compiler.
+    This allows for faster computations.
+    """
+
+    def __init__(self, Xty):
+        self.Xty = Xty
+
+    # def get_spec(self):
+    #     spec = (
+    #         ('Xty', float64[:]),
+    #     )
+    #     return spec
+
+    # def params_to_dict(self):
+    #     return dict()
+
+    # def get_lipschitz(self, X, y):
+
+
+    #     lipschitz = np.zeros(n_features, dtype=X.dtype)
+    #     for j in range(n_features):
+    #         lipschitz[j] = (X[:, j] ** 2).sum() / len(y)
+
+    #     return lipschitz
+
+    # XXX TODO check without y? or pass y = np.zeros(n_samples)
+    # def get_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+    #     n_features = len(X_indptr) - 1
+    #     lipschitz = np.zeros(n_features, dtype=X_data.dtype)
+
+    #     for j in range(n_features):
+    #         nrm2 = 0.
+    #         for idx in range(X_indptr[j], X_indptr[j + 1]):
+    #             nrm2 += X_data[idx] ** 2
+
+    #         lipschitz[j] = nrm2 / len(y)
+
+    #     return lipschitz
+
+    def initialize(self, X, y):
+        pass
+
+    def initialize_sparse(self, X_data, X_indptr, X_indices, y):
+        pass
+
+    # def get_global_lipschitz(self, X, y):
+    #     return norm(X, ord=2) ** 2 / len(y)
+
+    # def get_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+    #     return spectral_norm(X_data, X_indptr, X_indices, len(y)) ** 2 / len(y)
+
+    def value(self, y, w, Xw):
+        return np.sum((Xw) ** 2) / (2 * len(Xw)) - w @ self.Xty / len(Xw)
+
+    # def gradient_scalar(self, X, y, w, Xw, j):
+    #     return (X[:, j] @ Xw - self.Xty[j]) / len(Xw)
+
+    # def gradient_scalar_sparse(self, X_data, X_indptr, X_indices, y, Xw, j):
+    #     XjTXw = 0.
+    #     for i in range(X_indptr[j], X_indptr[j+1]):
+    #         XjTXw += X_data[i] * Xw[X_indices[i]]
+    #     return (XjTXw - self.Xty[j]) / len(Xw)
+
+    # def full_grad_sparse(
+    #         self, X_data, X_indptr, X_indices, y, Xw):
+    #     n_features = X_indptr.shape[0] - 1
+    #     n_samples = y.shape[0]
+    #     grad = np.zeros(n_features, dtype=Xw.dtype)
+    #     for j in range(n_features):
+    #         XjTXw = 0.
+    #         for i in range(X_indptr[j], X_indptr[j + 1]):
+    #             XjTXw += X_data[i] * Xw[X_indices[i]]
+    #         grad[j] = (XjTXw - self.Xty[j]) / n_samples
+    #     return grad
+
+    def intercept_update_step(self, y, Xw):
+        return np.mean(Xw)  # MM TODO check
 
 
 @njit

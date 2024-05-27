@@ -11,13 +11,13 @@ X, y, _ = make_correlated_data(100, 150)
 
 pen = compiled_clone(L1(alpha=0))
 
-solver = AndersonCD(verbose=3, fit_intercept=False)
+solver = AndersonCD(verbose=3, fit_intercept=True)
 df = Quadratic()
 df = compiled_clone(df)
 
 w = solver.solve(X, y, df, pen)[0]
 
-df2 = CensoredQuadratic(X.T @ y)
+df2 = CensoredQuadratic(X.T @ y, y.mean())
 df2 = compiled_clone(df2)
 
 w2 = solver.solve(X, np.zeros(X.shape[0]), df2, pen)[0]

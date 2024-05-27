@@ -127,17 +127,19 @@ class CensoredQuadratic(Quadratic):
     This allows for faster computations.
     """
 
-    def __init__(self, Xty):
+    def __init__(self, Xty, y_mean):
         self.Xty = Xty
+        self.y_mean = y_mean
 
-    # def get_spec(self):
-    #     spec = (
-    #         ('Xty', float64[:]),
-    #     )
-    #     return spec
+    def get_spec(self):
+        spec = (
+            ('Xty', float64[:]),
+            ('y_mean', float64),
+        )
+        return spec
 
     def params_to_dict(self):
-        return dict(Xty=self.Xty)
+        return dict(Xty=self.Xty, y_mean=self.y_mean)
 
     # def get_lipschitz(self, X, y):
 
@@ -199,7 +201,7 @@ class CensoredQuadratic(Quadratic):
     #     return grad
 
     def intercept_update_step(self, y, Xw):
-        return np.mean(Xw)  # MM TODO check
+        return np.mean(Xw) - self.y_mean # MM TODO check
 
 
 @njit

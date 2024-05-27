@@ -11,7 +11,7 @@ X, y, _ = make_correlated_data(100, 150)
 
 pen = compiled_clone(L1(alpha=0))
 
-solver = AndersonCD(verbose=3)
+solver = AndersonCD(verbose=3, fit_intercept=False)
 df = Quadratic()
 df = compiled_clone(df)
 
@@ -21,4 +21,4 @@ df2 = CensoredQuadratic(X.T @ y)
 df2 = compiled_clone(df2)
 
 w2 = solver.solve(X, np.zeros(X.shape[0]), df2, pen)[0]
-
+np.testing.assert_allclose(w2, w)

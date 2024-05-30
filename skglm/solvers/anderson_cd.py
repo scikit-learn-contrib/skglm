@@ -283,7 +283,7 @@ class AndersonCD(BaseSolver):
         if self.ws_strategy == "subdiff" and not hasattr(penalty, "subdiff_distance"):
             raise AttributeError(
                 "Penalty must implement `subdiff_distance` "
-                "to use self.ws_strategy='subdiff'."
+                "to use ws_strategy='subdiff' in solver AndersonCD."
             )
 
 

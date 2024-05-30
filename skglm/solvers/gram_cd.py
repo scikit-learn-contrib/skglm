@@ -140,7 +140,7 @@ class GramCD(BaseSolver):
     def custom_compatibility_check(self, X, y, datafit):
         if not isinstance(datafit, Quadratic):
             raise AttributeError(
-                f"`GramCD` supports only `Quadratic` datafit, got {datafit}"
+                f"`GramCD` supports only `Quadratic` datafit, got {datafit}."
             )
 
 

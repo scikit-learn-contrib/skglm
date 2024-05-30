@@ -121,5 +121,5 @@ class FISTA(BaseSolver):
         if self.opt_strategy == "subdiff" and not hasattr(penalty, "subdiff_distance"):
             raise AttributeError(
                 "Penalty must implement `subdiff_distance` "
-                "to use self.opt_strategy='subdiff'."
+                "to use `opt_strategy='subdiff'` in Fista solver."
             )

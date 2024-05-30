@@ -34,16 +34,23 @@ beta_value = np.array([5, 3, 0, 0, -2, 0] + [0] * (p - 6))
 start_time = time()
 popu_X = simu_X(n, p, example='hete')
 # MM: if this is not added, the solver gives nans
-popu_X /= 2
+# popu_X /= 2
 
 popu_Y = simu_Y(popu_X, n, beta=beta_value, type='poisson')
 # popu_Y += 1
 print('simulate data time:', time() - start_time)
 
-solver = ProxNewton(verbose=3, max_iter=50)
+solver = ProxNewton(verbose=3, max_iter=50, tol=1e-6)
 start_time = time()
+
+
+alpha_max = (popu_X.T @ (1 - popu_Y) / len(popu_Y)).max()
+print("alpha max: %1e" % alpha_max)
+# alpha = 1.1 * alpha_max  # This yields only 0 coefficients
+alpha = alpha_max / 100
+
 model = GeneralizedLinearEstimator(
-    datafit=datafits.Poisson(), penalty=penalties.L1(alpha=1),
+    datafit=datafits.Poisson(), penalty=penalties.L1(alpha=alpha),
     solver=solver).fit(X=popu_X, y=popu_Y)
 result = model.coef_
 print('fit time time:', time() - start_time)

@@ -5,7 +5,7 @@ from skglm import datafits
 from skglm import penalties
 from skglm.solvers import ProxNewton
 
-rng = np.random.default_rng()
+rng = np.random.default_rng(0)
 
 def simu_X(n, p, example):
     if example == 'iid':

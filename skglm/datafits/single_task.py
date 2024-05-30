@@ -431,7 +431,7 @@ class Poisson(BaseDatafit):
         return dict()
 
     def initialize(self, X, y):
-        if np.any(y <= 0):
+        if np.any(y < 0):
             raise ValueError(
                 "Target vector `y` should only take positive values " +
                 "when fitting a Poisson model.")

@@ -5,10 +5,10 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Sparse recovery with non-convex penalties" href="plot_sparse_recovery.html" /><link rel="prev" title="Timing comparison between direct prox computation and reweighting" href="plot_reweighted_l1.html" />
 
-    <link rel="shortcut icon" href="../_static/logo.svg"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.01.29 -->
+    <link rel="shortcut icon" href="../_static/logo.svg"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.05.06 -->
         <title>Timing comparison with scikit-learn for Lasso - skglm 0.3.2dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=387cc868" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=61a4c737" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
@@ -75,7 +75,7 @@
   <symbol id="svg-sun" viewBox="0 0 24 24">
     <title>Light mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
       <circle cx="12" cy="12" r="5"></circle>
       <line x1="12" y1="1" x2="12" y2="3"></line>
       <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -90,7 +90,7 @@
   <symbol id="svg-moon" viewBox="0 0 24 24">
     <title>Dark mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
       <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
     </svg>
@@ -98,7 +98,7 @@
   <symbol id="svg-sun-half" viewBox="0 0 24 24">
     <title>Auto light/dark mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
       <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
       <circle cx="12" cy="12" r="9" />
       <path d="M13 12h5" />
@@ -106,6 +106,60 @@
       <path d="M13 18h1" />
       <path d="M13 9h4" />
       <path d="M13 6h1" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" /
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
     </svg>
   </symbol>
 </svg>
@@ -118,6 +172,8 @@
 <label class="overlay toc-overlay" for="__toc">
   <div class="visually-hidden">Hide table of contents sidebar</div>
 </label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
 
 <div class="announcement">
   <aside class="announcement-content">
@@ -140,7 +196,8 @@
       <div class="theme-toggle-container theme-toggle-header">
         <button class="theme-toggle">
           <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
-          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
           <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
@@ -270,10 +327,12 @@
         </a>
         <div class="content-icon-container">
           
+
 <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
-              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
               <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
@@ -283,126 +342,36 @@
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
-        <article role="main">
+        <article role="main" id="furo-main-content">
           <div class="sphx-glr-download-link-note admonition note">
 <p class="admonition-title">Note</p>
 <p><a class="reference internal" href="#sphx-glr-download-auto-examples-plot-compare-time-py"><span class="std std-ref">Go to the end</span></a>
-to download the full example code</p>
+to download the full example code.</p>
 </div>
 <section class="sphx-glr-example-title" id="timing-comparison-with-scikit-learn-for-lasso">
-<span id="sphx-glr-auto-examples-plot-compare-time-py"></span><h1>Timing comparison with scikit-learn for Lasso<a class="headerlink" href="#timing-comparison-with-scikit-learn-for-lasso" title="Permalink to this heading">#</a></h1>
+<span id="sphx-glr-auto-examples-plot-compare-time-py"></span><h1>Timing comparison with scikit-learn for Lasso<a class="headerlink" href="#timing-comparison-with-scikit-learn-for-lasso" title="Permalink to this heading">¶</a></h1>
 <p>Compare time to solve large scale Lasso problems with scikit-learn.</p>
 <img src="../_images/sphx_glr_plot_compare_time_001.png" srcset="../_images/sphx_glr_plot_compare_time_001.png" alt="lasso, enet" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>file_sizes:   0%|                                   | 0.00/26.8M [00:00&lt;?, ?B/s]
-file_sizes:   0%|                          | 8.19k/26.8M [00:00&lt;12:50, 34.7kB/s]
-file_sizes:   0%|                          | 32.8k/26.8M [00:00&lt;06:20, 70.3kB/s]
-file_sizes:   0%|                          | 90.1k/26.8M [00:00&lt;04:27, 99.6kB/s]
-file_sizes:   1%|▏                           | 205k/26.8M [00:01&lt;02:05, 211kB/s]
-file_sizes:   1%|▎                           | 303k/26.8M [00:01&lt;01:37, 272kB/s]
-file_sizes:   1%|▎                           | 336k/26.8M [00:01&lt;01:53, 232kB/s]
-file_sizes:   1%|▍                           | 385k/26.8M [00:01&lt;01:57, 225kB/s]
-file_sizes:   2%|▌                           | 500k/26.8M [00:02&lt;01:26, 303kB/s]
-file_sizes:   2%|▌                           | 532k/26.8M [00:02&lt;01:43, 252kB/s]
-file_sizes:   2%|▋                           | 614k/26.8M [00:02&lt;01:33, 279kB/s]
-file_sizes:   2%|▋                           | 664k/26.8M [00:02&lt;01:40, 259kB/s]
-file_sizes:   3%|▊                           | 778k/26.8M [00:03&lt;01:21, 320kB/s]
-file_sizes:   3%|▊                           | 811k/26.8M [00:03&lt;01:39, 261kB/s]
-file_sizes:   3%|▉                           | 926k/26.8M [00:03&lt;01:19, 326kB/s]
-file_sizes:   4%|█                           | 975k/26.8M [00:03&lt;01:28, 291kB/s]
-file_sizes:   4%|█                          | 1.07M/26.8M [00:04&lt;01:19, 322kB/s]
-file_sizes:   4%|█▏                         | 1.14M/26.8M [00:04&lt;01:23, 308kB/s]
-file_sizes:   4%|█▏                         | 1.19M/26.8M [00:04&lt;01:31, 279kB/s]
-file_sizes:   5%|█▎                         | 1.30M/26.8M [00:04&lt;01:14, 341kB/s]
-file_sizes:   5%|█▎                         | 1.35M/26.8M [00:05&lt;01:24, 302kB/s]
-file_sizes:   5%|█▍                         | 1.45M/26.8M [00:05&lt;01:15, 334kB/s]
-file_sizes:   6%|█▌                         | 1.52M/26.8M [00:05&lt;01:19, 318kB/s]
-file_sizes:   6%|█▌                         | 1.56M/26.8M [00:05&lt;01:28, 284kB/s]
-file_sizes:   6%|█▋                         | 1.65M/26.8M [00:06&lt;01:22, 303kB/s]
-file_sizes:   6%|█▋                         | 1.73M/26.8M [00:06&lt;01:19, 314kB/s]
-file_sizes:   7%|█▊                         | 1.81M/26.8M [00:06&lt;01:18, 319kB/s]
-file_sizes:   7%|█▉                         | 1.89M/26.8M [00:06&lt;01:18, 317kB/s]
-file_sizes:   7%|█▉                         | 1.97M/26.8M [00:07&lt;01:17, 320kB/s]
-file_sizes:   8%|██                         | 2.06M/26.8M [00:07&lt;01:15, 328kB/s]
-file_sizes:   8%|██▏                        | 2.14M/26.8M [00:07&lt;01:14, 332kB/s]
-file_sizes:   8%|██▏                        | 2.22M/26.8M [00:07&lt;01:13, 334kB/s]
-file_sizes:   9%|██▍                        | 2.37M/26.8M [00:07&lt;00:58, 420kB/s]
-file_sizes:   9%|██▍                        | 2.43M/26.8M [00:08&lt;01:04, 379kB/s]
-file_sizes:  10%|██▌                        | 2.58M/26.8M [00:08&lt;00:53, 453kB/s]
-file_sizes:  10%|██▋                        | 2.65M/26.8M [00:08&lt;01:00, 401kB/s]
-file_sizes:  10%|██▊                        | 2.76M/26.8M [00:08&lt;00:56, 427kB/s]
-file_sizes:  11%|██▉                        | 2.92M/26.8M [00:09&lt;00:47, 506kB/s]
-file_sizes:  11%|███                        | 3.06M/26.8M [00:09&lt;00:45, 518kB/s]
-file_sizes:  12%|███▏                       | 3.19M/26.8M [00:09&lt;00:44, 529kB/s]
-file_sizes:  13%|███▍                       | 3.35M/26.8M [00:09&lt;00:40, 576kB/s]
-file_sizes:  13%|███▋                       | 3.61M/26.8M [00:10&lt;00:33, 693kB/s]
-file_sizes:  14%|███▋                       | 3.71M/26.8M [00:10&lt;00:37, 622kB/s]
-file_sizes:  15%|████                       | 3.97M/26.8M [00:10&lt;00:31, 734kB/s]
-file_sizes:  16%|████▏                      | 4.17M/26.8M [00:11&lt;00:39, 580kB/s]
-file_sizes:  17%|████▋                      | 4.63M/26.8M [00:11&lt;00:31, 705kB/s]
-file_sizes:  19%|█████                      | 5.02M/26.8M [00:12&lt;00:29, 730kB/s]
-file_sizes:  19%|█████▏                     | 5.15M/26.8M [00:12&lt;00:31, 689kB/s]
-file_sizes:  20%|█████▎                     | 5.25M/26.8M [00:12&lt;00:33, 643kB/s]
-file_sizes:  20%|█████▎                     | 5.32M/26.8M [00:12&lt;00:38, 553kB/s]
-file_sizes:  20%|█████▌                     | 5.48M/26.8M [00:13&lt;00:37, 573kB/s]
-file_sizes:  21%|█████▋                     | 5.64M/26.8M [00:13&lt;00:35, 597kB/s]
-file_sizes:  21%|█████▊                     | 5.74M/26.8M [00:13&lt;00:38, 544kB/s]
-file_sizes:  22%|█████▉                     | 5.91M/26.8M [00:13&lt;00:36, 580kB/s]
-file_sizes:  23%|██████                     | 6.07M/26.8M [00:14&lt;00:34, 601kB/s]
-file_sizes:  23%|██████▎                    | 6.23M/26.8M [00:14&lt;00:32, 623kB/s]
-file_sizes:  24%|██████▍                    | 6.33M/26.8M [00:14&lt;00:36, 557kB/s]
-file_sizes:  24%|██████▌                    | 6.50M/26.8M [00:14&lt;00:33, 597kB/s]
-file_sizes:  25%|██████▋                    | 6.66M/26.8M [00:15&lt;00:32, 621kB/s]
-file_sizes:  25%|██████▉                    | 6.82M/26.8M [00:15&lt;00:31, 639kB/s]
-file_sizes:  26%|███████                    | 6.96M/26.8M [00:15&lt;00:33, 597kB/s]
-file_sizes:  27%|███████▏                   | 7.12M/26.8M [00:15&lt;00:31, 622kB/s]
-file_sizes:  27%|███████▎                   | 7.22M/26.8M [00:16&lt;00:34, 564kB/s]
-file_sizes:  28%|███████▍                   | 7.38M/26.8M [00:16&lt;00:32, 604kB/s]
-file_sizes:  28%|███████▌                   | 7.54M/26.8M [00:16&lt;00:30, 632kB/s]
-file_sizes:  29%|███████▊                   | 7.71M/26.8M [00:16&lt;00:29, 647kB/s]
-file_sizes:  29%|███████▉                   | 7.87M/26.8M [00:17&lt;00:28, 663kB/s]
-file_sizes:  30%|████████                   | 8.00M/26.8M [00:17&lt;00:29, 633kB/s]
-file_sizes:  30%|████████▏                  | 8.17M/26.8M [00:17&lt;00:28, 652kB/s]
-file_sizes:  31%|████████▍                  | 8.33M/26.8M [00:17&lt;00:27, 665kB/s]
-file_sizes:  32%|████████▌                  | 8.46M/26.8M [00:17&lt;00:28, 634kB/s]
-file_sizes:  32%|████████▋                  | 8.63M/26.8M [00:18&lt;00:28, 646kB/s]
-file_sizes:  33%|████████▊                  | 8.79M/26.8M [00:18&lt;00:27, 661kB/s]
-file_sizes:  33%|█████████                  | 8.95M/26.8M [00:18&lt;00:26, 674kB/s]
-file_sizes:  34%|█████████▏                 | 9.12M/26.8M [00:18&lt;00:26, 677kB/s]
-file_sizes:  35%|█████████▎                 | 9.28M/26.8M [00:19&lt;00:25, 683kB/s]
-file_sizes:  35%|█████████▌                 | 9.45M/26.8M [00:19&lt;00:25, 685kB/s]
-file_sizes:  36%|█████████▊                 | 9.74M/26.8M [00:19&lt;00:20, 832kB/s]
-file_sizes:  37%|██████████                 | 9.94M/26.8M [00:19&lt;00:20, 828kB/s]
-file_sizes:  38%|██████████▏                | 10.1M/26.8M [00:20&lt;00:19, 854kB/s]
-file_sizes:  38%|██████████▎                | 10.3M/26.8M [00:20&lt;00:21, 767kB/s]
-file_sizes:  39%|██████████▋                | 10.6M/26.8M [00:20&lt;00:17, 915kB/s]
-file_sizes:  40%|██████████▊                | 10.7M/26.8M [00:20&lt;00:19, 805kB/s]
-file_sizes:  41%|██████████▋               | 11.1M/26.8M [00:21&lt;00:15, 1.02MB/s]
-file_sizes:  42%|██████████▉               | 11.3M/26.8M [00:21&lt;00:15, 1.03MB/s]
-file_sizes:  43%|███████████▏              | 11.6M/26.8M [00:21&lt;00:14, 1.04MB/s]
-file_sizes:  44%|███████████▊               | 11.8M/26.8M [00:21&lt;00:15, 975kB/s]
-file_sizes:  45%|███████████▋              | 12.1M/26.8M [00:21&lt;00:13, 1.09MB/s]
-file_sizes:  46%|████████████              | 12.4M/26.8M [00:22&lt;00:12, 1.17MB/s]
-file_sizes:  48%|████████████▍             | 12.8M/26.8M [00:22&lt;00:11, 1.23MB/s]
-file_sizes:  49%|████████████▊             | 13.2M/26.8M [00:22&lt;00:09, 1.44MB/s]
-file_sizes:  50%|█████████████             | 13.5M/26.8M [00:22&lt;00:09, 1.34MB/s]
-file_sizes:  52%|█████████████▌            | 13.9M/26.8M [00:23&lt;00:08, 1.52MB/s]
-file_sizes:  54%|█████████████▉            | 14.3M/26.8M [00:23&lt;00:07, 1.56MB/s]
-file_sizes:  56%|██████████████▌           | 15.0M/26.8M [00:23&lt;00:06, 1.91MB/s]
-file_sizes:  58%|███████████████           | 15.5M/26.8M [00:23&lt;00:05, 1.99MB/s]
-file_sizes:  59%|███████████████▍          | 15.9M/26.8M [00:24&lt;00:05, 1.89MB/s]
-file_sizes:  61%|███████████████▉          | 16.4M/26.8M [00:24&lt;00:05, 1.90MB/s]
-file_sizes:  64%|████████████████▌         | 17.0M/26.8M [00:24&lt;00:04, 2.13MB/s]
-file_sizes:  66%|█████████████████▏        | 17.7M/26.8M [00:24&lt;00:03, 2.29MB/s]
-file_sizes:  68%|█████████████████▊        | 18.3M/26.8M [00:25&lt;00:03, 2.44MB/s]
-file_sizes:  71%|██████████████████▍       | 19.0M/26.8M [00:25&lt;00:03, 2.55MB/s]
-file_sizes:  74%|███████████████████▎      | 19.9M/26.8M [00:25&lt;00:02, 2.94MB/s]
-file_sizes:  77%|████████████████████      | 20.7M/26.8M [00:25&lt;00:01, 3.06MB/s]
-file_sizes:  80%|████████████████████▊     | 21.5M/26.8M [00:26&lt;00:01, 3.13MB/s]
-file_sizes:  83%|█████████████████████▌    | 22.3M/26.8M [00:26&lt;00:01, 3.19MB/s]
-file_sizes:  86%|██████████████████████▎   | 23.0M/26.8M [00:26&lt;00:01, 3.25MB/s]
-file_sizes:  91%|███████████████████████▋  | 24.4M/26.8M [00:26&lt;00:00, 3.90MB/s]
-file_sizes:  94%|████████████████████████▍ | 25.1M/26.8M [00:26&lt;00:00, 3.76MB/s]
-file_sizes:  99%|█████████████████████████▋| 26.5M/26.8M [00:27&lt;00:00, 4.29MB/s]
-file_sizes: 100%|███████████████████████████| 26.8M/26.8M [00:27&lt;00:00, 983kB/s]
+file_sizes:   0%|                           | 24.6k/26.8M [00:00&lt;03:34, 125kB/s]
+file_sizes:   0%|                           | 49.2k/26.8M [00:00&lt;03:34, 124kB/s]
+file_sizes:   0%|                            | 106k/26.8M [00:00&lt;02:13, 200kB/s]
+file_sizes:   1%|▏                           | 221k/26.8M [00:00&lt;01:15, 350kB/s]
+file_sizes:   2%|▍                           | 451k/26.8M [00:00&lt;00:41, 641kB/s]
+file_sizes:   3%|▉                          | 909k/26.8M [00:01&lt;00:21, 1.21MB/s]
+file_sizes:   7%|█▊                        | 1.83M/26.8M [00:01&lt;00:10, 2.33MB/s]
+file_sizes:  14%|███▌                      | 3.66M/26.8M [00:01&lt;00:05, 4.51MB/s]
+file_sizes:  20%|█████                     | 5.23M/26.8M [00:01&lt;00:03, 5.58MB/s]
+file_sizes:  25%|██████▌                   | 6.81M/26.8M [00:01&lt;00:03, 6.31MB/s]
+file_sizes:  31%|████████▏                 | 8.38M/26.8M [00:02&lt;00:02, 6.81MB/s]
+file_sizes:  37%|█████████▋                | 9.95M/26.8M [00:02&lt;00:02, 7.16MB/s]
+file_sizes:  47%|████████████▏             | 12.6M/26.8M [00:02&lt;00:01, 8.87MB/s]
+file_sizes:  53%|█████████████▋            | 14.1M/26.8M [00:02&lt;00:01, 8.64MB/s]
+file_sizes:  59%|███████████████▎          | 15.7M/26.8M [00:02&lt;00:01, 8.49MB/s]
+file_sizes:  68%|█████████████████▊        | 18.3M/26.8M [00:03&lt;00:00, 9.83MB/s]
+file_sizes:  74%|███████████████████▎      | 19.9M/26.8M [00:03&lt;00:00, 9.36MB/s]
+file_sizes:  84%|█████████████████████▉    | 22.5M/26.8M [00:03&lt;00:00, 10.5MB/s]
+file_sizes:  94%|████████████████████████▍ | 25.2M/26.8M [00:03&lt;00:00, 11.3MB/s]
+file_sizes: 100%|██████████████████████████| 26.8M/26.8M [00:03&lt;00:00, 7.07MB/s]
 </pre></div>
 </div>
 <div class="line-block">
@@ -415,13 +384,13 @@ file_sizes: 100%|█████████████████████
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">from</span> <span class="nn">libsvmdata</span> <span class="kn">import</span> <span class="n">fetch_libsvm</span>
 
-<span class="kn">from</span> <span class="nn">sklearn.exceptions</span> <span class="kn">import</span> <a href="https://scikit-learn.org/stable/modules/generated/sklearn.exceptions.ConvergenceWarning.html#sklearn.exceptions.ConvergenceWarning" title="sklearn.exceptions.ConvergenceWarning" class="sphx-glr-backref-module-sklearn-exceptions sphx-glr-backref-type-py-class"><span class="n">ConvergenceWarning</span></a>
+<span class="kn">from</span> <span class="nn">sklearn.exceptions</span> <span class="kn">import</span> <a href="https://scikit-learn.org/stable/modules/generated/sklearn.exceptions.ConvergenceWarning.html#sklearn.exceptions.ConvergenceWarning" title="sklearn.exceptions.ConvergenceWarning" class="sphx-glr-backref-module-sklearn-exceptions sphx-glr-backref-type-py-exception"><span class="n">ConvergenceWarning</span></a>
 <span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="kn">import</span> <a href="../generated/skglm.Lasso.html#skglm.Lasso" title="skglm.Lasso" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class"><span class="n">Lasso</span></a> <span class="k">as</span> <a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html#sklearn.linear_model.Lasso" title="sklearn.linear_model.Lasso" class="sphx-glr-backref-module-sklearn-linear_model sphx-glr-backref-type-py-class"><span class="n">Lasso_sklearn</span></a>
 <span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="kn">import</span> <a href="../generated/skglm.ElasticNet.html#skglm.ElasticNet" title="skglm.ElasticNet" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class"><span class="n">ElasticNet</span></a> <span class="k">as</span> <a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.ElasticNet.html#sklearn.linear_model.ElasticNet" title="sklearn.linear_model.ElasticNet" class="sphx-glr-backref-module-sklearn-linear_model sphx-glr-backref-type-py-class"><span class="n">Enet_sklearn</span></a>
 
 <span class="kn">from</span> <span class="nn">skglm</span> <span class="kn">import</span> <a href="../generated/skglm.Lasso.html#skglm.Lasso" title="skglm.Lasso" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class"><span class="n">Lasso</span></a><span class="p">,</span> <a href="../generated/skglm.ElasticNet.html#skglm.ElasticNet" title="skglm.ElasticNet" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class"><span class="n">ElasticNet</span></a>
 
-<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><a href="https://scikit-learn.org/stable/modules/generated/sklearn.exceptions.ConvergenceWarning.html#sklearn.exceptions.ConvergenceWarning" title="sklearn.exceptions.ConvergenceWarning" class="sphx-glr-backref-module-sklearn-exceptions sphx-glr-backref-type-py-class"><span class="n">ConvergenceWarning</span></a><span class="p">)</span>
+<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><a href="https://scikit-learn.org/stable/modules/generated/sklearn.exceptions.ConvergenceWarning.html#sklearn.exceptions.ConvergenceWarning" title="sklearn.exceptions.ConvergenceWarning" class="sphx-glr-backref-module-sklearn-exceptions sphx-glr-backref-type-py-exception"><span class="n">ConvergenceWarning</span></a><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">compute_obj</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">l1_ratio</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
@@ -494,7 +463,7 @@ file_sizes: 100%|█████████████████████
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 11.636 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 45.491 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-compare-time-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/2c9537288a512ce6fe5c8f920df56f33/plot_compare_time.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_compare_time.ipynb</span></code></a></p>
@@ -558,7 +527,7 @@ file_sizes: 100%|█████████████████████
 </div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=4fa264f7"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
-    <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../_static/scripts/furo.js?v=4e2eecee"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=30646c52"></script>
     <script src="../_static/design-tabs.js?v=36754332"></script>

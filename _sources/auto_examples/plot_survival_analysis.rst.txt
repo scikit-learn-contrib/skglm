@@ -11,7 +11,7 @@
         :class: sphx-glr-download-link-note
 
         :ref:`Go to the end <sphx_glr_download_auto_examples_plot_survival_analysis.py>`
-        to download the full example code
+        to download the full example code.
 
 .. rst-class:: sphx-glr-example-title
 
@@ -382,7 +382,7 @@ with more than x100 less time!
 
  .. code-block:: none
 
-    speed up ratio: 797
+    speed up ratio: 750
 
 
 
@@ -566,7 +566,7 @@ Finally, let's compare the timings of both solvers
 
  .. code-block:: none
 
-    speed up ratio: 819
+    speed up ratio: 738
 
 
 
@@ -579,7 +579,7 @@ even for the Efron estimate.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 46.132 seconds)
+   **Total running time of the script:** (0 minutes 45.780 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_survival_analysis.py:

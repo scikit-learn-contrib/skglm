@@ -5,10 +5,10 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" />
 
-    <link rel="shortcut icon" href="../_static/logo.svg"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.01.29 -->
+    <link rel="shortcut icon" href="../_static/logo.svg"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.05.06 -->
         <title>Details on the Positive Group Lasso - skglm 0.3.2dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=387cc868" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=61a4c737" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
@@ -75,7 +75,7 @@
   <symbol id="svg-sun" viewBox="0 0 24 24">
     <title>Light mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
       <circle cx="12" cy="12" r="5"></circle>
       <line x1="12" y1="1" x2="12" y2="3"></line>
       <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -90,7 +90,7 @@
   <symbol id="svg-moon" viewBox="0 0 24 24">
     <title>Dark mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
       <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
     </svg>
@@ -98,7 +98,7 @@
   <symbol id="svg-sun-half" viewBox="0 0 24 24">
     <title>Auto light/dark mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
       <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
       <circle cx="12" cy="12" r="9" />
       <path d="M13 12h5" />
@@ -106,6 +106,60 @@
       <path d="M13 18h1" />
       <path d="M13 9h4" />
       <path d="M13 6h1" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" /
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
     </svg>
   </symbol>
 </svg>
@@ -118,6 +172,8 @@
 <label class="overlay toc-overlay" for="__toc">
   <div class="visually-hidden">Hide table of contents sidebar</div>
 </label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
 
 <div class="announcement">
   <aside class="announcement-content">
@@ -140,7 +196,8 @@
       <div class="theme-toggle-container theme-toggle-header">
         <button class="theme-toggle">
           <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
-          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
           <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
@@ -270,10 +327,12 @@
         </a>
         <div class="content-icon-container">
           
+
 <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
-              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
               <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
@@ -283,12 +342,12 @@
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
-        <article role="main">
+        <article role="main" id="furo-main-content">
           <section id="details-on-the-positive-group-lasso">
-<span id="prox-nn-group-lasso"></span><h1>Details on the Positive Group Lasso<a class="headerlink" href="#details-on-the-positive-group-lasso" title="Permalink to this heading">#</a></h1>
+<span id="prox-nn-group-lasso"></span><h1>Details on the Positive Group Lasso<a class="headerlink" href="#details-on-the-positive-group-lasso" title="Permalink to this heading">¶</a></h1>
 <p>This tutorial presents how to derive the proximity operator and subdifferential of the <span class="math notranslate nohighlight">`l_2`</span>-penalty, and the <span class="math notranslate nohighlight">`l_2`</span>-penalty with nonnegative constraints.</p>
 <section id="proximity-operator-of-the-group-lasso">
-<h2>Proximity operator of the group Lasso<a class="headerlink" href="#proximity-operator-of-the-group-lasso" title="Permalink to this heading">#</a></h2>
+<h2>Proximity operator of the group Lasso<a class="headerlink" href="#proximity-operator-of-the-group-lasso" title="Permalink to this heading">¶</a></h2>
 <p>Let</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
@@ -298,13 +357,13 @@
 <p>then its Fenchel-Legendre conjugate is</p>
 <div class="math-wrapper docutils container" id="equation-fenchel">
 <div class="math notranslate nohighlight" id="equation-fenchel">
-<span class="eqno">(1)<a class="headerlink" href="#equation-fenchel" title="Permalink to this equation">#</a></span>`g^{\star}:x \mapsto i_{\norm{x}_2 \leq 1}
+<span class="eqno">(1)<a class="headerlink" href="#equation-fenchel" title="Permalink to this equation">¶</a></span>`g^{\star}:x \mapsto i_{\norm{x}_2 \leq 1}
 ,`</div>
 </div>
 <p>and for all <span class="math notranslate nohighlight">`x \in \mathbb{R}^p`</span></p>
 <div class="math-wrapper docutils container" id="equation-prox-projection">
 <div class="math notranslate nohighlight" id="equation-prox-projection">
-<span class="eqno">(2)<a class="headerlink" href="#equation-prox-projection" title="Permalink to this equation">#</a></span>`\text{prox}_{g^{\star}}(x)
+<span class="eqno">(2)<a class="headerlink" href="#equation-prox-projection" title="Permalink to this equation">¶</a></span>`\text{prox}_{g^{\star}}(x)
 =
 \text{proj}_{\mathcal{B}_2}(x) = \frac{x}{\max(\norm{x}_2, 1)}
 .`</div>
@@ -340,7 +399,7 @@ x
 <p>A similar formula can be derived for the group Lasso with nonnegative constraints.</p>
 </section>
 <section id="proximity-operator-of-the-group-lasso-with-positivity-constraints">
-<h2>Proximity operator of the group Lasso with positivity constraints<a class="headerlink" href="#proximity-operator-of-the-group-lasso-with-positivity-constraints" title="Permalink to this heading">#</a></h2>
+<h2>Proximity operator of the group Lasso with positivity constraints<a class="headerlink" href="#proximity-operator-of-the-group-lasso-with-positivity-constraints" title="Permalink to this heading">¶</a></h2>
 <p>Let</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
@@ -351,19 +410,19 @@ x
 <p>Let <span class="math notranslate nohighlight">`x \in \mathbb{R}^p`</span> and <span class="math notranslate nohighlight">`S =  \{ j \in 1, ..., p | x_j &gt; 0 \} \in \mathbb{R}^p`</span>, then</p>
 <div class="math-wrapper docutils container" id="equation-fenchel-nn">
 <div class="math notranslate nohighlight" id="equation-fenchel-nn">
-<span class="eqno">(3)<a class="headerlink" href="#equation-fenchel-nn" title="Permalink to this equation">#</a></span>`h^{\star} :x  \mapsto i_{\norm{x_S}_2 \leq 1}
+<span class="eqno">(3)<a class="headerlink" href="#equation-fenchel-nn" title="Permalink to this equation">¶</a></span>`h^{\star} :x  \mapsto i_{\norm{x_S}_2 \leq 1}
 ,`</div>
 </div>
 <p>and</p>
 <div class="math-wrapper docutils container" id="equation-prox-projection-nn-sc">
 <div class="math notranslate nohighlight" id="equation-prox-projection-nn-sc">
-<span class="eqno">(4)<a class="headerlink" href="#equation-prox-projection-nn-sc" title="Permalink to this equation">#</a></span>`\text{prox}_{h^{\star}}(x)_{S^c}
+<span class="eqno">(4)<a class="headerlink" href="#equation-prox-projection-nn-sc" title="Permalink to this equation">¶</a></span>`\text{prox}_{h^{\star}}(x)_{S^c}
 =
 x_{S^c}`</div>
 </div>
 <div class="math-wrapper docutils container" id="equation-prox-projection-nn-s">
 <div class="math notranslate nohighlight" id="equation-prox-projection-nn-s">
-<span class="eqno">(5)<a class="headerlink" href="#equation-prox-projection-nn-s" title="Permalink to this equation">#</a></span>`\text{prox}_{h^{\star}}(x)_S
+<span class="eqno">(5)<a class="headerlink" href="#equation-prox-projection-nn-s" title="Permalink to this equation">¶</a></span>`\text{prox}_{h^{\star}}(x)_S
 =
 \text{proj}_{\mathcal{B}_2}(x_S) = \frac{x_S}{\max(\norm{x_S}_2, 1)}
 .`</div>
@@ -396,11 +455,11 @@ x
 </div>
 </section>
 <section id="subdifferential-of-the-positive-group-lasso-penalty">
-<span id="subdiff-positive-group-lasso"></span><h2>Subdifferential of the positive Group Lasso penalty<a class="headerlink" href="#subdifferential-of-the-positive-group-lasso-penalty" title="Permalink to this heading">#</a></h2>
+<span id="subdiff-positive-group-lasso"></span><h2>Subdifferential of the positive Group Lasso penalty<a class="headerlink" href="#subdifferential-of-the-positive-group-lasso-penalty" title="Permalink to this heading">¶</a></h2>
 <p>For the <code class="docutils literal notranslate"><span class="pre">subdiff_diff</span></code> working set strategy, we compute the distance <span class="math notranslate nohighlight">`D(v)`</span> for some <span class="math notranslate nohighlight">`v`</span> to the subdifferential of the <span class="math notranslate nohighlight">`h`</span> penalty at a point <span class="math notranslate nohighlight">`w`</span>.
 Since the penalty is group-separable, we reduce the case where <span class="math notranslate nohighlight">`w`</span> is a block of variables in <span class="math notranslate nohighlight">`\mathbb{R}^g`</span>.</p>
 <section id="case-w-notin-mathbb-r-g">
-<h3>Case <span class="math notranslate nohighlight">`w \notin \mathbb{R}_+^g`</span><a class="headerlink" href="#case-w-notin-mathbb-r-g" title="Permalink to this heading">#</a></h3>
+<h3>Case <span class="math notranslate nohighlight">`w \notin \mathbb{R}_+^g`</span><a class="headerlink" href="#case-w-notin-mathbb-r-g" title="Permalink to this heading">¶</a></h3>
 <p>If any component of <span class="math notranslate nohighlight">`w`</span> is strictly negative, the subdifferential is empty, and the distance is <span class="math notranslate nohighlight">`+ \infty`</span>.</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
@@ -409,7 +468,7 @@ Since the penalty is group-separable, we reduce the case where <span class="math
 </div>
 </section>
 <section id="case-w-0">
-<h3>Case <span class="math notranslate nohighlight">`w = 0`</span><a class="headerlink" href="#case-w-0" title="Permalink to this heading">#</a></h3>
+<h3>Case <span class="math notranslate nohighlight">`w = 0`</span><a class="headerlink" href="#case-w-0" title="Permalink to this heading">¶</a></h3>
 <p>At <span class="math notranslate nohighlight">`w = 0`</span>, the subdifferential is:</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
@@ -442,7 +501,7 @@ Intuitively, it is clear that if <span class="math notranslate nohighlight">`v_i
 Treat the case <span class="math notranslate nohighlight">`nu = 0`</span> separately; in the other case show that :math:<cite>u</cite> must be positive, and that <span class="math notranslate nohighlight">`v = (1 + \nu) u + n`</span>, together with <span class="math notranslate nohighlight">`u = \mu / \nu`</span> and complementary slackness, to reach the conclusion.</p>
 </section>
 <section id="case-w-ne-0">
-<h3>Case <span class="math notranslate nohighlight">`|| w  || \ne 0`</span><a class="headerlink" href="#case-w-ne-0" title="Permalink to this heading">#</a></h3>
+<h3>Case <span class="math notranslate nohighlight">`|| w  || \ne 0`</span><a class="headerlink" href="#case-w-ne-0" title="Permalink to this heading">¶</a></h3>
 <p>The subdifferential in that case is <span class="math notranslate nohighlight">`\lambda w / {|| w ||} + C_1 \times \ldots \times C_g`</span> where <span class="math notranslate nohighlight">`C_j = {0}`</span> if <span class="math notranslate nohighlight">`w_j &gt; 0`</span> and <span class="math notranslate nohighlight">`C_j = mathbb{R}_-`</span> otherwise (<span class="math notranslate nohighlight">`w_j =0`</span>).</p>
 <p>By letting <span class="math notranslate nohighlight">`p`</span> denotes the projection of <span class="math notranslate nohighlight">`v`</span> onto this set,
 one has</p>
@@ -464,7 +523,7 @@ one has</p>
 </section>
 </section>
 <section id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this heading">#</a></h2>
+<h2>References<a class="headerlink" href="#references" title="Permalink to this heading">¶</a></h2>
 <p>[1] <a class="reference external" href="https://math.stackexchange.com/a/2887332/167258">https://math.stackexchange.com/a/2887332/167258</a></p>
 </section>
 </section>
@@ -530,7 +589,7 @@ one has</p>
 </div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=4fa264f7"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
-    <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../_static/scripts/furo.js?v=4e2eecee"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=30646c52"></script>
     <script src="../_static/design-tabs.js?v=36754332"></script>

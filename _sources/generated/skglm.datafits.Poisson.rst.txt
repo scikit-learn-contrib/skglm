@@ -16,6 +16,7 @@
       ~Poisson.__init__
       ~Poisson.full_grad_sparse
       ~Poisson.get_spec
+      ~Poisson.gradient
       ~Poisson.gradient_scalar
       ~Poisson.gradient_scalar_sparse
       ~Poisson.initialize

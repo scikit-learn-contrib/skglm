@@ -5,10 +5,10 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Comparison of Lasso and Weighted Lasso" href="plot_lasso_vs_weighted.html" /><link rel="prev" title="Value and proximal operators of penalties" href="plot_pen_prox.html" />
 
-    <link rel="shortcut icon" href="../_static/logo.svg"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.01.29 -->
+    <link rel="shortcut icon" href="../_static/logo.svg"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.05.06 -->
         <title>Show U-curve of regularization - skglm 0.3.2dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=387cc868" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=61a4c737" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
@@ -75,7 +75,7 @@
   <symbol id="svg-sun" viewBox="0 0 24 24">
     <title>Light mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
       <circle cx="12" cy="12" r="5"></circle>
       <line x1="12" y1="1" x2="12" y2="3"></line>
       <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -90,7 +90,7 @@
   <symbol id="svg-moon" viewBox="0 0 24 24">
     <title>Dark mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
       <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
     </svg>
@@ -98,7 +98,7 @@
   <symbol id="svg-sun-half" viewBox="0 0 24 24">
     <title>Auto light/dark mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
       <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
       <circle cx="12" cy="12" r="9" />
       <path d="M13 12h5" />
@@ -106,6 +106,60 @@
       <path d="M13 18h1" />
       <path d="M13 9h4" />
       <path d="M13 6h1" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" /
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
     </svg>
   </symbol>
 </svg>
@@ -118,6 +172,8 @@
 <label class="overlay toc-overlay" for="__toc">
   <div class="visually-hidden">Hide table of contents sidebar</div>
 </label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
 
 <div class="announcement">
   <aside class="announcement-content">
@@ -140,7 +196,8 @@
       <div class="theme-toggle-container theme-toggle-header">
         <button class="theme-toggle">
           <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
-          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
           <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
@@ -270,10 +327,12 @@
         </a>
         <div class="content-icon-container">
           
+
 <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
-              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
               <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
@@ -283,14 +342,14 @@
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
-        <article role="main">
+        <article role="main" id="furo-main-content">
           <div class="sphx-glr-download-link-note admonition note">
 <p class="admonition-title">Note</p>
 <p><a class="reference internal" href="#sphx-glr-download-auto-examples-plot-ucurve-py"><span class="std std-ref">Go to the end</span></a>
-to download the full example code</p>
+to download the full example code.</p>
 </div>
 <section class="sphx-glr-example-title" id="show-u-curve-of-regularization">
-<span id="sphx-glr-auto-examples-plot-ucurve-py"></span><h1>Show U-curve of regularization<a class="headerlink" href="#show-u-curve-of-regularization" title="Permalink to this heading">#</a></h1>
+<span id="sphx-glr-auto-examples-plot-ucurve-py"></span><h1>Show U-curve of regularization<a class="headerlink" href="#show-u-curve-of-regularization" title="Permalink to this heading">¶</a></h1>
 <p>Illustrate the sweet spot of regularization: not too much, not too little.
 We showcase that for the Lasso estimator on the <code class="docutils literal notranslate"><span class="pre">rcv1.binary</span></code> dataset.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -314,80 +373,20 @@ We also retrain 2000 samples in training dataset.</p>
 </pre></div>
 </div>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>file_sizes:   0%|                                   | 0.00/13.7M [00:00&lt;?, ?B/s]
-file_sizes:   0%|                          | 24.6k/13.7M [00:00&lt;02:24, 94.7kB/s]
-file_sizes:   0%|                          | 49.2k/13.7M [00:00&lt;02:23, 95.3kB/s]
-file_sizes:   1%|▏                           | 106k/13.7M [00:00&lt;01:29, 152kB/s]
-file_sizes:   2%|▍                           | 221k/13.7M [00:01&lt;01:11, 189kB/s]
-file_sizes:   3%|▉                           | 451k/13.7M [00:01&lt;00:34, 386kB/s]
-file_sizes:   4%|█                           | 516k/13.7M [00:01&lt;00:38, 343kB/s]
-file_sizes:   4%|█▏                          | 582k/13.7M [00:02&lt;00:42, 311kB/s]
-file_sizes:   5%|█▍                          | 696k/13.7M [00:02&lt;00:37, 346kB/s]
-file_sizes:   6%|█▌                          | 795k/13.7M [00:02&lt;00:36, 354kB/s]
-file_sizes:   7%|█▊                          | 893k/13.7M [00:02&lt;00:35, 361kB/s]
-file_sizes:   7%|██                          | 991k/13.7M [00:03&lt;00:34, 370kB/s]
-file_sizes:   8%|██▎                        | 1.16M/13.7M [00:03&lt;00:29, 423kB/s]
-file_sizes:   9%|██▍                        | 1.25M/13.7M [00:03&lt;00:29, 430kB/s]
-file_sizes:  10%|██▌                        | 1.32M/13.7M [00:03&lt;00:32, 378kB/s]
-file_sizes:  10%|██▊                        | 1.43M/13.7M [00:04&lt;00:31, 392kB/s]
-file_sizes:  12%|███▏                       | 1.60M/13.7M [00:04&lt;00:26, 456kB/s]
-file_sizes:  12%|███▎                       | 1.66M/13.7M [00:04&lt;00:29, 402kB/s]
-file_sizes:  13%|███▍                       | 1.78M/13.7M [00:04&lt;00:28, 424kB/s]
-file_sizes:  14%|███▊                       | 1.94M/13.7M [00:05&lt;00:25, 468kB/s]
-file_sizes:  15%|████                       | 2.04M/13.7M [00:05&lt;00:25, 462kB/s]
-file_sizes:  16%|████▎                      | 2.17M/13.7M [00:05&lt;00:25, 462kB/s]
-file_sizes:  17%|████▍                      | 2.27M/13.7M [00:05&lt;00:24, 466kB/s]
-file_sizes:  17%|████▋                      | 2.40M/13.7M [00:06&lt;00:23, 491kB/s]
-file_sizes:  18%|████▉                      | 2.53M/13.7M [00:06&lt;00:23, 482kB/s]
-file_sizes:  19%|█████▏                     | 2.63M/13.7M [00:06&lt;00:23, 469kB/s]
-file_sizes:  20%|█████▍                     | 2.76M/13.7M [00:06&lt;00:22, 484kB/s]
-file_sizes:  21%|█████▋                     | 2.89M/13.7M [00:07&lt;00:21, 503kB/s]
-file_sizes:  22%|█████▉                     | 3.02M/13.7M [00:07&lt;00:20, 518kB/s]
-file_sizes:  23%|██████▏                    | 3.15M/13.7M [00:07&lt;00:20, 520kB/s]
-file_sizes:  24%|██████▍                    | 3.28M/13.7M [00:07&lt;00:19, 522kB/s]
-file_sizes:  25%|██████▋                    | 3.42M/13.7M [00:08&lt;00:19, 525kB/s]
-file_sizes:  26%|██████▉                    | 3.55M/13.7M [00:08&lt;00:19, 528kB/s]
-file_sizes:  27%|███████▎                   | 3.71M/13.7M [00:08&lt;00:17, 573kB/s]
-file_sizes:  28%|███████▌                   | 3.87M/13.7M [00:08&lt;00:16, 587kB/s]
-file_sizes:  29%|███████▉                   | 4.04M/13.7M [00:09&lt;00:16, 600kB/s]
-file_sizes:  31%|████████▎                  | 4.20M/13.7M [00:09&lt;00:15, 612kB/s]
-file_sizes:  32%|████████▋                  | 4.43M/13.7M [00:09&lt;00:13, 699kB/s]
-file_sizes:  34%|█████████▏                 | 4.69M/13.7M [00:09&lt;00:11, 785kB/s]
-file_sizes:  36%|█████████▌                 | 4.89M/13.7M [00:10&lt;00:11, 786kB/s]
-file_sizes:  37%|██████████                 | 5.09M/13.7M [00:10&lt;00:10, 799kB/s]
-file_sizes:  39%|██████████▌                | 5.35M/13.7M [00:10&lt;00:09, 872kB/s]
-file_sizes:  41%|███████████                | 5.61M/13.7M [00:10&lt;00:08, 917kB/s]
-file_sizes:  43%|███████████▌               | 5.87M/13.7M [00:11&lt;00:08, 941kB/s]
-file_sizes:  45%|████████████               | 6.14M/13.7M [00:11&lt;00:07, 952kB/s]
-file_sizes:  47%|████████████▏             | 6.46M/13.7M [00:11&lt;00:07, 1.02MB/s]
-file_sizes:  49%|█████████████              | 6.66M/13.7M [00:12&lt;00:07, 906kB/s]
-file_sizes:  52%|█████████████▍            | 7.12M/13.7M [00:12&lt;00:05, 1.19MB/s]
-file_sizes:  54%|█████████████▉            | 7.38M/13.7M [00:12&lt;00:05, 1.15MB/s]
-file_sizes:  56%|██████████████▌           | 7.71M/13.7M [00:12&lt;00:05, 1.20MB/s]
-file_sizes:  58%|███████████████           | 7.97M/13.7M [00:13&lt;00:04, 1.16MB/s]
-file_sizes:  60%|███████████████▌          | 8.23M/13.7M [00:13&lt;00:04, 1.12MB/s]
-file_sizes:  62%|████████████████▏         | 8.56M/13.7M [00:13&lt;00:04, 1.18MB/s]
-file_sizes:  65%|████████████████▊         | 8.89M/13.7M [00:13&lt;00:03, 1.22MB/s]
-file_sizes:  67%|█████████████████▎        | 9.15M/13.7M [00:13&lt;00:03, 1.36MB/s]
-file_sizes:  68%|█████████████████▋        | 9.31M/13.7M [00:14&lt;00:03, 1.30MB/s]
-file_sizes:  69%|██████████████████        | 9.51M/13.7M [00:14&lt;00:03, 1.14MB/s]
-file_sizes:  72%|██████████████████▋       | 9.84M/13.7M [00:14&lt;00:02, 1.44MB/s]
-file_sizes:  73%|██████████████████▉       | 10.0M/13.7M [00:14&lt;00:02, 1.35MB/s]
-file_sizes:  74%|███████████████████▎      | 10.2M/13.7M [00:14&lt;00:03, 1.17MB/s]
-file_sizes:  77%|███████████████████▉      | 10.5M/13.7M [00:14&lt;00:02, 1.53MB/s]
-file_sizes:  78%|████████████████████▎     | 10.7M/13.7M [00:15&lt;00:02, 1.45MB/s]
-file_sizes:  80%|████████████████████▊     | 11.0M/13.7M [00:15&lt;00:02, 1.37MB/s]
-file_sizes:  82%|█████████████████████▎    | 11.2M/13.7M [00:15&lt;00:01, 1.58MB/s]
-file_sizes:  83%|█████████████████████▋    | 11.4M/13.7M [00:15&lt;00:01, 1.51MB/s]
-file_sizes:  85%|██████████████████████▏   | 11.7M/13.7M [00:15&lt;00:01, 1.40MB/s]
-file_sizes:  87%|██████████████████████▋   | 12.0M/13.7M [00:15&lt;00:01, 1.60MB/s]
-file_sizes:  89%|███████████████████████   | 12.2M/13.7M [00:16&lt;00:01, 1.47MB/s]
-file_sizes:  91%|████████████████████████▍  | 12.4M/13.7M [00:16&lt;00:01, 893kB/s]
-file_sizes:  92%|███████████████████████▉  | 12.6M/13.7M [00:16&lt;00:01, 1.01MB/s]
-file_sizes:  95%|████████████████████████▊ | 13.1M/13.7M [00:16&lt;00:00, 1.27MB/s]
-file_sizes:  97%|█████████████████████████▏| 13.3M/13.7M [00:17&lt;00:00, 1.33MB/s]
-file_sizes:  98%|█████████████████████████▌| 13.5M/13.7M [00:17&lt;00:00, 1.15MB/s]
-file_sizes:  99%|█████████████████████████▊| 13.6M/13.7M [00:17&lt;00:00, 1.15MB/s]
-file_sizes: 100%|███████████████████████████| 13.7M/13.7M [00:17&lt;00:00, 786kB/s]
+file_sizes:   0%|                           | 24.6k/13.7M [00:00&lt;01:49, 126kB/s]
+file_sizes:   0%|                           | 49.2k/13.7M [00:00&lt;01:49, 125kB/s]
+file_sizes:   1%|▏                           | 106k/13.7M [00:00&lt;01:07, 200kB/s]
+file_sizes:   2%|▍                           | 221k/13.7M [00:00&lt;00:38, 351kB/s]
+file_sizes:   3%|▉                           | 451k/13.7M [00:00&lt;00:20, 643kB/s]
+file_sizes:   7%|█▊                         | 909k/13.7M [00:01&lt;00:10, 1.21MB/s]
+file_sizes:  13%|███▍                      | 1.83M/13.7M [00:01&lt;00:05, 2.33MB/s]
+file_sizes:  27%|██████▉                   | 3.66M/13.7M [00:01&lt;00:02, 4.52MB/s]
+file_sizes:  38%|█████████▉                | 5.23M/13.7M [00:01&lt;00:01, 5.59MB/s]
+file_sizes:  50%|████████████▉             | 6.81M/13.7M [00:01&lt;00:01, 6.33MB/s]
+file_sizes:  69%|█████████████████▊        | 9.43M/13.7M [00:02&lt;00:00, 8.34MB/s]
+file_sizes:  80%|████████████████████▊     | 11.0M/13.7M [00:02&lt;00:00, 8.27MB/s]
+file_sizes:  92%|███████████████████████▊  | 12.6M/13.7M [00:02&lt;00:00, 8.22MB/s]
+file_sizes: 100%|██████████████████████████| 13.7M/13.7M [00:02&lt;00:00, 5.32MB/s]
 </pre></div>
 </div>
 <p>Next, we define the regularization path.
@@ -420,7 +419,7 @@ Notice the “sweet spot” at around <code class="docutils literal notranslate"
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
-<img src="../_images/sphx_glr_plot_ucurve_001.png" srcset="../_images/sphx_glr_plot_ucurve_001.png" alt="Mean squared error" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 33.175 seconds)</p>
+<img src="../_images/sphx_glr_plot_ucurve_001.png" srcset="../_images/sphx_glr_plot_ucurve_001.png" alt="Mean squared error" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 13.310 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-ucurve-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/c561e76c25a76938aecd426c0cbcdd39/plot_ucurve.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_ucurve.ipynb</span></code></a></p>
@@ -484,7 +483,7 @@ Notice the “sweet spot” at around <code class="docutils literal notranslate"
 </div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=4fa264f7"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
-    <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../_static/scripts/furo.js?v=4e2eecee"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=30646c52"></script>
     <script src="../_static/design-tabs.js?v=36754332"></script>

@@ -92,6 +92,17 @@ class Quadratic(BaseDatafit):
             XjTXw += X_data[i] * Xw[X_indices[i]]
         return (XjTXw - self.Xty[j]) / len(Xw)
 
+    def gradient(self, X, y, Xw):
+        return X.T @ (Xw - y) / len(y)
+
+    def raw_grad(self, y, Xw):
+        """Compute gradient of datafit w.r.t ``Xw``."""
+        return (Xw - y) / len(y)
+
+    def raw_hessian(self, y, Xw):
+        """Compute Hessian of datafit w.r.t ``Xw``."""
+        return np.ones(len(y)) / len(y)
+
     def full_grad_sparse(
             self, X_data, X_indptr, X_indices, y, Xw):
         n_features = X_indptr.shape[0] - 1

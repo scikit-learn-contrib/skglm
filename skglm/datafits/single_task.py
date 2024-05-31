@@ -453,6 +453,9 @@ class Poisson(BaseDatafit):
     def value(self, y, w, Xw):
         return np.sum(np.exp(Xw) - y * Xw) / len(y)
 
+    def gradient(self, X, y, Xw):
+        return X.T @ self.raw_grad(y, Xw)
+
     def gradient_scalar(self, X, y, w, Xw, j):
         return (X[:, j] @ (np.exp(Xw) - y)) / len(y)
 

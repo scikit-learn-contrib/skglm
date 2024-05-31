@@ -20,12 +20,15 @@
       ~Quadratic.get_lipschitz
       ~Quadratic.get_lipschitz_sparse
       ~Quadratic.get_spec
+      ~Quadratic.gradient
       ~Quadratic.gradient_scalar
       ~Quadratic.gradient_scalar_sparse
       ~Quadratic.initialize
       ~Quadratic.initialize_sparse
       ~Quadratic.intercept_update_step
       ~Quadratic.params_to_dict
+      ~Quadratic.raw_grad
+      ~Quadratic.raw_hessian
       ~Quadratic.value
    
    

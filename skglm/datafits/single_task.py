@@ -92,6 +92,17 @@ class Quadratic(BaseDatafit):
             XjTXw += X_data[i] * Xw[X_indices[i]]
         return (XjTXw - self.Xty[j]) / len(Xw)
 
+    def gradient(self, X, y, Xw):
+        return X.T @ (Xw - y) / len(y)
+
+    def raw_grad(self, y, Xw):
+        """Compute gradient of datafit w.r.t ``Xw``."""
+        return (Xw - y) / len(y)
+
+    def raw_hessian(self, y, Xw):
+        """Compute Hessian of datafit w.r.t ``Xw``."""
+        return np.ones(len(y)) / len(y)
+
     def full_grad_sparse(
             self, X_data, X_indptr, X_indices, y, Xw):
         n_features = X_indptr.shape[0] - 1
@@ -431,15 +442,15 @@ class Poisson(BaseDatafit):
         return dict()
 
     def initialize(self, X, y):
-        if np.any(y <= 0):
+        if np.any(y < 0):
             raise ValueError(
-                "Target vector `y` should only take positive values " +
+                "Target vector `y` should only take positive values "
                 "when fitting a Poisson model.")
 
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
-        if np.any(y <= 0):
+        if np.any(y < 0):
             raise ValueError(
-                "Target vector `y` should only take positive values " +
+                "Target vector `y` should only take positive values "
                 "when fitting a Poisson model.")
 
     def raw_grad(self, y, Xw):
@@ -452,6 +463,9 @@ class Poisson(BaseDatafit):
 
     def value(self, y, w, Xw):
         return np.sum(np.exp(Xw) - y * Xw) / len(y)
+
+    def gradient(self, X, y, Xw):
+        return X.T @ self.raw_grad(y, Xw)
 
     def gradient_scalar(self, X, y, w, Xw, j):
         return (X[:, j] @ (np.exp(Xw) - y)) / len(y)

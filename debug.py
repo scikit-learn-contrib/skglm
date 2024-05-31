@@ -36,7 +36,6 @@ start_time = time()
 X = simu_X(n, p, example='hete')
 
 y = simu_Y(X, n, beta=beta_value, type='poisson')
-# popu_Y += 1
 print('simulate data time:', time() - start_time)
 
 datafit = datafits.Poisson()
@@ -48,6 +47,13 @@ penalty.alpha = alpha_max / 100
 
 solver = ProxNewton(verbose=1, max_iter=50, fit_intercept=False)
 start_time = time()
+
+
+# alpha_max = (X.T @ (1 - y) / len(y)).max()
+# print("alpha max: %1e" % alpha_max)
+# alpha = 1.1 * alpha_max  # This yields only 0 coefficients
+alpha = alpha_max / 100
+
 model = GeneralizedLinearEstimator(
     datafit=datafit, penalty=penalty, solver=solver).fit(X, y)
 result = model.coef_

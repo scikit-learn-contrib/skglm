@@ -256,7 +256,7 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
                 opt = penalty.subdiff_distance(current_w, past_grads, ws)
             elif ws_strategy == "fixpoint":
                 opt = dist_fix_point_cd(
-                    current_w, past_grads, lipschitz, datafit, penalty, ws
+                    current_w, past_grads, lipschitz[ws], datafit, penalty, ws
                 )
             stop_crit = np.max(opt)
 

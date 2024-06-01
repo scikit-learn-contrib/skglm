@@ -184,7 +184,7 @@ class AndersonCD(BaseSolver):
                         opt_ws = penalty.subdiff_distance(w[:n_features], grad_ws, ws)
                     elif self.ws_strategy == "fixpoint":
                         opt_ws = dist_fix_point_cd(
-                            w[:n_features], grad_ws, lipschitz, datafit, penalty, ws
+                            w[:n_features], grad_ws, lipschitz[ws], datafit, penalty, ws
                         )
 
                     stop_crit_in = np.max(opt_ws)

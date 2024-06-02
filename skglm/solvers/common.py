@@ -14,7 +14,7 @@ def dist_fix_point_cd(w, grad_ws, lipschitz_ws, datafit, penalty, ws):
     grad_ws : array, shape (ws_size,)
         Gradient restricted to the working set.
 
-    lipschitz_ws :  array, shape (ws_size,)
+    lipschitz_ws :  array, shape (len(ws),)
         Coordinatewise gradient Lipschitz constants, restricted to working set.
 
     datafit: instance of BaseDatafit
@@ -23,7 +23,7 @@ def dist_fix_point_cd(w, grad_ws, lipschitz_ws, datafit, penalty, ws):
     penalty: instance of BasePenalty
         Penalty.
 
-    ws : array, shape (ws_size,)
+    ws : array, shape (len(ws),)
         The working set.
 
     Returns

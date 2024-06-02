@@ -209,9 +209,9 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
     dtype = X.dtype
     raw_hess = datafit.raw_hessian(y, Xw_epoch)
 
-    lipschitz = np.zeros(len(ws), dtype)
+    lipschitz_ws = np.zeros(len(ws), dtype)
     for idx, j in enumerate(ws):
-        lipschitz[idx] = raw_hess @ X[:, j] ** 2
+        lipschitz_ws[idx] = raw_hess @ X[:, j] ** 2
 
     # for a less costly stopping criterion, we do not compute the exact gradient,
     # but store each coordinate-wise gradient every time we update one coordinate
@@ -227,12 +227,12 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
     for cd_iter in range(MAX_CD_ITER):
         for idx, j in enumerate(ws):
             # skip when X[:, j] == 0
-            if lipschitz[idx] == 0:
+            if lipschitz_ws[idx] == 0:
                 continue
 
             past_grads[idx] = grad_ws[idx] + X[:, j] @ (raw_hess * X_delta_w_ws)
             old_w_idx = w_ws[idx]
-            stepsize = 1 / lipschitz[idx]
+            stepsize = 1 / lipschitz_ws[idx]
 
             w_ws[idx] = penalty.prox_1d(
                 old_w_idx - stepsize * past_grads[idx], stepsize, j)
@@ -256,7 +256,7 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
                 opt = penalty.subdiff_distance(current_w, past_grads, ws)
             elif ws_strategy == "fixpoint":
                 opt = dist_fix_point_cd(
-                    current_w, past_grads, lipschitz[ws], datafit, penalty, ws
+                    current_w, past_grads, lipschitz_ws, datafit, penalty, ws
                 )
             stop_crit = np.max(opt)
 
@@ -267,7 +267,7 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
                 break
 
     # descent direction
-    return w_ws - w_epoch[ws_intercept], X_delta_w_ws, lipschitz
+    return w_ws - w_epoch[ws_intercept], X_delta_w_ws, lipschitz_ws
 
 
 # sparse version of _descent_direction

@@ -151,7 +151,7 @@ class MultiTaskBCD(BaseSolver):
                         opt_ws = penalty.subdiff_distance(W, grad_ws, ws)
                     elif self.ws_strategy == "fixpoint":
                         opt_ws = dist_fix_point_bcd(
-                            W, grad_ws, lipschitz, datafit, penalty, ws
+                            W, grad_ws, lipschitz[ws], datafit, penalty, ws
                         )
 
                     stop_crit_in = np.max(opt_ws)
@@ -231,7 +231,7 @@ class MultiTaskBCD(BaseSolver):
 
 
 @njit
-def dist_fix_point_bcd(W, grad_ws, lipschitz, datafit, penalty, ws):
+def dist_fix_point_bcd(W, grad_ws, lipschitz_ws, datafit, penalty, ws):
     """Compute the violation of the fixed point iterate schema.
 
     Parameters
@@ -239,19 +239,19 @@ def dist_fix_point_bcd(W, grad_ws, lipschitz, datafit, penalty, ws):
     W : array, shape (n_features, n_tasks)
         Coefficient matrix.
 
-    grad_ws : array, shape (ws_size, n_tasks)
+    grad_ws : array, shape (len(ws), n_tasks)
         Gradient restricted to the working set.
 
     datafit: instance of BaseMultiTaskDatafit
         Datafit.
 
-    lipschitz :  array, shape (n_features,)
-        Blockwise gradient Lipschitz constants.
+    lipschitz_ws :  array, shape (len(ws),)
+        Blockwise gradient Lipschitz constants, restricted to working set.
 
     penalty: instance of BasePenalty
         Penalty.
 
-    ws : array, shape (ws_size,)
+    ws : array, shape (len(ws),)
         The working set.
 
     Returns
@@ -262,10 +262,10 @@ def dist_fix_point_bcd(W, grad_ws, lipschitz, datafit, penalty, ws):
     dist = np.zeros(ws.shape[0])
 
     for idx, j in enumerate(ws):
-        if lipschitz[j] == 0.:
+        if lipschitz_ws[idx] == 0.:
             continue
 
-        step_j = 1 / lipschitz[j]
+        step_j = 1 / lipschitz_ws[idx]
         dist[idx] = norm(
             W[j] - penalty.prox_1feat(W[j] - step_j * grad_ws[idx], step_j, j)
         )

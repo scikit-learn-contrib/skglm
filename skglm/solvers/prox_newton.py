@@ -472,15 +472,3 @@ def _update_X_delta_w(X_data, X_indptr, X_indices, X_delta_w, diff, j):
     # Compute X_delta_w += diff * X[:, j] in case of X sparse
     for i in range(X_indptr[j], X_indptr[j+1]):
         X_delta_w[X_indices[i]] += diff * X_data[i]
-
-
-@njit
-def compute_lipschitz(X, y, w_epoch, Xw_epoch, datafit, ws):
-    dtype = X.dtype
-    raw_hess = datafit.raw_hessian(y, Xw_epoch)
-
-    lipschitz_ws = np.zeros(len(ws), dtype)
-    for idx, j in enumerate(ws):
-        lipschitz_ws[idx] = raw_hess @ X[:, j] ** 2
-
-    return lipschitz_ws

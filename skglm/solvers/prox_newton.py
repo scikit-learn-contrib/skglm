@@ -140,8 +140,6 @@ class ProxNewton(BaseSolver):
             # similar to np.argsort()[-ws_size:] but without sorting
             ws = np.argpartition(opt, -ws_size)[-ws_size:]
 
-            print(f"Iter {t:<3}: {ws}")
-
             grad_ws = grad[ws]
             tol_in = EPS_TOL * stop_crit
 

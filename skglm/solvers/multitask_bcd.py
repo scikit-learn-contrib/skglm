@@ -66,7 +66,9 @@ class MultiTaskBCD(BaseSolver):
             if self.ws_strategy == "subdiff":
                 opt = penalty.subdiff_distance(W, grad, all_feats)
             elif self.ws_strategy == "fixpoint":
-                opt = dist_fix_point_bcd(W, grad, datafit, penalty, all_feats)
+                opt = dist_fix_point_bcd(
+                    W, grad, lipschitz, datafit, penalty, all_feats
+                )
             stop_crit = np.max(opt)
             if self.verbose:
                 print(f"Stopping criterion max violation: {stop_crit:.2e}")

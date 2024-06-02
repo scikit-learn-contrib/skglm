@@ -280,10 +280,10 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
     dtype = X_data.dtype
     raw_hess = datafit.raw_hessian(y, Xw_epoch)
 
-    lipschitz = np.zeros(len(ws), dtype)
+    lipschitz_ws = np.zeros(len(ws), dtype)
     for idx, j in enumerate(ws):
-        # equivalent to: lipschitz[idx] += raw_hess * X[:, j] ** 2
-        lipschitz[idx] = _sparse_squared_weighted_norm(
+        # equivalent to: lipschitz_ws[idx] += raw_hess * X[:, j] ** 2
+        lipschitz_ws[idx] = _sparse_squared_weighted_norm(
             X_data, X_indptr, X_indices, j, raw_hess)
 
     # see _descent_direction() comment
@@ -299,7 +299,7 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
     for cd_iter in range(MAX_CD_ITER):
         for idx, j in enumerate(ws):
             # skip when X[:, j] == 0
-            if lipschitz[idx] == 0:
+            if lipschitz_ws[idx] == 0:
                 continue
 
             past_grads[idx] = grad_ws[idx]
@@ -308,7 +308,7 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
                 X_data, X_indptr, X_indices, j, X_delta_w_ws, raw_hess)
 
             old_w_idx = w_ws[idx]
-            stepsize = 1 / lipschitz[idx]
+            stepsize = 1 / lipschitz_ws[idx]
 
             w_ws[idx] = penalty.prox_1d(
                 old_w_idx - stepsize * past_grads[idx], stepsize, j)
@@ -333,7 +333,7 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
                 opt = penalty.subdiff_distance(current_w, past_grads, ws)
             elif ws_strategy == "fixpoint":
                 opt = dist_fix_point_cd(
-                    current_w, past_grads, lipschitz, datafit, penalty, ws
+                    current_w, past_grads, lipschitz_ws, datafit, penalty, ws
                 )
             stop_crit = np.max(opt)
 
@@ -344,7 +344,7 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
                 break
 
     # descent direction
-    return w_ws - w_epoch[ws_intercept], X_delta_w_ws, lipschitz
+    return w_ws - w_epoch[ws_intercept], X_delta_w_ws, lipschitz_ws
 
 
 @njit

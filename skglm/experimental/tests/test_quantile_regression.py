@@ -5,6 +5,7 @@ from numpy.linalg import norm
 from skglm.penalties import L1
 from skglm.experimental.pdcd_ws import PDCD_WS
 from skglm.experimental.quantile_regression import Pinball
+from skglm.utils.jit_compilation import compiled_clone
 
 from skglm.utils.data import make_correlated_data
 from sklearn.linear_model import QuantileRegressor
@@ -21,9 +22,12 @@ def test_PDCD_WS(quantile_level):
     alpha_max = norm(X.T @ (np.sign(y)/2 + (quantile_level - 0.5)), ord=np.inf)
     alpha = alpha_max / 5
 
+    datafit = compiled_clone(Pinball(quantile_level))
+    penalty = compiled_clone(L1(alpha))
+
     w = PDCD_WS(
         dual_init=np.sign(y)/2 + (quantile_level - 0.5)
-    ).solve(X, y, Pinball(quantile_level), L1(alpha))[0]
+    ).solve(X, y, datafit, penalty)[0]
 
     clf = QuantileRegressor(
         quantile=quantile_level,

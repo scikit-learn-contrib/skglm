@@ -36,6 +36,9 @@ class GroupBCD(BaseSolver):
         Amount of verbosity. 0/False is silent.
     """
 
+    _datafit_required_attr = ("get_lipschitz", "gradient_g")
+    _penalty_required_attr = ("prox_1group", "subdiff_distance")
+
     def __init__(self, max_iter=1000, max_epochs=100, p0=10, tol=1e-4,
                  fit_intercept=False, warm_start=False, verbose=0):
         self.max_iter = max_iter
@@ -160,6 +163,10 @@ class GroupBCD(BaseSolver):
             p_objs_out[t] = p_obj
 
         return w, p_objs_out, stop_crit
+
+    def custom_compatibility_check(self, X, y, datafit, penalty):
+        check_group_compatible(datafit)
+        check_group_compatible(penalty)
 
 
 @njit

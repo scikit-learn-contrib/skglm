@@ -2,6 +2,8 @@ import warnings
 import numpy as np
 from numba import njit
 from scipy.sparse import issparse
+
+from skglm.datafits import Quadratic
 from skglm.solvers.base import BaseSolver
 from skglm.utils.anderson import AndersonAcceleration
 
@@ -48,6 +50,9 @@ class GramCD(BaseSolver):
     verbose : bool, default False
         Amount of verbosity. 0/False is silent.
     """
+
+    _datafit_required_attr = ()
+    _penalty_required_attr = ("prox_1d", "subdiff_distance")
 
     def __init__(self, max_iter=100, use_acc=False, greedy_cd=True, tol=1e-4,
                  fit_intercept=True, warm_start=False, verbose=0):
@@ -131,6 +136,12 @@ class GramCD(BaseSolver):
                      penalty.value(w))
             p_objs_out.append(p_obj)
         return w, np.array(p_objs_out), stop_crit
+
+    def custom_compatibility_check(self, X, y, datafit, penalty):
+        if not isinstance(datafit, Quadratic):
+            raise AttributeError(
+                f"`GramCD` supports only `Quadratic` datafit, got {datafit}."
+            )
 
 
 @njit

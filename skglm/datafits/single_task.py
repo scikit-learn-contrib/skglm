@@ -118,6 +118,120 @@ class Quadratic(BaseDatafit):
     def intercept_update_step(self, y, Xw):
         return np.mean(Xw - y)
 
+
+class WeightedQuadratic(BaseDatafit):
+    """Weighted Quadratic datafit.
+
+    The datafit reads:
+
+    .. math:: 1 / (2 xx  (i=1)^(n_"samples") weigths_i)
+        \sum_(i=1)^(n_"samples") weights_i (y_i - (Xw)_i^ 2
+
+    Attributes
+    ----------
+    Xtwy : array, shape (n_features,)
+        Pre-computed quantity used during the gradient evaluation.
+        Equal to ``X.T @ (samples_weights * y)``.
+    sample_weights : array, shape (n_samples,)
+        Weights for each sample.
+    Note
+    ----
+    The class is jit compiled at fit time using Numba compiler.
+    This allows for faster computations.
+    """
+
+    def __init__(self, sample_weights):
+        self.sample_weights = sample_weights
+
+    def get_spec(self):
+        spec = (
+            ('Xtwy', float64[:]),
+            ('sample_weights', float64[:]),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return {'sample_weights': self.sample_weights}
+
+    def get_lipschitz(self, X, y):
+        n_features = X.shape[1]
+        lipschitz = np.zeros(n_features, dtype=X.dtype)
+        w_sum = self.sample_weights.sum()
+
+        for j in range(n_features):
+            lipschitz[j] = (self.sample_weights * X[:, j] ** 2).sum() / w_sum
+
+        return lipschitz
+
+    def get_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+        n_features = len(X_indptr) - 1
+        lipschitz = np.zeros(n_features, dtype=X_data.dtype)
+        w_sum = self.sample_weights.sum()
+
+        for j in range(n_features):
+            nrm2 = 0.
+            for idx in range(X_indptr[j], X_indptr[j + 1]):
+                nrm2 += self.sample_weights[X_indices[idx]] * X_data[idx] ** 2
+
+            lipschitz[j] = nrm2 / w_sum
+
+        return lipschitz
+
+    def initialize(self, X, y):
+        self.Xty = X.T @ (self.sample_weights * y)
+
+    def initialize_sparse(self, X_data, X_indptr, X_indices, y):
+        n_features = len(X_indptr) - 1
+        self.Xty = np.zeros(n_features, dtype=X_data.dtype)
+
+        for j in range(n_features):
+            xty = 0
+            for idx in range(X_indptr[j], X_indptr[j + 1]):
+                xty += X_data[idx] * self.sample_weights[X_indices[idx]] * y[X_indices[idx]]
+            self.Xty[j] = xty
+
+    def get_global_lipschitz(self, X, y):
+        return norm(X.T @ np.sqrt(self.sample_weights), ord=2) ** 2 / self.sample_weights.sum()
+
+    def get_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+        return spectral_norm(X_data * np.sqrt(self.sample_weights[X_indices]), X_indptr, X_indices, len(y)) ** 2 / self.sample_weights.sum()
+
+    def value(self, y, w, Xw):
+        return np.sum(self.sample_weights * (y - Xw) ** 2) / (2 * self.sample_weights.sum())
+
+    def gradient_scalar(self, X, y, w, Xw, j):
+        return (X[:, j] @ (self.sample_weights * (Xw - y))) / self.sample_weights.sum()
+
+    def gradient_scalar_sparse(self, X_data, X_indptr, X_indices, y, Xw, j):
+        XjTXw = 0.
+        for i in range(X_indptr[j], X_indptr[j + 1]):
+            XjTXw += X_data[i] * self.sample_weights[X_indices[i]] * Xw[X_indices[i]]
+        return (XjTXw - self.Xty[j]) / self.sample_weights.sum()
+
+    def gradient(self, X, y, Xw):
+        return X.T @ (self.sample_weights * (Xw - y)) / self.sample_weights.sum()
+
+    def raw_grad(self, y, Xw):
+        return (self.sample_weights * (Xw - y)) / self.sample_weights.sum()
+
+    def raw_hessian(self, y, Xw):
+        return self.sample_weights / self.sample_weights.sum()
+
+    def full_grad_sparse(self, X_data, X_indptr, X_indices, y, Xw):
+        n_features = X_indptr.shape[0] - 1
+        grad = np.zeros(n_features, dtype=Xw.dtype)
+
+        for j in range(n_features):
+            XjTXw = 0.
+            for i in range(X_indptr[j], X_indptr[j + 1]):
+                XjTXw += X_data[i] * self.sample_weights[X_indices[i]] * Xw[X_indices[i]]
+            grad[j] = (XjTXw - self.Xty[j]) / self.sample_weights.sum()
+        return grad
+
+    def intercept_update_step(self, y, Xw):
+        return np.sum(self.sample_weights * (Xw - y)) / self.sample_weights.sum()
+
+
 @njit
 def sigmoid(x):
     """Vectorwise sigmoid."""
@@ -773,114 +887,3 @@ class Cox(BaseDatafit):
         indptr.append(n_indices)
 
         return np.asarray(indptr, dtype=np.int64)
-
-
-class WeightedQuadratic(BaseDatafit):
-    """Weighted Quadratic datafit.
-
-    The datafit reads:
-
-    .. math:: 1 / (2 xx  n_"samples") ||y - Xw||_2 ^ 2
-
-    Attributes
-    ----------
-    Xty : array, shape (n_features,)
-        Pre-computed quantity used during the gradient evaluation.
-        Equal to ``X.T @ y``.
-    sample_weights : array, shape (n_train_samples,)
-        Weights for each sample.
-    Note
-    ----
-    The class is jit compiled at fit time using Numba compiler.
-    This allows for faster computations.
-    """
-
-    def __init__(self, sample_weights):
-        self.sample_weights = sample_weights
-        pass
-
-    def get_spec(self):
-        spec = (
-            ('Xty', float64[:]),
-            ('sample_weights', float64[:]),
-        )
-        return spec
-
-    def params_to_dict(self):
-        return {'sample_weights':self.sample_weights}
-
-    def get_lipschitz(self, X, y):
-        n_features = X.shape[1]
-        lipschitz = np.zeros(n_features, dtype=X.dtype)
-
-        for j in range(n_features):
-            lipschitz[j] = (self.sample_weights * X[:, j] ** 2).sum() / self.sample_weights.sum()
-
-        return lipschitz
-
-    def get_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
-        n_features = len(X_indptr) - 1
-        lipschitz = np.zeros(n_features, dtype=X_data.dtype)
-
-        for j in range(n_features):
-            nrm2 = 0.
-            for idx in range(X_indptr[j], X_indptr[j + 1]):
-                nrm2 += self.sample_weights[X_indices[idx]] * X_data[idx] ** 2
-
-            lipschitz[j] = nrm2 / self.sample_weights.sum()
-
-        return lipschitz
-
-    def initialize(self, X, y):
-        self.Xty = X.T @ (self.sample_weights * y)
-
-    def initialize_sparse(self, X_data, X_indptr, X_indices, y):
-        n_features = len(X_indptr) - 1
-        self.Xty = np.zeros(n_features, dtype=X_data.dtype)
-
-        for j in range(n_features):
-            xty = 0
-            for idx in range(X_indptr[j], X_indptr[j + 1]):
-                xty += X_data[idx] * self.sample_weights[X_indices[idx]] * y[X_indices[idx]]
-            self.Xty[j] = xty
-
-    def get_global_lipschitz(self, X, y):
-        return norm(X.T @ np.sqrt(self.sample_weights), ord=2) ** 2 / self.sample_weights.sum()
-
-    def get_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
-        return spectral_norm(X_data * np.sqrt(self.sample_weights[X_indices]), X_indptr, X_indices, len(y)) ** 2 / self.sample_weights.sum()
-
-    def value(self, y, w, Xw):
-        return np.sum(self.sample_weights * (y - Xw) ** 2) / (2 * self.sample_weights.sum())
-
-    def gradient_scalar(self, X, y, w, Xw, j):
-        return (X[:, j] @ (self.sample_weights * (Xw - y))) / self.sample_weights.sum()
-
-    def gradient_scalar_sparse(self, X_data, X_indptr, X_indices, y, Xw, j):
-        XjTXw = 0.
-        for i in range(X_indptr[j], X_indptr[j + 1]):
-            XjTXw += X_data[i] * self.sample_weights[X_indices[i]] * Xw[X_indices[i]]
-        return (XjTXw - self.Xty[j]) / self.sample_weights.sum()
-
-    def gradient(self, X, y, Xw):
-        return X.T @ (self.sample_weights * (Xw - y)) / self.sample_weights.sum()
-
-    def raw_grad(self, y, Xw):
-        return (self.sample_weights * (Xw - y)) / self.sample_weights.sum()
-
-    def raw_hessian(self, y, Xw):
-        return self.sample_weights / self.sample_weights.sum()
-
-    def full_grad_sparse(self, X_data, X_indptr, X_indices, y, Xw):
-        n_features = X_indptr.shape[0] - 1
-        grad = np.zeros(n_features, dtype=Xw.dtype)
-
-        for j in range(n_features):
-            XjTXw = 0.
-            for i in range(X_indptr[j], X_indptr[j + 1]):
-                XjTXw += X_data[i] * self.sample_weights[X_indices[i]] * Xw[X_indices[i]]
-            grad[j] = (XjTXw - self.Xty[j]) / self.sample_weights.sum()
-        return grad
-
-    def intercept_update_step(self, y, Xw):
-        return np.sum(self.sample_weights * (Xw - y)) / self.sample_weights.sum()

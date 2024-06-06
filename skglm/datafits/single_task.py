@@ -134,6 +134,7 @@ class WeightedQuadratic(BaseDatafit):
         Equal to ``X.T @ (samples_weights * y)``.
     sample_weights : array, shape (n_samples,)
         Weights for each sample.
+
     Note
     ----
     The class is jit compiled at fit time using Numba compiler.

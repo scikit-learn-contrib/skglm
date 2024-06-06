@@ -178,7 +178,7 @@ class WeightedQuadratic(BaseDatafit):
         return lipschitz
 
     def initialize(self, X, y):
-        self.Xty = X.T @ (self.sample_weights * y)
+        self.Xtwy = X.T @ (self.sample_weights * y)
 
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
         n_features = len(X_indptr) - 1

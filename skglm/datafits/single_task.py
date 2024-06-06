@@ -120,7 +120,7 @@ class Quadratic(BaseDatafit):
 
 
 class WeightedQuadratic(BaseDatafit):
-    """Weighted Quadratic datafit.
+    r"""Weighted Quadratic datafit.
 
     The datafit reads:
 
@@ -187,17 +187,22 @@ class WeightedQuadratic(BaseDatafit):
         for j in range(n_features):
             xty = 0
             for idx in range(X_indptr[j], X_indptr[j + 1]):
-                xty += X_data[idx] * self.sample_weights[X_indices[idx]] * y[X_indices[idx]]
+                xty += (X_data[idx] * self.sample_weights[X_indices[idx]]
+                        * y[X_indices[idx]])
             self.Xty[j] = xty
 
     def get_global_lipschitz(self, X, y):
-        return norm(X.T @ np.sqrt(self.sample_weights), ord=2) ** 2 / self.sample_weights.sum()
+        w_sum = self.sample_weights.sum()
+        return norm(X.T @ np.sqrt(self.sample_weights), ord=2) ** 2 / w_sum
 
     def get_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
-        return spectral_norm(X_data * np.sqrt(self.sample_weights[X_indices]), X_indptr, X_indices, len(y)) ** 2 / self.sample_weights.sum()
+        return spectral_norm(
+            X_data * np.sqrt(self.sample_weights[X_indices]),
+            X_indptr, X_indices, len(y)) ** 2 / self.sample_weights.sum()
 
     def value(self, y, w, Xw):
-        return np.sum(self.sample_weights * (y - Xw) ** 2) / (2 * self.sample_weights.sum())
+        w_sum = self.sample_weights.sum()
+        return np.sum(self.sample_weights * (y - Xw) ** 2) / (2 * w_sum)
 
     def gradient_scalar(self, X, y, w, Xw, j):
         return (X[:, j] @ (self.sample_weights * (Xw - y))) / self.sample_weights.sum()
@@ -224,7 +229,8 @@ class WeightedQuadratic(BaseDatafit):
         for j in range(n_features):
             XjTXw = 0.
             for i in range(X_indptr[j], X_indptr[j + 1]):
-                XjTXw += X_data[i] * self.sample_weights[X_indices[i]] * Xw[X_indices[i]]
+                XjTXw += (X_data[i] * self.sample_weights[X_indices[i]]
+                          * Xw[X_indices[i]])
             grad[j] = (XjTXw - self.Xty[j]) / self.sample_weights.sum()
         return grad
 

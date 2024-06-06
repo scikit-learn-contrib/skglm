@@ -172,6 +172,7 @@ def test_cox(use_efron):
 
 def test_sample_weights():
     """Test that integers sample weights give same result as duplicating rows."""
+
     X, y, _ = make_correlated_data(n_samples=5, random_state=0)
     indices = [0, 0, 1, 2, 2, 2, 3, 4]
     sample_weights = np.array([2, 1, 3, 1, 1.])
@@ -194,9 +195,9 @@ def test_sample_weights():
     res_s = model.coef_
     n_iter_s = model.n_iter_
 
-
     np.testing.assert_allclose(res, res_s)
     np.testing.assert_equal(n_iter, n_iter_s)
+
+
 if __name__ == '__main__':
-    test_sample_weights()
     pass

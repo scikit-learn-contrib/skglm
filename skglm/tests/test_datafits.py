@@ -5,7 +5,8 @@ import pytest
 from sklearn.linear_model import HuberRegressor
 from numpy.testing import assert_allclose, assert_array_less
 
-from skglm.datafits import Huber, Logistic, Poisson, Gamma, Cox
+from skglm.datafits import (Huber, Logistic, Poisson, Gamma, Cox, WeightedQuadratic,
+                            Quadratic,)
 from skglm.penalties import L1, WeightedL1
 from skglm.solvers import AndersonCD, ProxNewton
 from skglm import GeneralizedLinearEstimator
@@ -169,5 +170,33 @@ def test_cox(use_efron):
         np.testing.assert_allclose(positive_eig, 0., atol=1e-6)
 
 
+def test_sample_weights():
+    """Test that integers sample weights give same result as duplicating rows."""
+    X, y, _ = make_correlated_data(n_samples=5, random_state=0)
+    indices = [0, 0, 1, 2, 2, 2, 3, 4]
+    sample_weights = np.array([2, 1, 3, 1, 1.])
+    X_s, y_s = X[indices], y[indices]
+
+    df = WeightedQuadratic(sample_weights=sample_weights)
+    df_s = Quadratic()
+    pen = L1(alpha=1)
+    alpha_max = pen.alpha_max(df.gradient(X, y, np.zeros(X.shape[0])))
+    pen.alpha = alpha_max / 10
+    solver = AndersonCD(tol=1e-10, verbose=3, fit_intercept=False)
+
+    model = GeneralizedLinearEstimator(df, pen, solver)
+    model.fit(X, y)
+    n_iter = model.n_iter_
+    print("#" * 80)
+    res = model.coef_
+    model = GeneralizedLinearEstimator(df_s, pen, solver)
+    model.fit(X_s, y_s)
+    res_s = model.coef_
+    n_iter_s = model.n_iter_
+
+
+    np.testing.assert_allclose(res, res_s)
+    np.testing.assert_equal(n_iter, n_iter_s)
 if __name__ == '__main__':
+    test_sample_weights()
     pass

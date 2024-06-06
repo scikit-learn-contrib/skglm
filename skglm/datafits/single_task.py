@@ -120,12 +120,12 @@ class Quadratic(BaseDatafit):
 
 
 class WeightedQuadratic(BaseDatafit):
-    r"""Weighted Quadratic datafit.
+    r"""Weighted Quadratic datafit to handle sample weights.
 
     The datafit reads:
 
-    .. math:: 1 / (2 xx  (i=1)^(n_"samples") weigths_i)
-        \sum_(i=1)^(n_"samples") weights_i (y_i - (Xw)_i^ 2
+    .. math:: 1 / (2 xx  \sum_(i=1)^(n_"samples") weights_i)
+        \sum_(i=1)^(n_"samples") weights_i (y_i - (Xw)_i)^ 2
 
     Attributes
     ----------

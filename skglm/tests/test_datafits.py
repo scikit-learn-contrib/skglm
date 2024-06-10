@@ -173,9 +173,22 @@ def test_cox(use_efron):
 def test_sample_weights():
     """Test that integers sample weights give same result as duplicating rows."""
 
-    X, y, _ = make_correlated_data(n_samples=5, random_state=0)
-    indices = [0, 0, 1, 2, 2, 2, 3, 4]
-    sample_weights = np.array([2, 1, 3, 1, 1.])
+    rng = np.random.RandomState(0)
+
+    n_samples = 50
+    # n_features = 50
+    n_features = 200
+    X, y, _ = make_correlated_data(
+        n_samples=n_samples, n_features=n_features, random_state=0)
+    # indices = [0, 0, 1, 2, 2, 2, 3, 4]
+
+    indices = np.arange(0, n_samples)
+    indices = np.concatenate([indices, rng.randint(0, n_samples, n_samples * 3)])
+    sample_weights = np.zeros(n_samples)
+    for i in indices:
+        sample_weights[indices[i]] += 1
+
+    # sample_weights = np.array([2, 1, 3, 1, 1.])
     X_s, y_s = X[indices], y[indices]
 
     df = WeightedQuadratic(sample_weights=sample_weights)
@@ -183,7 +196,7 @@ def test_sample_weights():
     pen = L1(alpha=1)
     alpha_max = pen.alpha_max(df.gradient(X, y, np.zeros(X.shape[0])))
     pen.alpha = alpha_max / 10
-    solver = AndersonCD(tol=1e-10, verbose=3, fit_intercept=False)
+    solver = AndersonCD(tol=1e-12, verbose=10, fit_intercept=False)
 
     model = GeneralizedLinearEstimator(df, pen, solver)
     model.fit(X, y)

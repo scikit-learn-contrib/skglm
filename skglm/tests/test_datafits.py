@@ -176,9 +176,9 @@ def test_sample_weights(fit_intercept):
 
     rng = np.random.RandomState(0)
 
-    n_samples = 50
+    n_samples = 20
     # n_features = 50
-    n_features = 300
+    n_features = 100
     X, y, _ = make_correlated_data(
         n_samples=n_samples, n_features=n_features, random_state=0)
     # indices = [0, 0, 1, 2, 2, 2, 3, 4]
@@ -197,7 +197,7 @@ def test_sample_weights(fit_intercept):
     pen = L1(alpha=1)
     alpha_max = pen.alpha_max(df.gradient(X, y, np.zeros(X.shape[0])))
     pen.alpha = alpha_max / 10
-    solver = AndersonCD(tol=1e-10, verbose=10, fit_intercept=fit_intercept)
+    solver = AndersonCD(tol=1e-12, verbose=10, fit_intercept=fit_intercept)
 
     model = GeneralizedLinearEstimator(df, pen, solver)
     model.fit(X, y)

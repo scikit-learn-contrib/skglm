@@ -53,7 +53,7 @@ _ = axes[0].set_ylabel("count")
 
 # %%
 # Fitting the Cox Estimator
-# -----------------
+# -------------------------
 #
 # After generating the synthetic data, we can now fit a L1-regularized Cox estimator.
 # Todo so, we need to combine a Cox datafit and a :math:`\ell_1` penalty

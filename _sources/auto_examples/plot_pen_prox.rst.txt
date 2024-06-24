@@ -77,7 +77,7 @@ Illustrate the value and proximal operators of some sparse penalties.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.367 seconds)
+   **Total running time of the script:** (0 minutes 2.071 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_pen_prox.py:

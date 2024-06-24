@@ -101,7 +101,7 @@ Let's inspect the data quickly:
 .. GENERATED FROM PYTHON SOURCE LINES 55-62
 
 Fitting the Cox Estimator
------------------
+-------------------------
 
 After generating the synthetic data, we can now fit a L1-regularized Cox estimator.
 Todo so, we need to combine a Cox datafit and a :math:`\ell_1` penalty
@@ -382,7 +382,7 @@ with more than x100 less time!
 
  .. code-block:: none
 
-    speed up ratio: 829
+    speed up ratio: 681
 
 
 
@@ -566,7 +566,7 @@ Finally, let's compare the timings of both solvers
 
  .. code-block:: none
 
-    speed up ratio: 763
+    speed up ratio: 856
 
 
 
@@ -579,7 +579,7 @@ even for the Efron estimate.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 46.677 seconds)
+   **Total running time of the script:** (0 minutes 48.803 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_survival_analysis.py:

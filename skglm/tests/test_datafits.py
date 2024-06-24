@@ -177,11 +177,9 @@ def test_sample_weights(fit_intercept):
     rng = np.random.RandomState(0)
 
     n_samples = 20
-    # n_features = 50
     n_features = 100
     X, y, _ = make_correlated_data(
         n_samples=n_samples, n_features=n_features, random_state=0)
-    # indices = [0, 0, 1, 2, 2, 2, 3, 4]
 
     indices = np.arange(0, n_samples)
     indices = np.concatenate([indices, rng.randint(0, n_samples, n_samples * 3)])
@@ -189,7 +187,6 @@ def test_sample_weights(fit_intercept):
     for i in indices:
         sample_weights[indices[i]] += 1
 
-    # sample_weights = np.array([2, 1, 3, 1, 1.])
     X_s, y_s = X[indices], y[indices]
 
     df = WeightedQuadratic(sample_weights=sample_weights)
@@ -213,5 +210,109 @@ def test_sample_weights(fit_intercept):
     np.testing.assert_equal(n_iter, n_iter_s)
 
 
+def test_weighted_datafit():
+    n_samples = 20
+    n_features = 10
+    X, y, _ = make_correlated_data(
+        n_samples=n_samples, n_features=n_features, random_state=0)
+
+    # indices = np.arange(0, n_samples)
+    # indices = np.concatenate([indices, rng.choice(n_samples, n_samples * 3)])
+
+    # if some weights are equal to 0, the test fail! normalization issue?
+    indices = rng.choice(n_samples, 4 * n_samples)
+    sample_weights = np.zeros(n_samples)
+    for i in indices:
+        sample_weights[indices[i]] += 1
+
+    X_s, y_s = X[indices], y[indices]
+
+    df = WeightedQuadratic(sample_weights=sample_weights)
+    df_s = Quadratic()
+
+    w = np.random.randn(n_features)
+    val1 = df_s.value(y_s, X_s, X_s @ w)
+    val2 = df.value(y, X, X @ w)
+    np.testing.assert_allclose(val1, val2)
+
+
 if __name__ == '__main__':
-    pass
+    # fit_intercept = False
+    # rng = np.random.RandomState(0)
+
+    # n_samples = 20
+    # n_features = 100
+    # X, y, _ = make_correlated_data(
+    #     n_samples=n_samples, n_features=n_features, random_state=0)
+    # X2 = np.random.randn(*X.shape)
+    # y2 = np.random.randn(*y.shape)
+    # sample_weights = np.ones(2 * n_samples)
+    # sample_weights[n_samples:] = 0
+
+    # X, y = np.vstack([X, X2]), np.hstack([y, y2])
+    # X_s, y_s = X[:n_samples], y[:n_samples]
+
+    # df = WeightedQuadratic(sample_weights=sample_weights)
+    # df_s = Quadratic()
+    # pen = L1(alpha=1)
+    # alpha_max = pen.alpha_max(df.gradient(X, y, np.zeros(X.shape[0])))
+    # pen.alpha = alpha_max / 10
+    # solver = AndersonCD(tol=1e-12, verbose=10, fit_intercept=fit_intercept)
+
+    # model = GeneralizedLinearEstimator(df, pen, solver)
+    # model.fit(X, y)
+    # n_iter = model.n_iter_
+    # print("#" * 80)
+    # res = model.coef_
+    # model = GeneralizedLinearEstimator(df_s, pen, solver)
+    # model.fit(X_s, y_s)
+    # res_s = model.coef_
+    # n_iter_s = model.n_iter_
+
+    # np.testing.assert_allclose(res, res_s)
+
+    fit_intercept = False
+    rng = np.random.RandomState(0)
+
+    n_samples = 20
+    n_features = 100
+    X, y, _ = make_correlated_data(
+        n_samples=n_samples, n_features=n_features, random_state=0)
+
+    indices = np.arange(0, n_samples)
+    indices = np.concatenate([indices, rng.choice(n_samples, n_samples * 3)])
+    # indices = rng.choice(n_samples, 4 * n_samples)
+    sample_weights = np.zeros(n_samples)
+    for i in indices:
+        sample_weights[indices[i]] += 1
+
+    X_s, y_s = X[indices], y[indices]
+
+    df = WeightedQuadratic(sample_weights=sample_weights)
+    df_s = Quadratic()
+
+    w = np.random.randn(n_features)
+    val1 = df_s.value(y_s, X_s, X_s @ w)
+    val2 = df.value(y, X, X @ w)
+    print(val1, val2)
+
+
+    # pen = L1(alpha=1)
+    # alpha_max = pen.alpha_max(df.gradient(X, y, np.zeros(X.shape[0])))
+    # pen.alpha = alpha_max / 10
+    # solver = AndersonCD(tol=1e-12, verbose=10, fit_intercept=fit_intercept)
+
+    # model = GeneralizedLinearEstimator(df, pen, solver)
+    # model.fit(X, y)
+    # n_iter = model.n_iter_
+    # print("#" * 80)
+    # res = model.coef_
+    # solver = AndersonCD(tol=1e-12, verbose=10, fit_intercept=fit_intercept)
+    # model = GeneralizedLinearEstimator(df_s, pen, solver)
+    # model.fit(X_s, y_s)
+    # res_s = model.coef_
+    # n_iter_s = model.n_iter_
+
+    # np.testing.assert_allclose(res, res_s)
+    # np.testing.assert_equal(n_iter, n_iter_s)
+    # df_s.value(y_s, res_s, X_s @ res_s)

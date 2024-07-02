@@ -25,16 +25,16 @@ Explore how ``skglm`` fits an unpenalized intercept.
 
 
 :ref:`Mathematics behind Cox datafit <maths_cox_datafit>`
------------------------------------------------------------------
+---------------------------------------------------------
 
 Get details about Cox datafit equations.
 
 :ref:`Details on the group Lasso <prox_nn_group_lasso>`
------------------------------------------------------------------
+-------------------------------------------------------
 
 Mathematical details about the group Lasso, in particular with nonnegativity constraints.
 
-:ref:`Critical regularization strength above which solution is 0 <reg_sol_zero>`
------------------------------------------------------------------
+:ref:`Critical regularization strength above which solution is 0 <alpha_max>`
+-----------------------------------------------------------------------------
 
-Mathematical context about the choice of the regularization parameter in L1-regularization.
+How to chose the regularization strength in L1-regularization?

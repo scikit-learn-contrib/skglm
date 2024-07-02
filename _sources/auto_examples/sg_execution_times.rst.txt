@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**02:35.605** total execution time for 10 files **from auto_examples**:
+**02:20.012** total execution time for 10 files **from auto_examples**:
 
 .. container::
 
@@ -32,33 +32,33 @@ Computation times
    * - Example
      - Time
      - Mem (MB)
-   * - :ref:`sphx_glr_auto_examples_plot_survival_analysis.py` (``plot_survival_analysis.py``)
-     - 00:48.803
-     - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_compare_time.py` (``plot_compare_time.py``)
-     - 00:47.415
+     - 00:43.654
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_survival_analysis.py` (``plot_survival_analysis.py``)
+     - 00:43.089
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_ucurve.py` (``plot_ucurve.py``)
-     - 00:14.559
+     - 00:13.745
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_group_logistic_regression.py` (``plot_group_logistic_regression.py``)
-     - 00:13.845
-     - 0.0
-   * - :ref:`sphx_glr_auto_examples_plot_sparse_recovery.py` (``plot_sparse_recovery.py``)
-     - 00:09.668
+     - 00:12.718
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_logreg_various_penalties.py` (``plot_logreg_various_penalties.py``)
-     - 00:09.371
+     - 00:08.230
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_sparse_recovery.py` (``plot_sparse_recovery.py``)
+     - 00:07.808
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_reweighted_l1.py` (``plot_reweighted_l1.py``)
-     - 00:05.446
+     - 00:05.004
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_lasso_vs_weighted.py` (``plot_lasso_vs_weighted.py``)
-     - 00:03.951
+     - 00:03.511
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_pen_prox.py` (``plot_pen_prox.py``)
-     - 00:02.071
+     - 00:01.877
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_zero_weights_lasso.py` (``plot_zero_weights_lasso.py``)
-     - 00:00.475
+     - 00:00.377
      - 0.0

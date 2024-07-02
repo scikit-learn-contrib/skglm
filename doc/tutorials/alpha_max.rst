@@ -89,5 +89,6 @@ References
 Refer to Section 3.1 and Proposition 4 in particular of [1] for more details.
 
 .. _1:
+
 [1] Eugene Ndiaye, Olivier Fercoq, Alexandre Gramfort, and Joseph Salmon. 2017. Gap safe screening rules for sparsity enforcing penalties. J. Mach. Learn. Res. 18, 1 (January 2017), 4671–4703.
 

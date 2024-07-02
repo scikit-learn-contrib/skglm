@@ -37,4 +37,4 @@ Mathematical details about the group Lasso, in particular with nonnegativity con
 :ref:`Critical regularization strength above which solution is 0 <alpha_max>`
 -----------------------------------------------------------------------------
 
-How to chose the regularization strength in L1-regularization?
+How to choose the regularization strength in L1-regularization?

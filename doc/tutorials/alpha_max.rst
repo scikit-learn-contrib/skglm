@@ -51,12 +51,14 @@ Thus,
 
 .. math::
 
+    \begin{eqnarray}
     0 \in \text{argmin} ~ g(x)
     &\Leftrightarrow 0 \in \partial g(0) \\
     &\Leftrightarrow
     0 \in \nabla f(0) + \lambda \partial || \cdot ||_1 (0) \\
     &\Leftrightarrow - \nabla f(0)  \in  \lambda \{ u \in \mathbb{R}^d : ||u||_{\infty} \leq 1 \} \\
     &\Leftrightarrow || \nabla f(0) ||_\infty \leq \lambda
+    \end{eqnarray}
 
 
 We have just shown that the minimizer of :math:`g = f + \lambda || \cdot ||_1` is 0 if and only if :math:`\lambda \geq ||\nabla f(0)||_{\infty}`.

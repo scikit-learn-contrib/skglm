@@ -50,15 +50,18 @@ The subdifferential of :math:`|| x ||_1` at 0 is the L-infinity unit ball:
 Thus,
 
 .. math::
+    :nowrap:
 
-    \begin{eqnarray}
-    0 \in \text{argmin} ~ g(x)
-    &\Leftrightarrow 0 \in \partial g(0) \\
-    &\Leftrightarrow
-    0 \in \nabla f(0) + \lambda \partial || \cdot ||_1 (0) \\
-    &\Leftrightarrow - \nabla f(0)  \in  \lambda \{ u \in \mathbb{R}^d : ||u||_{\infty} \leq 1 \} \\
-    &\Leftrightarrow || \nabla f(0) ||_\infty \leq \lambda
-    \end{eqnarray}
+    \begin{equation}
+        \begin{aligned}
+        0 \in \text{argmin} ~ g(x)
+        &\Leftrightarrow 0 \in \partial g(0) \\
+        &\Leftrightarrow
+        0 \in \nabla f(0) + \lambda \partial || \cdot ||_1 (0) \\
+        &\Leftrightarrow - \nabla f(0)  \in  \lambda \{ u \in \mathbb{R}^d : ||u||_{\infty} \leq 1 \} \\
+        &\Leftrightarrow || \nabla f(0) ||_\infty \leq \lambda
+        \end{aligned}
+    \end{equation}
 
 
 We have just shown that the minimizer of :math:`g = f + \lambda || \cdot ||_1` is 0 if and only if :math:`\lambda \geq ||\nabla f(0)||_{\infty}`.
@@ -93,4 +96,3 @@ Refer to Section 3.1 and Proposition 4 in particular of [1] for more details.
 .. _1:
 
 [1] Eugene Ndiaye, Olivier Fercoq, Alexandre Gramfort, and Joseph Salmon. 2017. Gap safe screening rules for sparsity enforcing penalties. J. Mach. Learn. Res. 18, 1 (January 2017), 4671–4703.
-

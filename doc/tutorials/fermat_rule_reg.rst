@@ -1,8 +1,8 @@
-.. _fermat_rule_reg:
+.. _reg_sol_zero:
 
-======================================================
-Mathematics Behind L1 Regularization and Fermat's Rule
-======================================================
+==========================================================
+Critical regularization strength above which solution is 0
+==========================================================
 
 This tutorial presents the mathematics behind solving the optimization problem
 :math:`\min f(x) + \lambda \|x\|_1` and demonstrates why the solution is zero when
@@ -10,6 +10,8 @@ This tutorial presents the mathematics behind solving the optimization problem
 
 .. code-block::
 alpha_max = np.max(np.abs(gradient0))
+
+However, the regularization parameter used at the end should preferably be a fraction of this (e.g. `alpha = 0.01 * alpha_max`).
 
 Problem setup
 =============
@@ -21,9 +23,9 @@ Consider the optimization problem:
 
 where:
 
-- :math:`f: \mathbb{R}^d \to \mathbb{R}` is a differentiable function,
+- :math:`f: \mathbb{R}^d \to \mathbb{R}` is a convex differentiable function,
 - :math:`\|x\|_1` is the L1 norm of :math:`x`,
-- :math:`\lambda \in \mathbb{R}` is a regularization parameter.
+- :math:`\lambda > 0` is a regularization parameter.
 
 We aim to determine the conditions under which the solution to this problem is :math:`x = 0`.
 
@@ -38,14 +40,14 @@ According to Fermat's rule, the minimum of the function occurs where the subdiff
 The subdifferential of :math:`\|x\|_1` at 0 is the L-infinity ball:
 
 .. math::
-    \partial \|x\|_1 |_{x=0} = \{ u \in \mathbb{R}^n : \|u\|_{\infty} \leq 1 \}
+    \partial \|x\|_1 |_{x=0} = \{ u \in \mathbb{R}^d : \|u\|_{\infty} \leq 1 \}
 
 Thus, for :math:`0 \in \partial g(x)` at :math:`x=0`:
 
 .. math::
     0 \in \nabla f(0) + \lambda \partial \|x\|_1 |_{x=0}
 
-which implies, given that the dual of L1-norm is L-infinity:
+which implies, given that the dual norm of L1-norm is L-infinity:
 
 .. math::
     \|\nabla f(0)\|_{\infty} \leq \lambda
@@ -55,29 +57,29 @@ If :math:`\lambda > \|\nabla f(0)\|_{\infty}`, then the only solution is :math:`
 Example
 =======
 
-Consider the loss function for Ordinary Least Squares :math:`f(x) = \frac{1}{2} \|Ax - b\|_2^2`. We have:
+Consider the loss function for Ordinary Least Squares :math:`f(x) = \frac{1}{2n} \|Ax - b\|_2^2`, where :math:`n` is the number of samples. We have:
 
 .. math::
-    \nabla f(x) = A^T (Ax - b)
+    \nabla f(x) = \frac{1}{n}A^T (Ax - b)
 
 At :math:`x=0`:
 
 .. math::
-    \nabla f(0) = -A^T b
+    \nabla f(0) = -\frac{1}{n}A^T b
 
 The infinity norm of the gradient at 0 is:
 
 .. math::
-    \|\nabla f(0)\|_{\infty} = \|A^T b\|_{\infty}
+    \|\nabla f(0)\|_{\infty} = \frac{1}{n}\|A^T b\|_{\infty}
 
-For :math:`\lambda > \|A^T b\|_{\infty}`, the solution to :math:`\min_x \frac{1}{2} \|Ax - b\|_2^2 + \lambda \|x\|_1` is :math:`x=0`.
+For :math:`\lambda \geq \frac{1}{n}\|A^T b\|_{\infty}`, the solution to :math:`\min_x \frac{1}{2n} \|Ax - b\|_2^2 + \lambda \|x\|_1` is :math:`x=0`.
 
 
 
 References
 ==========
 
-The first 5 pages of the following article provide sufficient context for the problem at hand.
+Refer to the section 3.1 and proposition 4 in particular of the following article for more details.
 
 .. _1:
 [1] Eugene Ndiaye, Olivier Fercoq, Alexandre Gramfort, and Joseph Salmon. 2017. Gap safe screening rules for sparsity enforcing penalties. J. Mach. Learn. Res. 18, 1 (January 2017), 4671–4703.

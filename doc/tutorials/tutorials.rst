@@ -34,7 +34,7 @@ Get details about Cox datafit equations.
 
 Mathematical details about the group Lasso, in particular with nonnegativity constraints.
 
-:ref:`Mathematics Behind L1 Regularization and Fermat's Rule <fermat_rule_reg>`
+:ref:`Critical regularization strength above which solution is 0 <reg_sol_zero>`
 -----------------------------------------------------------------
 
 Mathematical context about the choice of the regularization parameter in L1-regularization.

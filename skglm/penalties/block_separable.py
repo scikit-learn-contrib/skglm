@@ -6,7 +6,7 @@ from numba.types import bool_
 
 from skglm.penalties.base import BasePenalty
 from skglm.utils.prox_funcs import (
-    BST, prox_block_2_05, prox_SCAD, value_SCAD, prox_MCP, value_MCP)
+    BST, ST_vec, prox_block_2_05, prox_SCAD, value_SCAD, prox_MCP, value_MCP)
 
 
 class L2_1(BasePenalty):
@@ -362,6 +362,112 @@ class WeightedGroupL2(BasePenalty):
                     scores[idx] = norm(grad_g + subdiff)
 
         return scores
+
+    def is_penalized(self, n_groups):
+        return np.ones(n_groups, dtype=np.bool_)
+
+    def generalized_support(self, w):
+        grp_indices, grp_ptr = self.grp_indices, self.grp_ptr
+        n_groups = len(grp_ptr) - 1
+        is_penalized = self.is_penalized(n_groups)
+
+        gsupp = np.zeros(n_groups, dtype=np.bool_)
+        for g in range(n_groups):
+            if not is_penalized[g]:
+                gsupp[g] = True
+                continue
+
+            grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
+            if np.any(w[grp_g_indices]):
+                gsupp[g] = True
+
+        return gsupp
+
+
+class WeightedSparseGroupL2(BasePenalty):
+    r"""Weighted Group L2 penalty, aka sparse group Lasso
+
+    The penalty reads
+
+    .. math::
+        sum_{g=1}^{n_"groups"} "weights"^1_g ||w_{[g]}|| +
+        sum_{j=1}^{n_"features"} "weights"^2_j ||w_{j}||
+
+    with :math:`w_{[g]}` being the coefficients of the g-th group and
+
+    Attributes
+    ----------
+    alpha : float
+        The regularization parameter.
+
+    weights_group : array, shape (n_groups,)
+        The penalization weights of the groups.
+
+    weights_features : array, shape (n_features,)
+        The penalization weights of the features.
+
+    grp_indices : array, shape (n_features,)
+        The group indices stacked contiguously
+        ([grp1_indices, grp2_indices, ...]).
+
+    grp_ptr : array, shape (n_groups + 1,)
+        The group pointers such that two consecutive elements delimit
+        the indices of a group in ``grp_indices``.
+
+    """
+
+    def __init__(
+            self, alpha, weights_groups, weights_features, grp_ptr, grp_indices):
+        self.alpha = alpha
+        self.weights_groups = weights_groups
+        self.weight_features = weights_features
+        self.grp_ptr, self.grp_indices = grp_ptr, grp_indices
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+            ('weights_group', float64[:]),
+            ('weights_features', float64[:]),
+            ('grp_ptr', int32[:]),
+            ('grp_indices', int32[:]),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(alpha=self.alpha, weights_features=self.weights_features,
+                    weights_groups=self.weights_groups, grp_ptr=self.grp_ptr,
+                    grp_indices=self.grp_indices)
+
+    def value(self, w):
+        """Value of penalty at vector ``w``."""
+        grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
+        n_grp = len(grp_ptr) - 1
+
+        sum_penalty = 0.
+        for g in range(n_grp):
+            grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
+            w_g = w[grp_g_indices]
+
+            sum_penalty += self.weights_groups[g] * norm(w_g)
+        sum_penalty += np.sum(self.weight_features * np.abs(w))
+
+        return self.alpha * sum_penalty
+
+    def prox_1group(self, value, stepsize, g):
+        """Compute the proximal operator of group ``g``."""
+        res = ST_vec(value, self.alpha * stepsize * self.weight_features[g])
+        return BST(res, self.alpha * stepsize * self.weights[g])
+
+    def subdiff_distance(self, w, grad_ws, ws):
+        """Compute distance to the subdifferential at ``w`` of negative gradient.
+
+        Refer to :ref:`subdiff_positive_group_lasso` for details of the derivation.
+
+        Note:
+        ----
+        ``grad_ws`` is a stacked array of gradients ``[grad_ws_1, grad_ws_2, ...]``.
+        """
+        raise NotImplementedError("Too hard for now")
 
     def is_penalized(self, n_groups):
         return np.ones(n_groups, dtype=np.bool_)

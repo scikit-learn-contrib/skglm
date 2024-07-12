@@ -93,8 +93,6 @@ class GroupBCD(BaseSolver):
             else:
                 grad = _construct_grad(X, y, w, Xw, datafit, all_groups)
 
-            opt = penalty.subdiff_distance(w, grad, all_groups)
-
             if self.ws_strategy == "subdiff":
                 # MM TODO: AndersonCD passes w[:n_features] here
                 opt = penalty.subdiff_distance(w, grad, all_groups)

@@ -400,7 +400,7 @@ class WeightedSparseGroupL2(BasePenalty):
     alpha : float
         The regularization parameter.
 
-    weights_group : array, shape (n_groups,)
+    weights_groups : array, shape (n_groups,)
         The penalization weights of the groups.
 
     weights_features : array, shape (n_features,)
@@ -419,14 +419,14 @@ class WeightedSparseGroupL2(BasePenalty):
     def __init__(
             self, alpha, weights_groups, weights_features, grp_ptr, grp_indices):
         self.alpha = alpha
-        self.weights_groups = weights_groups
-        self.weight_features = weights_features
         self.grp_ptr, self.grp_indices = grp_ptr, grp_indices
+        self.weights_groups = weights_groups
+        self.weights_features = weights_features
 
     def get_spec(self):
         spec = (
             ('alpha', float64),
-            ('weights_group', float64[:]),
+            ('weights_groups', float64[:]),
             ('weights_features', float64[:]),
             ('grp_ptr', int32[:]),
             ('grp_indices', int32[:]),
@@ -449,14 +449,14 @@ class WeightedSparseGroupL2(BasePenalty):
             w_g = w[grp_g_indices]
 
             sum_penalty += self.weights_groups[g] * norm(w_g)
-        sum_penalty += np.sum(self.weight_features * np.abs(w))
+        sum_penalty += np.sum(self.weights_features * np.abs(w))
 
         return self.alpha * sum_penalty
 
     def prox_1group(self, value, stepsize, g):
         """Compute the proximal operator of group ``g``."""
-        res = ST_vec(value, self.alpha * stepsize * self.weight_features[g])
-        return BST(res, self.alpha * stepsize * self.weights[g])
+        res = ST_vec(value, self.alpha * stepsize * self.weights_features[g])
+        return BST(res, self.alpha * stepsize * self.weights_groups[g])
 
     def subdiff_distance(self, w, grad_ws, ws):
         """Compute distance to the subdifferential at ``w`` of negative gradient.

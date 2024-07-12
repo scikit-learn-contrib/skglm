@@ -138,7 +138,7 @@ def test_vs_celer_grouplasso(n_groups, n_features, shuffle):
 
 def test_ws_strategy():
     n_features = 300
-    X, y,_ = make_correlated_data(n_features=n_features, random_state=0)
+    X, y, _ = make_correlated_data(n_features=n_features, random_state=0)
 
     grp_indices, grp_ptr = grp_converter(3, n_features)
     n_groups = len(grp_ptr) - 1
@@ -162,7 +162,6 @@ def test_ws_strategy():
     np.testing.assert_array_less(0, norm(w_fixpoint - w_subdiff))
     # but still should be close:
     np.testing.assert_allclose(w_fixpoint, w_subdiff, atol=1e-8)
-
 
 
 def test_intercept_grouplasso():

@@ -385,7 +385,7 @@ class WeightedGroupL2(BasePenalty):
 
 
 class WeightedSparseGroupL2(BasePenalty):
-    r"""Weighted Group L2 penalty, aka sparse group Lasso
+    r"""Weighted Group L2 penalty, aka sparse group Lasso.
 
     The penalty reads
 

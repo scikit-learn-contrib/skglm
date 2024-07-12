@@ -51,8 +51,8 @@ clf.fit(X, y)
 # %%
 # Some groups are fully 0, and inside non zero groups,
 # some values are 0 too
-plt.imshow(clf.coef_.reshape(-1, grp_size) != 0, cmap='grey')
-plt.title("Non zero values (in white) in model coefficients")
+plt.imshow(clf.coef_.reshape(-1, grp_size) != 0, cmap='Greys')
+plt.title("Non zero values (in black) in model coefficients")
 plt.ylabel('Group index')
 plt.xlabel('Feature index inside group')
 plt.xticks(np.arange(grp_size))

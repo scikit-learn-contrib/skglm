@@ -6,6 +6,7 @@ from numpy.linalg import norm
 
 from skglm.penalties import L1
 from skglm.datafits import Quadratic
+from skglm import GeneralizedLinearEstimator
 from skglm.penalties.block_separable import WeightedGroupL2
 from skglm.datafits.group import QuadraticGroup, LogisticGroup
 from skglm.solvers import GroupBCD, GroupProxNewton
@@ -133,6 +134,35 @@ def test_vs_celer_grouplasso(n_groups, n_features, shuffle):
     model.fit(X, y)
 
     np.testing.assert_allclose(model.coef_, w, atol=1e-5)
+
+
+def test_ws_strategy():
+    n_features = 300
+    X, y,_ = make_correlated_data(n_features=n_features, random_state=0)
+
+    grp_indices, grp_ptr = grp_converter(3, n_features)
+    n_groups = len(grp_ptr) - 1
+    weights_g = np.ones(n_groups)
+    alpha_max = _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights_g)
+    pen = WeightedGroupL2(
+        alpha=alpha_max/10, weights=weights_g, grp_indices=grp_indices, grp_ptr=grp_ptr)
+
+    solver = GroupBCD(ws_strategy="subdiff", verbose=3, fit_intercept=False, tol=1e-10)
+
+    model = GeneralizedLinearEstimator(
+        QuadraticGroup(grp_ptr, grp_indices), pen, solver=solver)
+
+    model.fit(X, y)
+    w_subdiff = model.coef_
+    print("####")
+    model.solver.ws_strategy = "fixpoint"
+    model.fit(X, y)
+    w_fixpoint = model.coef_
+    # should not be the eaxct same solution:
+    np.testing.assert_array_less(0, norm(w_fixpoint - w_subdiff))
+    # but still should be close:
+    np.testing.assert_allclose(w_fixpoint, w_subdiff, atol=1e-8)
+
 
 
 def test_intercept_grouplasso():

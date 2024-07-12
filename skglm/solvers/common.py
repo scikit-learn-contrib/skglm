@@ -1,10 +1,11 @@
 import numpy as np
 from numba import njit
+from numpy.linalg import norm
 
 
 @njit
 def dist_fix_point_cd(w, grad_ws, lipschitz_ws, datafit, penalty, ws):
-    """Compute the violation of the fixed point iterate scheme.
+    """Compute the violation of the fixed point iterate scheme for CD.
 
     Parameters
     ----------
@@ -40,6 +41,60 @@ def dist_fix_point_cd(w, grad_ws, lipschitz_ws, datafit, penalty, ws):
         step_j = 1 / lipschitz_ws[idx]
         dist[idx] = np.abs(
             w[j] - penalty.prox_1d(w[j] - step_j * grad_ws[idx], step_j, j)
+        )
+    return dist
+
+
+@njit
+def dist_fix_point_bcd(
+        w, grad_ws, lipschitz_ws, datafit, penalty, ws):
+    """Compute the violation of the fixed point iterate scheme for BCD.
+
+    Parameters
+    ----------
+    w : array, shape (n_features,)
+        Coefficient vector.
+
+    grad_ws : array, shape (ws_size,)
+        Gradient restricted to the working set.
+
+    lipschitz_ws :  array, shape (len(ws),)
+        Coordinatewise gradient Lipschitz constants, restricted to working set.
+
+    datafit: instance of BaseDatafit
+        Datafit.
+
+    penalty: instance of BasePenalty
+        Penalty.
+
+    ws : array, shape (len(ws),)
+        The working set.
+
+    Returns
+    -------
+    dist : array, shape (n_groups,)
+        Violation score for every group.
+
+    Note:
+        ----
+        ``grad_ws`` is a stacked array of gradients ``[grad_ws_1, grad_ws_2, ...]``.
+    """
+    n_groups = len(penalty.grp_ptr) - 1
+    dist = np.zeros(n_groups, dtype=w.dtype)
+
+    grad_ptr = 0
+    for idx, g in enumerate(ws):
+        if lipschitz_ws[idx] == 0.:
+            continue
+        grp_g_indices = penalty.grp_indices[penalty.grp_ptr[g]: penalty.grp_ptr[g+1]]
+
+        grad_g = grad_ws[grad_ptr: grad_ptr + len(grp_g_indices)]
+        grad_ptr += len(grp_g_indices)
+
+        step_g = 1 / lipschitz_ws[idx]
+        w_g = w[grp_g_indices]
+        dist[idx] = norm(
+            w_g - penalty.prox_1group(w_g - grad_g * step_g, step_g, g)
         )
     return dist
 

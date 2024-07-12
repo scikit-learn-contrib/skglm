@@ -7,7 +7,9 @@ from numpy.linalg import norm
 from skglm.penalties import L1
 from skglm.datafits import Quadratic
 from skglm import GeneralizedLinearEstimator
-from skglm.penalties.block_separable import WeightedGroupL2
+from skglm.penalties.block_separable import (
+    WeightedSparseGroupL2, WeightedGroupL2
+)
 from skglm.datafits.group import QuadraticGroup, LogisticGroup
 from skglm.solvers import GroupBCD, GroupProxNewton
 
@@ -162,6 +164,35 @@ def test_ws_strategy():
     np.testing.assert_array_less(0, norm(w_fixpoint - w_subdiff))
     # but still should be close:
     np.testing.assert_allclose(w_fixpoint, w_subdiff, atol=1e-8)
+
+
+def test_sparse_group():
+    n_features = 30
+    X, y, _ = make_correlated_data(n_features=n_features, random_state=0)
+
+    grp_indices, grp_ptr = grp_converter(3, n_features)
+    n_groups = len(grp_ptr) - 1
+
+    weights_g = np.ones(n_groups, dtype=np.float64)
+    weights_f = 0.5 * np.ones(n_features)
+    pen = WeightedSparseGroupL2(
+        alpha=0.1, weights_groups=weights_g,
+        weights_features=weights_f, grp_indices=grp_indices, grp_ptr=grp_ptr)
+
+    solver = GroupBCD(ws_strategy="fixpoint", verbose=3,
+                      fit_intercept=False, tol=1e-10)
+
+    model = GeneralizedLinearEstimator(
+        QuadraticGroup(grp_ptr, grp_indices), pen, solver=solver)
+
+    model.fit(X, y)
+    w = model.coef_.reshape(-1, 3)
+    # some lines are 0:
+    np.testing.assert_equal(w[0], 0)
+    # some non zero lines have 0 entry
+    np.testing.assert_array_less(0, norm(w[1]))
+    # sign error -0 is not 0 without np.abs
+    np.testing.assert_equal(np.abs(w[1, 0]), 0)
 
 
 def test_intercept_grouplasso():

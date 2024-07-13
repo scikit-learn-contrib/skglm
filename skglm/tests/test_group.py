@@ -8,7 +8,7 @@ from skglm.penalties import L1
 from skglm.datafits import Quadratic
 from skglm import GeneralizedLinearEstimator
 from skglm.penalties.block_separable import (
-    WeightedSparseGroupL2, WeightedGroupL2
+    WeightedL1GroupL2, WeightedGroupL2
 )
 from skglm.datafits.group import QuadraticGroup, LogisticGroup
 from skglm.solvers import GroupBCD, GroupProxNewton
@@ -175,7 +175,7 @@ def test_sparse_group():
 
     weights_g = np.ones(n_groups, dtype=np.float64)
     weights_f = 0.5 * np.ones(n_features)
-    pen = WeightedSparseGroupL2(
+    pen = WeightedL1GroupL2(
         alpha=0.1, weights_groups=weights_g,
         weights_features=weights_f, grp_indices=grp_indices, grp_ptr=grp_ptr)
 

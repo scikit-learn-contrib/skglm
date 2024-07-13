@@ -384,7 +384,7 @@ class WeightedGroupL2(BasePenalty):
         return gsupp
 
 
-class WeightedSparseGroupL2(BasePenalty):
+class WeightedL1GroupL2(BasePenalty):
     r"""Weighted Group L2 penalty, aka sparse group Lasso.
 
     The penalty reads

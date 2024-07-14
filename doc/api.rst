@@ -69,6 +69,7 @@ Datafits
    Quadratic
    QuadraticGroup
    QuadraticSVC
+   WeightedQuadratic
 
 
 Solvers

@@ -92,6 +92,17 @@ class Quadratic(BaseDatafit):
             XjTXw += X_data[i] * Xw[X_indices[i]]
         return (XjTXw - self.Xty[j]) / len(Xw)
 
+    def gradient(self, X, y, Xw):
+        return X.T @ (Xw - y) / len(y)
+
+    def raw_grad(self, y, Xw):
+        """Compute gradient of datafit w.r.t ``Xw``."""
+        return (Xw - y) / len(y)
+
+    def raw_hessian(self, y, Xw):
+        """Compute Hessian of datafit w.r.t ``Xw``."""
+        return np.ones(len(y)) / len(y)
+
     def full_grad_sparse(
             self, X_data, X_indptr, X_indices, y, Xw):
         n_features = X_indptr.shape[0] - 1
@@ -106,6 +117,126 @@ class Quadratic(BaseDatafit):
 
     def intercept_update_step(self, y, Xw):
         return np.mean(Xw - y)
+
+
+class WeightedQuadratic(BaseDatafit):
+    r"""Weighted Quadratic datafit to handle sample weights.
+
+    The datafit reads:
+
+    .. math:: 1 / (2 xx  \sum_(i=1)^(n_"samples") weights_i)
+        \sum_(i=1)^(n_"samples") weights_i (y_i - (Xw)_i)^ 2
+
+    Attributes
+    ----------
+    Xtwy : array, shape (n_features,)
+        Pre-computed quantity used during the gradient evaluation.
+        Equal to ``X.T @ (samples_weights * y)``.
+    sample_weights : array, shape (n_samples,)
+        Weights for each sample.
+
+    Note
+    ----
+    The class is jit compiled at fit time using Numba compiler.
+    This allows for faster computations.
+    """
+
+    def __init__(self, sample_weights):
+        self.sample_weights = sample_weights
+
+    def get_spec(self):
+        spec = (
+            ('Xtwy', float64[:]),
+            ('sample_weights', float64[:]),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return {'sample_weights': self.sample_weights}
+
+    def get_lipschitz(self, X, y):
+        n_features = X.shape[1]
+        lipschitz = np.zeros(n_features, dtype=X.dtype)
+        w_sum = self.sample_weights.sum()
+
+        for j in range(n_features):
+            lipschitz[j] = (self.sample_weights * X[:, j] ** 2).sum() / w_sum
+
+        return lipschitz
+
+    def get_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+        n_features = len(X_indptr) - 1
+        lipschitz = np.zeros(n_features, dtype=X_data.dtype)
+        w_sum = self.sample_weights.sum()
+
+        for j in range(n_features):
+            nrm2 = 0.
+            for idx in range(X_indptr[j], X_indptr[j + 1]):
+                nrm2 += self.sample_weights[X_indices[idx]] * X_data[idx] ** 2
+
+            lipschitz[j] = nrm2 / w_sum
+
+        return lipschitz
+
+    def initialize(self, X, y):
+        self.Xtwy = X.T @ (self.sample_weights * y)
+
+    def initialize_sparse(self, X_data, X_indptr, X_indices, y):
+        n_features = len(X_indptr) - 1
+        self.Xty = np.zeros(n_features, dtype=X_data.dtype)
+
+        for j in range(n_features):
+            xty = 0
+            for idx in range(X_indptr[j], X_indptr[j + 1]):
+                xty += (X_data[idx] * self.sample_weights[X_indices[idx]]
+                        * y[X_indices[idx]])
+            self.Xty[j] = xty
+
+    def get_global_lipschitz(self, X, y):
+        w_sum = self.sample_weights.sum()
+        return norm(X.T @ np.sqrt(self.sample_weights), ord=2) ** 2 / w_sum
+
+    def get_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+        return spectral_norm(
+            X_data * np.sqrt(self.sample_weights[X_indices]),
+            X_indptr, X_indices, len(y)) ** 2 / self.sample_weights.sum()
+
+    def value(self, y, w, Xw):
+        w_sum = self.sample_weights.sum()
+        return np.sum(self.sample_weights * (y - Xw) ** 2) / (2 * w_sum)
+
+    def gradient_scalar(self, X, y, w, Xw, j):
+        return (X[:, j] @ (self.sample_weights * (Xw - y))) / self.sample_weights.sum()
+
+    def gradient_scalar_sparse(self, X_data, X_indptr, X_indices, y, Xw, j):
+        XjTXw = 0.
+        for i in range(X_indptr[j], X_indptr[j + 1]):
+            XjTXw += X_data[i] * self.sample_weights[X_indices[i]] * Xw[X_indices[i]]
+        return (XjTXw - self.Xty[j]) / self.sample_weights.sum()
+
+    def gradient(self, X, y, Xw):
+        return X.T @ (self.sample_weights * (Xw - y)) / self.sample_weights.sum()
+
+    def raw_grad(self, y, Xw):
+        return (self.sample_weights * (Xw - y)) / self.sample_weights.sum()
+
+    def raw_hessian(self, y, Xw):
+        return self.sample_weights / self.sample_weights.sum()
+
+    def full_grad_sparse(self, X_data, X_indptr, X_indices, y, Xw):
+        n_features = X_indptr.shape[0] - 1
+        grad = np.zeros(n_features, dtype=Xw.dtype)
+
+        for j in range(n_features):
+            XjTXw = 0.
+            for i in range(X_indptr[j], X_indptr[j + 1]):
+                XjTXw += (X_data[i] * self.sample_weights[X_indices[i]]
+                          * Xw[X_indices[i]])
+            grad[j] = (XjTXw - self.Xty[j]) / self.sample_weights.sum()
+        return grad
+
+    def intercept_update_step(self, y, Xw):
+        return np.sum(self.sample_weights * (Xw - y)) / self.sample_weights.sum()
 
 
 @njit
@@ -431,15 +562,15 @@ class Poisson(BaseDatafit):
         return dict()
 
     def initialize(self, X, y):
-        if np.any(y <= 0):
+        if np.any(y < 0):
             raise ValueError(
-                "Target vector `y` should only take positive values " +
+                "Target vector `y` should only take positive values "
                 "when fitting a Poisson model.")
 
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
-        if np.any(y <= 0):
+        if np.any(y < 0):
             raise ValueError(
-                "Target vector `y` should only take positive values " +
+                "Target vector `y` should only take positive values "
                 "when fitting a Poisson model.")
 
     def raw_grad(self, y, Xw):
@@ -452,6 +583,9 @@ class Poisson(BaseDatafit):
 
     def value(self, y, w, Xw):
         return np.sum(np.exp(Xw) - y * Xw) / len(y)
+
+    def gradient(self, X, y, Xw):
+        return X.T @ self.raw_grad(y, Xw)
 
     def gradient_scalar(self, X, y, w, Xw, j):
         return (X[:, j] @ (np.exp(Xw) - y)) / len(y)

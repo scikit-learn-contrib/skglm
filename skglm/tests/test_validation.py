@@ -1,9 +1,10 @@
 import pytest
-from skglm.datafits import Quadratic, Poisson
+
 from skglm.penalties import L1
+from skglm.datafits import Poisson, Huber
 from skglm.solvers import FISTA, ProxNewton
-from skglm.utils.jit_compilation import compiled_clone
 from skglm.utils.data import make_correlated_data
+from skglm.utils.jit_compilation import compiled_clone
 
 
 def test_datafit_penalty_solver_compatibility():
@@ -13,7 +14,7 @@ def test_datafit_penalty_solver_compatibility():
         AttributeError, match="Missing `raw_grad` and `raw_hessian`"
     ):
         ProxNewton()._validate(
-            X, y, compiled_clone(Quadratic()), compiled_clone(L1(1.))
+            X, y, compiled_clone(Huber(1.)), compiled_clone(L1(1.))
         )
 
     with pytest.raises(

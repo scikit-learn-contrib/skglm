@@ -3,7 +3,6 @@ import numpy as np
 from numba import njit
 from scipy.sparse import issparse
 
-from skglm.datafits import Quadratic
 from skglm.solvers.base import BaseSolver
 from skglm.utils.anderson import AndersonAcceleration
 

@@ -38,7 +38,6 @@ test = [
     "flake8",
     "coverage",
     "numpydoc",
-    "gsroptim@git+https://github.com/EugeneNdiaye/Gap_Safe_Rules",
 ]
 
 doc = [

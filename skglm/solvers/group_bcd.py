@@ -5,6 +5,7 @@ from scipy.sparse import issparse
 from skglm.solvers.base import BaseSolver
 from skglm.utils.anderson import AndersonAcceleration
 from skglm.utils.validation import check_group_compatible
+from skglm.solvers.common import dist_fix_point_bcd
 
 
 class GroupBCD(BaseSolver):
@@ -36,17 +37,22 @@ class GroupBCD(BaseSolver):
         Amount of verbosity. 0/False is silent.
     """
 
-    def __init__(self, max_iter=1000, max_epochs=100, p0=10, tol=1e-4,
-                 fit_intercept=False, warm_start=False, verbose=0):
+    def __init__(
+            self, max_iter=1000, max_epochs=100, p0=10, tol=1e-4, fit_intercept=False,
+            warm_start=False, ws_strategy="subdiff", verbose=0):
         self.max_iter = max_iter
         self.max_epochs = max_epochs
         self.p0 = p0
         self.tol = tol
         self.fit_intercept = fit_intercept
         self.warm_start = warm_start
+        self.ws_strategy = ws_strategy
         self.verbose = verbose
 
     def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+        if self.ws_strategy not in ("subdiff", "fixpoint"):
+            raise ValueError(
+                'Unsupported value for self.ws_strategy:', self.ws_strategy)
         check_group_compatible(datafit)
         check_group_compatible(penalty)
 
@@ -86,7 +92,14 @@ class GroupBCD(BaseSolver):
                     X.data, X.indptr, X.indices, y, w, Xw, datafit, all_groups)
             else:
                 grad = _construct_grad(X, y, w, Xw, datafit, all_groups)
-            opt = penalty.subdiff_distance(w, grad, all_groups)
+
+            if self.ws_strategy == "subdiff":
+                # MM TODO: AndersonCD passes w[:n_features] here
+                opt = penalty.subdiff_distance(w, grad, all_groups)
+            elif self.ws_strategy == "fixpoint":
+                opt = dist_fix_point_bcd(
+                    w[:n_features], grad, lipschitz, datafit, penalty, all_groups
+                )
 
             if self.fit_intercept:
                 intercept_opt = np.abs(datafit.intercept_update_step(y, Xw))
@@ -144,8 +157,15 @@ class GroupBCD(BaseSolver):
                     else:
                         grad_ws = _construct_grad(X, y, w, Xw, datafit, ws)
 
-                    opt_in = penalty.subdiff_distance(w, grad_ws, ws)
-                    stop_crit_in = np.max(opt_in)
+                    if self.ws_strategy == "subdiff":
+                        # TODO MM: AndersonCD uses w[:n_features] here
+                        opt_ws = penalty.subdiff_distance(w, grad_ws, ws)
+                    elif self.ws_strategy == "fixpoint":
+                        opt_ws = dist_fix_point_bcd(
+                            w, grad_ws, lipschitz[ws], datafit, penalty, ws
+                        )
+
+                    stop_crit_in = np.max(opt_ws)
 
                     if max(self.verbose - 1, 0):
                         p_obj = datafit.value(y, w, Xw) + penalty.value(w)

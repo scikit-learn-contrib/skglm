@@ -103,6 +103,8 @@ class AndersonCD(BaseSolver):
             # The intercept is not taken into account in the optimality conditions since
             # the derivative w.r.t. to the intercept may be very large. It is not likely
             # to change significantly the optimality conditions.
+            # TODO: MM I don't understand the comment above: the intercept is
+            # taken into account intercept_opt 6 lines below
             if self.ws_strategy == "subdiff":
                 opt = penalty.subdiff_distance(w[:n_features], grad, all_feats)
             elif self.ws_strategy == "fixpoint":

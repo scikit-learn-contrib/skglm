@@ -78,6 +78,7 @@ class BaseSolver(ABC):
         penalty : instance of BasePenalty
             Penalty.
         """
+        pass
 
     def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None,
               *, run_checks=True):
@@ -97,8 +98,10 @@ class BaseSolver(ABC):
         return self._solve(X, y, datafit, penalty, w_init, Xw_init)
 
     def _validate(self, X, y, datafit, penalty):
-        # execute both: attributes checks and `custom_compatibility_check`
+        # execute: `custom_compatibility_check` then check attributes
         self.custom_compatibility_check(X, y, datafit, penalty)
 
+        # do not check for sparse support here, make the check at the solver level
+        # some solvers like ProxNewton don't require methods for sparse support
         check_attrs(datafit, self, self._datafit_required_attr)
         check_attrs(penalty, self, self._penalty_required_attr)

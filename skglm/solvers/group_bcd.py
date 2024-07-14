@@ -56,8 +56,6 @@ class GroupBCD(BaseSolver):
         if self.ws_strategy not in ("subdiff", "fixpoint"):
             raise ValueError(
                 'Unsupported value for self.ws_strategy:', self.ws_strategy)
-        check_group_compatible(datafit)
-        check_group_compatible(penalty)
 
         n_samples, n_features = X.shape
         n_groups = len(penalty.grp_ptr) - 1

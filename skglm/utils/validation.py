@@ -56,7 +56,7 @@ def check_attrs(obj, solver, required_attr, support_sparse=False):
     missing_attrs = []
     suffix = SPARSE_SUFFIX if support_sparse else ""
 
-    # if `attr` is a list check that at least one of them
+    # if `attr` is a list, check that at least one of them
     # is within `obj` attributes
     for attr in required_attr:
         attributes = attr if not isinstance(attr, str) else (attr,)

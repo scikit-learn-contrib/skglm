@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Comparison of Lasso and Weighted Lasso" href="plot_lasso_vs_weighted.html" /><link rel="prev" title="Value and proximal operators of penalties" href="plot_pen_prox.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Logistic regression with Elastic net and minimax concave penalties" href="plot_logreg_various_penalties.html" /><link rel="prev" title="Weighted Lasso with some zero weights" href="plot_zero_weights_lasso.html" />
 
     <link rel="shortcut icon" href="../_static/logo.svg"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.05.06 -->
-        <title>Show U-curve of regularization - skglm 0.3.2dev documentation</title>
+        <title>Fast Sparse Group Lasso in python - skglm 0.3.2dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=387cc868" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -247,10 +247,10 @@
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Examples Gallery</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Examples Gallery</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="plot_group_logistic_regression.html">Group Logistic regression in python</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_pen_prox.html">Value and proximal operators of penalties</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Show U-curve of regularization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ucurve.html">Show U-curve of regularization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_lasso_vs_weighted.html">Comparison of Lasso and Weighted Lasso</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_zero_weights_lasso.html">Weighted Lasso with some zero weights</a></li>
-<li class="toctree-l2"><a class="reference internal" href="plot_sparse_group_lasso.html">Fast Sparse Group Lasso in python</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Fast Sparse Group Lasso in python</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_logreg_various_penalties.html">Logistic regression with Elastic net and minimax concave penalties</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_reweighted_l1.html">Timing comparison between direct prox computation and reweighting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_compare_time.html">Timing comparison with scikit-learn for Lasso</a></li>
@@ -347,87 +347,88 @@
         <article role="main" id="furo-main-content">
           <div class="sphx-glr-download-link-note admonition note">
 <p class="admonition-title">Note</p>
-<p><a class="reference internal" href="#sphx-glr-download-auto-examples-plot-ucurve-py"><span class="std std-ref">Go to the end</span></a>
+<p><a class="reference internal" href="#sphx-glr-download-auto-examples-plot-sparse-group-lasso-py"><span class="std std-ref">Go to the end</span></a>
 to download the full example code.</p>
 </div>
-<section class="sphx-glr-example-title" id="show-u-curve-of-regularization">
-<span id="sphx-glr-auto-examples-plot-ucurve-py"></span><h1>Show U-curve of regularization<a class="headerlink" href="#show-u-curve-of-regularization" title="Permalink to this heading">¶</a></h1>
-<p>Illustrate the sweet spot of regularization: not too much, not too little.
-We showcase that for the Lasso estimator on the <code class="docutils literal notranslate"><span class="pre">rcv1.binary</span></code> dataset.</p>
+<section class="sphx-glr-example-title" id="fast-sparse-group-lasso-in-python">
+<span id="sphx-glr-auto-examples-plot-sparse-group-lasso-py"></span><h1>Fast Sparse Group Lasso in python<a class="headerlink" href="#fast-sparse-group-lasso-in-python" title="Permalink to this heading">¶</a></h1>
+<p>Scikit-learn is missing a Sparse Group Lasso regression estimator. We show how to
+implement one with <code class="docutils literal notranslate"><span class="pre">skglm</span></code>.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Author: Mathurin Massias</span>
+</pre></div>
+</div>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">numpy.linalg</span> <span class="kn">import</span> <span class="n">norm</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">libsvmdata</span> <span class="kn">import</span> <span class="n">fetch_libsvm</span>
 
-<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html#sklearn.model_selection.train_test_split" title="sklearn.model_selection.train_test_split" class="sphx-glr-backref-module-sklearn-model_selection sphx-glr-backref-type-py-function"><span class="n">train_test_split</span></a>
-<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <a href="https://scikit-learn.org/stable/modules/generated/sklearn.metrics.mean_squared_error.html#sklearn.metrics.mean_squared_error" title="sklearn.metrics.mean_squared_error" class="sphx-glr-backref-module-sklearn-metrics sphx-glr-backref-type-py-function"><span class="n">mean_squared_error</span></a>
+<span class="kn">from</span> <span class="nn">skglm.solvers</span> <span class="kn">import</span> <a href="../generated/skglm.solvers.GroupBCD.html#skglm.solvers.GroupBCD" title="skglm.solvers.GroupBCD" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class"><span class="n">GroupBCD</span></a>
+<span class="kn">from</span> <span class="nn">skglm.datafits</span> <span class="kn">import</span> <a href="../generated/skglm.datafits.QuadraticGroup.html#skglm.datafits.QuadraticGroup" title="skglm.datafits.QuadraticGroup" class="sphx-glr-backref-module-skglm-datafits sphx-glr-backref-type-py-class"><span class="n">QuadraticGroup</span></a>
+<span class="kn">from</span> <span class="nn">skglm</span> <span class="kn">import</span> <a href="../generated/skglm.GeneralizedLinearEstimator.html#skglm.GeneralizedLinearEstimator" title="skglm.GeneralizedLinearEstimator" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class"><span class="n">GeneralizedLinearEstimator</span></a>
+<span class="kn">from</span> <span class="nn">skglm.penalties</span> <span class="kn">import</span> <span class="n">WeightedL1GroupL2</span>
+<span class="kn">from</span> <span class="nn">skglm.utils.data</span> <span class="kn">import</span> <span class="n">make_correlated_data</span><span class="p">,</span> <span class="n">grp_converter</span>
 
-<span class="kn">from</span> <span class="nn">skglm</span> <span class="kn">import</span> <a href="../generated/skglm.Lasso.html#skglm.Lasso" title="skglm.Lasso" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class"><span class="n">Lasso</span></a>
+<span class="n">n_features</span> <span class="o">=</span> <span class="mi">30</span>
+<span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">make_correlated_data</span><span class="p">(</span>
+    <span class="n">n_samples</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">n_features</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>First, we load the dataset and keep 2000 features.
-We also retrain 2000 samples in training dataset.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">fetch_libsvm</span><span class="p">(</span><span class="s2">&quot;rcv1.binary&quot;</span><span class="p">)</span>
+<p>Model creation: combination of penalty, datafit and solver.</p>
+<p>penalty:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">grp_size</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># take groups of 10 consecutive features</span>
+<span class="n">n_groups</span> <span class="o">=</span> <span class="n">n_features</span> <span class="o">//</span> <span class="n">grp_size</span>
+<span class="n">grp_indices</span><span class="p">,</span> <span class="n">grp_ptr</span> <span class="o">=</span> <span class="n">grp_converter</span><span class="p">(</span><span class="n">grp_size</span><span class="p">,</span> <span class="n">n_features</span><span class="p">)</span>
+<span class="n">n_groups</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">grp_ptr</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+<span class="n">weights_g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_groups</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="n">weights_f</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_features</span><span class="p">)</span>
+<span class="n">penalty</span> <span class="o">=</span> <span class="n">WeightedL1GroupL2</span><span class="p">(</span>
+    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">weights_groups</span><span class="o">=</span><span class="n">weights_g</span><span class="p">,</span>
+    <span class="n">weights_features</span><span class="o">=</span><span class="n">weights_f</span><span class="p">,</span> <span class="n">grp_indices</span><span class="o">=</span><span class="n">grp_indices</span><span class="p">,</span> <span class="n">grp_ptr</span><span class="o">=</span><span class="n">grp_ptr</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="../generated/skglm.datafits.QuadraticGroup.html#skglm.datafits.QuadraticGroup" title="skglm.datafits.QuadraticGroup" class="sphx-glr-backref-module-skglm-datafits sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">datafit</span></a> <span class="o">=</span> <a href="../generated/skglm.datafits.QuadraticGroup.html#skglm.datafits.QuadraticGroup" title="skglm.datafits.QuadraticGroup" class="sphx-glr-backref-module-skglm-datafits sphx-glr-backref-type-py-class"><span class="n">QuadraticGroup</span></a><span class="p">(</span><span class="n">grp_ptr</span><span class="p">,</span> <span class="n">grp_indices</span><span class="p">)</span>
+<a href="../generated/skglm.solvers.GroupBCD.html#skglm.solvers.GroupBCD" title="skglm.solvers.GroupBCD" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a> <span class="o">=</span> <a href="../generated/skglm.solvers.GroupBCD.html#skglm.solvers.GroupBCD" title="skglm.solvers.GroupBCD" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class"><span class="n">GroupBCD</span></a><span class="p">(</span><span class="n">ws_strategy</span><span class="o">=</span><span class="s2">&quot;fixpoint&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">fit_intercept</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">)</span>
 
-<span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2000</span><span class="p">]</span>
-<span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html#sklearn.model_selection.train_test_split" title="sklearn.model_selection.train_test_split" class="sphx-glr-backref-module-sklearn-model_selection sphx-glr-backref-type-py-function"><span class="n">train_test_split</span></a><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
-<span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span> <span class="o">=</span> <span class="n">X_train</span><span class="p">[:</span><span class="mi">2000</span><span class="p">],</span> <span class="n">y_train</span><span class="p">[:</span><span class="mi">2000</span><span class="p">]</span>
+<a href="../generated/skglm.GeneralizedLinearEstimator.html#skglm.GeneralizedLinearEstimator" title="skglm.GeneralizedLinearEstimator" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">model</span></a> <span class="o">=</span> <a href="../generated/skglm.GeneralizedLinearEstimator.html#skglm.GeneralizedLinearEstimator" title="skglm.GeneralizedLinearEstimator" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class"><span class="n">GeneralizedLinearEstimator</span></a><span class="p">(</span><a href="../generated/skglm.datafits.QuadraticGroup.html#skglm.datafits.QuadraticGroup" title="skglm.datafits.QuadraticGroup" class="sphx-glr-backref-module-skglm-datafits sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">datafit</span></a><span class="p">,</span> <span class="n">penalty</span><span class="p">,</span> <a href="../generated/skglm.solvers.GroupBCD.html#skglm.solvers.GroupBCD" title="skglm.solvers.GroupBCD" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a><span class="o">=</span><a href="../generated/skglm.solvers.GroupBCD.html#skglm.solvers.GroupBCD" title="skglm.solvers.GroupBCD" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a><span class="p">)</span>
 </pre></div>
 </div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>file_sizes:   0%|                                   | 0.00/13.7M [00:00&lt;?, ?B/s]
-file_sizes:   0%|                           | 24.6k/13.7M [00:00&lt;01:49, 125kB/s]
-file_sizes:   0%|                           | 49.2k/13.7M [00:00&lt;01:49, 125kB/s]
-file_sizes:   1%|▏                           | 106k/13.7M [00:00&lt;01:07, 201kB/s]
-file_sizes:   2%|▍                           | 221k/13.7M [00:00&lt;00:38, 351kB/s]
-file_sizes:   3%|▉                           | 451k/13.7M [00:00&lt;00:20, 643kB/s]
-file_sizes:   7%|█▊                         | 909k/13.7M [00:01&lt;00:10, 1.21MB/s]
-file_sizes:  13%|███▍                      | 1.83M/13.7M [00:01&lt;00:05, 2.34MB/s]
-file_sizes:  27%|██████▉                   | 3.66M/13.7M [00:01&lt;00:02, 4.53MB/s]
-file_sizes:  38%|█████████▉                | 5.23M/13.7M [00:01&lt;00:01, 5.61MB/s]
-file_sizes:  57%|██████████████▉           | 7.86M/13.7M [00:01&lt;00:00, 7.87MB/s]
-file_sizes:  69%|█████████████████▊        | 9.43M/13.7M [00:02&lt;00:00, 7.93MB/s]
-file_sizes:  80%|████████████████████▊     | 11.0M/13.7M [00:02&lt;00:00, 7.97MB/s]
-file_sizes:  99%|█████████████████████████▊| 13.6M/13.7M [00:02&lt;00:00, 9.51MB/s]
-file_sizes: 100%|██████████████████████████| 13.7M/13.7M [00:02&lt;00:00, 5.33MB/s]
+<p>Train the model</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="../generated/skglm.GeneralizedLinearEstimator.html#skglm.GeneralizedLinearEstimator" title="skglm.GeneralizedLinearEstimator" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">clf</span></a> <span class="o">=</span> <a href="../generated/skglm.GeneralizedLinearEstimator.html#skglm.GeneralizedLinearEstimator" title="skglm.GeneralizedLinearEstimator" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class"><span class="n">GeneralizedLinearEstimator</span></a><span class="p">(</span><a href="../generated/skglm.datafits.QuadraticGroup.html#skglm.datafits.QuadraticGroup" title="skglm.datafits.QuadraticGroup" class="sphx-glr-backref-module-skglm-datafits sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">datafit</span></a><span class="p">,</span> <span class="n">penalty</span><span class="p">,</span> <a href="../generated/skglm.solvers.GroupBCD.html#skglm.solvers.GroupBCD" title="skglm.solvers.GroupBCD" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">solver</span></a><span class="p">)</span>
+<a href="../generated/skglm.GeneralizedLinearEstimator.html#skglm.GeneralizedLinearEstimator" title="skglm.GeneralizedLinearEstimator" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">clf</span></a><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Next, we define the regularization path.
-For Lasso, it is well know that there is an <code class="docutils literal notranslate"><span class="pre">alpha_max</span></code> above which the optimal solution is the zero vector.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">alpha_max</span> <span class="o">=</span> <span class="n">norm</span><span class="p">(</span><span class="n">X_train</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">y_train</span><span class="p">,</span> <span class="nb">ord</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_train</span><span class="p">)</span>
-<span class="n">alphas</span> <span class="o">=</span> <span class="n">alpha_max</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">geomspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">)</span>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Iteration 1: 2.9165123923, stopping crit: 6.04e-01
+Iteration 2: 2.0255867844, stopping crit: 1.59e-01
+Iteration 3: 1.6875753707, stopping crit: 1.40e-02
+Iteration 4: 1.6804572587, stopping crit: 9.23e-05
+Iteration 5: 1.6804570767, stopping crit: 1.22e-05
+Iteration 6: 1.6804570709, stopping crit: 5.64e-07
+Iteration 7: 1.6804570709, stopping crit: 1.17e-08
+Iteration 8: 1.6804570709, stopping crit: 1.37e-11
 </pre></div>
 </div>
-<p>Let’s train the estimator along the regularization path and then compute the MSE on train and test data.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">mse_train</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="n">mse_test</span> <span class="o">=</span> <span class="p">[]</span>
-
-<a href="../generated/skglm.Lasso.html#skglm.Lasso" title="skglm.Lasso" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">clf</span></a> <span class="o">=</span> <a href="../generated/skglm.Lasso.html#skglm.Lasso" title="skglm.Lasso" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class"><span class="n">Lasso</span></a><span class="p">(</span><span class="n">fit_intercept</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">warm_start</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">alpha</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">alphas</span><span class="p">):</span>
-    <a href="../generated/skglm.Lasso.html#skglm.Lasso" title="skglm.Lasso" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">clf</span></a><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span>
-    <a href="../generated/skglm.Lasso.html#skglm.Lasso" title="skglm.Lasso" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">clf</span></a><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
-
-    <span class="n">mse_train</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><a href="https://scikit-learn.org/stable/modules/generated/sklearn.metrics.mean_squared_error.html#sklearn.metrics.mean_squared_error" title="sklearn.metrics.mean_squared_error" class="sphx-glr-backref-module-sklearn-metrics sphx-glr-backref-type-py-function"><span class="n">mean_squared_error</span></a><span class="p">(</span><span class="n">y_train</span><span class="p">,</span> <a href="../generated/skglm.Lasso.html#skglm.Lasso" title="skglm.Lasso" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">clf</span></a><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_train</span><span class="p">)))</span>
-    <span class="n">mse_test</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><a href="https://scikit-learn.org/stable/modules/generated/sklearn.metrics.mean_squared_error.html#sklearn.metrics.mean_squared_error" title="sklearn.metrics.mean_squared_error" class="sphx-glr-backref-module-sklearn-metrics sphx-glr-backref-type-py-function"><span class="n">mean_squared_error</span></a><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <a href="../generated/skglm.Lasso.html#skglm.Lasso" title="skglm.Lasso" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">clf</span></a><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">)))</span>
+<div class="output_subarea output_html rendered_html output_result">
+<style>#sk-container-id-2 {color: black;}#sk-container-id-2 pre{padding: 0;}#sk-container-id-2 div.sk-toggleable {background-color: white;}#sk-container-id-2 label.sk-toggleable__label {cursor: pointer;display: block;width: 100%;margin-bottom: 0;padding: 0.3em;box-sizing: border-box;text-align: center;}#sk-container-id-2 label.sk-toggleable__label-arrow:before {content: "▸";float: left;margin-right: 0.25em;color: #696969;}#sk-container-id-2 label.sk-toggleable__label-arrow:hover:before {color: black;}#sk-container-id-2 div.sk-estimator:hover label.sk-toggleable__label-arrow:before {color: black;}#sk-container-id-2 div.sk-toggleable__content {max-height: 0;max-width: 0;overflow: hidden;text-align: left;background-color: #f0f8ff;}#sk-container-id-2 div.sk-toggleable__content pre {margin: 0.2em;color: black;border-radius: 0.25em;background-color: #f0f8ff;}#sk-container-id-2 input.sk-toggleable__control:checked~div.sk-toggleable__content {max-height: 200px;max-width: 100%;overflow: auto;}#sk-container-id-2 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {content: "▾";}#sk-container-id-2 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-2 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-2 input.sk-hidden--visually {border: 0;clip: rect(1px 1px 1px 1px);clip: rect(1px, 1px, 1px, 1px);height: 1px;margin: -1px;overflow: hidden;padding: 0;position: absolute;width: 1px;}#sk-container-id-2 div.sk-estimator {font-family: monospace;background-color: #f0f8ff;border: 1px dotted black;border-radius: 0.25em;box-sizing: border-box;margin-bottom: 0.5em;}#sk-container-id-2 div.sk-estimator:hover {background-color: #d4ebff;}#sk-container-id-2 div.sk-parallel-item::after {content: "";width: 100%;border-bottom: 1px solid gray;flex-grow: 1;}#sk-container-id-2 div.sk-label:hover label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-2 div.sk-serial::before {content: "";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: 0;}#sk-container-id-2 div.sk-serial {display: flex;flex-direction: column;align-items: center;background-color: white;padding-right: 0.2em;padding-left: 0.2em;position: relative;}#sk-container-id-2 div.sk-item {position: relative;z-index: 1;}#sk-container-id-2 div.sk-parallel {display: flex;align-items: stretch;justify-content: center;background-color: white;position: relative;}#sk-container-id-2 div.sk-item::before, #sk-container-id-2 div.sk-parallel-item::before {content: "";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: -1;}#sk-container-id-2 div.sk-parallel-item {display: flex;flex-direction: column;z-index: 1;position: relative;background-color: white;}#sk-container-id-2 div.sk-parallel-item:first-child::after {align-self: flex-end;width: 50%;}#sk-container-id-2 div.sk-parallel-item:last-child::after {align-self: flex-start;width: 50%;}#sk-container-id-2 div.sk-parallel-item:only-child::after {width: 0;}#sk-container-id-2 div.sk-dashed-wrapped {border: 1px dashed gray;margin: 0 0.4em 0.5em 0.4em;box-sizing: border-box;padding-bottom: 0.4em;background-color: white;}#sk-container-id-2 div.sk-label label {font-family: monospace;font-weight: bold;display: inline-block;line-height: 1.2em;}#sk-container-id-2 div.sk-label-container {text-align: center;}#sk-container-id-2 div.sk-container {/* jupyter's `normalize.less` sets `[hidden] { display: none; }` but bootstrap.min.css set `[hidden] { display: none !important; }` so we also need the `!important` here to be able to override the default hidden behavior on the sphinx rendered scikit-learn.org. See: https://github.com/scikit-learn/scikit-learn/issues/21755 */display: inline-block !important;position: relative;}#sk-container-id-2 div.sk-text-repr-fallback {display: none;}</style><div id="sk-container-id-2" class="sk-top-container"><div class="sk-text-repr-fallback"><pre>GeneralizedLinearEstimator(datafit=QuadraticGroup, penalty=WeightedL1GroupL2, alpha=0.5)</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br />On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden><div class="sk-item"><div class="sk-estimator sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-2" type="checkbox" checked><label for="sk-estimator-id-2" class="sk-toggleable__label sk-toggleable__label-arrow">GeneralizedLinearEstimator</label><div class="sk-toggleable__content"><pre>GeneralizedLinearEstimator(datafit=QuadraticGroup, penalty=WeightedL1GroupL2, alpha=0.5)</pre></div></div></div></div></div>
+</div>
+<br />
+<br /><p>Some groups are fully 0, and inside non zero groups,
+some values are 0 too</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><a href="../generated/skglm.GeneralizedLinearEstimator.html#skglm.GeneralizedLinearEstimator" title="skglm.GeneralizedLinearEstimator" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">clf</span></a><span class="o">.</span><span class="n">coef_</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">grp_size</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;Greys&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Non zero values (in black) in model coefficients&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Group index&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Feature index inside group&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">grp_size</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">yticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_groups</span><span class="p">));</span>
 </pre></div>
 </div>
-<p>Finally, we can plot the train and test MSE.
-Notice the “sweet spot” at around <code class="docutils literal notranslate"><span class="pre">1e-4</span></code>, which sits at the boundary between underfitting and overfitting.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="s1">&#39;all&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">alphas</span><span class="p">,</span> <span class="n">mse_train</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;train MSE&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">alphas</span><span class="p">,</span> <span class="n">mse_test</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;test MSE&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Mean squared error&quot;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Lasso regularization strength $\lambda$&quot;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<img src="../_images/sphx_glr_plot_sparse_group_lasso_001.png" srcset="../_images/sphx_glr_plot_sparse_group_lasso_001.png" alt="Non zero values (in black) in model coefficients" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>([&lt;matplotlib.axis.YTick object at 0x7f4af0ceaca0&gt;, &lt;matplotlib.axis.YTick object at 0x7f4af040aa90&gt;, &lt;matplotlib.axis.YTick object at 0x7f4af05b44f0&gt;], [Text(0, 0, &#39;0&#39;), Text(0, 1, &#39;1&#39;), Text(0, 2, &#39;2&#39;)])
 </pre></div>
 </div>
-<img src="../_images/sphx_glr_plot_ucurve_001.png" srcset="../_images/sphx_glr_plot_ucurve_001.png" alt="Mean squared error" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 13.148 seconds)</p>
-<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-ucurve-py">
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 5.141 seconds)</p>
+<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-sparse-group-lasso-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
-<p><a class="reference download internal" download="" href="../_downloads/c561e76c25a76938aecd426c0cbcdd39/plot_ucurve.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_ucurve.ipynb</span></code></a></p>
+<p><a class="reference download internal" download="" href="../_downloads/5c80f1f9f9b119b18c74f23b9d54985c/plot_sparse_group_lasso.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_sparse_group_lasso.ipynb</span></code></a></p>
 </div>
 <div class="sphx-glr-download sphx-glr-download-python docutils container">
-<p><a class="reference download internal" download="" href="../_downloads/ae06fdfc116f9b8b7a1994b78d3bff10/plot_ucurve.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_ucurve.py</span></code></a></p>
+<p><a class="reference download internal" download="" href="../_downloads/708c3b22aa383b4e872b5cdd81e22b3d/plot_sparse_group_lasso.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_sparse_group_lasso.py</span></code></a></p>
 </div>
 </div>
 <p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
@@ -438,23 +439,23 @@ Notice the “sweet spot” at around <code class="docutils literal notranslate"
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="plot_lasso_vs_weighted.html">
+          <a class="next-page" href="plot_logreg_various_penalties.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Comparison of Lasso and Weighted Lasso</div>
+                <div class="title">Logistic regression with Elastic net and minimax concave penalties</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="plot_pen_prox.html">
+          <a class="prev-page" href="plot_zero_weights_lasso.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Value and proximal operators of penalties</div>
+                <div class="title">Weighted Lasso with some zero weights</div>
                 
               </div>
             </a>

@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Timing comparison between direct prox computation and reweighting" href="plot_reweighted_l1.html" /><link rel="prev" title="Weighted Lasso with some zero weights" href="plot_zero_weights_lasso.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Timing comparison between direct prox computation and reweighting" href="plot_reweighted_l1.html" /><link rel="prev" title="Fast Sparse Group Lasso in python" href="plot_sparse_group_lasso.html" />
 
     <link rel="shortcut icon" href="../_static/logo.svg"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.05.06 -->
         <title>Logistic regression with Elastic net and minimax concave penalties - skglm 0.3.2dev documentation</title>
@@ -250,6 +250,7 @@
 <li class="toctree-l2"><a class="reference internal" href="plot_ucurve.html">Show U-curve of regularization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_lasso_vs_weighted.html">Comparison of Lasso and Weighted Lasso</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_zero_weights_lasso.html">Weighted Lasso with some zero weights</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_sparse_group_lasso.html">Fast Sparse Group Lasso in python</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Logistic regression with Elastic net and minimax concave penalties</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_reweighted_l1.html">Timing comparison between direct prox computation and reweighting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_compare_time.html">Timing comparison with scikit-learn for Lasso</a></li>
@@ -352,18 +353,7 @@ to download the full example code.</p>
 <section class="sphx-glr-example-title" id="logistic-regression-with-elastic-net-and-minimax-concave-penalties">
 <span id="sphx-glr-auto-examples-plot-logreg-various-penalties-py"></span><h1>Logistic regression with Elastic net and minimax concave penalties<a class="headerlink" href="#logistic-regression-with-elastic-net-and-minimax-concave-penalties" title="Permalink to this heading">¶</a></h1>
 <p>Illustrate the modularity of <code class="docutils literal notranslate"><span class="pre">skglm</span></code> by using <code class="docutils literal notranslate"><span class="pre">GeneralizedLinearEstimator</span></code> with one datafit and one penalty.</p>
-<img src="../_images/sphx_glr_plot_logreg_various_penalties_001.png" srcset="../_images/sphx_glr_plot_logreg_various_penalties_001.png" alt="MCP F1: 0.600, Elastic Net F1: 0.667" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/home/circleci/project/examples/plot_logreg_various_penalties.py:53: MatplotlibDeprecationWarning: The &#39;use_line_collection&#39; parameter of stem() was deprecated in Matplotlib 3.6 and will be removed two minor releases later. If any parameter follows &#39;use_line_collection&#39;, they should be passed as keyword, not positionally.
-  m, s, _ = plt.stem(
-/home/circleci/project/examples/plot_logreg_various_penalties.py:61: MatplotlibDeprecationWarning: The &#39;use_line_collection&#39; parameter of stem() was deprecated in Matplotlib 3.6 and will be removed two minor releases later. If any parameter follows &#39;use_line_collection&#39;, they should be passed as keyword, not positionally.
-  m, s, _ = plt.stem(
-/home/circleci/project/examples/plot_logreg_various_penalties.py:69: MatplotlibDeprecationWarning: The &#39;use_line_collection&#39; parameter of stem() was deprecated in Matplotlib 3.6 and will be removed two minor releases later. If any parameter follows &#39;use_line_collection&#39;, they should be passed as keyword, not positionally.
-  plt.stem(
-</pre></div>
-</div>
-<div class="line-block">
-<div class="line"><br /></div>
-</div>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Author: Pierre-Antoine Bannier</span>
+<img src="../_images/sphx_glr_plot_logreg_various_penalties_001.png" srcset="../_images/sphx_glr_plot_logreg_various_penalties_001.png" alt="MCP F1: 0.600, Elastic Net F1: 0.667" class = "sphx-glr-single-img"/><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Author: Pierre-Antoine Bannier</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">numpy.linalg</span> <span class="kn">import</span> <span class="n">norm</span>
@@ -413,7 +403,6 @@ to download the full example code.</p>
     <a href="../generated/skglm.GeneralizedLinearEstimator.html#skglm.GeneralizedLinearEstimator" title="skglm.GeneralizedLinearEstimator" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">clf_enet</span></a><span class="o">.</span><span class="n">coef_</span><span class="p">[</span><a href="../generated/skglm.GeneralizedLinearEstimator.html#skglm.GeneralizedLinearEstimator" title="skglm.GeneralizedLinearEstimator" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">clf_enet</span></a><span class="o">.</span><span class="n">coef_</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">],</span>
     <span class="n">markerfmt</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span>
     <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Elastic net coefficients&quot;</span><span class="p">,</span>
-    <span class="n">use_line_collection</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">setp</span><span class="p">([</span><span class="n">m</span><span class="p">,</span> <span class="n">s</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;#2ca02c&quot;</span><span class="p">)</span>
 <span class="n">m</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">stem</span><span class="p">(</span>
@@ -421,7 +410,6 @@ to download the full example code.</p>
     <a href="../generated/skglm.GeneralizedLinearEstimator.html#skglm.GeneralizedLinearEstimator" title="skglm.GeneralizedLinearEstimator" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">clf_mcp</span></a><span class="o">.</span><span class="n">coef_</span><span class="p">[</span><a href="../generated/skglm.GeneralizedLinearEstimator.html#skglm.GeneralizedLinearEstimator" title="skglm.GeneralizedLinearEstimator" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">clf_mcp</span></a><span class="o">.</span><span class="n">coef_</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">],</span>
     <span class="n">markerfmt</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span>
     <span class="n">label</span><span class="o">=</span><span class="s2">&quot;MCP coefficients&quot;</span><span class="p">,</span>
-    <span class="n">use_line_collection</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">setp</span><span class="p">([</span><span class="n">m</span><span class="p">,</span> <span class="n">s</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;#ff7f0e&quot;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">stem</span><span class="p">(</span>
@@ -429,7 +417,6 @@ to download the full example code.</p>
     <span class="n">w_star</span><span class="p">[</span><span class="n">w_star</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">],</span>
     <span class="n">label</span><span class="o">=</span><span class="s2">&quot;true coefficients&quot;</span><span class="p">,</span>
     <span class="n">markerfmt</span><span class="o">=</span><span class="s2">&quot;bx&quot;</span><span class="p">,</span>
-    <span class="n">use_line_collection</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
@@ -437,7 +424,7 @@ to download the full example code.</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 8.230 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 8.348 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-logreg-various-penalties-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/c2764ad753df1646865bb3aa9db52704/plot_logreg_various_penalties.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_logreg_various_penalties.ipynb</span></code></a></p>
@@ -463,14 +450,14 @@ to download the full example code.</p>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="plot_zero_weights_lasso.html">
+          <a class="prev-page" href="plot_sparse_group_lasso.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Weighted Lasso with some zero weights</div>
+                <div class="title">Fast Sparse Group Lasso in python</div>
                 
               </div>
             </a>

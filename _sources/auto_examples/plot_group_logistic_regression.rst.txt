@@ -128,11 +128,12 @@ Train the model
 
 Fit check that groups are either all 0 or all non zero
 
-.. GENERATED FROM PYTHON SOURCE LINES 44-44
+.. GENERATED FROM PYTHON SOURCE LINES 44-45
 
 .. code-block:: Python
 
     print(clf.coef_.reshape(-1, grp_size))
+
 
 
 
@@ -157,7 +158,7 @@ Fit check that groups are either all 0 or all non zero
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 12.718 seconds)
+   **Total running time of the script:** (0 minutes 13.079 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_group_logistic_regression.py:

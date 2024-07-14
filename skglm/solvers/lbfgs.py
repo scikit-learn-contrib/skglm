@@ -36,7 +36,7 @@ class LBFGS(BaseSolver):
         self.tol = tol
         self.verbose = verbose
 
-    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+    def _solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
 
         def objective(w):
             Xw = X @ w

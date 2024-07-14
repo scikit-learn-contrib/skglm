@@ -67,7 +67,7 @@ class ProxNewton(BaseSolver):
         self.warm_start = warm_start
         self.verbose = verbose
 
-    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+    def _solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
         if self.ws_strategy not in ("subdiff", "fixpoint"):
             raise ValueError("ws_strategy must be `subdiff` or `fixpoint`, "
                              f"got {self.ws_strategy}.")

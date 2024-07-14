@@ -23,7 +23,7 @@ class BaseSolver(ABC):
     _penalty_required_attr: list
 
     @abstractmethod
-    def solve(self, X, y, datafit, penalty, w_init, Xw_init):
+    def _solve(self, X, y, datafit, penalty, w_init, Xw_init):
         """Solve an optimization problem.
 
         Parameters
@@ -79,19 +79,22 @@ class BaseSolver(ABC):
             Penalty.
         """
 
-    def __call__(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None,
+              *, run_checks=True):
         """Solve the optimization problem after validating its compatibility.
 
-        A proxy of ``solve`` method that implicitly ensures the compatibility
+        A proxy of ``_solve`` method that implicitly ensures the compatibility
         of ``datafit`` and ``penalty`` with the solver.
 
         Examples
         --------
         >>> ...
-        >>> coefs, obj_out, stop_crit = solver(X, y, datafit, penalty)
+        >>> coefs, obj_out, stop_crit = solver.solve(X, y, datafit, penalty)
         """
-        self._validate(X, y, datafit, penalty)
-        return self.solve(X, y, datafit, penalty, w_init, Xw_init)
+        if run_checks:
+            self._validate(X, y, datafit, penalty)
+
+        return self._solve(X, y, datafit, penalty, w_init, Xw_init)
 
     def _validate(self, X, y, datafit, penalty):
         # execute both: attributes checks and `custom_compatibility_check`

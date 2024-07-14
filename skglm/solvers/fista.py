@@ -39,7 +39,7 @@ class FISTA(BaseSolver):
         self.fit_intercept = False   # needed to be passed to GeneralizedLinearEstimator
         self.warm_start = False
 
-    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+    def _solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
         p_objs_out = []
         n_samples, n_features = X.shape
         all_features = np.arange(n_features)

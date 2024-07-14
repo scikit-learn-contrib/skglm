@@ -26,7 +26,7 @@ class MultiTaskBCD(BaseSolver):
         self.warm_start = warm_start
         self.verbose = verbose
 
-    def solve(self, X, Y, datafit, penalty, W_init=None, XW_init=None):
+    def _solve(self, X, Y, datafit, penalty, W_init=None, XW_init=None):
         n_samples, n_features = X.shape
         n_tasks = Y.shape[1]
         pen = penalty.is_penalized(n_features)

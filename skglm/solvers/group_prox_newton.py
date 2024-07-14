@@ -57,7 +57,7 @@ class GroupProxNewton(BaseSolver):
         self.warm_start = warm_start
         self.verbose = verbose
 
-    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+    def _solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
         fit_intercept = self.fit_intercept
         n_samples, n_features = X.shape
         grp_ptr, grp_indices = penalty.grp_ptr, penalty.grp_indices

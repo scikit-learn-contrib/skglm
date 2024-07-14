@@ -1,5 +1,5 @@
 from abc import abstractmethod, ABC
-from skglm.utils.validation import check_obj_solver_attr
+from skglm.utils.validation import check_attrs
 
 
 class BaseSolver(ABC):
@@ -97,5 +97,5 @@ class BaseSolver(ABC):
         # execute both: attributes checks and `custom_compatibility_check`
         self.custom_compatibility_check(X, y, datafit, penalty)
 
-        check_obj_solver_attr(datafit, self, self._datafit_required_attr)
-        check_obj_solver_attr(penalty, self, self._penalty_required_attr)
+        check_attrs(datafit, self, self._datafit_required_attr)
+        check_attrs(penalty, self, self._penalty_required_attr)

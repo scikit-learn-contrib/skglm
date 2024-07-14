@@ -30,7 +30,7 @@ def check_group_compatible(obj):
             )
 
 
-def check_obj_solver_attr(obj, solver, required_attr, support_sparse=False):
+def check_attrs(obj, solver, required_attr, support_sparse=False):
     """Check whether datafit or penalty is compatible with solver.
 
     Parameters

@@ -3,7 +3,7 @@ from scipy.sparse import issparse
 from skglm.solvers.base import BaseSolver
 from skglm.solvers.common import construct_grad, construct_grad_sparse
 from skglm.utils.prox_funcs import _prox_vec
-from skglm.utils.validation import check_obj_solver_attr
+from skglm.utils.validation import check_attrs
 
 
 class FISTA(BaseSolver):
@@ -111,7 +111,7 @@ class FISTA(BaseSolver):
 
     def custom_compatibility_check(self, X, y, datafit, penalty):
         # check datafit support sparse data
-        check_obj_solver_attr(
+        check_attrs(
             datafit, solver=self,
             required_attr=self._datafit_required_attr,
             support_sparse=issparse(X)

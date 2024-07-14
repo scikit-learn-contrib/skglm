@@ -7,7 +7,7 @@ from skglm.solvers.common import (
 )
 from skglm.solvers.base import BaseSolver
 from skglm.utils.anderson import AndersonAcceleration
-from skglm.utils.validation import check_obj_solver_attr
+from skglm.utils.validation import check_attrs
 
 
 class AndersonCD(BaseSolver):
@@ -275,7 +275,7 @@ class AndersonCD(BaseSolver):
 
     def custom_compatibility_check(self, X, y, datafit, penalty):
         # check datafit support sparse data
-        check_obj_solver_attr(
+        check_attrs(
             datafit, solver=self,
             required_attr=self._datafit_required_attr,
             support_sparse=sparse.issparse(X)

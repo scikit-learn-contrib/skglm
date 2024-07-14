@@ -4,7 +4,7 @@ from numba import njit
 from numpy.linalg import norm
 from sklearn.utils import check_array
 from skglm.solvers.base import BaseSolver
-from skglm.utils.validation import check_obj_solver_attr
+from skglm.utils.validation import check_attrs
 
 
 class MultiTaskBCD(BaseSolver):
@@ -237,7 +237,7 @@ class MultiTaskBCD(BaseSolver):
 
     def custom_compatibility_check(self, X, y, datafit, penalty):
         # check datafit support sparse data
-        check_obj_solver_attr(
+        check_attrs(
             datafit, solver=self,
             required_attr=self._datafit_required_attr,
             support_sparse=sparse.issparse(X)

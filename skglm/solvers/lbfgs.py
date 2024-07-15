@@ -107,7 +107,7 @@ class LBFGS(BaseSolver):
 
         return w, np.asarray(p_objs_out), stop_crit
 
-    def custom_compatibility_check(self, X, y, datafit, penalty):
+    def custom_checks(self, X, y, datafit, penalty):
         # check datafit support sparse data
         check_attrs(
             datafit, solver=self,

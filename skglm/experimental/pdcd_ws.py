@@ -196,7 +196,7 @@ class PDCD_WS(BaseSolver):
                 if stop_crit_in <= tol_in:
                     break
 
-    def custom_compatibility_check(self, X, y, datafit, penalty):
+    def custom_checks(self, X, y, datafit, penalty):
         if issparse(X):
             raise ValueError(
                 "Sparse matrices are not yet supported in `PDCD_WS` solver."

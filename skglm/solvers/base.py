@@ -67,7 +67,7 @@ class BaseSolver(ABC):
             Value of stopping criterion at convergence.
         """
 
-    def custom_compatibility_check(self, X, y, datafit, penalty):
+    def custom_checks(self, X, y, datafit, penalty):
         """Ensure the solver is suited for the `datafit` + `penalty` problem.
 
         This method includes extra checks to perform
@@ -107,8 +107,8 @@ class BaseSolver(ABC):
         return self._solve(X, y, datafit, penalty, w_init, Xw_init)
 
     def _validate(self, X, y, datafit, penalty):
-        # execute: `custom_compatibility_check` then check attributes
-        self.custom_compatibility_check(X, y, datafit, penalty)
+        # execute: `custom_checks` then check attributes
+        self.custom_checks(X, y, datafit, penalty)
 
         # do not check for sparse support here, make the check at the solver level
         # some solvers like ProxNewton don't require methods for sparse support

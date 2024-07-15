@@ -235,7 +235,7 @@ class MultiTaskBCD(BaseSolver):
 
         return results
 
-    def custom_compatibility_check(self, X, y, datafit, penalty):
+    def custom_checks(self, X, y, datafit, penalty):
         # check datafit support sparse data
         check_attrs(
             datafit, solver=self,

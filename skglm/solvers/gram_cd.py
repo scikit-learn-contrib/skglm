@@ -2,6 +2,7 @@ import warnings
 import numpy as np
 from numba import njit
 from scipy.sparse import issparse
+
 from skglm.solvers.base import BaseSolver
 from skglm.utils.anderson import AndersonAcceleration
 
@@ -49,6 +50,9 @@ class GramCD(BaseSolver):
         Amount of verbosity. 0/False is silent.
     """
 
+    _datafit_required_attr = ()
+    _penalty_required_attr = ("prox_1d", "subdiff_distance")
+
     def __init__(self, max_iter=100, use_acc=False, greedy_cd=True, tol=1e-4,
                  fit_intercept=True, warm_start=False, verbose=0):
         self.max_iter = max_iter
@@ -59,7 +63,7 @@ class GramCD(BaseSolver):
         self.warm_start = warm_start
         self.verbose = verbose
 
-    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+    def _solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
         # we don't pass Xw_init as the solver uses Gram updates
         # to keep the gradient up-to-date instead of Xw
         n_samples, n_features = X.shape
@@ -131,6 +135,13 @@ class GramCD(BaseSolver):
                      penalty.value(w))
             p_objs_out.append(p_obj)
         return w, np.array(p_objs_out), stop_crit
+
+    def custom_checks(self, X, y, datafit, penalty):
+        if datafit is not None:
+            raise AttributeError(
+                "`GramCD` supports only `Quadratic` datafit and fits it implicitly, "
+                f"argument `datafit` must be `None`, got {datafit.__class__.__name__}."
+            )
 
 
 @njit

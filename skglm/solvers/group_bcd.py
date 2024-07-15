@@ -4,7 +4,7 @@ from scipy.sparse import issparse
 
 from skglm.solvers.base import BaseSolver
 from skglm.utils.anderson import AndersonAcceleration
-from skglm.utils.validation import check_group_compatible
+from skglm.utils.validation import check_group_compatible, check_attrs
 from skglm.solvers.common import dist_fix_point_bcd
 
 
@@ -37,6 +37,9 @@ class GroupBCD(BaseSolver):
         Amount of verbosity. 0/False is silent.
     """
 
+    _datafit_required_attr = ("get_lipschitz", "gradient_g")
+    _penalty_required_attr = ("prox_1group",)
+
     def __init__(
             self, max_iter=1000, max_epochs=100, p0=10, tol=1e-4, fit_intercept=False,
             warm_start=False, ws_strategy="subdiff", verbose=0):
@@ -49,12 +52,10 @@ class GroupBCD(BaseSolver):
         self.ws_strategy = ws_strategy
         self.verbose = verbose
 
-    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+    def _solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
         if self.ws_strategy not in ("subdiff", "fixpoint"):
             raise ValueError(
                 'Unsupported value for self.ws_strategy:', self.ws_strategy)
-        check_group_compatible(datafit)
-        check_group_compatible(penalty)
 
         n_samples, n_features = X.shape
         n_groups = len(penalty.grp_ptr) - 1
@@ -180,6 +181,24 @@ class GroupBCD(BaseSolver):
             p_objs_out[t] = p_obj
 
         return w, p_objs_out, stop_crit
+
+    def custom_checks(self, X, y, datafit, penalty):
+        check_group_compatible(datafit)
+        check_group_compatible(penalty)
+
+        # check datafit support sparse data
+        check_attrs(
+            datafit, solver=self,
+            required_attr=self._datafit_required_attr,
+            support_sparse=issparse(X)
+        )
+
+        # ws strategy
+        if self.ws_strategy == "subdiff" and not hasattr(penalty, "subdiff_distance"):
+            raise AttributeError(
+                "Penalty must implement `subdiff_distance` "
+                "to use ws_strategy='subdiff'."
+            )
 
 
 @njit

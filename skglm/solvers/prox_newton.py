@@ -52,6 +52,9 @@ class ProxNewton(BaseSolver):
         code: https://github.com/tbjohns/BlitzL1
     """
 
+    _datafit_required_attr = ("raw_grad", "raw_hessian")
+    _penalty_required_attr = ("prox_1d",)
+
     def __init__(self, p0=10, max_iter=20, max_pn_iter=1000, tol=1e-4,
                  ws_strategy="subdiff", fit_intercept=True, warm_start=False,
                  verbose=0):
@@ -64,7 +67,7 @@ class ProxNewton(BaseSolver):
         self.warm_start = warm_start
         self.verbose = verbose
 
-    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+    def _solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
         if self.ws_strategy not in ("subdiff", "fixpoint"):
             raise ValueError("ws_strategy must be `subdiff` or `fixpoint`, "
                              f"got {self.ws_strategy}.")
@@ -195,6 +198,14 @@ class ProxNewton(BaseSolver):
                 category=ConvergenceWarning
             )
         return w, np.asarray(p_objs_out), stop_crit
+
+    def custom_checks(self, X, y, datafit, penalty):
+        # ws strategy
+        if self.ws_strategy == "subdiff" and not hasattr(penalty, "subdiff_distance"):
+            raise AttributeError(
+                "Penalty must implement `subdiff_distance` "
+                "to use ws_strategy='subdiff' in ProxNewton solver"
+            )
 
 
 @njit

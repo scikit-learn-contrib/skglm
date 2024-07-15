@@ -5,11 +5,12 @@ from numpy.linalg import norm
 from scipy.sparse import issparse
 
 from numba import njit
-from skglm.utils.jit_compilation import compiled_clone
+from skglm.solvers import BaseSolver
+
 from sklearn.exceptions import ConvergenceWarning
 
 
-class PDCD_WS:
+class PDCD_WS(BaseSolver):
     r"""Primal-Dual Coordinate Descent solver with working sets.
 
     It solves
@@ -78,6 +79,9 @@ class PDCD_WS:
            https://arxiv.org/abs/2204.07826
     """
 
+    _datafit_required_attr = ('prox_conjugate',)
+    _penalty_required_attr = ("prox_1d",)
+
     def __init__(self, max_iter=1000, max_epochs=1000, dual_init=None,
                  p0=100, tol=1e-6, verbose=False):
         self.max_iter = max_iter
@@ -87,11 +91,7 @@ class PDCD_WS:
         self.tol = tol
         self.verbose = verbose
 
-    def solve(self, X, y, datafit_, penalty_, w_init=None, Xw_init=None):
-        if issparse(X):
-            raise ValueError("Sparse matrices are not yet support in PDCD_WS solver.")
-
-        datafit, penalty = PDCD_WS._validate_init(datafit_, penalty_)
+    def _solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
         n_samples, n_features = X.shape
 
         # init steps
@@ -196,26 +196,11 @@ class PDCD_WS:
                 if stop_crit_in <= tol_in:
                     break
 
-    @staticmethod
-    def _validate_init(datafit_, penalty_):
-        # validate datafit
-        missing_attrs = []
-        for attr in ('prox_conjugate', 'subdiff_distance'):
-            if not hasattr(datafit_, attr):
-                missing_attrs.append(f"`{attr}`")
-
-        if len(missing_attrs):
-            raise AttributeError(
-                "Datafit is not compatible with PDCD_WS solver.\n"
-                "Datafit must implement `prox_conjugate` and `subdiff_distance`.\n"
-                f"Missing {' and '.join(missing_attrs)}."
+    def custom_checks(self, X, y, datafit, penalty):
+        if issparse(X):
+            raise ValueError(
+                "Sparse matrices are not yet supported in `PDCD_WS` solver."
             )
-
-        # jit compile classes
-        compiled_datafit = compiled_clone(datafit_)
-        compiled_penalty = compiled_clone(penalty_)
-
-        return compiled_datafit, compiled_penalty
 
 
 @njit

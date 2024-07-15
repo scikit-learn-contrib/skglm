@@ -1,8 +1,11 @@
 import numpy as np
 from numba import njit
 from numpy.linalg import norm
+from scipy.sparse import issparse
+
 from skglm.solvers.base import BaseSolver
 from skglm.utils.validation import check_group_compatible
+
 
 EPS_TOL = 0.3
 MAX_CD_ITER = 20
@@ -41,6 +44,9 @@ class GroupProxNewton(BaseSolver):
         code: https://github.com/tbjohns/BlitzL1
     """
 
+    _datafit_required_attr = ("raw_grad", "raw_hessian")
+    _penalty_required_attr = ("prox_1group", "subdiff_distance")
+
     def __init__(self, p0=10, max_iter=20, max_pn_iter=1000, tol=1e-4,
                  fit_intercept=False, warm_start=False, verbose=0):
         self.p0 = p0
@@ -51,10 +57,7 @@ class GroupProxNewton(BaseSolver):
         self.warm_start = warm_start
         self.verbose = verbose
 
-    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
-        check_group_compatible(datafit)
-        check_group_compatible(penalty)
-
+    def _solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
         fit_intercept = self.fit_intercept
         n_samples, n_features = X.shape
         grp_ptr, grp_indices = penalty.grp_ptr, penalty.grp_indices
@@ -141,6 +144,15 @@ class GroupProxNewton(BaseSolver):
             p_obj = datafit.value(y, w, Xw) + penalty.value(w[:n_features])
             p_objs_out.append(p_obj)
         return w, np.asarray(p_objs_out), stop_crit
+
+    def custom_checks(self, X, y, datafit, penalty):
+        check_group_compatible(datafit)
+        check_group_compatible(penalty)
+
+        if issparse(X):
+            raise ValueError(
+                "Sparse matrices are not yet supported in `GroupProxNewton` solver."
+            )
 
 
 @njit

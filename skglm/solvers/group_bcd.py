@@ -4,7 +4,7 @@ from scipy.sparse import issparse
 
 from skglm.solvers.base import BaseSolver
 from skglm.utils.anderson import AndersonAcceleration
-from skglm.utils.validation import check_group_compatible
+from skglm.utils.validation import check_group_compatible, check_attrs
 from skglm.solvers.common import dist_fix_point_bcd
 
 
@@ -185,6 +185,20 @@ class GroupBCD(BaseSolver):
     def custom_checks(self, X, y, datafit, penalty):
         check_group_compatible(datafit)
         check_group_compatible(penalty)
+
+        # check datafit support sparse data
+        check_attrs(
+            datafit, solver=self,
+            required_attr=self._datafit_required_attr,
+            support_sparse=issparse(X)
+        )
+
+        # ws strategy
+        if self.ws_strategy == "subdiff" and not hasattr(penalty, "subdiff_distance"):
+            raise AttributeError(
+                "Penalty must implement `subdiff_distance` "
+                "to use ws_strategy='subdiff'."
+            )
 
 
 @njit

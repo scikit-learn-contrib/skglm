@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~GramCD.__init__
+      ~GramCD.custom_checks
       ~GramCD.solve
    
    

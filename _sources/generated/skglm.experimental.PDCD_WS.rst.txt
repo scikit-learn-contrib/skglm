@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~PDCD_WS.__init__
+      ~PDCD_WS.custom_checks
       ~PDCD_WS.solve
    
    

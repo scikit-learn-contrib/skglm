@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~GroupProxNewton.__init__
+      ~GroupProxNewton.custom_checks
       ~GroupProxNewton.solve
    
    

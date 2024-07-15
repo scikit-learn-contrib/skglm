@@ -16,7 +16,6 @@
       ~Gamma.__init__
       ~Gamma.get_spec
       ~Gamma.gradient_scalar
-      ~Gamma.gradient_scalar_sparse
       ~Gamma.initialize
       ~Gamma.initialize_sparse
       ~Gamma.intercept_update_step

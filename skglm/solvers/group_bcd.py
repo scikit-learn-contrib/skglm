@@ -38,7 +38,7 @@ class GroupBCD(BaseSolver):
     """
 
     _datafit_required_attr = ("get_lipschitz", "gradient_g")
-    _penalty_required_attr = ("prox_1group", "subdiff_distance")
+    _penalty_required_attr = ("prox_1group",)
 
     def __init__(
             self, max_iter=1000, max_epochs=100, p0=10, tol=1e-4, fit_intercept=False,

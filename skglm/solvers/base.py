@@ -17,6 +17,15 @@ class BaseSolver(ABC):
     -----
     For required attributes, if an attribute is given as a list of attributes
     it means at least one of them should be implemented.
+    For instance, if
+
+        _datafit_required_attr = (
+            "get_global_lipschitz",
+            ("gradient", "gradient_scalar")
+        )
+
+    it mean datafit must implement the methods ``get_global_lipschitz``
+    and (``gradient`` or ``gradient_scaler``).
     """
 
     _datafit_required_attr: list

@@ -49,9 +49,9 @@ def check_attrs(obj, solver, required_attr, support_sparse=False):
 
     Raises
     ------
-        AttributeError
-            if any of the attribute in ``required_attr`` is missing
-            from ``obj`` attributes.
+    AttributeError
+        if any of the attribute in ``required_attr`` is missing
+        from ``obj`` attributes.
     """
     missing_attrs = []
     suffix = SPARSE_SUFFIX if support_sparse else ""

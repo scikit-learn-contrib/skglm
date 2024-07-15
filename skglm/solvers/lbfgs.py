@@ -7,6 +7,7 @@ from numpy.linalg import norm
 from scipy.sparse import issparse
 
 from skglm.solvers import BaseSolver
+from skglm.utils.validation import check_attrs
 
 
 class LBFGS(BaseSolver):
@@ -27,12 +28,15 @@ class LBFGS(BaseSolver):
         Amount of verbosity. 0/False is silent.
     """
 
+    _datafit_required_attr = ("gradient",)
+    _penalty_required_attr = ("gradient",)
+
     def __init__(self, max_iter=50, tol=1e-4, verbose=False):
         self.max_iter = max_iter
         self.tol = tol
         self.verbose = verbose
 
-    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+    def _solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
 
         def objective(w):
             Xw = X @ w
@@ -102,3 +106,11 @@ class LBFGS(BaseSolver):
         stop_crit = norm(result.jac, ord=np.inf)
 
         return w, np.asarray(p_objs_out), stop_crit
+
+    def custom_checks(self, X, y, datafit, penalty):
+        # check datafit support sparse data
+        check_attrs(
+            datafit, solver=self,
+            required_attr=self._datafit_required_attr,
+            support_sparse=issparse(X)
+        )

@@ -48,13 +48,3 @@ class SLOPE(BasePenalty):
         prox[sorted_indices] = prox_SLOPE(abs_x[sorted_indices], alphas * stepsize)
 
         return np.sign(x) * prox
-
-    def prox_1d(self, value, stepsize, j):
-        raise ValueError(
-            "No coordinate-wise proximal operator for SLOPE. Use `prox_vec` instead."
-        )
-
-    def subdiff_distance(self, w, grad, ws):
-        return ValueError(
-            "No subdifferential distance for SLOPE. Use `opt_strategy='fixpoint'`"
-        )

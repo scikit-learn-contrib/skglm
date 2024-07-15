@@ -458,17 +458,6 @@ class WeightedL1GroupL2(BasePenalty):
         res = ST_vec(value, self.alpha * stepsize * self.weights_features[g])
         return BST(res, self.alpha * stepsize * self.weights_groups[g])
 
-    def subdiff_distance(self, w, grad_ws, ws):
-        """Compute distance to the subdifferential at ``w`` of negative gradient.
-
-        Refer to :ref:`subdiff_positive_group_lasso` for details of the derivation.
-
-        Note:
-        ----
-        ``grad_ws`` is a stacked array of gradients ``[grad_ws_1, grad_ws_2, ...]``.
-        """
-        raise NotImplementedError("Too hard for now")
-
     def is_penalized(self, n_groups):
         return np.ones(n_groups, dtype=np.bool_)
 

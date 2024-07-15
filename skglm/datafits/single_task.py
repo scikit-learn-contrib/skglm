@@ -661,9 +661,6 @@ class Gamma(BaseDatafit):
     def gradient_scalar(self, X, y, w, Xw, j):
         return X[:, j] @ (1 - y * np.exp(-Xw)) / len(y)
 
-    def gradient_scalar_sparse(self, X_data, X_indptr, X_indices, y, Xw, j):
-        pass
-
     def intercept_update_step(self, y, Xw):
         return np.sum(self.raw_grad(y, Xw))
 

@@ -15,5 +15,5 @@ Any detail to be able to relate the PR changes
 ### Checks before merging PR
 
 - [ ] added documentation for any new feature
-- [ ] added unittests
-- [ ] edited the [what's new](../doc/changes/whats_new.rst)(if applicable)
+- [ ] added unit tests
+- [ ] edited the [what's new](../doc/changes/whats_new.rst) (if applicable)

@@ -84,7 +84,7 @@ allowing it to not compute the dual and handle 0 weights.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.374 seconds)
+   **Total running time of the script:** (0 minutes 0.367 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_zero_weights_lasso.py:
@@ -100,6 +100,10 @@ allowing it to not compute the dual and handle 0 weights.
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_zero_weights_lasso.py <plot_zero_weights_lasso.py>`
+
+    .. container:: sphx-glr-download sphx-glr-download-zip
+
+      :download:`Download zipped: plot_zero_weights_lasso.zip <plot_zero_weights_lasso.zip>`
 
 
 .. only:: html

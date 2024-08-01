@@ -131,7 +131,7 @@ direct proximal computation and iterative reweighting.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 5.326 seconds)
+   **Total running time of the script:** (0 minutes 5.002 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_reweighted_l1.py:
@@ -147,6 +147,10 @@ direct proximal computation and iterative reweighting.
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_reweighted_l1.py <plot_reweighted_l1.py>`
+
+    .. container:: sphx-glr-download sphx-glr-download-zip
+
+      :download:`Download zipped: plot_reweighted_l1.zip <plot_reweighted_l1.zip>`
 
 
 .. only:: html

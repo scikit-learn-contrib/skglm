@@ -112,7 +112,7 @@ Illustrate the modularity of ``skglm`` by using ``GeneralizedLinearEstimator`` w
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 8.967 seconds)
+   **Total running time of the script:** (0 minutes 8.618 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_logreg_various_penalties.py:
@@ -128,6 +128,10 @@ Illustrate the modularity of ``skglm`` by using ``GeneralizedLinearEstimator`` w
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_logreg_various_penalties.py <plot_logreg_various_penalties.py>`
+
+    .. container:: sphx-glr-download sphx-glr-download-zip
+
+      :download:`Download zipped: plot_logreg_various_penalties.zip <plot_logreg_various_penalties.zip>`
 
 
 .. only:: html

@@ -190,7 +190,7 @@ Illustrate the superior performance of penalties for sparse recovery.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 8.881 seconds)
+   **Total running time of the script:** (0 minutes 8.549 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_sparse_recovery.py:
@@ -206,6 +206,10 @@ Illustrate the superior performance of penalties for sparse recovery.
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_sparse_recovery.py <plot_sparse_recovery.py>`
+
+    .. container:: sphx-glr-download sphx-glr-download-zip
+
+      :download:`Download zipped: plot_sparse_recovery.zip <plot_sparse_recovery.zip>`
 
 
 .. only:: html

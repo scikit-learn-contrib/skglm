@@ -87,7 +87,7 @@ Examples Gallery
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example demonstrates how to use a weighted lasso with some vanishing weights. The fast sol...">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example demonstrates how to use a weighted lasso with some vanishing weights. The fast solver is adapted to use primal Anderson acceleration, allowing it to not compute the dual and handle 0 weights.">
 
 .. only:: html
 

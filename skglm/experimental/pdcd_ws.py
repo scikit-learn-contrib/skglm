@@ -83,8 +83,9 @@ class PDCD_WS(BaseSolver):
     _penalty_required_attr = ("prox_1d",)
 
     def __init__(
-            self, max_iter=1000, max_epochs=1000, dual_init=None, p0=100, tol=1e-6,
-            fit_intercept=False, warm_start=True, verbose=False):
+        self, max_iter=1000, max_epochs=1000, dual_init=None, p0=100, tol=1e-6,
+        fit_intercept=False, warm_start=True, verbose=False
+    ):
         self.max_iter = max_iter
         self.max_epochs = max_epochs
         self.dual_init = dual_init

@@ -65,6 +65,23 @@ class Pinball(BaseDatafit):
 
         return max_distance
 
+    def raw_grad(self, y, Xw):
+        """Gradient ignoring the nondifferentiability at 0."""
+        neg_res = (y - Xw) < 0
+        grad = self.quantile_level * np.ones_like(Xw)
+        grad[neg_res] = 1 - self.quantile_level
+        return grad
+
+    def gradient(self, X, y, Xw):
+        return X.T @ self.raw_grad(y, Xw)
+
+    def gradient_scalar(self, X, y, w, Xw, j):
+        return X[:, j] @ self.raw_grad(y, Xw)
+
+    def get_lipschitz(self, X, y):
+        return np.sum(np.abs(X), axis=0)
+
+
     def get_spec(self):
         spec = (
             ('quantile_level', float64),

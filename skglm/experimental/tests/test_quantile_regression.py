@@ -3,6 +3,7 @@ import numpy as np
 from numpy.linalg import norm
 
 from skglm.penalties import L1
+from skglm import GeneralizedLinearEstimator
 from skglm.experimental.pdcd_ws import PDCD_WS
 from skglm.experimental.quantile_regression import Pinball
 from skglm.utils.jit_compilation import compiled_clone
@@ -37,6 +38,13 @@ def test_PDCD_WS(quantile_level):
     ).fit(X, y)
 
     np.testing.assert_allclose(w, clf.coef_, atol=1e-5)
+    # test compatibility when inside GLM:
+    estimator = GeneralizedLinearEstimator(
+        datafit=Pinball(.2),
+        penalty=L1(alpha=1.),
+        solver=PDCD_WS(),
+    )
+    estimator.fit(X, y)
 
 
 if __name__ == '__main__':

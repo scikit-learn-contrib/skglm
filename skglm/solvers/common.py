@@ -46,8 +46,7 @@ def dist_fix_point_cd(w, grad_ws, lipschitz_ws, datafit, penalty, ws):
 
 
 @njit
-def dist_fix_point_bcd(
-        w, grad_ws, lipschitz_ws, datafit, penalty, ws):
+def dist_fix_point_bcd(w, grad_ws, lipschitz_ws, datafit, penalty, ws):
     """Compute the violation of the fixed point iterate scheme for BCD.
 
     Parameters

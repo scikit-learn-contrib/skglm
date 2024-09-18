@@ -102,8 +102,8 @@ class PDCD_WS(BaseSolver):
         # Despite violating the conditions mentioned in [1]
         # this choice of steps yield in practice a convergent algorithm
         # with better speed of convergence
-        dual_step = 1 / norm(X, ord=2) / 10
-        primal_steps = 1 / norm(X, axis=0, ord=2) / 10
+        dual_step = 1 / norm(X, ord=2)
+        primal_steps = 1 / norm(X, axis=0, ord=2)
 
         # primal vars
         w = np.zeros(n_features) if w_init is None else w_init

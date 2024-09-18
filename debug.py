@@ -18,8 +18,8 @@ np.random.seed(42)
 datafit = Pinball(0.5)
 penalty = L1(alpha=0.1)
 solver = PDCD_WS(
-    max_iter=10,
-    max_epochs=100,
+    max_iter=50,
+    max_epochs=500,
     tol=1e-2,
     warm_start=False,
     verbose=1,
@@ -33,10 +33,11 @@ solver = PDCD_WS(
 
 X, y = generate_dummy_data(
     n_samples=1000, # if this is reduced to 100 samples, it converges
-    n_features=10,
+    n_features=11,
 )
 # y -= y.mean()
 # y += 0.1
+y /= 10
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 

@@ -84,7 +84,7 @@ class PDCD_WS(BaseSolver):
 
     def __init__(
         self, max_iter=1000, max_epochs=1000, dual_init=None, p0=100, tol=1e-6,
-        fit_intercept=False, warm_start=True, verbose=False
+        fit_intercept=False, warm_start=True, verbose=0
     ):
         self.max_iter = max_iter
         self.max_epochs = max_epochs
@@ -102,8 +102,8 @@ class PDCD_WS(BaseSolver):
         # Despite violating the conditions mentioned in [1]
         # this choice of steps yield in practice a convergent algorithm
         # with better speed of convergence
-        dual_step = 1 / norm(X, ord=2)
-        primal_steps = 1 / norm(X, axis=0, ord=2)
+        dual_step = 1 / norm(X, ord=2) / 10
+        primal_steps = 1 / norm(X, axis=0, ord=2) / 10
 
         # primal vars
         w = np.zeros(n_features) if w_init is None else w_init
@@ -148,9 +148,13 @@ class PDCD_WS(BaseSolver):
 
             # solve sub problem
             # inplace update of w, Xw, z, z_bar
+            if iteration == 0:
+                ep = 500
+            else:
+                ep = self.max_epochs
             PDCD_WS._solve_subproblem(
                 y, X, w, Xw, z, z_bar, datafit, penalty,
-                primal_steps, dual_step, ws, self.max_epochs, tol_in=0.3*stop_crit)
+                primal_steps, dual_step, ws, ep, tol_in=0.3*stop_crit, verbose=self.verbose-1)
 
             current_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
             p_objs.append(current_p_obj)
@@ -166,8 +170,9 @@ class PDCD_WS(BaseSolver):
 
     @staticmethod
     @njit
-    def _solve_subproblem(y, X, w, Xw, z, z_bar, datafit, penalty,
-                          primal_steps, dual_step, ws, max_epochs, tol_in):
+    def _solve_subproblem(
+            y, X, w, Xw, z, z_bar, datafit, penalty, primal_steps,
+            dual_step, ws, max_epochs, tol_in, verbose):
         n_features = X.shape[1]
 
         for epoch in range(max_epochs):
@@ -191,12 +196,15 @@ class PDCD_WS(BaseSolver):
                 z += (z_bar - z) / n_features
 
             # check convergence using fixed-point criteria on both dual and primal
-            if epoch % 10 == 0:
+            if epoch % 1 == 0:
                 opts_primal_in = _scores_primal(X, w, z, penalty, primal_steps, ws)
                 opt_dual_in = _score_dual(y, z, Xw, datafit, dual_step)
 
                 stop_crit_in = max(max(opts_primal_in), opt_dual_in)
-
+                if verbose:
+                    print(f'  epoch {epoch}, inner stopping crit: ', stop_crit_in)
+                    print(opt_dual_in)
+                    print(opts_primal_in)
                 if stop_crit_in <= tol_in:
                     break
 

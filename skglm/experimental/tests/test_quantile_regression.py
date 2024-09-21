@@ -12,9 +12,10 @@ from skglm.utils.data import make_correlated_data
 from sklearn.linear_model import QuantileRegressor
 
 
-@pytest.mark.parametrize('quantile_level', [0.3, 0.5, 0.7])
-def test_PDCD_WS(quantile_level):
-    n_samples, n_features = 50, 10
+@pytest.mark.parametrize('quantile_level,n_samples,n_features',
+                         ([[0.3, 50, 20], [0.5, 1000, 11], [0.7, 50, 100]])
+                         )
+def test_PDCD_WS(quantile_level, n_samples, n_features):
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=123)
 
     # optimality condition for w = 0.
@@ -26,9 +27,7 @@ def test_PDCD_WS(quantile_level):
     datafit = compiled_clone(Pinball(quantile_level))
     penalty = compiled_clone(L1(alpha))
 
-    w = PDCD_WS(
-        dual_init=np.sign(y)/2 + (quantile_level - 0.5)
-    ).solve(X, y, datafit, penalty)[0]
+    w = PDCD_WS(tol=1e-9).solve(X, y, datafit, penalty)[0]
 
     clf = QuantileRegressor(
         quantile=quantile_level,
@@ -38,7 +37,7 @@ def test_PDCD_WS(quantile_level):
     ).fit(X, y)
 
     np.testing.assert_allclose(w, clf.coef_, atol=1e-5)
-    # test compatibility when inside GLM:
+    # unrelated: test compatibility when inside GLM:
     estimator = GeneralizedLinearEstimator(
         datafit=Pinball(.2),
         penalty=L1(alpha=1.),

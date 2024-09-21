@@ -177,9 +177,8 @@ class PDCD_WS(BaseSolver):
 
     @staticmethod
     @njit
-    def _solve_subproblem(
-            y, X, w, Xw, z, z_bar, datafit, penalty, primal_steps,
-            dual_step, ws, max_epochs, tol_in):
+    def _solve_subproblem(y, X, w, Xw, z, z_bar, datafit, penalty,
+                          primal_steps, dual_step, ws, max_epochs, tol_in):
         n_features = X.shape[1]
 
         for epoch in range(max_epochs):
@@ -203,7 +202,7 @@ class PDCD_WS(BaseSolver):
                 z += (z_bar - z) / n_features
 
             # check convergence using fixed-point criteria on both dual and primal
-            if epoch % 1 == 0:
+            if epoch % 10 == 0:
                 opts_primal_in = _scores_primal(X, w, z, penalty, primal_steps, ws)
                 opt_dual_in = _score_dual(y, z, Xw, datafit, dual_step)
 

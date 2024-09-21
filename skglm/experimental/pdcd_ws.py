@@ -99,11 +99,22 @@ class PDCD_WS(BaseSolver):
         n_samples, n_features = X.shape
 
         # init steps
-        # Despite violating the conditions mentioned in [1]
-        # this choice of steps yield in practice a convergent algorithm
-        # with better speed of convergence
-        dual_step = 1 / norm(X, ord=2)
-        primal_steps = 1 / norm(X, axis=0, ord=2)
+        # choose steps to verify condition: Assumption 2.1 e)
+        scale = np.sqrt(2 * n_features)
+        dual_steps = 1 / (norm(X, ord=2, axis=1) * scale)
+        primal_steps = 1 / ((dual_steps[:, None] * (X ** 2)).sum(axis=0) * scale)
+
+        # NOTE: primal and dual steps verify condition on steps when multiplied/divided
+        # by an arbitrary positive constant
+        # HACK: balance primal and dual variable: take bigger steps
+        # in the space with highest number of variable
+        ratio = n_samples / n_features
+        if n_samples > n_features:
+            dual_steps *= ratio
+            primal_steps /= ratio
+        else:
+            dual_steps /= ratio
+            primal_steps *= ratio
 
         # primal vars
         w = np.zeros(n_features) if w_init is None else w_init
@@ -125,7 +136,7 @@ class PDCD_WS(BaseSolver):
 
             # check convergence using fixed-point criteria on both dual and primal
             opts_primal = _scores_primal(X, w, z, penalty, primal_steps, all_features)
-            opt_dual = _score_dual(y, z, Xw, datafit, dual_step)
+            opt_dual = _score_dual(y, z, Xw, datafit, dual_steps)
 
             stop_crit = max(max(opts_primal), opt_dual)
 
@@ -148,13 +159,9 @@ class PDCD_WS(BaseSolver):
 
             # solve sub problem
             # inplace update of w, Xw, z, z_bar
-            if iteration == 0:
-                ep = 500
-            else:
-                ep = self.max_epochs
             PDCD_WS._solve_subproblem(
                 y, X, w, Xw, z, z_bar, datafit, penalty,
-                primal_steps, dual_step, ws, ep, tol_in=0.3*stop_crit, verbose=self.verbose-1)
+                primal_steps, dual_steps, ws, self.max_epochs, tol_in=0.3*stop_crit, verbose=self.verbose-1)
 
             current_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
             p_objs.append(current_p_obj)
@@ -172,7 +179,7 @@ class PDCD_WS(BaseSolver):
     @njit
     def _solve_subproblem(
             y, X, w, Xw, z, z_bar, datafit, penalty, primal_steps,
-            dual_step, ws, max_epochs, tol_in, verbose):
+            dual_steps, ws, max_epochs, tol_in, verbose):
         n_features = X.shape[1]
 
         for epoch in range(max_epochs):
@@ -191,20 +198,26 @@ class PDCD_WS(BaseSolver):
                     Xw += delta_w_j * X[:, j]
 
                 # update dual
-                z_bar[:] = datafit.prox_conjugate(z + dual_step * Xw,
-                                                  dual_step, y)
+                z_bar[:] = datafit.prox_conjugate(z + dual_steps * Xw,
+                                                  dual_steps, y)
                 z += (z_bar - z) / n_features
 
             # check convergence using fixed-point criteria on both dual and primal
             if epoch % 1 == 0:
                 opts_primal_in = _scores_primal(X, w, z, penalty, primal_steps, ws)
-                opt_dual_in = _score_dual(y, z, Xw, datafit, dual_step)
+                opt_dual_in = _score_dual(y, z, Xw, datafit, dual_steps)
 
                 stop_crit_in = max(max(opts_primal_in), opt_dual_in)
-                if verbose:
-                    print(f'  epoch {epoch}, inner stopping crit: ', stop_crit_in)
-                    print(opt_dual_in)
-                    print(opts_primal_in)
+                # if verbose:
+                #     current_p_obj = datafit.value(y, w, X@w) + penalty.value(w)
+                #     print(
+                #         f"|----- epoch {epoch+1}: {current_p_obj:.10f}, "
+                #         f"opt primal: {max(opts_primal_in):.2e}, opt dual: {opt_dual_in:.2e}")
+
+                # print(f'  epoch {epoch}, inner stopping crit: ', stop_crit_in)
+                # # print(opt_dual_in)
+                # # print(opts_primal_in)
+
                 if stop_crit_in <= tol_in:
                     break
 
@@ -228,7 +241,7 @@ def _scores_primal(X, w, z, penalty, primal_steps, ws):
 
 
 @njit
-def _score_dual(y, z, Xw, datafit, dual_step):
-    next_z = datafit.prox_conjugate(z + dual_step * Xw,
-                                    dual_step, y)
+def _score_dual(y, z, Xw, datafit, dual_steps):
+    next_z = datafit.prox_conjugate(z + dual_steps * Xw,
+                                    dual_steps, y)
     return norm(z - next_z, ord=np.inf)

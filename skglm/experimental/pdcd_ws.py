@@ -101,8 +101,8 @@ class PDCD_WS(BaseSolver):
         # init steps
         # choose steps to verify condition: Assumption 2.1 e)
         scale = np.sqrt(2 * n_features)
-        dual_steps = 1 / (norm(X, ord=2, axis=1) * scale)
-        primal_steps = 1 / ((dual_steps[:, None] * (X ** 2)).sum(axis=0) * scale)
+        dual_steps = 1 / (norm(X, ord=2) * scale)
+        primal_steps = 1 / (norm(X, axis=0, ord=2) * scale)
 
         # NOTE: primal and dual steps verify condition on steps when multiplied/divided
         # by an arbitrary positive constant

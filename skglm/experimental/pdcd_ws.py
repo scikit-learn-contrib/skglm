@@ -161,7 +161,7 @@ class PDCD_WS(BaseSolver):
             # inplace update of w, Xw, z, z_bar
             PDCD_WS._solve_subproblem(
                 y, X, w, Xw, z, z_bar, datafit, penalty,
-                primal_steps, dual_step, ws, self.max_epochs, tol_in=0.3*stop_crit, verbose=self.verbose-1)
+                primal_steps, dual_step, ws, self.max_epochs, tol_in=0.3*stop_crit)
 
             current_p_obj = datafit.value(y, w, Xw) + penalty.value(w)
             p_objs.append(current_p_obj)
@@ -179,7 +179,7 @@ class PDCD_WS(BaseSolver):
     @njit
     def _solve_subproblem(
             y, X, w, Xw, z, z_bar, datafit, penalty, primal_steps,
-            dual_step, ws, max_epochs, tol_in, verbose):
+            dual_step, ws, max_epochs, tol_in):
         n_features = X.shape[1]
 
         for epoch in range(max_epochs):
@@ -208,15 +208,6 @@ class PDCD_WS(BaseSolver):
                 opt_dual_in = _score_dual(y, z, Xw, datafit, dual_step)
 
                 stop_crit_in = max(max(opts_primal_in), opt_dual_in)
-                # if verbose:
-                #     current_p_obj = datafit.value(y, w, X@w) + penalty.value(w)
-                #     print(
-                #         f"|----- epoch {epoch+1}: {current_p_obj:.10f}, "
-                #         f"opt primal: {max(opts_primal_in):.2e}, opt dual: {opt_dual_in:.2e}")
-
-                # print(f'  epoch {epoch}, inner stopping crit: ', stop_crit_in)
-                # # print(opt_dual_in)
-                # # print(opts_primal_in)
 
                 if stop_crit_in <= tol_in:
                     break

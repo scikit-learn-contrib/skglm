@@ -600,5 +600,25 @@ def test_GroupLasso_estimator_sparse_vs_dense(positive):
     np.testing.assert_allclose(coef_sparse, coef_dense, atol=1e-7, rtol=1e-5)
 
 
+@pytest.mark.parametrize("X, l1_ratio", product([X, X_sparse], [1., 0.7, 0.]))
+def test_SparseLogReg_elasticnet(X, l1_ratio):
+
+    estimator_sk = clone(dict_estimators_sk['LogisticRegression'])
+    estimator_ours = clone(dict_estimators_ours['LogisticRegression'])
+    estimator_sk.set_params(fit_intercept=False, solver='saga',
+                            penalty='elasticnet', l1_ratio=l1_ratio, max_iter=10_000)
+    estimator_ours.set_params(fit_intercept=False, l1_ratio=l1_ratio, max_iter=10_000)
+
+    estimator_sk.fit(X, y)
+    estimator_ours.fit(X, y)
+    coef_sk = estimator_sk.coef_
+    coef_ours = estimator_ours.coef_
+
+    np.testing.assert_array_less(1e-5, norm(coef_ours))
+    np.testing.assert_allclose(coef_ours, coef_sk, atol=1e-6)
+    np.testing.assert_allclose(
+        estimator_sk.intercept_, estimator_ours.intercept_, rtol=1e-4)
+
+
 if __name__ == "__main__":
     pass

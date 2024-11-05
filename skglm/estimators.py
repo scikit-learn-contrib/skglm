@@ -967,6 +967,12 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
     alpha : float, default=1.0
         Regularization strength; must be a positive float.
 
+    l1_ratio : float, default=1.0
+        The ElasticNet mixing parameter, with ``0 <= l1_ratio <= 1``. For
+        ``l1_ratio = 0`` the penalty is an L2 penalty. ``For l1_ratio = 1`` it
+        is an L1 penalty.  For ``0 < l1_ratio < 1``, the penalty is a
+        combination of L1 and L2.
+
     tol : float, optional
         Stopping criterion for the optimization.
 
@@ -1003,10 +1009,11 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         Number of subproblems solved to reach the specified tolerance.
     """
 
-    def __init__(self, alpha=1.0, tol=1e-4, max_iter=20, max_epochs=1_000, verbose=0,
-                 fit_intercept=True, warm_start=False):
+    def __init__(self, alpha=1.0, l1_ratio=1.0, tol=1e-4, max_iter=20, max_epochs=1_000,
+                 verbose=0, fit_intercept=True, warm_start=False):
         super().__init__()
         self.alpha = alpha
+        self.l1_ratio = l1_ratio
         self.tol = tol
         self.max_iter = max_iter
         self.max_epochs = max_epochs
@@ -1035,7 +1042,8 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
             max_iter=self.max_iter, max_pn_iter=self.max_epochs, tol=self.tol,
             fit_intercept=self.fit_intercept, warm_start=self.warm_start,
             verbose=self.verbose)
-        return _glm_fit(X, y, self, Logistic(), L1(self.alpha), solver)
+        return _glm_fit(X, y, self, Logistic(), L1_plus_L2(self.alpha, self.l1_ratio),
+                        solver)
 
     def predict_proba(self, X):
         """Probability estimates.

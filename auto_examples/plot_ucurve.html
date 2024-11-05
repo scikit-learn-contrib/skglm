@@ -5,10 +5,10 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Comparison of Lasso and Weighted Lasso" href="plot_lasso_vs_weighted.html" /><link rel="prev" title="Value and proximal operators of penalties" href="plot_pen_prox.html" />
 
-    <link rel="shortcut icon" href="../_static/logo.svg"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.07.18 -->
+    <link rel="shortcut icon" href="../_static/logo.svg"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.08.06 -->
         <title>Show U-curve of regularization - skglm 0.4dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=613ab9ff" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=d2d258e8" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
@@ -363,20 +363,19 @@ We also retrain 2000 samples in training dataset.</p>
 </div>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>file_sizes:   0%|                                   | 0.00/13.7M [00:00&lt;?, ?B/s]
 file_sizes:   0%|                           | 24.6k/13.7M [00:00&lt;01:48, 126kB/s]
-file_sizes:   0%|                           | 49.2k/13.7M [00:00&lt;01:48, 126kB/s]
-file_sizes:   1%|▏                           | 106k/13.7M [00:00&lt;01:07, 203kB/s]
-file_sizes:   1%|▎                           | 131k/13.7M [00:00&lt;01:18, 173kB/s]
-file_sizes:   2%|▌                           | 246k/13.7M [00:00&lt;00:41, 323kB/s]
-file_sizes:   3%|▉                           | 475k/13.7M [00:01&lt;00:21, 614kB/s]
-file_sizes:  11%|██▊                       | 1.46M/13.7M [00:01&lt;00:05, 2.05MB/s]
-file_sizes:  16%|████▎                     | 2.24M/13.7M [00:01&lt;00:04, 2.69MB/s]
-file_sizes:  30%|███████▋                  | 4.08M/13.7M [00:01&lt;00:02, 4.77MB/s]
-file_sizes:  41%|██████████▋               | 5.65M/13.7M [00:01&lt;00:01, 5.79MB/s]
-file_sizes:  53%|█████████████▋            | 7.23M/13.7M [00:02&lt;00:01, 6.50MB/s]
-file_sizes:  64%|████████████████▋         | 8.80M/13.7M [00:02&lt;00:00, 6.99MB/s]
-file_sizes:  76%|███████████████████▋      | 10.4M/13.7M [00:02&lt;00:00, 7.34MB/s]
-file_sizes:  95%|████████████████████████▌ | 13.0M/13.7M [00:02&lt;00:00, 9.08MB/s]
-file_sizes: 100%|██████████████████████████| 13.7M/13.7M [00:02&lt;00:00, 5.01MB/s]
+file_sizes:   0%|                           | 49.2k/13.7M [00:00&lt;01:47, 127kB/s]
+file_sizes:   1%|▏                           | 106k/13.7M [00:00&lt;01:06, 204kB/s]
+file_sizes:   2%|▍                           | 221k/13.7M [00:00&lt;00:37, 356kB/s]
+file_sizes:   3%|▉                           | 451k/13.7M [00:00&lt;00:20, 653kB/s]
+file_sizes:   7%|█▊                         | 909k/13.7M [00:01&lt;00:10, 1.23MB/s]
+file_sizes:  13%|███▍                      | 1.83M/13.7M [00:01&lt;00:05, 2.37MB/s]
+file_sizes:  27%|██████▉                   | 3.66M/13.7M [00:01&lt;00:02, 4.59MB/s]
+file_sizes:  38%|█████████▉                | 5.23M/13.7M [00:01&lt;00:01, 5.68MB/s]
+file_sizes:  57%|██████████████▉           | 7.86M/13.7M [00:01&lt;00:00, 7.97MB/s]
+file_sizes:  69%|█████████████████▊        | 9.43M/13.7M [00:02&lt;00:00, 8.05MB/s]
+file_sizes:  80%|████████████████████▊     | 11.0M/13.7M [00:02&lt;00:00, 8.13MB/s]
+file_sizes:  99%|█████████████████████████▊| 13.6M/13.7M [00:02&lt;00:00, 9.66MB/s]
+file_sizes: 100%|██████████████████████████| 13.7M/13.7M [00:02&lt;00:00, 5.41MB/s]
 </pre></div>
 </div>
 <p>Next, we define the regularization path.
@@ -409,7 +408,7 @@ Notice the “sweet spot” at around <code class="docutils literal notranslate"
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
-<img src="../_images/sphx_glr_plot_ucurve_001.png" srcset="../_images/sphx_glr_plot_ucurve_001.png" alt="Mean squared error" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 13.510 seconds)</p>
+<img src="../_images/sphx_glr_plot_ucurve_001.png" srcset="../_images/sphx_glr_plot_ucurve_001.png" alt="Mean squared error" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 14.837 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-ucurve-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/c561e76c25a76938aecd426c0cbcdd39/plot_ucurve.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_ucurve.ipynb</span></code></a></p>

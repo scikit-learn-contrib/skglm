@@ -5,10 +5,10 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Sparse recovery with non-convex penalties" href="plot_sparse_recovery.html" /><link rel="prev" title="Timing comparison between direct prox computation and reweighting" href="plot_reweighted_l1.html" />
 
-    <link rel="shortcut icon" href="../_static/logo.svg"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.07.18 -->
+    <link rel="shortcut icon" href="../_static/logo.svg"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.08.06 -->
         <title>Timing comparison with scikit-learn for Lasso - skglm 0.4dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=613ab9ff" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=d2d258e8" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
@@ -341,27 +341,24 @@ to download the full example code.</p>
 <span id="sphx-glr-auto-examples-plot-compare-time-py"></span><h1>Timing comparison with scikit-learn for Lasso<a class="headerlink" href="#timing-comparison-with-scikit-learn-for-lasso" title="Permalink to this heading">¶</a></h1>
 <p>Compare time to solve large scale Lasso problems with scikit-learn.</p>
 <img src="../_images/sphx_glr_plot_compare_time_001.png" srcset="../_images/sphx_glr_plot_compare_time_001.png" alt="lasso, enet" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>file_sizes:   0%|                                   | 0.00/26.8M [00:00&lt;?, ?B/s]
-file_sizes:   0%|                           | 24.6k/26.8M [00:00&lt;03:31, 127kB/s]
-file_sizes:   0%|                           | 49.2k/26.8M [00:00&lt;03:31, 127kB/s]
-file_sizes:   0%|                            | 106k/26.8M [00:00&lt;02:11, 203kB/s]
-file_sizes:   1%|▏                           | 221k/26.8M [00:00&lt;01:14, 356kB/s]
-file_sizes:   2%|▍                           | 451k/26.8M [00:00&lt;00:40, 652kB/s]
-file_sizes:   3%|▉                          | 909k/26.8M [00:01&lt;00:21, 1.23MB/s]
-file_sizes:   7%|█▊                        | 1.83M/26.8M [00:01&lt;00:10, 2.37MB/s]
-file_sizes:  14%|███▌                      | 3.66M/26.8M [00:01&lt;00:05, 4.59MB/s]
-file_sizes:  20%|█████                     | 5.23M/26.8M [00:01&lt;00:03, 5.68MB/s]
-file_sizes:  25%|██████▌                   | 6.81M/26.8M [00:01&lt;00:03, 6.42MB/s]
-file_sizes:  31%|████████▏                 | 8.38M/26.8M [00:02&lt;00:02, 6.93MB/s]
-file_sizes:  41%|██████████▋               | 11.0M/26.8M [00:02&lt;00:01, 8.80MB/s]
-file_sizes:  47%|████████████▏             | 12.6M/26.8M [00:02&lt;00:01, 8.61MB/s]
-file_sizes:  53%|█████████████▋            | 14.1M/26.8M [00:02&lt;00:01, 8.48MB/s]
-file_sizes:  59%|███████████████▎          | 15.7M/26.8M [00:02&lt;00:01, 8.40MB/s]
-file_sizes:  68%|█████████████████▊        | 18.3M/26.8M [00:03&lt;00:00, 9.84MB/s]
-file_sizes:  74%|███████████████████▎      | 19.9M/26.8M [00:03&lt;00:00, 9.37MB/s]
-file_sizes:  84%|█████████████████████▉    | 22.5M/26.8M [00:03&lt;00:00, 10.5MB/s]
-file_sizes:  90%|███████████████████████▍  | 24.1M/26.8M [00:03&lt;00:00, 9.88MB/s]
-file_sizes: 100%|█████████████████████████▉| 26.7M/26.8M [00:03&lt;00:00, 10.9MB/s]
-file_sizes: 100%|██████████████████████████| 26.8M/26.8M [00:03&lt;00:00, 6.86MB/s]
+file_sizes:   0%|                           | 24.6k/26.8M [00:00&lt;03:36, 123kB/s]
+file_sizes:   0%|                           | 49.2k/26.8M [00:00&lt;03:36, 123kB/s]
+file_sizes:   0%|                            | 106k/26.8M [00:00&lt;02:14, 198kB/s]
+file_sizes:   1%|▏                           | 221k/26.8M [00:00&lt;01:16, 348kB/s]
+file_sizes:   2%|▍                           | 451k/26.8M [00:00&lt;00:41, 638kB/s]
+file_sizes:   3%|▉                          | 909k/26.8M [00:01&lt;00:21, 1.20MB/s]
+file_sizes:   7%|█▊                        | 1.83M/26.8M [00:01&lt;00:10, 2.32MB/s]
+file_sizes:  14%|███▌                      | 3.66M/26.8M [00:01&lt;00:05, 4.49MB/s]
+file_sizes:  20%|█████                     | 5.23M/26.8M [00:01&lt;00:03, 5.57MB/s]
+file_sizes:  29%|███████▋                  | 7.86M/26.8M [00:02&lt;00:02, 7.82MB/s]
+file_sizes:  35%|█████████▏                | 9.43M/26.8M [00:02&lt;00:02, 7.91MB/s]
+file_sizes:  45%|███████████▋              | 12.1M/26.8M [00:02&lt;00:01, 9.46MB/s]
+file_sizes:  55%|██████████████▏           | 14.7M/26.8M [00:02&lt;00:01, 10.5MB/s]
+file_sizes:  65%|████████████████▊         | 17.3M/26.8M [00:02&lt;00:00, 11.3MB/s]
+file_sizes:  74%|███████████████████▎      | 19.9M/26.8M [00:02&lt;00:00, 11.9MB/s]
+file_sizes:  84%|█████████████████████▉    | 22.5M/26.8M [00:03&lt;00:00, 12.4MB/s]
+file_sizes:  96%|████████████████████████▉ | 25.7M/26.8M [00:03&lt;00:00, 13.4MB/s]
+file_sizes: 100%|██████████████████████████| 26.8M/26.8M [00:03&lt;00:00, 7.85MB/s]
 </pre></div>
 </div>
 <div class="line-block">
@@ -453,7 +450,7 @@ file_sizes: 100%|█████████████████████
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 46.603 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 50.494 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-compare-time-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/2c9537288a512ce6fe5c8f920df56f33/plot_compare_time.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_compare_time.ipynb</span></code></a></p>

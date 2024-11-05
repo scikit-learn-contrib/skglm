@@ -605,9 +605,9 @@ def test_SparseLogReg_elasticnet(X, l1_ratio):
 
     estimator_sk = clone(dict_estimators_sk['LogisticRegression'])
     estimator_ours = clone(dict_estimators_ours['LogisticRegression'])
-    estimator_sk.set_params(fit_intercept=False, solver='saga',
+    estimator_sk.set_params(fit_intercept=True, solver='saga',
                             penalty='elasticnet', l1_ratio=l1_ratio, max_iter=10_000)
-    estimator_ours.set_params(fit_intercept=False, l1_ratio=l1_ratio, max_iter=10_000)
+    estimator_ours.set_params(fit_intercept=True, l1_ratio=l1_ratio, max_iter=10_000)
 
     estimator_sk.fit(X, y)
     estimator_ours.fit(X, y)

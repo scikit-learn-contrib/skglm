@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="skglm.datafits.QuadraticSVC" href="skglm.datafits.QuadraticSVC.html" /><link rel="prev" title="skglm.datafits.Quadratic" href="skglm.datafits.Quadratic.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="skglm.datafits.QuadraticHessian" href="skglm.datafits.QuadraticHessian.html" /><link rel="prev" title="skglm.datafits.Quadratic" href="skglm.datafits.Quadratic.html" />
 
     <link rel="shortcut icon" href="../_static/logo.svg"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.08.06 -->
         <title>skglm.datafits.QuadraticGroup - skglm 0.4dev documentation</title>
@@ -279,6 +279,7 @@
 <li class="toctree-l2"><a class="reference internal" href="skglm.datafits.Poisson.html">skglm.datafits.Poisson</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.datafits.Quadratic.html">skglm.datafits.Quadratic</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">skglm.datafits.QuadraticGroup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="skglm.datafits.QuadraticHessian.html">skglm.datafits.QuadraticHessian</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.datafits.QuadraticSVC.html">skglm.datafits.QuadraticSVC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.datafits.WeightedQuadratic.html">skglm.datafits.WeightedQuadratic</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.solvers.AndersonCD.html">skglm.solvers.AndersonCD</a></li>
@@ -336,7 +337,7 @@
 <h1>skglm.datafits.QuadraticGroup<a class="headerlink" href="#skglm-datafits-quadraticgroup" title="Permalink to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="skglm.datafits.QuadraticGroup">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">QuadraticGroup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grp_ptr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp_indices</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/1225970/skglm/datafits/group.py#L10"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.QuadraticGroup" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">QuadraticGroup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grp_ptr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp_indices</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/fc6bc21/skglm/datafits/group.py#L10"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.QuadraticGroup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Quadratic datafit used with group penalties.</p>
 <p>The datafit reads:</p>
 <div class="math-wrapper docutils container">
@@ -357,7 +358,7 @@ the indices of a group in <code class="docutils literal notranslate"><span class
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="skglm.datafits.QuadraticGroup.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grp_ptr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp_indices</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/1225970/skglm/datafits/group.py#L28"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.QuadraticGroup.__init__" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grp_ptr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp_indices</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/fc6bc21/skglm/datafits/group.py#L28"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.QuadraticGroup.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
@@ -415,12 +416,12 @@ the indices of a group in <code class="docutils literal notranslate"><span class
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="skglm.datafits.QuadraticSVC.html">
+          <a class="next-page" href="skglm.datafits.QuadraticHessian.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">skglm.datafits.QuadraticSVC</div>
+                <div class="title">skglm.datafits.QuadraticHessian</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>

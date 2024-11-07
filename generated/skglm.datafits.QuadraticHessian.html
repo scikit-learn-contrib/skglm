@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="skglm.penalties.PositiveConstraint" href="skglm.penalties.PositiveConstraint.html" /><link rel="prev" title="skglm.penalties.LogSumPenalty" href="skglm.penalties.LogSumPenalty.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="skglm.datafits.QuadraticSVC" href="skglm.datafits.QuadraticSVC.html" /><link rel="prev" title="skglm.datafits.QuadraticGroup" href="skglm.datafits.QuadraticGroup.html" />
 
     <link rel="shortcut icon" href="../_static/logo.svg"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.08.06 -->
-        <title>skglm.penalties.MCPenalty - skglm 0.4dev documentation</title>
+        <title>skglm.datafits.QuadraticHessian - skglm 0.4dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -263,7 +263,7 @@
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L2.html">skglm.penalties.L2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.L2_3.html">skglm.penalties.L2_3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.LogSumPenalty.html">skglm.penalties.LogSumPenalty</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">skglm.penalties.MCPenalty</a></li>
+<li class="toctree-l2"><a class="reference internal" href="skglm.penalties.MCPenalty.html">skglm.penalties.MCPenalty</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.PositiveConstraint.html">skglm.penalties.PositiveConstraint</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.WeightedL1.html">skglm.penalties.WeightedL1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.penalties.WeightedGroupL2.html">skglm.penalties.WeightedGroupL2</a></li>
@@ -279,7 +279,7 @@
 <li class="toctree-l2"><a class="reference internal" href="skglm.datafits.Poisson.html">skglm.datafits.Poisson</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.datafits.Quadratic.html">skglm.datafits.Quadratic</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.datafits.QuadraticGroup.html">skglm.datafits.QuadraticGroup</a></li>
-<li class="toctree-l2"><a class="reference internal" href="skglm.datafits.QuadraticHessian.html">skglm.datafits.QuadraticHessian</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">skglm.datafits.QuadraticHessian</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.datafits.QuadraticSVC.html">skglm.datafits.QuadraticSVC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.datafits.WeightedQuadratic.html">skglm.datafits.WeightedQuadratic</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skglm.solvers.AndersonCD.html">skglm.solvers.AndersonCD</a></li>
@@ -333,58 +333,52 @@
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="skglm-penalties-mcpenalty">
-<h1>skglm.penalties.MCPenalty<a class="headerlink" href="#skglm-penalties-mcpenalty" title="Permalink to this heading">¶</a></h1>
+          <section id="skglm-datafits-quadratichessian">
+<h1>skglm.datafits.QuadraticHessian<a class="headerlink" href="#skglm-datafits-quadratichessian" title="Permalink to this heading">¶</a></h1>
 <dl class="py class">
-<dt class="sig sig-object py" id="skglm.penalties.MCPenalty">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.penalties.</span></span><span class="sig-name descname"><span class="pre">MCPenalty</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/fc6bc21/skglm/penalties/separable.py#L212"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.penalties.MCPenalty" title="Permalink to this definition">¶</a></dt>
-<dd><p>Minimax Concave Penalty (MCP), a non-convex sparse penalty.</p>
-<p class="rubric">Notes</p>
-<p>With <span class="math notranslate nohighlight">`x &gt;= 0`</span>:</p>
+<dt class="sig sig-object py" id="skglm.datafits.QuadraticHessian">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">QuadraticHessian</span></span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/fc6bc21/skglm/datafits/single_task.py#L242"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.QuadraticHessian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Quadratic datafit where we pass the Hessian A directly.</p>
+<p>The datafit reads:</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
-`&quot;pen&quot;(x) = {(alpha x - x^2 / (2 gamma), if x &lt;= alpha gamma),
-            (gamma alpha^2 / 2        , if x &gt; alpha gamma):}`</div>
+`1 / 2 x^(\top) A x + \langle b, x \rangle`</div>
 </div>
-<div class="math-wrapper docutils container">
-<div class="math notranslate nohighlight">
-`&quot;value&quot; = sum_(j=1)^(n_&quot;features&quot;) &quot;pen&quot;(abs(w_j))`</div>
-</div>
+<p>For a symmetric A. Up to a constant, it is the same as a Quadratic, with
+<span class="math notranslate nohighlight">`A = 1 / (n_&quot;samples&quot;) X^(\top)X`</span> and <span class="math notranslate nohighlight">`b = - 1 / n_&quot;samples&quot; X^(\top)y`</span>.
+When the Hessian is available, this datafit is more efficient than using Quadratic.</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="skglm.penalties.MCPenalty.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/fc6bc21/skglm/penalties/separable.py#L226"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.penalties.MCPenalty.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="skglm.datafits.QuadraticHessian.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/fc6bc21/skglm/datafits/single_task.py#L254"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.QuadraticHessian.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#skglm.penalties.MCPenalty.__init__" title="skglm.penalties.MCPenalty.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(alpha, gamma[, positive])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#skglm.datafits.QuadraticHessian.__init__" title="skglm.datafits.QuadraticHessian.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>()</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">alpha_max</span></code>(gradient0)</p></td>
-<td><p>Return penalization value for which 0 is solution.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_lipschitz</span></code>(A, b)</p></td>
+<td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">generalized_support</span></code>(w)</p></td>
-<td><p>Return a mask with non-zero coefficients.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_spec</span></code>()</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_spec</span></code>()</p></td>
 <td><p>Specify the numba types of the class attributes.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_penalized</span></code>(n_features)</p></td>
-<td><p>Return a binary mask with the penalized features.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient_scalar</span></code>(A, b, w, Ax, j)</p></td>
+<td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize</span></code>(X, y)</p></td>
+<td><p>Pre-computations before fitting on X and y.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_sparse</span></code>(X_data, X_indptr, X_indices, y)</p></td>
+<td><p>Pre-computations before fitting on X and y when X is a sparse matrix.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
 <td><p>Get the parameters to initialize an instance of the class.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">prox_1d</span></code>(value, stepsize, j)</p></td>
-<td><p>Compute the proximal operator of MCP.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">subdiff_distance</span></code>(w, grad, ws)</p></td>
-<td><p>Compute distance of negative gradient to the subdifferential at w.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(w)</p></td>
-<td><p>Value of penalty at vector w.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(b, x, Ax)</p></td>
+<td><p>Value of datafit at vector w.</p></td>
 </tr>
 </tbody>
 </table>
@@ -398,23 +392,23 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="skglm.penalties.PositiveConstraint.html">
+          <a class="next-page" href="skglm.datafits.QuadraticSVC.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">skglm.penalties.PositiveConstraint</div>
+                <div class="title">skglm.datafits.QuadraticSVC</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="skglm.penalties.LogSumPenalty.html">
+          <a class="prev-page" href="skglm.datafits.QuadraticGroup.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">skglm.penalties.LogSumPenalty</div>
+                <div class="title">skglm.datafits.QuadraticGroup</div>
                 
               </div>
             </a>
@@ -448,9 +442,9 @@
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">skglm.penalties.MCPenalty</a><ul>
-<li><a class="reference internal" href="#skglm.penalties.MCPenalty"><code class="docutils literal notranslate"><span class="pre">MCPenalty</span></code></a><ul>
-<li><a class="reference internal" href="#skglm.penalties.MCPenalty.__init__"><code class="docutils literal notranslate"><span class="pre">MCPenalty.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#">skglm.datafits.QuadraticHessian</a><ul>
+<li><a class="reference internal" href="#skglm.datafits.QuadraticHessian"><code class="docutils literal notranslate"><span class="pre">QuadraticHessian</span></code></a><ul>
+<li><a class="reference internal" href="#skglm.datafits.QuadraticHessian.__init__"><code class="docutils literal notranslate"><span class="pre">QuadraticHessian.__init__()</span></code></a></li>
 </ul>
 </li>
 </ul>

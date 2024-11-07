@@ -6,7 +6,7 @@ from sklearn.linear_model import HuberRegressor
 from numpy.testing import assert_allclose, assert_array_less
 
 from skglm.datafits import (Huber, Logistic, Poisson, Gamma, Cox, WeightedQuadratic,
-                            Quadratic,)
+                            Quadratic, QuadraticHessian)
 from skglm.penalties import L1, WeightedL1
 from skglm.solvers import AndersonCD, ProxNewton
 from skglm import GeneralizedLinearEstimator
@@ -218,6 +218,24 @@ def test_sample_weights(fit_intercept):
     # everything matches up to numerical precision errors in tol:
     # np.testing.assert_equal(n_iter, n_iter_overs)
 
+
+def test_HessianQuadratic():
+    n_samples = 20
+    n_features = 10
+    X, y, _ = make_correlated_data(
+        n_samples=n_samples, n_features=n_features, random_state=0)
+    A = X.T @ X / n_samples
+    b = -X.T @ y / n_samples
+    alpha = np.max(np.abs(b)) / 10
+
+    pen = L1(alpha)
+    solv = AndersonCD(warm_start=False, verbose=2, fit_intercept=False)
+    lasso = GeneralizedLinearEstimator(Quadratic(), pen, solv).fit(X, y)
+    qpl1 = GeneralizedLinearEstimator(QuadraticHessian(), pen, solv).fit(A, b)
+
+    np.testing.assert_allclose(lasso.coef_, qpl1.coef_)
+    # check that it's not just because we got alpha too high and thus 0 coef
+    np.testing.assert_array_less(0.1, np.max(np.abs(qpl1.coef_)))
 
 if __name__ == '__main__':
     pass

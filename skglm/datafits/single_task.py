@@ -240,15 +240,16 @@ class WeightedQuadratic(BaseDatafit):
         return np.sum(self.sample_weights * (Xw - y)) / self.sample_weights.sum()
 
 
-class HessianQuadratic(BaseDatafit):
-    r"""_summary_
+class QuadraticHessian(BaseDatafit):
+    r"""Quadratic datafit where we pass the Hessian A directly.
 
     The datafit reads:
 
-    .. math:: 1 / 2 x^\\top A x + \\langle b, x \\rangle
+    .. math:: 1 / 2 x^(\top) A x + \langle b, x \rangle
 
-    for A symmetric
-
+    For a symmetric A. Up to a constant, it is the same as a Quadratic, with
+    :math:`A = 1 / (n_"samples") X^(\top)X` and :math:`b = - 1 / n_"samples" X^(\top)y`.
+    When the Hessian is available, this datafit is more efficient than using Quadratic.
     """
 
     def __init__(self):
@@ -264,7 +265,7 @@ class HessianQuadratic(BaseDatafit):
         n_features = A.shape[0]
         lipschitz = np.zeros(n_features, dtype=A.dtype)
         for j in range(n_features):
-            lipschitz[j] = np.sqrt((A[:, j]**2).sum())
+            lipschitz[j] = A[j, j]
         return lipschitz
 
     def gradient_scalar(self, A, b, w, Ax, j):
@@ -887,8 +888,7 @@ class Cox(BaseDatafit):
         for idx in range(n_H):
             current_H_idx = self.H_indices[self.H_indptr[idx]: self.H_indptr[idx+1]]
             size_current_H = current_H_idx.shape[0]
-            frac_range = np.arange(
-                size_current_H, dtype=vec.dtype) / size_current_H
+            frac_range = np.arange(size_current_H, dtype=vec.dtype) / size_current_H
 
             sum_vec_H = np.sum(vec[current_H_idx])
             out[current_H_idx] = sum_vec_H * frac_range
@@ -903,8 +903,7 @@ class Cox(BaseDatafit):
         for idx in range(n_H):
             current_H_idx = self.H_indices[self.H_indptr[idx]: self.H_indptr[idx+1]]
             size_current_H = current_H_idx.shape[0]
-            frac_range = np.arange(
-                size_current_H, dtype=vec.dtype) / size_current_H
+            frac_range = np.arange(size_current_H, dtype=vec.dtype) / size_current_H
 
             weighted_sum_vec_H = vec[current_H_idx] @ frac_range
             out[current_H_idx] = weighted_sum_vec_H * np.ones(size_current_H)

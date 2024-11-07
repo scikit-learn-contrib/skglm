@@ -21,7 +21,7 @@ from sklearn.multiclass import OneVsRestClassifier, check_classification_targets
 from skglm.utils.jit_compilation import compiled_clone
 from skglm.solvers import AndersonCD, MultiTaskBCD, GroupBCD
 from skglm.datafits import (Cox, Quadratic, Logistic, QuadraticSVC,
-                            QuadraticMultiTask, QuadraticGroup, HessianQuadratic)
+                            QuadraticMultiTask, QuadraticGroup, QuadraticHessian)
 from skglm.penalties import (L1, WeightedL1, L1_plus_L2, L2, WeightedGroupL2,
                              MCPenalty, WeightedMCPenalty, IndicatorBox, L2_1)
 from skglm.utils.data import grp_converter
@@ -126,8 +126,7 @@ def _glm_fit(X, y, model, datafit, penalty, solver):
             w = np.zeros(n_features + fit_intercept, dtype=X_.dtype)
             Xw = np.zeros(n_samples, dtype=X_.dtype)
         else:  # multitask
-            w = np.zeros((n_features + fit_intercept,
-                         y.shape[1]), dtype=X_.dtype)
+            w = np.zeros((n_features + fit_intercept, y.shape[1]), dtype=X_.dtype)
             Xw = np.zeros(y.shape, dtype=X_.dtype)
 
     # check consistency of weights for WeightedL1
@@ -450,42 +449,6 @@ class Lasso(LinearModel, RegressorMixin):
         return solver.path(X, y, datafit, penalty, alphas, coef_init, return_n_iter)
 
 
-class L1PenalizedQP(BaseEstimator):
-    def __init__(self, alpha=1., max_iter=50, max_epochs=50_000, p0=10, verbose=0,
-                 tol=1e-4, positive=False, fit_intercept=True, warm_start=False,
-                 ws_strategy="subdiff"):
-        super().__init__()
-        self.alpha = alpha
-        self.tol = tol
-        self.max_iter = max_iter
-        self.max_epochs = max_epochs
-        self.p0 = p0
-        self.ws_strategy = ws_strategy
-        self.positive = positive
-        self.fit_intercept = fit_intercept
-        self.warm_start = warm_start
-        self.verbose = verbose
-
-    def fit(self, A, b):
-        """Fit the model according to the given training data.
-
-        Parameters
-        ----------
-        A : array-like, shape (n_features, n_features)
-        b : array-like, shape (n_samples,)
-
-        Returns
-        -------
-        self :
-            Fitted estimator.
-        """
-        solver = AndersonCD(
-            self.max_iter, self.max_epochs, self.p0, tol=self.tol,
-            ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
-            warm_start=self.warm_start, verbose=self.verbose)
-        return _glm_fit(A, b, self, HessianQuadratic(), L1(self.alpha, self.positive), solver)
-
-
 class WeightedLasso(LinearModel, RegressorMixin):
     r"""WeightedLasso estimator based on Celer solver and primal extrapolation.
 
@@ -613,8 +576,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
             raise ValueError("The number of weights must match the number of \
                               features. Got %s, expected %s." % (
                 len(weights), X.shape[1]))
-        penalty = compiled_clone(WeightedL1(
-            self.alpha, weights, self.positive))
+        penalty = compiled_clone(WeightedL1(self.alpha, weights, self.positive))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
         solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
@@ -952,8 +914,7 @@ class MCPRegression(LinearModel, RegressorMixin):
                     f"Got {len(self.weights)}, expected {X.shape[1]}."
                 )
             penalty = compiled_clone(
-                WeightedMCPenalty(self.alpha, self.gamma,
-                                  self.weights, self.positive)
+                WeightedMCPenalty(self.alpha, self.gamma, self.weights, self.positive)
             )
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
         solver = AndersonCD(
@@ -1348,8 +1309,7 @@ class CoxEstimator(LinearModel):
             # copy/paste from https://github.com/scikit-learn/scikit-learn/blob/ \
             # 23ff51c07ebc03c866984e93c921a8993e96d1f9/sklearn/utils/ \
             # estimator_checks.py#L3886
-            raise ValueError(
-                "requires y to be passed, but the target y is None")
+            raise ValueError("requires y to be passed, but the target y is None")
         y = check_array(
             y,
             accept_sparse=False,
@@ -1390,8 +1350,7 @@ class CoxEstimator(LinearModel):
 
         # init solver
         if self.l1_ratio == 0.:
-            solver = LBFGS(max_iter=self.max_iter,
-                           tol=self.tol, verbose=self.verbose)
+            solver = LBFGS(max_iter=self.max_iter, tol=self.tol, verbose=self.verbose)
         else:
             solver = ProxNewton(
                 max_iter=self.max_iter, tol=self.tol, verbose=self.verbose,
@@ -1529,8 +1488,7 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
         if not self.warm_start or not hasattr(self, "coef_"):
             self.coef_ = None
 
-        datafit_jit = compiled_clone(
-            QuadraticMultiTask(), X.dtype == np.float32)
+        datafit_jit = compiled_clone(QuadraticMultiTask(), X.dtype == np.float32)
         penalty_jit = compiled_clone(L2_1(self.alpha), X.dtype == np.float32)
 
         solver = MultiTaskBCD(
@@ -1710,8 +1668,7 @@ class GroupLasso(LinearModel, RegressorMixin):
                 "The total number of group members must equal the number of features. "
                 f"Got {n_features}, expected {X.shape[1]}.")
 
-        weights = np.ones(
-            len(group_sizes)) if self.weights is None else self.weights
+        weights = np.ones(len(group_sizes)) if self.weights is None else self.weights
         group_penalty = WeightedGroupL2(alpha=self.alpha, grp_ptr=grp_ptr,
                                         grp_indices=grp_indices, weights=weights,
                                         positive=self.positive)

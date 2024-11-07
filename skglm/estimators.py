@@ -21,7 +21,7 @@ from sklearn.multiclass import OneVsRestClassifier, check_classification_targets
 from skglm.utils.jit_compilation import compiled_clone
 from skglm.solvers import AndersonCD, MultiTaskBCD, GroupBCD
 from skglm.datafits import (Cox, Quadratic, Logistic, QuadraticSVC,
-                            QuadraticMultiTask, QuadraticGroup)
+                            QuadraticMultiTask, QuadraticGroup,)
 from skglm.penalties import (L1, WeightedL1, L1_plus_L2, L2, WeightedGroupL2,
                              MCPenalty, WeightedMCPenalty, IndicatorBox, L2_1)
 from skglm.utils.data import grp_converter

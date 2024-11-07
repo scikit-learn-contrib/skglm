@@ -239,6 +239,41 @@ class WeightedQuadratic(BaseDatafit):
         return np.sum(self.sample_weights * (Xw - y)) / self.sample_weights.sum()
 
 
+class QuadraticHessian(BaseDatafit):
+    r"""Quadratic datafit where we pass the Hessian A directly.
+
+    The datafit reads:
+
+    .. math:: 1 / 2 x^(\top) A x + \langle b, x \rangle
+
+    For a symmetric A. Up to a constant, it is the same as a Quadratic, with
+    :math:`A = 1 / (n_"samples") X^(\top)X` and :math:`b = - 1 / n_"samples" X^(\top)y`.
+    When the Hessian is available, this datafit is more efficient than using Quadratic.
+    """
+
+    def __init__(self):
+        pass
+
+    def get_spec(self):
+        pass
+
+    def params_to_dict(self):
+        return dict()
+
+    def get_lipschitz(self, A, b):
+        n_features = A.shape[0]
+        lipschitz = np.zeros(n_features, dtype=A.dtype)
+        for j in range(n_features):
+            lipschitz[j] = A[j, j]
+        return lipschitz
+
+    def gradient_scalar(self, A, b, w, Ax, j):
+        return Ax[j] + b[j]
+
+    def value(self, b, x, Ax):
+        return 0.5 * (x*Ax).sum() + (b*x).sum()
+
+
 @njit
 def sigmoid(x):
     """Vectorwise sigmoid."""

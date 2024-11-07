@@ -211,8 +211,7 @@ class WeightedQuadratic(BaseDatafit):
     def gradient_scalar_sparse(self, X_data, X_indptr, X_indices, y, Xw, j):
         XjTXw = 0.
         for i in range(X_indptr[j], X_indptr[j + 1]):
-            XjTXw += X_data[i] * \
-                self.sample_weights[X_indices[i]] * Xw[X_indices[i]]
+            XjTXw += X_data[i] * self.sample_weights[X_indices[i]] * Xw[X_indices[i]]
         return (XjTXw - self.Xty[j]) / self.sample_weights.sum()
 
     def gradient(self, X, y, Xw):

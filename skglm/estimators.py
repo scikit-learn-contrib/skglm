@@ -601,8 +601,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
             Fitted estimator.
         """
         if self.weights is None:
-            warnings.warn(
-                'Weights are not provided, fitting with Lasso penalty')
+            warnings.warn('Weights are not provided, fitting with Lasso penalty')
             penalty = L1(self.alpha, self.positive)
         else:
             penalty = WeightedL1(self.alpha, self.weights, self.positive)
@@ -735,8 +734,7 @@ class ElasticNet(LinearModel, RegressorMixin):
             The number of iterations along the path. If return_n_iter is set to
             ``True``.
         """
-        penalty = compiled_clone(L1_plus_L2(
-            self.alpha, self.l1_ratio, self.positive))
+        penalty = compiled_clone(L1_plus_L2(self.alpha, self.l1_ratio, self.positive))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
         solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
@@ -1324,8 +1322,7 @@ class CoxEstimator(LinearModel):
                 f"two columns. Got one column.\nAssuming that `y` "
                 "is the vector of times and there is no censoring."
             )
-            y = np.column_stack((y, np.ones_like(y))).astype(
-                X.dtype, order="F")
+            y = np.column_stack((y, np.ones_like(y))).astype(X.dtype, order="F")
         elif y.shape[1] > 2:
             raise ValueError(
                 f"{repr(self)} requires the vector of response `y` to have "
@@ -1543,8 +1540,7 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
             The number of iterations along the path. If return_n_iter is set to
             ``True``.
         """
-        datafit = compiled_clone(QuadraticMultiTask(),
-                                 to_float32=X.dtype == np.float32)
+        datafit = compiled_clone(QuadraticMultiTask(), to_float32=X.dtype == np.float32)
         penalty = compiled_clone(L2_1(self.alpha))
         solver = MultiTaskBCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,

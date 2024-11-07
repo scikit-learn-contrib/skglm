@@ -237,5 +237,6 @@ def test_HessianQuadratic():
     # check that it's not just because we got alpha too high and thus 0 coef
     np.testing.assert_array_less(0.1, np.max(np.abs(qpl1.coef_)))
 
+
 if __name__ == '__main__':
     pass

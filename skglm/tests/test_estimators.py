@@ -14,19 +14,23 @@ from sklearn.linear_model import Lasso as Lasso_sklearn
 from sklearn.linear_model import ElasticNet as ElasticNet_sklearn
 from sklearn.linear_model import LogisticRegression as LogReg_sklearn
 from sklearn.linear_model import MultiTaskLasso as MultiTaskLasso_sklearn
+from sklearn.covariance import GraphicalLasso as GraphicalLasso_sklearn
 from sklearn.model_selection import GridSearchCV
 from sklearn.svm import LinearSVC as LinearSVC_sklearn
 from sklearn.utils.estimator_checks import check_estimator
+from sklearn.utils import check_random_state
 
 from skglm.utils.data import (make_correlated_data, make_dummy_survival_data,
                               _alpha_max_group_lasso, grp_converter)
 from skglm.estimators import (
     GeneralizedLinearEstimator, Lasso, MultiTaskLasso, WeightedLasso, ElasticNet,
-    MCPRegression, SparseLogisticRegression, LinearSVC, GroupLasso, CoxEstimator)
+    MCPRegression, SparseLogisticRegression, LinearSVC, GroupLasso, CoxEstimator, GraphicalLasso,
+    AdaptiveGraphicalLasso)
 from skglm.datafits import Logistic, Quadratic, QuadraticSVC, QuadraticMultiTask, Cox
 from skglm.penalties import L1, IndicatorBox, L1_plus_L2, MCPenalty, WeightedL1, SLOPE
 from skglm.solvers import AndersonCD, FISTA, ProxNewton
 from skglm.utils.jit_compilation import compiled_clone
+from skglm.utils.data import generate_GraphicalLasso_data
 
 n_samples = 50
 n_tasks = 9
@@ -118,7 +122,8 @@ def test_estimator(estimator_name, X, fit_intercept, positive):
         pytest.xfail("Intercept is not supported for SVC.")
     if positive and estimator_name not in (
             "Lasso", "ElasticNet", "wLasso", "MCP", "wMCP", "GroupLasso"):
-        pytest.xfail("`positive` option is only supported by L1, L1_plus_L2 and wL1.")
+        pytest.xfail(
+            "`positive` option is only supported by L1, L1_plus_L2 and wL1.")
 
     estimator_sk = clone(dict_estimators_sk[estimator_name])
     estimator_ours = clone(dict_estimators_ours[estimator_name])
@@ -364,7 +369,8 @@ def test_equivalence_cox_SLOPE_cox_L1(use_efron, issparse):
     w, *_ = solver.solve(X, y, datafit, penalty)
 
     method = 'efron' if use_efron else 'breslow'
-    estimator = CoxEstimator(alpha, l1_ratio=1., method=method, tol=1e-9).fit(X, y)
+    estimator = CoxEstimator(
+        alpha, l1_ratio=1., method=method, tol=1e-9).fit(X, y)
 
     np.testing.assert_allclose(w, estimator.coef_, atol=1e-5)
 
@@ -510,7 +516,8 @@ def test_grid_search(estimator_name):
     for attr in res_attr:
         np.testing.assert_allclose(sk_clf.cv_results_[attr], ours_clf.cv_results_[attr],
                                    rtol=1e-3)
-    np.testing.assert_allclose(sk_clf.best_score_, ours_clf.best_score_, rtol=1e-3)
+    np.testing.assert_allclose(
+        sk_clf.best_score_, ours_clf.best_score_, rtol=1e-3)
     np.testing.assert_allclose(sk_clf.best_params_["alpha"],
                                ours_clf.best_params_["alpha"], rtol=1e-3)
 
@@ -607,7 +614,8 @@ def test_SparseLogReg_elasticnet(X, l1_ratio):
     estimator_ours = clone(dict_estimators_ours['LogisticRegression'])
     estimator_sk.set_params(fit_intercept=True, solver='saga',
                             penalty='elasticnet', l1_ratio=l1_ratio, max_iter=10_000)
-    estimator_ours.set_params(fit_intercept=True, l1_ratio=l1_ratio, max_iter=10_000)
+    estimator_ours.set_params(
+        fit_intercept=True, l1_ratio=l1_ratio, max_iter=10_000)
 
     estimator_sk.fit(X, y)
     estimator_ours.fit(X, y)
@@ -618,6 +626,117 @@ def test_SparseLogReg_elasticnet(X, l1_ratio):
     np.testing.assert_allclose(coef_ours, coef_sk, atol=1e-6)
     np.testing.assert_allclose(
         estimator_sk.intercept_, estimator_ours.intercept_, rtol=1e-4)
+
+# Graphical Lasso tests
+
+
+def test_GraphicalLasso_equivalence_sklearn():
+    S, _, lmbd_max = generate_GraphicalLasso_data(200, 50)
+    alpha = lmbd_max / 5
+
+    model_sk = GraphicalLasso_sklearn(
+        alpha=alpha, covariance="precomputed", tol=1e-10)
+    model_sk.fit(S)
+
+    for algo in ("banerjee", "mazumder"):
+        model = GraphicalLasso(
+            alpha=alpha,
+            warm_start=False,
+            max_iter=1000,
+            tol=1e-14,
+            algo=algo,
+        ).fit(S)
+
+    np.testing.assert_allclose(
+        model.precision_, model_sk.precision_, atol=2e-4)
+    np.testing.assert_allclose(
+        model.covariance_, model_sk.covariance_, atol=2e-4)
+
+    # check that we did not mess up lambda:
+    np.testing.assert_array_less(S.shape[0] + 1, (model.precision_ != 0).sum())
+
+
+def test_GraphicalLasso_warm_start():
+    S, _, lmbd_max = generate_GraphicalLasso_data(200, 50)
+
+    alpha = lmbd_max / 5
+
+    model = GraphicalLasso(
+        alpha=alpha,
+        warm_start=True,
+        max_iter=1000,
+        tol=1e-14,
+        algo="mazumder",
+    ).fit(S)
+    np.testing.assert_array_less(1, model.n_iter_)
+
+    model.fit(S)
+    np.testing.assert_equal(model.n_iter_, 1)
+
+    model.algo = "banerjee"
+    with pytest.raises(ValueError, match="does not support"):
+        model.fit(S)
+
+
+def test_GraphicalLasso_weights():
+    S, _, lmbd_max = generate_GraphicalLasso_data(200, 50)
+
+    alpha = lmbd_max / 10
+
+    model = GraphicalLasso(
+        alpha=alpha,
+        warm_start=False,
+        max_iter=2000,
+        tol=1e-14,
+        algo="mazumder",
+    ).fit(S)
+    prec = model.precision_.copy()
+
+    scal = 2.
+    model.weights = np.full(S.shape, scal)
+    model.alpha /= scal
+    model.fit(S)
+    np.testing.assert_allclose(prec, model.precision_)
+
+    mask = np.random.randn(*S.shape) > 0
+    mask = mask + mask.T
+    mask.flat[::S.shape[0] + 1] = 0
+    weights = mask.astype(float)
+    model.weights = weights
+    model.fit(S)
+    np.testing.assert_array_less(1e-4, np.abs(model.precision_[~mask]))
+
+
+def test_GraphicalLasso_adaptive():
+    S, _, lmbd_max = generate_GraphicalLasso_data(200, 50)
+
+    alpha = lmbd_max / 10
+    tol = 1e-14
+    model = GraphicalLasso(
+        alpha=alpha,
+        warm_start=True,
+        max_iter=1000,
+        tol=tol,
+        algo="mazumder",
+    ).fit(S)
+    n_iter = [model.n_iter_]
+    Theta1 = model.precision_
+    weights = 1 / (np.abs(Theta1) + 1e-10)
+    model.weights = weights
+
+    model.fit(S)
+    n_iter.append(model.n_iter_)
+    print("ada:")
+
+    # TODO test more than 2 reweightings?
+    model_a = AdaptiveGraphicalLasso(
+        alpha=alpha, n_reweights=2, tol=tol).fit(S)
+
+    np.testing.assert_allclose(model_a.precision_, model.precision_)
+    np.testing.assert_allclose(model_a.n_iter_, n_iter)
+
+    # support is decreasing:
+    assert not np.any(model_a.precision_[Theta1 == 0])
 
 
 if __name__ == "__main__":

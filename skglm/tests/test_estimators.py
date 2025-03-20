@@ -627,8 +627,10 @@ def test_SparseLogReg_elasticnet(X, l1_ratio):
     np.testing.assert_allclose(
         estimator_sk.intercept_, estimator_ours.intercept_, rtol=1e-4)
 
-# Graphical Lasso tests
 
+#######################
+# WIP Graphical Lasso tests
+#######################
 
 def test_GraphicalLasso_equivalence_sklearn():
     S, _, lmbd_max = generate_GraphicalLasso_data(200, 50)
@@ -638,7 +640,7 @@ def test_GraphicalLasso_equivalence_sklearn():
         alpha=alpha, covariance="precomputed", tol=1e-10)
     model_sk.fit(S)
 
-    for algo in ("banerjee", "mazumder"):
+    for algo in ("primal", "dual"):
         model = GraphicalLasso(
             alpha=alpha,
             warm_start=False,
@@ -648,9 +650,9 @@ def test_GraphicalLasso_equivalence_sklearn():
         ).fit(S)
 
     np.testing.assert_allclose(
-        model.precision_, model_sk.precision_, atol=2e-4)
+        model.precision_, model_sk.precision_, atol=1e-4)
     np.testing.assert_allclose(
-        model.covariance_, model_sk.covariance_, atol=2e-4)
+        model.covariance_, model_sk.covariance_, atol=1e-4)
 
     # check that we did not mess up lambda:
     np.testing.assert_array_less(S.shape[0] + 1, (model.precision_ != 0).sum())
@@ -666,14 +668,14 @@ def test_GraphicalLasso_warm_start():
         warm_start=True,
         max_iter=1000,
         tol=1e-14,
-        algo="mazumder",
+        algo="primal",
     ).fit(S)
     np.testing.assert_array_less(1, model.n_iter_)
 
     model.fit(S)
     np.testing.assert_equal(model.n_iter_, 1)
 
-    model.algo = "banerjee"
+    model.algo = "dual"
     with pytest.raises(ValueError, match="does not support"):
         model.fit(S)
 
@@ -688,7 +690,7 @@ def test_GraphicalLasso_weights():
         warm_start=False,
         max_iter=2000,
         tol=1e-14,
-        algo="mazumder",
+        algo="primal",
     ).fit(S)
     prec = model.precision_.copy()
 
@@ -717,10 +719,11 @@ def test_GraphicalLasso_adaptive():
         warm_start=True,
         max_iter=1000,
         tol=tol,
-        algo="mazumder",
+        algo="primal",
     ).fit(S)
     n_iter = [model.n_iter_]
     Theta1 = model.precision_
+    # TODO test the other strategies
     weights = 1 / (np.abs(Theta1) + 1e-10)
     model.weights = weights
 
@@ -730,7 +733,9 @@ def test_GraphicalLasso_adaptive():
 
     # TODO test more than 2 reweightings?
     model_a = AdaptiveGraphicalLasso(
-        alpha=alpha, n_reweights=2, tol=tol).fit(S)
+        alpha=alpha,
+        n_reweights=2,
+        tol=tol).fit(S)
 
     np.testing.assert_allclose(model_a.precision_, model.precision_)
     np.testing.assert_allclose(model_a.n_iter_, n_iter)

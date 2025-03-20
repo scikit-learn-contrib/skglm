@@ -2,6 +2,7 @@
 
 import warnings
 import numpy as np
+from scipy.linalg import pinvh
 from scipy.sparse import issparse
 from scipy.special import expit
 from numbers import Integral, Real
@@ -25,6 +26,10 @@ from skglm.datafits import (Cox, Quadratic, Logistic, QuadraticSVC,
 from skglm.penalties import (L1, WeightedL1, L1_plus_L2, L2, WeightedGroupL2,
                              MCPenalty, WeightedMCPenalty, IndicatorBox, L2_1)
 from skglm.utils.data import grp_converter
+from skglm.utils.prox_funcs import ST_vec
+
+from numba import njit
+from skglm.solvers.gram_cd import barebones_cd_gram
 
 
 def _glm_fit(X, y, model, datafit, penalty, solver):
@@ -1687,15 +1692,24 @@ class GroupLasso(LinearModel, RegressorMixin):
 
         return _glm_fit(X, y, self, quad_group, group_penalty, solver)
 
+####################
+# WIP Graphical Lasso
+####################
+
 
 class GraphicalLasso():
+    """ A first-order BCD Graphical Lasso solver implementing the GLasso algorithm
+    described in Friedman et al., 2008 and the P-GLasso algorithm described in
+    Mazumder et al., 2012."""
+
     def __init__(self,
                  alpha=1.,
                  weights=None,
-                 algo="banerjee",
-                 max_iter=1000,
+                 algo="dual",
+                 max_iter=100,
                  tol=1e-8,
                  warm_start=False,
+                 inner_tol=1e-4,
                  ):
         self.alpha = alpha
         self.weights = weights
@@ -1703,6 +1717,7 @@ class GraphicalLasso():
         self.max_iter = max_iter
         self.tol = tol
         self.warm_start = warm_start
+        self.inner_tol = inner_tol
 
     def fit(self, S):
         p = S.shape[-1]
@@ -1716,90 +1731,110 @@ class GraphicalLasso():
                 raise ValueError("Weights should be symmetric.")
 
         if self.warm_start and hasattr(self, "precision_"):
-            if self.algo == "banerjee":
+            if self.algo == "dual":
                 raise ValueError(
-                    "Banerjee does not support warm start for now.")
+                    "dual does not support warm start for now.")
             Theta = self.precision_
             W = self.covariance_
+
         else:
-            W = S.copy()  # + alpha*np.eye(p)
-            Theta = np.linalg.pinv(W, hermitian=True)
+            W = S.copy()
+            W *= 0.95
+            diagonal = S.flat[:: p + 1]
+            W.flat[:: p + 1] = diagonal
+            Theta = pinvh(W)
 
-        datafit = compiled_clone(QuadraticHessian())
-        penalty = compiled_clone(
-            WeightedL1(alpha=self.alpha, weights=Weights[0, :-1]))
-
-        solver = AndersonCD(warm_start=True,
-                            fit_intercept=False,
-                            ws_strategy="fixpoint")
+        W_11 = np.copy(W[1:, 1:], order="C")
+        eps = np.finfo(np.float64).eps
+        it = 0
+        Theta_old = Theta.copy()
 
         for it in range(self.max_iter):
             Theta_old = Theta.copy()
+
             for col in range(p):
-                indices_minus_col = np.concatenate(
-                    [indices[:col], indices[col + 1:]])
-                _11 = indices_minus_col[:, None], indices_minus_col[None]
-                _12 = indices_minus_col, col
-                _21 = col, indices_minus_col
-                _22 = col, col
+                if self.algo == "primal":
+                    indices_minus_col = np.concatenate(
+                        [indices[:col], indices[col + 1:]])
+                    _11 = indices_minus_col[:, None], indices_minus_col[None]
+                    _12 = indices_minus_col, col
+                    _21 = col, indices_minus_col
+                    _22 = col, col
 
-                W_11 = W[_11]
-                w_12 = W[_12]
-                w_22 = W[_22]
-                s_12 = S[_12]
-                s_22 = S[_22]
+                elif self.algo == "dual":
+                    if col > 0:
+                        di = col - 1
+                        W_11[di] = W[di][indices != col]
+                        W_11[:, di] = W[:, di][indices != col]
+                    else:
+                        W_11[:] = W[1:, 1:]
 
-                penalty.weights = Weights[_12]
+                s_12 = S[col, indices != col]
 
-                if self.algo == "banerjee":
-                    w_init = Theta[_12]/Theta[_22]
-                    Xw_init = W_11 @ w_init
+                if self.algo == "dual":
+                    beta_init = (Theta[indices != col, col] /
+                                 (Theta[col, col] + 1000 * eps))
                     Q = W_11
-                elif self.algo == "mazumder":
-                    inv_Theta_11 = W_11 - np.outer(w_12, w_12)/w_22
+
+                elif self.algo == "primal":
+                    inv_Theta_11 = (W[_11] -
+                                    np.outer(W[_12],
+                                             W[_12])/W[_22])
                     Q = inv_Theta_11
-                    w_init = Theta[_12] * w_22
-                    Xw_init = inv_Theta_11 @ w_init
+                    beta_init = Theta[indices != col, col] * S[col, col]
                 else:
                     raise ValueError(f"Unsupported algo {self.algo}")
 
-                beta, _, _ = solver._solve(
+                beta = barebones_cd_gram(
                     Q,
                     s_12,
-                    datafit,
-                    penalty,
-                    w_init=w_init,
-                    Xw_init=Xw_init,
+                    x=beta_init,
+                    alpha=self.alpha,
+                    weights=Weights[indices != col, col],
+                    tol=self.inner_tol,
+                    max_iter=self.max_iter,
                 )
 
-                if self.algo == "banerjee":
-                    w_12 = -W_11 @ beta
-                    W[_12] = w_12
-                    W[_21] = w_12
-                    Theta[_22] = 1/(s_22 + beta @ w_12)
-                    Theta[_12] = beta*Theta[_22]
-                else:  # mazumder
-                    theta_12 = beta / s_22
-                    theta_22 = 1/s_22 + theta_12 @ inv_Theta_11 @ theta_12
+                if self.algo == "dual":
+                    w_12 = -np.dot(W_11, beta)
+                    W[col, indices != col] = w_12
+                    W[indices != col, col] = w_12
 
-                    Theta[_12] = theta_12
-                    Theta[_21] = theta_12
-                    Theta[_22] = theta_22
+                    Theta[col, col] = 1 / \
+                        (W[col, col] + np.dot(beta, w_12))
+                    Theta[indices != col, col] = beta*Theta[col, col]
+                    Theta[col, indices != col] = beta*Theta[col, col]
 
-                    w_22 = 1/(theta_22 - theta_12 @ inv_Theta_11 @ theta_12)
-                    w_12 = -w_22*inv_Theta_11 @ theta_12
-                    W_11 = inv_Theta_11 + np.outer(w_12, w_12)/w_22
-                    W[_11] = W_11
-                    W[_12] = w_12
-                    W[_21] = w_12
-                    W[_22] = w_22
+                else:  # primal
+                    Theta[indices != col, col] = beta / S[col, col]
+                    Theta[col, indices != col] = beta / S[col, col]
+                    Theta[col, col] = (1/S[col, col] +
+                                       Theta[col, indices != col] @
+                                       inv_Theta_11 @
+                                       Theta[indices != col, col])
+                    W[col, col] = (1/(Theta[col, col] -
+                                      Theta[indices != col, col] @
+                                      inv_Theta_11 @
+                                      Theta[indices != col, col]))
+                    W[indices != col, col] = (-W[col, col] *
+                                              inv_Theta_11 @
+                                              Theta[indices != col, col])
+                    W[col, indices != col] = (-W[col, col] *
+                                              inv_Theta_11 @
+                                              Theta[indices != col, col])
+                    # Maybe W_11 can be done smarter ?
+                    W[_11] = (inv_Theta_11 +
+                              np.outer(W[indices != col, col],
+                                       W[indices != col, col])/W[col, col])
 
             if np.linalg.norm(Theta - Theta_old) < self.tol:
                 print(f"Weighted Glasso converged at CD epoch {it + 1}")
                 break
         else:
-            print(f"Not converged at epoch {it + 1}, "
-                  f"diff={np.linalg.norm(Theta - Theta_old):.2e}")
+            print(
+                f"Not converged at epoch {it + 1}, "
+                f"diff={np.linalg.norm(Theta - Theta_old):.2e}"
+            )
         self.precision_, self.covariance_ = Theta, W
         self.n_iter_ = it + 1
 
@@ -1810,13 +1845,14 @@ class AdaptiveGraphicalLasso():
     def __init__(
         self,
         alpha=1.,
+        strategy="log",
         n_reweights=5,
         max_iter=1000,
         tol=1e-8,
         warm_start=False,
-        # verbose=False,
     ):
         self.alpha = alpha
+        self.strategy = strategy
         self.n_reweights = n_reweights
         self.max_iter = max_iter
         self.tol = tol
@@ -1824,19 +1860,32 @@ class AdaptiveGraphicalLasso():
 
     def fit(self, S):
         glasso = GraphicalLasso(
-            alpha=self.alpha, algo="mazumder", max_iter=self.max_iter,
-            tol=self.tol, warm_start=True)
+            alpha=self.alpha,
+            algo="primal",
+            max_iter=self.max_iter,
+            tol=self.tol,
+            warm_start=True)
         Weights = np.ones(S.shape)
         self.n_iter_ = []
         for it in range(self.n_reweights):
             glasso.weights = Weights
             glasso.fit(S)
             Theta = glasso.precision_
-            Weights = 1/(np.abs(Theta) + 1e-10)
+            if self.strategy == "log":
+                Weights = 1/(np.abs(Theta) + 1e-10)
+            elif self.strategy == "sqrt":
+                Weights = 1/(2*np.sqrt(np.abs(Theta)) + 1e-10)
+            elif self.strategy == "mcp":
+                gamma = 3.
+                Weights = np.zeros_like(Theta)
+                Weights[np.abs(Theta) < gamma*self.alpha] = (self.alpha -
+                                                             np.abs(Theta[np.abs(Theta) < gamma*self.alpha])/gamma)
+            else:
+                raise ValueError(f"Unknown strategy {self.strategy}")
+
             self.n_iter_.append(glasso.n_iter_)
             # TODO print losses for original problem?
             glasso.covariance_ = np.linalg.pinv(Theta, hermitian=True)
         self.precision_ = glasso.precision_
         self.covariance_ = glasso.covariance_
-
         return self

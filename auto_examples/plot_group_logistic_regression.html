@@ -7,7 +7,7 @@
 
     <link rel="shortcut icon" href="../_static/logo.svg"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.08.06 -->
         <title>Group Logistic regression in python - skglm 0.4dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=d2d258e8" />
@@ -344,13 +344,13 @@ to download the full example code.</p>
 one with <code class="docutils literal notranslate"><span class="pre">skglm</span></code>.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Author: Mathurin Massias</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">skglm</span> <span class="kn">import</span> <a href="../generated/skglm.GeneralizedLinearEstimator.html#skglm.GeneralizedLinearEstimator" title="skglm.GeneralizedLinearEstimator" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class"><span class="n">GeneralizedLinearEstimator</span></a>
-<span class="kn">from</span> <span class="nn">skglm.datafits</span> <span class="kn">import</span> <a href="../generated/skglm.datafits.LogisticGroup.html#skglm.datafits.LogisticGroup" title="skglm.datafits.LogisticGroup" class="sphx-glr-backref-module-skglm-datafits sphx-glr-backref-type-py-class"><span class="n">LogisticGroup</span></a>
-<span class="kn">from</span> <span class="nn">skglm.penalties</span> <span class="kn">import</span> <a href="../generated/skglm.penalties.WeightedGroupL2.html#skglm.penalties.WeightedGroupL2" title="skglm.penalties.WeightedGroupL2" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">WeightedGroupL2</span></a>
-<span class="kn">from</span> <span class="nn">skglm.solvers</span> <span class="kn">import</span> <a href="../generated/skglm.solvers.GroupProxNewton.html#skglm.solvers.GroupProxNewton" title="skglm.solvers.GroupProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class"><span class="n">GroupProxNewton</span></a>
-<span class="kn">from</span> <span class="nn">skglm.utils.data</span> <span class="kn">import</span> <span class="n">make_correlated_data</span><span class="p">,</span> <span class="n">grp_converter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">skglm</span><span class="w"> </span><span class="kn">import</span> <a href="../generated/skglm.GeneralizedLinearEstimator.html#skglm.GeneralizedLinearEstimator" title="skglm.GeneralizedLinearEstimator" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class"><span class="n">GeneralizedLinearEstimator</span></a>
+<span class="kn">from</span><span class="w"> </span><span class="nn">skglm.datafits</span><span class="w"> </span><span class="kn">import</span> <a href="../generated/skglm.datafits.LogisticGroup.html#skglm.datafits.LogisticGroup" title="skglm.datafits.LogisticGroup" class="sphx-glr-backref-module-skglm-datafits sphx-glr-backref-type-py-class"><span class="n">LogisticGroup</span></a>
+<span class="kn">from</span><span class="w"> </span><span class="nn">skglm.penalties</span><span class="w"> </span><span class="kn">import</span> <a href="../generated/skglm.penalties.WeightedGroupL2.html#skglm.penalties.WeightedGroupL2" title="skglm.penalties.WeightedGroupL2" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">WeightedGroupL2</span></a>
+<span class="kn">from</span><span class="w"> </span><span class="nn">skglm.solvers</span><span class="w"> </span><span class="kn">import</span> <a href="../generated/skglm.solvers.GroupProxNewton.html#skglm.solvers.GroupProxNewton" title="skglm.solvers.GroupProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class"><span class="n">GroupProxNewton</span></a>
+<span class="kn">from</span><span class="w"> </span><span class="nn">skglm.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_correlated_data</span><span class="p">,</span> <span class="n">grp_converter</span>
 
 <span class="n">n_features</span> <span class="o">=</span> <span class="mi">30</span>
 <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">make_correlated_data</span><span class="p">(</span>
@@ -414,7 +414,7 @@ Iteration 6: 0.0794078275, stopping crit: 3.61e-05
  [ 0.57737623 -0.25394772  0.15405176]]
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 16.118 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 13.959 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-group-logistic-regression-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/382fdeae60d02217e9c69837e7c101fe/plot_group_logistic_regression.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_group_logistic_regression.ipynb</span></code></a></p>
@@ -458,7 +458,7 @@ Iteration 6: 0.0794078275, stopping crit: 3.61e-05
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2022-2024, skglm developers
+                Copyright &#169; 2022-2025, skglm developers
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             

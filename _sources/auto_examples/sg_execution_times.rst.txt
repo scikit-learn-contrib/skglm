@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**02:57.569** total execution time for 11 files **from auto_examples**:
+**02:41.338** total execution time for 11 files **from auto_examples**:
 
 .. container::
 
@@ -32,36 +32,36 @@ Computation times
    * - Example
      - Time
      - Mem (MB)
-   * - :ref:`sphx_glr_auto_examples_plot_compare_time.py` (``plot_compare_time.py``)
-     - 01:01.094
-     - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_survival_analysis.py` (``plot_survival_analysis.py``)
-     - 00:49.002
+     - 00:50.355
      - 0.0
-   * - :ref:`sphx_glr_auto_examples_plot_group_logistic_regression.py` (``plot_group_logistic_regression.py``)
-     - 00:16.118
+   * - :ref:`sphx_glr_auto_examples_plot_compare_time.py` (``plot_compare_time.py``)
+     - 00:47.811
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_ucurve.py` (``plot_ucurve.py``)
-     - 00:15.141
+     - 00:14.244
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_group_logistic_regression.py` (``plot_group_logistic_regression.py``)
+     - 00:13.959
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_logreg_various_penalties.py` (``plot_logreg_various_penalties.py``)
-     - 00:09.458
+     - 00:09.145
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_sparse_recovery.py` (``plot_sparse_recovery.py``)
-     - 00:08.501
+     - 00:08.308
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_sparse_group_lasso.py` (``plot_sparse_group_lasso.py``)
-     - 00:05.857
+     - 00:05.917
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_reweighted_l1.py` (``plot_reweighted_l1.py``)
-     - 00:05.829
+     - 00:05.227
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_lasso_vs_weighted.py` (``plot_lasso_vs_weighted.py``)
-     - 00:03.882
+     - 00:03.877
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_pen_prox.py` (``plot_pen_prox.py``)
-     - 00:02.319
+     - 00:02.067
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_zero_weights_lasso.py` (``plot_zero_weights_lasso.py``)
-     - 00:00.369
+     - 00:00.427
      - 0.0

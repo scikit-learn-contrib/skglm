@@ -7,7 +7,7 @@
 
     <link rel="shortcut icon" href="_static/logo.svg"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.08.06 -->
         <title>Getting started - skglm 0.4dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery.css?v=d2d258e8" />
@@ -357,8 +357,8 @@ conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> <
 For that, we will use <code class="docutils literal notranslate"><span class="pre">scikit-learn</span></code>
 <a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.datasets.make_regression.html#sklearn.datasets.make_regression">make_regression</a></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># imports</span>
-<span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">make_regression</span>
-<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_regression</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.model_selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">train_test_split</span>
 
 <span class="c1"># generate toy data</span>
 <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">make_regression</span><span class="p">(</span><span class="n">n_samples</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">n_features</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
@@ -369,7 +369,7 @@ For that, we will use <code class="docutils literal notranslate"><span class="pr
 </div>
 <p>Then let’s fit <code class="docutils literal notranslate"><span class="pre">skglm</span></code> <a class="reference internal" href="generated/skglm.Lasso.html#skglm-lasso"><span class="std std-ref">Lasso</span></a> estimator and prints its score on the test set.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># import estimator</span>
-<span class="kn">from</span> <span class="nn">skglm</span> <span class="kn">import</span> <span class="n">Lasso</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">skglm</span><span class="w"> </span><span class="kn">import</span> <span class="n">Lasso</span>
 
 <span class="c1"># init and fit</span>
 <span class="n">estimator</span> <span class="o">=</span> <span class="n">Lasso</span><span class="p">()</span>
@@ -406,9 +406,9 @@ while having an estimator that generalizes well to unseen data. Ideally, we woul
 <h3>Generate corrupt data<a class="headerlink" href="#generate-corrupt-data" title="Permalink to this heading">¶</a></h3>
 <p>We will use the same script as before except that we will take 10 samples and corrupt their values.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># imports</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">make_regression</span>
-<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_regression</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.model_selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">train_test_split</span>
 
 <span class="c1"># generate toy data</span>
 <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">make_regression</span><span class="p">(</span><span class="n">n_samples</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">n_features</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
@@ -423,11 +423,11 @@ while having an estimator that generalizes well to unseen data. Ideally, we woul
 <p>Now let’s compose a custom estimator using <a class="reference internal" href="generated/skglm.GeneralizedLinearEstimator.html#skglm-generalizedlinearestimator"><span class="std std-ref">GeneralizedLinearEstimator</span></a>.
 It’s the go-to way to create custom estimator by combining a datafit and a penalty.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># import penalty and datafit</span>
-<span class="kn">from</span> <span class="nn">skglm.penalties</span> <span class="kn">import</span> <span class="n">L1</span>
-<span class="kn">from</span> <span class="nn">skglm.datafits</span> <span class="kn">import</span> <span class="n">Huber</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">skglm.penalties</span><span class="w"> </span><span class="kn">import</span> <span class="n">L1</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">skglm.datafits</span><span class="w"> </span><span class="kn">import</span> <span class="n">Huber</span>
 
 <span class="c1"># import GLM estimator</span>
-<span class="kn">from</span> <span class="nn">skglm</span> <span class="kn">import</span> <span class="n">GeneralizedLinearEstimator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">skglm</span><span class="w"> </span><span class="kn">import</span> <span class="n">GeneralizedLinearEstimator</span>
 
 <span class="c1"># build and fit estimator</span>
 <span class="n">estimator</span> <span class="o">=</span> <span class="n">GeneralizedLinearEstimator</span><span class="p">(</span>
@@ -487,7 +487,7 @@ and <a class="reference internal" href="tutorials/add_penalty.html#how-to-add-cu
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2022-2024, skglm developers
+                Copyright &#169; 2022-2025, skglm developers
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             

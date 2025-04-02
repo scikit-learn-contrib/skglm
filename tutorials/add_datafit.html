@@ -7,7 +7,7 @@
 
     <link rel="shortcut icon" href="../_static/logo.svg"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.08.06 -->
         <title>How to add a custom datafit - skglm 0.4dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=d2d258e8" />
@@ -355,10 +355,10 @@ and <span class="math notranslate nohighlight">`\beta \in \mathbb{R}^p`</span> i
 </pre></div>
 </div>
 <p>A <code class="docutils literal notranslate"><span class="pre">Datafit</span></code> is a jitclass that must inherit from the <code class="docutils literal notranslate"><span class="pre">BaseDatafit</span></code> class:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">BaseDatafit</span><span class="p">:</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">BaseDatafit</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for datafits.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">get_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Specify the numba types of the class attributes.</span>
 
 <span class="sd">        Returns</span>
@@ -367,7 +367,7 @@ and <span class="math notranslate nohighlight">`\beta \in \mathbb{R}^p`</span> i
 <span class="sd">            spec to be passed to Numba jitclass to compile the class.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">params_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">params_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the parameters to initialize an instance of the class.</span>
 
 <span class="sd">        Returns</span>
@@ -376,7 +376,7 @@ and <span class="math notranslate nohighlight">`\beta \in \mathbb{R}^p`</span> i
 <span class="sd">            The parameters to instantiate an object of the class.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Pre-computations before fitting on X and y.</span>
 
 <span class="sd">        Parameters</span>
@@ -388,7 +388,7 @@ and <span class="math notranslate nohighlight">`\beta \in \mathbb{R}^p`</span> i
 <span class="sd">            Target vector.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">initialize_sparse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X_data</span><span class="p">,</span> <span class="n">X_indptr</span><span class="p">,</span> <span class="n">X_indices</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize_sparse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X_data</span><span class="p">,</span> <span class="n">X_indptr</span><span class="p">,</span> <span class="n">X_indices</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Pre-computations before fitting on X and y when X is a sparse matrix.</span>
 
 <span class="sd">        Parameters</span>
@@ -406,7 +406,7 @@ and <span class="math notranslate nohighlight">`\beta \in \mathbb{R}^p`</span> i
 <span class="sd">            Target vector.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">Xw</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">Xw</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Value of datafit at vector w.</span>
 
 <span class="sd">        Parameters</span>
@@ -490,7 +490,7 @@ it is the derivative of the datafit with respect to the <span class="math notran
   \ .`</div>
 </div>
 <p>When implementing these quantities in the <code class="docutils literal notranslate"><span class="pre">Poisson</span></code> datafit class, this gives:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Poisson</span><span class="p">(</span><span class="n">BaseDatafit</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Poisson</span><span class="p">(</span><span class="n">BaseDatafit</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Poisson datafit.</span>
 
 <span class="sd">    The datafit reads:</span>
@@ -503,45 +503,45 @@ it is the derivative of the datafit with respect to the <span class="math notran
 <span class="sd">    This allows for faster computations.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span>
 
-    <span class="k">def</span> <span class="nf">get_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span>
 
-    <span class="k">def</span> <span class="nf">params_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">params_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">dict</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">y</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;Target vector `y` should only take positive values &quot;</span>
                 <span class="s2">&quot;when fitting a Poisson model.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">initialize_sparse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X_data</span><span class="p">,</span> <span class="n">X_indptr</span><span class="p">,</span> <span class="n">X_indices</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize_sparse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X_data</span><span class="p">,</span> <span class="n">X_indptr</span><span class="p">,</span> <span class="n">X_indices</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">y</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;Target vector `y` should only take positive values &quot;</span>
                 <span class="s2">&quot;when fitting a Poisson model.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">raw_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">Xw</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">raw_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">Xw</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute gradient of datafit w.r.t ``Xw``.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">Xw</span><span class="p">)</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">raw_hessian</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">Xw</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">raw_hessian</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">Xw</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute Hessian of datafit w.r.t ``Xw``.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">Xw</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">Xw</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">Xw</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">Xw</span><span class="p">)</span> <span class="o">-</span> <span class="n">y</span> <span class="o">*</span> <span class="n">Xw</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">Xw</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">Xw</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">X</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_grad</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">Xw</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">gradient_scalar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">Xw</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">gradient_scalar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">Xw</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">X</span><span class="p">[:,</span> <span class="n">j</span><span class="p">]</span> <span class="o">@</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">Xw</span><span class="p">)</span> <span class="o">-</span> <span class="n">y</span><span class="p">))</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">full_grad_sparse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X_data</span><span class="p">,</span> <span class="n">X_indptr</span><span class="p">,</span> <span class="n">X_indices</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">Xw</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">full_grad_sparse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X_data</span><span class="p">,</span> <span class="n">X_indptr</span><span class="p">,</span> <span class="n">X_indices</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">Xw</span><span class="p">):</span>
         <span class="n">n_features</span> <span class="o">=</span> <span class="n">X_indptr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
         <span class="n">grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_features</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">X_data</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_features</span><span class="p">):</span>
@@ -551,14 +551,14 @@ it is the derivative of the datafit with respect to the <span class="math notran
                     <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">Xw</span><span class="p">[</span><span class="n">X_indices</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">-</span> <span class="n">y</span><span class="p">[</span><span class="n">X_indices</span><span class="p">[</span><span class="n">i</span><span class="p">]]))</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">grad</span>
 
-    <span class="k">def</span> <span class="nf">gradient_scalar_sparse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X_data</span><span class="p">,</span> <span class="n">X_indptr</span><span class="p">,</span> <span class="n">X_indices</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">Xw</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">gradient_scalar_sparse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X_data</span><span class="p">,</span> <span class="n">X_indptr</span><span class="p">,</span> <span class="n">X_indices</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">Xw</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
         <span class="n">grad</span> <span class="o">=</span> <span class="mf">0.</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">X_indptr</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">X_indptr</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]):</span>
             <span class="n">idx_i</span> <span class="o">=</span> <span class="n">X_indices</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
             <span class="n">grad</span> <span class="o">+=</span> <span class="n">X_data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">Xw</span><span class="p">[</span><span class="n">idx_i</span><span class="p">])</span> <span class="o">-</span> <span class="n">y</span><span class="p">[</span><span class="n">idx_i</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">grad</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">intercept_update_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">Xw</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">intercept_update_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">Xw</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_grad</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">Xw</span><span class="p">))</span>
 </pre></div>
 </div>
@@ -577,7 +577,7 @@ Usually, it serves to compute datafit attributes specific to a dataset <code cla
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2022-2024, skglm developers
+                Copyright &#169; 2022-2025, skglm developers
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             

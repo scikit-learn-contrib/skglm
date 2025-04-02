@@ -7,7 +7,7 @@
 
     <link rel="shortcut icon" href="../_static/logo.svg"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.08.06 -->
         <title>Value and proximal operators of penalties - skglm 0.4dev documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=d2d258e8" />
@@ -343,10 +343,10 @@ to download the full example code.</p>
 <p>Illustrate the value and proximal operators of some sparse penalties.</p>
 <img src="../_images/sphx_glr_plot_pen_prox_001.png" srcset="../_images/sphx_glr_plot_pen_prox_001.png" alt="Penalty value, Proximal operator of penalty" class = "sphx-glr-single-img"/><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Author: Mathurin Massias &lt;mathurin.massias@gmail.com&gt;</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
-<span class="kn">from</span> <span class="nn">skglm.penalties</span> <span class="kn">import</span> <a href="../generated/skglm.penalties.WeightedL1.html#skglm.penalties.WeightedL1" title="skglm.penalties.WeightedL1" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">WeightedL1</span></a><span class="p">,</span> <a href="../generated/skglm.penalties.L1.html#skglm.penalties.L1" title="skglm.penalties.L1" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">L1</span></a><span class="p">,</span> <a href="../generated/skglm.penalties.L1_plus_L2.html#skglm.penalties.L1_plus_L2" title="skglm.penalties.L1_plus_L2" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">L1_plus_L2</span></a><span class="p">,</span> <a href="../generated/skglm.penalties.MCPenalty.html#skglm.penalties.MCPenalty" title="skglm.penalties.MCPenalty" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">MCPenalty</span></a><span class="p">,</span> <a href="../generated/skglm.penalties.SCAD.html#skglm.penalties.SCAD" title="skglm.penalties.SCAD" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">SCAD</span></a><span class="p">,</span> <a href="../generated/skglm.penalties.L0_5.html#skglm.penalties.L0_5" title="skglm.penalties.L0_5" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">L0_5</span></a><span class="p">,</span> <a href="../generated/skglm.penalties.L2_3.html#skglm.penalties.L2_3" title="skglm.penalties.L2_3" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">L2_3</span></a>
+<span class="kn">from</span><span class="w"> </span><span class="nn">skglm.penalties</span><span class="w"> </span><span class="kn">import</span> <a href="../generated/skglm.penalties.WeightedL1.html#skglm.penalties.WeightedL1" title="skglm.penalties.WeightedL1" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">WeightedL1</span></a><span class="p">,</span> <a href="../generated/skglm.penalties.L1.html#skglm.penalties.L1" title="skglm.penalties.L1" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">L1</span></a><span class="p">,</span> <a href="../generated/skglm.penalties.L1_plus_L2.html#skglm.penalties.L1_plus_L2" title="skglm.penalties.L1_plus_L2" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">L1_plus_L2</span></a><span class="p">,</span> <a href="../generated/skglm.penalties.MCPenalty.html#skglm.penalties.MCPenalty" title="skglm.penalties.MCPenalty" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">MCPenalty</span></a><span class="p">,</span> <a href="../generated/skglm.penalties.SCAD.html#skglm.penalties.SCAD" title="skglm.penalties.SCAD" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">SCAD</span></a><span class="p">,</span> <a href="../generated/skglm.penalties.L0_5.html#skglm.penalties.L0_5" title="skglm.penalties.L0_5" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">L0_5</span></a><span class="p">,</span> <a href="../generated/skglm.penalties.L2_3.html#skglm.penalties.L2_3" title="skglm.penalties.L2_3" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">L2_3</span></a>
 
 
 <span class="n">penalties</span> <span class="o">=</span> <span class="p">[</span>
@@ -378,7 +378,7 @@ to download the full example code.</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 2.319 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 2.067 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-pen-prox-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/ae9288a5d61917f221d6822700f520c2/plot_pen_prox.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_pen_prox.ipynb</span></code></a></p>
@@ -422,7 +422,7 @@ to download the full example code.</p>
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2022-2024, skglm developers
+                Copyright &#169; 2022-2025, skglm developers
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             

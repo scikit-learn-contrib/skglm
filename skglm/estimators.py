@@ -2,11 +2,9 @@
 
 import warnings
 import numpy as np
-from scipy.linalg import pinvh
 from scipy.sparse import issparse
 from scipy.special import expit
 from numbers import Integral, Real
-from skglm.solvers import ProxNewton, LBFGS
 
 from sklearn.utils.validation import (check_is_fitted, check_array,
                                       check_consistent_length)
@@ -20,16 +18,12 @@ from sklearn.utils._param_validation import Interval, StrOptions
 from sklearn.multiclass import OneVsRestClassifier, check_classification_targets
 
 from skglm.utils.jit_compilation import compiled_clone
-from skglm.solvers import AndersonCD, MultiTaskBCD, GroupBCD
+from skglm.solvers import AndersonCD, MultiTaskBCD, GroupBCD, ProxNewton, LBFGS
 from skglm.datafits import (Cox, Quadratic, Logistic, QuadraticSVC,
-                            QuadraticMultiTask, QuadraticGroup, QuadraticHessian)
+                            QuadraticMultiTask, QuadraticGroup,)
 from skglm.penalties import (L1, WeightedL1, L1_plus_L2, L2, WeightedGroupL2,
                              MCPenalty, WeightedMCPenalty, IndicatorBox, L2_1)
 from skglm.utils.data import grp_converter
-from skglm.utils.prox_funcs import ST_vec
-
-from numba import njit
-from skglm.solvers.gram_cd import barebones_cd_gram
 
 
 def _glm_fit(X, y, model, datafit, penalty, solver):
@@ -131,8 +125,7 @@ def _glm_fit(X, y, model, datafit, penalty, solver):
             w = np.zeros(n_features + fit_intercept, dtype=X_.dtype)
             Xw = np.zeros(n_samples, dtype=X_.dtype)
         else:  # multitask
-            w = np.zeros((n_features + fit_intercept,
-                         y.shape[1]), dtype=X_.dtype)
+            w = np.zeros((n_features + fit_intercept, y.shape[1]), dtype=X_.dtype)
             Xw = np.zeros(y.shape, dtype=X_.dtype)
 
     # check consistency of weights for WeightedL1
@@ -582,8 +575,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
             raise ValueError("The number of weights must match the number of \
                               features. Got %s, expected %s." % (
                 len(weights), X.shape[1]))
-        penalty = compiled_clone(WeightedL1(
-            self.alpha, weights, self.positive))
+        penalty = compiled_clone(WeightedL1(self.alpha, weights, self.positive))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
         solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
@@ -608,8 +600,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
             Fitted estimator.
         """
         if self.weights is None:
-            warnings.warn(
-                'Weights are not provided, fitting with Lasso penalty')
+            warnings.warn('Weights are not provided, fitting with Lasso penalty')
             penalty = L1(self.alpha, self.positive)
         else:
             penalty = WeightedL1(self.alpha, self.weights, self.positive)
@@ -742,8 +733,7 @@ class ElasticNet(LinearModel, RegressorMixin):
             The number of iterations along the path. If return_n_iter is set to
             ``True``.
         """
-        penalty = compiled_clone(L1_plus_L2(
-            self.alpha, self.l1_ratio, self.positive))
+        penalty = compiled_clone(L1_plus_L2(self.alpha, self.l1_ratio, self.positive))
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
         solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
@@ -921,8 +911,7 @@ class MCPRegression(LinearModel, RegressorMixin):
                     f"Got {len(self.weights)}, expected {X.shape[1]}."
                 )
             penalty = compiled_clone(
-                WeightedMCPenalty(self.alpha, self.gamma,
-                                  self.weights, self.positive)
+                WeightedMCPenalty(self.alpha, self.gamma, self.weights, self.positive)
             )
         datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
         solver = AndersonCD(
@@ -1325,8 +1314,7 @@ class CoxEstimator(LinearModel):
             # copy/paste from https://github.com/scikit-learn/scikit-learn/blob/ \
             # 23ff51c07ebc03c866984e93c921a8993e96d1f9/sklearn/utils/ \
             # estimator_checks.py#L3886
-            raise ValueError(
-                "requires y to be passed, but the target y is None")
+            raise ValueError("requires y to be passed, but the target y is None")
         y = check_array(
             y,
             accept_sparse=False,
@@ -1341,8 +1329,7 @@ class CoxEstimator(LinearModel):
                 f"two columns. Got one column.\nAssuming that `y` "
                 "is the vector of times and there is no censoring."
             )
-            y = np.column_stack((y, np.ones_like(y))).astype(
-                X.dtype, order="F")
+            y = np.column_stack((y, np.ones_like(y))).astype(X.dtype, order="F")
         elif y.shape[1] > 2:
             raise ValueError(
                 f"{repr(self)} requires the vector of response `y` to have "
@@ -1367,8 +1354,7 @@ class CoxEstimator(LinearModel):
 
         # init solver
         if self.l1_ratio == 0.:
-            solver = LBFGS(max_iter=self.max_iter,
-                           tol=self.tol, verbose=self.verbose)
+            solver = LBFGS(max_iter=self.max_iter, tol=self.tol, verbose=self.verbose)
         else:
             solver = ProxNewton(
                 max_iter=self.max_iter, tol=self.tol, verbose=self.verbose,
@@ -1506,8 +1492,7 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
         if not self.warm_start or not hasattr(self, "coef_"):
             self.coef_ = None
 
-        datafit_jit = compiled_clone(
-            QuadraticMultiTask(), X.dtype == np.float32)
+        datafit_jit = compiled_clone(QuadraticMultiTask(), X.dtype == np.float32)
         penalty_jit = compiled_clone(L2_1(self.alpha), X.dtype == np.float32)
 
         solver = MultiTaskBCD(
@@ -1562,8 +1547,7 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
             The number of iterations along the path. If return_n_iter is set to
             ``True``.
         """
-        datafit = compiled_clone(QuadraticMultiTask(),
-                                 to_float32=X.dtype == np.float32)
+        datafit = compiled_clone(QuadraticMultiTask(), to_float32=X.dtype == np.float32)
         penalty = compiled_clone(L2_1(self.alpha))
         solver = MultiTaskBCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
@@ -1687,8 +1671,7 @@ class GroupLasso(LinearModel, RegressorMixin):
                 "The total number of group members must equal the number of features. "
                 f"Got {n_features}, expected {X.shape[1]}.")
 
-        weights = np.ones(
-            len(group_sizes)) if self.weights is None else self.weights
+        weights = np.ones(len(group_sizes)) if self.weights is None else self.weights
         group_penalty = WeightedGroupL2(alpha=self.alpha, grp_ptr=grp_ptr,
                                         grp_indices=grp_indices, weights=weights,
                                         positive=self.positive)
@@ -1699,201 +1682,3 @@ class GroupLasso(LinearModel, RegressorMixin):
             verbose=self.verbose)
 
         return _glm_fit(X, y, self, quad_group, group_penalty, solver)
-
-####################
-# WIP Graphical Lasso
-####################
-
-
-class GraphicalLasso():
-    """ A first-order BCD Graphical Lasso solver implementing the GLasso algorithm
-    described in Friedman et al., 2008 and the P-GLasso algorithm described in
-    Mazumder et al., 2012."""
-
-    def __init__(self,
-                 alpha=1.,
-                 weights=None,
-                 algo="dual",
-                 max_iter=100,
-                 tol=1e-8,
-                 warm_start=False,
-                 inner_tol=1e-4,
-                 ):
-        self.alpha = alpha
-        self.weights = weights
-        self.algo = algo
-        self.max_iter = max_iter
-        self.tol = tol
-        self.warm_start = warm_start
-        self.inner_tol = inner_tol
-
-    def fit(self, S):
-        p = S.shape[-1]
-        indices = np.arange(p)
-
-        if self.weights is None:
-            Weights = np.ones((p, p))
-        else:
-            Weights = self.weights
-            if not np.allclose(Weights, Weights.T):
-                raise ValueError("Weights should be symmetric.")
-
-        if self.warm_start and hasattr(self, "precision_"):
-            if self.algo == "dual":
-                raise ValueError(
-                    "dual does not support warm start for now.")
-            Theta = self.precision_
-            W = self.covariance_
-
-        else:
-            W = S.copy()
-            W *= 0.95
-            diagonal = S.flat[:: p + 1]
-            W.flat[:: p + 1] = diagonal
-            Theta = pinvh(W)
-
-        W_11 = np.copy(W[1:, 1:], order="C")
-        eps = np.finfo(np.float64).eps
-        it = 0
-        Theta_old = Theta.copy()
-
-        for it in range(self.max_iter):
-            Theta_old = Theta.copy()
-
-            for col in range(p):
-                if self.algo == "primal":
-                    indices_minus_col = np.concatenate(
-                        [indices[:col], indices[col + 1:]])
-                    _11 = indices_minus_col[:, None], indices_minus_col[None]
-                    _12 = indices_minus_col, col
-                    _21 = col, indices_minus_col
-                    _22 = col, col
-
-                elif self.algo == "dual":
-                    if col > 0:
-                        di = col - 1
-                        W_11[di] = W[di][indices != col]
-                        W_11[:, di] = W[:, di][indices != col]
-                    else:
-                        W_11[:] = W[1:, 1:]
-
-                s_12 = S[col, indices != col]
-
-                if self.algo == "dual":
-                    beta_init = (Theta[indices != col, col] /
-                                 (Theta[col, col] + 1000 * eps))
-                    Q = W_11
-
-                elif self.algo == "primal":
-                    inv_Theta_11 = (W[_11] -
-                                    np.outer(W[_12],
-                                             W[_12])/W[_22])
-                    Q = inv_Theta_11
-                    beta_init = Theta[indices != col, col] * S[col, col]
-                else:
-                    raise ValueError(f"Unsupported algo {self.algo}")
-
-                beta = barebones_cd_gram(
-                    Q,
-                    s_12,
-                    x=beta_init,
-                    alpha=self.alpha,
-                    weights=Weights[indices != col, col],
-                    tol=self.inner_tol,
-                    max_iter=self.max_iter,
-                )
-
-                if self.algo == "dual":
-                    w_12 = -np.dot(W_11, beta)
-                    W[col, indices != col] = w_12
-                    W[indices != col, col] = w_12
-
-                    Theta[col, col] = 1 / \
-                        (W[col, col] + np.dot(beta, w_12))
-                    Theta[indices != col, col] = beta*Theta[col, col]
-                    Theta[col, indices != col] = beta*Theta[col, col]
-
-                else:  # primal
-                    Theta[indices != col, col] = beta / S[col, col]
-                    Theta[col, indices != col] = beta / S[col, col]
-                    Theta[col, col] = (1/S[col, col] +
-                                       Theta[col, indices != col] @
-                                       inv_Theta_11 @
-                                       Theta[indices != col, col])
-                    W[col, col] = (1/(Theta[col, col] -
-                                      Theta[indices != col, col] @
-                                      inv_Theta_11 @
-                                      Theta[indices != col, col]))
-                    W[indices != col, col] = (-W[col, col] *
-                                              inv_Theta_11 @
-                                              Theta[indices != col, col])
-                    W[col, indices != col] = (-W[col, col] *
-                                              inv_Theta_11 @
-                                              Theta[indices != col, col])
-                    # Maybe W_11 can be done smarter ?
-                    W[_11] = (inv_Theta_11 +
-                              np.outer(W[indices != col, col],
-                                       W[indices != col, col])/W[col, col])
-
-            if np.linalg.norm(Theta - Theta_old) < self.tol:
-                print(f"Weighted Glasso converged at CD epoch {it + 1}")
-                break
-        else:
-            print(
-                f"Not converged at epoch {it + 1}, "
-                f"diff={np.linalg.norm(Theta - Theta_old):.2e}"
-            )
-        self.precision_, self.covariance_ = Theta, W
-        self.n_iter_ = it + 1
-
-        return self
-
-
-class AdaptiveGraphicalLasso():
-    def __init__(
-        self,
-        alpha=1.,
-        strategy="log",
-        n_reweights=5,
-        max_iter=1000,
-        tol=1e-8,
-        warm_start=False,
-    ):
-        self.alpha = alpha
-        self.strategy = strategy
-        self.n_reweights = n_reweights
-        self.max_iter = max_iter
-        self.tol = tol
-        self.warm_start = warm_start
-
-    def fit(self, S):
-        glasso = GraphicalLasso(
-            alpha=self.alpha,
-            algo="primal",
-            max_iter=self.max_iter,
-            tol=self.tol,
-            warm_start=True)
-        Weights = np.ones(S.shape)
-        self.n_iter_ = []
-        for it in range(self.n_reweights):
-            glasso.weights = Weights
-            glasso.fit(S)
-            Theta = glasso.precision_
-            if self.strategy == "log":
-                Weights = 1/(np.abs(Theta) + 1e-10)
-            elif self.strategy == "sqrt":
-                Weights = 1/(2*np.sqrt(np.abs(Theta)) + 1e-10)
-            elif self.strategy == "mcp":
-                gamma = 3.
-                Weights = np.zeros_like(Theta)
-                Weights[np.abs(Theta) < gamma*self.alpha] = (self.alpha -
-                                                             np.abs(Theta[np.abs(Theta) < gamma*self.alpha])/gamma)
-            else:
-                raise ValueError(f"Unknown strategy {self.strategy}")
-
-            self.n_iter_.append(glasso.n_iter_)
-            # TODO print losses for original problem?
-            glasso.covariance_ = np.linalg.pinv(Theta, hermitian=True)
-        self.precision_ = glasso.precision_
-        self.covariance_ = glasso.covariance_
-        return self

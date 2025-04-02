@@ -13,14 +13,13 @@ from numpy.linalg import norm
 import matplotlib.pyplot as plt
 from sklearn.metrics import f1_score
 
-from skglm.utils.data import generate_GraphicalLasso_data
-from skglm.estimators import GraphicalLasso
-from skglm.estimators import AdaptiveGraphicalLasso
+from skglm.covariance import GraphicalLasso, AdaptiveGraphicalLasso
+from skglm.utils.data import make_dummy_covariance_data
 
 
 p = 100
 n = 1000
-S, Theta_true, alpha_max = generate_GraphicalLasso_data(n, p)
+S, Theta_true, alpha_max = make_dummy_covariance_data(n, p)
 alphas = alpha_max*np.geomspace(1, 1e-4, num=10)
 
 penalties = [

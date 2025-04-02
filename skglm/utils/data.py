@@ -255,7 +255,7 @@ def _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights):
     return alpha_max
 
 
-def generate_GraphicalLasso_data(n_samples, n_features):
+def make_dummy_covariance_data(n_samples, n_features):
     rng = check_random_state(0)
     Theta_true = make_sparse_spd_matrix(
         n_features, alpha=0.9, random_state=rng)

@@ -5,7 +5,7 @@ from scipy.sparse import issparse
 
 from skglm.solvers.base import BaseSolver
 from skglm.utils.anderson import AndersonAcceleration
-from skglm.utils.prox_funcs import ST_vec
+from skglm.utils.prox_funcs import ST
 
 
 class GramCD(BaseSolver):
@@ -119,8 +119,7 @@ class GramCD(BaseSolver):
 
             # perform Anderson extrapolation
             if self.use_acc:
-                w_acc, grad_acc, is_extrapolated = accelerator.extrapolate(
-                    w, grad)
+                w_acc, grad_acc, is_extrapolated = accelerator.extrapolate(w, grad)
 
                 if is_extrapolated:
                     # omit constant term for comparison
@@ -180,19 +179,14 @@ def barebones_cd_gram(H, q, x, alpha, weights, max_iter=100, tol=1e-4):
     lc = np.zeros(dim)
     for j in range(dim):
         lc[j] = H[j, j]
-
-    # Hx = H @ x
     Hx = np.dot(H, x)
+
     for _ in range(max_iter):
         max_delta = 0  # max coeff change
-
         for j in range(dim):
             x_j_prev = x[j]
-            x[j] = ST_vec(x[j] - (Hx[j] + q[j]) / lc[j],
-                          alpha*weights[j] / lc[j])
-
+            x[j] = ST(x[j] - (Hx[j] + q[j]) / lc[j], alpha*weights[j] / lc[j])
             max_delta = max(max_delta, np.abs(x_j_prev - x[j]))
-
             if x_j_prev != x[j]:
                 Hx += (x[j] - x_j_prev) * H[j]
         if max_delta <= tol:

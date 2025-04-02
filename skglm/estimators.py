@@ -960,10 +960,9 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
     The optimization objective for sparse Logistic regression is:
 
     .. math::
-        \frac{1}{n_{\text{samples}}} \sum_{i=1}^{n_{\text{samples}}}
-        \log\left(1 + \exp(-y_i x_i^T w)\right)
-        + \alpha \cdot \left( \text{l1_ratio} \cdot \|w\|_1 +
-        (1 - \text{l1_ratio}) \cdot \|w\|_2^2 \right)
+        1 / n_"samples" \sum_{i=1}^{n_"samples"} log(1 + exp(-y_i xx x_i^T xx w))
+        + tt"l1_ratio" xx alpha ||w||_1
+        + (1 - tt"l1_ratio") xx alpha/2 ||w||_2 ^ 2
 
     By default, ``l1_ratio=1.0`` corresponds to Lasso (pure L1 penalty).
     When ``0 < l1_ratio < 1``, the penalty is a convex combination of L1 and L2

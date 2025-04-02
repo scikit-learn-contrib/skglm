@@ -959,8 +959,15 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
 
     The optimization objective for sparse Logistic regression is:
 
-    .. math:: 1 / n_"samples" sum_(i=1)^(n_"samples") log(1 + exp(-y_i x_i^T w))
-        + alpha ||w||_1
+    .. math::
+        1 / n_"samples" \sum_{i=1}^{n_"samples"} log(1 + exp(-y_i x_i^T w))
+        + tt"l1_ratio" xx alpha ||w||_1
+        + (1 - tt"l1_ratio") xx alpha/2 ||w||_2 ^ 2
+
+    By default, ``l1_ratio=1.0`` corresponds to Lasso (pure L1 penalty).
+    When ``0 < l1_ratio < 1``, the penalty is a convex combination of L1 and L2
+    (i.e., ElasticNet). ``l1_ratio=0.0`` corresponds to Ridge (pure L2), but note
+    that pure Ridge is not typically used with this class.
 
     Parameters
     ----------
@@ -968,10 +975,11 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         Regularization strength; must be a positive float.
 
     l1_ratio : float, default=1.0
-        The ElasticNet mixing parameter, with ``0 <= l1_ratio <= 1``. For
-        ``l1_ratio = 0`` the penalty is an L2 penalty. ``For l1_ratio = 1`` it
-        is an L1 penalty.  For ``0 < l1_ratio < 1``, the penalty is a
-        combination of L1 and L2.
+        The ElasticNet mixing parameter, with ``0 <= l1_ratio <= 1``.
+        Only used when ``penalty="l1_plus_l2"``.
+        For ``l1_ratio = 0`` the penalty is an L2 penalty.
+        ``For l1_ratio = 1`` it is an L1 penalty.
+        For ``0 < l1_ratio < 1``, the penalty is a combination of L1 and L2.
 
     tol : float, optional
         Stopping criterion for the optimization.

@@ -7,7 +7,7 @@ from skglm.covariance import GraphicalLasso, AdaptiveGraphicalLasso
 from skglm.utils.data import make_dummy_covariance_data
 
 
-def test_GraphicalLasso_equivalence_sklearn():
+def test_glasso_equivalence_sklearn():
     S, _, lmbd_max = make_dummy_covariance_data(200, 50)
     alpha = lmbd_max / 5
 
@@ -33,7 +33,7 @@ def test_GraphicalLasso_equivalence_sklearn():
     np.testing.assert_array_less(S.shape[0] + 1, (model.precision_ != 0).sum())
 
 
-def test_GraphicalLasso_warm_start():
+def test_glasso_warm_start():
     S, _, lmbd_max = make_dummy_covariance_data(200, 50)
 
     alpha = lmbd_max / 5
@@ -55,7 +55,7 @@ def test_GraphicalLasso_warm_start():
         model.fit(S)
 
 
-def test_GraphicalLasso_weights():
+def test_glasso_weights():
     S, _, lmbd_max = make_dummy_covariance_data(200, 50)
 
     alpha = lmbd_max / 10
@@ -84,7 +84,7 @@ def test_GraphicalLasso_weights():
     np.testing.assert_array_less(1e-4, np.abs(model.precision_[~mask]))
 
 
-def test_GraphicalLasso_adaptive():
+def test_glasso_adaptive():
     S, _, lmbd_max = make_dummy_covariance_data(200, 50)
 
     alpha = lmbd_max / 10

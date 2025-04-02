@@ -960,7 +960,7 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
     The optimization objective for sparse Logistic regression is:
 
     .. math::
-        1 / n_"samples" \sum_{i=1}^{n_"samples"} log(1 + exp(-y_i xx x_i^T xx w))
+        1 / n_"samples" \sum_{i=1}^{n_"samples"} log(1 + exp(-y_i x_i^T w))
         + tt"l1_ratio" xx alpha ||w||_1
         + (1 - tt"l1_ratio") xx alpha/2 ||w||_2 ^ 2
 

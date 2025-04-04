@@ -27,7 +27,7 @@ jobs:
         conda install rpy2 -c conda-forge
         pip install celer
         pip install statsmodels cvxopt
-        pip install git+https://github.com/jolars/pyslope.git
+        pip install git+https://github.com/jolars/sortedl1.git
         # for testing Cox estimator
         pip install lifelines
         pip install pandas

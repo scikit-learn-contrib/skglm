@@ -10,7 +10,7 @@ from skglm.solvers import ProxNewton, LBFGS
 from sklearn.utils.validation import (check_is_fitted, check_array,
                                       check_consistent_length)
 from sklearn.linear_model._base import (
-    LinearModel, RegressorMixin,
+    RegressorMixin, LinearModel,
     LinearClassifierMixin, SparseCoefMixin, BaseEstimator
 )
 from sklearn.utils.extmath import softmax
@@ -302,7 +302,7 @@ class GeneralizedLinearEstimator(LinearModel):
         return params
 
 
-class Lasso(LinearModel, RegressorMixin):
+class Lasso(RegressorMixin, LinearModel):
     r"""Lasso estimator based on Celer solver and primal extrapolation.
 
     The optimization objective for Lasso is:
@@ -449,7 +449,7 @@ class Lasso(LinearModel, RegressorMixin):
         return solver.path(X, y, datafit, penalty, alphas, coef_init, return_n_iter)
 
 
-class WeightedLasso(LinearModel, RegressorMixin):
+class WeightedLasso(RegressorMixin, LinearModel):
     r"""WeightedLasso estimator based on Celer solver and primal extrapolation.
 
     The optimization objective for WeightedLasso is:
@@ -612,7 +612,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
         return _glm_fit(X, y, self, Quadratic(), penalty, solver)
 
 
-class ElasticNet(LinearModel, RegressorMixin):
+class ElasticNet(RegressorMixin, LinearModel):
     r"""Elastic net estimator.
 
     The optimization objective for Elastic net is:
@@ -766,7 +766,7 @@ class ElasticNet(LinearModel, RegressorMixin):
                         L1_plus_L2(self.alpha, self.l1_ratio, self.positive), solver)
 
 
-class MCPRegression(LinearModel, RegressorMixin):
+class MCPRegression(RegressorMixin, LinearModel):
     r"""Linear regression with MCP penalty estimator.
 
     The optimization objective for MCPRegression is, with :math:`x >= 0`:
@@ -1373,7 +1373,7 @@ class CoxEstimator(LinearModel):
         return self
 
 
-class MultiTaskLasso(LinearModel, RegressorMixin):
+class MultiTaskLasso(RegressorMixin, LinearModel):
     r"""MultiTaskLasso estimator.
 
     The optimization objective for MultiTaskLasso is:
@@ -1549,7 +1549,7 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
         return solver.path(X, Y, datafit, penalty, alphas, coef_init, return_n_iter)
 
 
-class GroupLasso(LinearModel, RegressorMixin):
+class GroupLasso(RegressorMixin, LinearModel):
     r"""GroupLasso estimator based on Celer solver and primal extrapolation.
 
     The optimization objective for GroupLasso is:

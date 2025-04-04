@@ -86,25 +86,24 @@ def test_slope_lasso():
 
 
 def test_slope():
-    # compare solutions with `pyslope`: https://github.com/jolars/pyslope
+    # compare solutions with `sortedl1`: https://github.com/jolars/sortedl1
     try:
-        from slope.solvers import pgd_slope  # noqa
-        from slope.utils import lambda_sequence  # noqa
+        from sortedl1 import Slope as SlopeEst  # noqa
     except ImportError:
         pytest.xfail(
             "This test requires slope to run.\n"
-            "https://github.com/jolars/pyslope")
+            "https://github.com/jolars/sortedl1")
 
-    q = 0.1
-    alphas = lambda_sequence(
-        X, y, fit_intercept=False, reg=alpha / alpha_max, q=q)
+    # q = 0.1
+    # alphas = lambda_sequence(
+    #     X, y, fit_intercept=False, reg=alpha / alpha_max, q=q)
+    clf = SlopeEst(alpha=0.01, fit_intercept=False).fit(X, y)
+    alphas = clf.lambda_
     ours = GeneralizedLinearEstimator(
-        penalty=SLOPE(alphas),
+        penalty=SLOPE(clf.alpha * alphas),
         solver=FISTA(max_iter=1000, tol=tol, opt_strategy="fixpoint"),
     ).fit(X, y)
-    pyslope_out = pgd_slope(
-        X, y, alphas, fit_intercept=False, max_it=1000, gap_tol=tol)
-    np.testing.assert_allclose(ours.coef_, pyslope_out["beta"], rtol=1e-5)
+    np.testing.assert_allclose(ours.coef_, clf.coef_, rtol=1e-5)
 
 
 @pytest.mark.parametrize("fit_intercept", [True, False])

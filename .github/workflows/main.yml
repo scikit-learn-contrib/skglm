@@ -24,7 +24,7 @@ jobs:
         pip install .[test]
     - name: Install other dependencies
       run: |
-        conda install r rpy2
+        conda install rpy2
         pip install celer
         pip install statsmodels cvxopt
         pip install git+https://github.com/jolars/pyslope.git

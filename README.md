@@ -2,6 +2,7 @@
 
 <img src="doc/_static/images/logo.svg" alt="skglm logo" width="34%" align="center"/>
 
+
 ## A fast ⚡ and modular ⚒️ scikit-learn replacement for sparse GLMs
 
 ![build](https://github.com/scikit-learn-contrib/skglm/workflows/pytest/badge.svg)
@@ -19,6 +20,24 @@ You get to choose from ``skglm``'s already-made estimators or **customize your o
 
 Excited to have a tour on ``skglm`` [documentation](https://contrib.scikit-learn.org/skglm/)?
 
+# Cite
+
+``skglm`` is the result of perseverant research. It is licensed under [BSD 3-Clause](https://github.com/scikit-learn-contrib/skglm/blob/main/LICENSE). You are free to use it and if you do so, please cite
+
+```bibtex
+@inproceedings{skglm,
+    title     = {Beyond L1: Faster and better sparse models with skglm},
+    author    = {Q. Bertrand and Q. Klopfenstein and P.-A. Bannier and G. Gidel and M. Massias},
+    booktitle = {NeurIPS},
+    year      = {2022},
+}
+
+@article{moufad2023skglm,
+  title={skglm: improving scikit-learn for regularized Generalized Linear Models},
+  author={Moufad, Badr and Bannier, Pierre-Antoine and Bertrand, Quentin and Klopfenstein, Quentin and Massias, Mathurin},
+  year={2023}
+}
+```
 
 # Why ``skglm``?
 
@@ -108,18 +127,7 @@ You can also take our tutorial to learn how to create your own datafit and penal
 - **pull request**: you may have fixed a bug, added a features, or even fixed a small typo in the documentation, ... you can submit a [pull request](https://github.com/scikit-learn-contrib/skglm/pulls) and we will reach out to you asap.
 
 
-# Cite
 
-``skglm`` is the result of perseverant research. It is licensed under [BSD 3-Clause](https://github.com/scikit-learn-contrib/skglm/blob/main/LICENSE). You are free to use it and if you do so, please cite
-
-```bibtex
-@inproceedings{skglm,
-    title     = {Beyond L1: Faster and better sparse models with skglm},
-    author    = {Q. Bertrand and Q. Klopfenstein and P.-A. Bannier and G. Gidel and M. Massias},
-    booktitle = {NeurIPS},
-    year      = {2022},
-}
-```
 
 
 # Useful links

@@ -55,3 +55,7 @@ doc = [
     "furo",
     "lifelines",
 ]
+
+
+[tool.setuptools]
+license-files = []

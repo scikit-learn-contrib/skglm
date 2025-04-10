@@ -26,7 +26,7 @@ jobs:
       run: |
         conda install rpy2 -c conda-forge
         pip install statsmodels cvxopt
-        pip install git+https://github.com/jolars/sortedl1.git
+        pip install sortedl1
         # for testing Cox estimator
         pip install lifelines
         pip install pandas

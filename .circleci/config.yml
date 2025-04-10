@@ -32,6 +32,13 @@ jobs:
             keys:
               - pip-cache
 
+        # Install Xvfb and related dependencies
+        - run:
+          name: Install Xvfb and dependencies
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y xvfb
+
         - run:
             name: Spin up Xvfb
             command: |

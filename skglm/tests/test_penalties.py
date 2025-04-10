@@ -98,10 +98,7 @@ def test_slope():
     # alphas = lambda_sequence(
     #     X, y, fit_intercept=False, reg=alpha / alpha_max, q=q)
     clf = SlopeEst(
-        alpha=0.01,
-        fit_intercept=False,
-        scaling = "none",
-        centering = "none"
+        alpha=0.01, fit_intercept=False, scaling="none", centering="none"
     ).fit(X, y)
     alphas = clf.lambda_
     ours = GeneralizedLinearEstimator(

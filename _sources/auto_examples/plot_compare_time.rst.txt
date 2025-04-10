@@ -37,7 +37,7 @@ Compare time to solve large scale Lasso problems with scikit-learn.
 
  .. code-block:: none
 
-    file_sizes:   0%|                                   | 0.00/26.8M [00:00<?, ?B/s]    file_sizes:   0%|                           | 24.6k/26.8M [00:00<04:20, 103kB/s]    file_sizes:   0%|                           | 49.2k/26.8M [00:00<04:20, 102kB/s]    file_sizes:   0%|                            | 106k/26.8M [00:00<02:41, 165kB/s]    file_sizes:   1%|▏                           | 156k/26.8M [00:00<02:27, 180kB/s]    file_sizes:   1%|▍                           | 401k/26.8M [00:01<00:54, 484kB/s]    file_sizes:   3%|▉                           | 860k/26.8M [00:01<00:26, 968kB/s]    file_sizes:   7%|█▋                        | 1.78M/26.8M [00:01<00:13, 1.90MB/s]    file_sizes:  10%|██▍                       | 2.56M/26.8M [00:01<00:10, 2.34MB/s]    file_sizes:  16%|████▎                     | 4.40M/26.8M [00:02<00:05, 3.98MB/s]    file_sizes:  30%|███████▊                  | 8.07M/26.8M [00:02<00:02, 7.43MB/s]    file_sizes:  34%|████████▊                 | 9.12M/26.8M [00:02<00:02, 6.55MB/s]    file_sizes:  48%|████████████▍             | 12.8M/26.8M [00:02<00:01, 9.18MB/s]    file_sizes:  56%|██████████████▍           | 14.9M/26.8M [00:03<00:01, 9.08MB/s]    file_sizes:  65%|████████████████▉         | 17.5M/26.8M [00:03<00:00, 9.64MB/s]    file_sizes:  79%|████████████████████▌     | 21.2M/26.8M [00:03<00:00, 11.3MB/s]    file_sizes:  89%|███████████████████████   | 23.8M/26.8M [00:03<00:00, 11.2MB/s]    file_sizes: 100%|█████████████████████████▉| 26.7M/26.8M [00:04<00:00, 11.5MB/s]    file_sizes: 100%|██████████████████████████| 26.8M/26.8M [00:04<00:00, 6.56MB/s]
+    file_sizes:   0%|                                   | 0.00/26.8M [00:00<?, ?B/s]    file_sizes:   0%|                           | 24.6k/26.8M [00:00<04:06, 109kB/s]    file_sizes:   0%|                          | 41.0k/26.8M [00:00<05:07, 87.0kB/s]    file_sizes:   0%|                           | 90.1k/26.8M [00:00<03:02, 146kB/s]    file_sizes:   1%|▏                           | 139k/26.8M [00:00<02:33, 174kB/s]    file_sizes:   1%|▍                           | 385k/26.8M [00:01<00:52, 500kB/s]    file_sizes:   2%|▌                           | 582k/26.8M [00:01<00:41, 624kB/s]    file_sizes:   6%|█▌                        | 1.56M/26.8M [00:01<00:13, 1.83MB/s]    file_sizes:   9%|██▎                       | 2.35M/26.8M [00:01<00:10, 2.35MB/s]    file_sizes:  23%|██████                    | 6.28M/26.8M [00:02<00:02, 6.95MB/s]    file_sizes:  35%|█████████▏                | 9.43M/26.8M [00:02<00:01, 9.01MB/s]    file_sizes:  49%|████████████▋             | 13.1M/26.8M [00:02<00:01, 11.0MB/s]    file_sizes:  63%|████████████████▎         | 16.8M/26.8M [00:02<00:00, 12.4MB/s]    file_sizes:  76%|███████████████████▊      | 20.4M/26.8M [00:03<00:00, 13.3MB/s]    file_sizes:  90%|███████████████████████▍  | 24.1M/26.8M [00:03<00:00, 13.9MB/s]    file_sizes: 100%|██████████████████████████| 26.8M/26.8M [00:03<00:00, 8.18MB/s]
 
 
 
@@ -138,7 +138,7 @@ Compare time to solve large scale Lasso problems with scikit-learn.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 48.875 seconds)
+   **Total running time of the script:** (0 minutes 47.025 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_compare_time.py:

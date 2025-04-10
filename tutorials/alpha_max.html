@@ -1,11 +1,11 @@
 <!doctype html>
-<html class="no-js" lang="en" data-content_root="">
+<html class="no-js" lang="en" data-content_root="../">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" />
 
-    <link rel="shortcut icon" href="../_static/logo.svg"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.08.06 -->
+    <link rel="shortcut icon" href="../_static/logo.svg"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
         <title>Critical regularization strength above which solution is 0 - skglm 0.5dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
@@ -14,7 +14,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
     <link rel="stylesheet" type="text/css" href="../_static/style.css?v=30bc89f7" />
     
@@ -334,7 +334,7 @@
         </div>
         <article role="main" id="furo-main-content">
           <section id="critical-regularization-strength-above-which-solution-is-0">
-<span id="alpha-max"></span><h1>Critical regularization strength above which solution is 0<a class="headerlink" href="#critical-regularization-strength-above-which-solution-is-0" title="Permalink to this heading">¶</a></h1>
+<span id="alpha-max"></span><h1>Critical regularization strength above which solution is 0<a class="headerlink" href="#critical-regularization-strength-above-which-solution-is-0" title="Link to this heading">¶</a></h1>
 <p>This tutorial shows that for <span class="math notranslate nohighlight">`\lambda \geq \lambda_{\text{max}} = || \nabla f(0) ||_{\infty}`</span>, the solution to
 <span class="math notranslate nohighlight">`\min f(x) + \lambda || x ||_1`</span> is 0.</p>
 <p>In skglm, we thus frequently use</p>
@@ -343,7 +343,7 @@
 </div>
 <p>and choose for the regularization strength :math:<cite>alpha</cite> a fraction of this critical value, e.g. <code class="docutils literal notranslate"><span class="pre">alpha</span> <span class="pre">=</span> <span class="pre">0.01</span> <span class="pre">*</span> <span class="pre">alpha_max</span></code>.</p>
 <section id="problem-setup">
-<h2>Problem setup<a class="headerlink" href="#problem-setup" title="Permalink to this heading">¶</a></h2>
+<h2>Problem setup<a class="headerlink" href="#problem-setup" title="Link to this heading">¶</a></h2>
 <p>Consider the optimization problem:</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
@@ -358,7 +358,7 @@
 <p>We aim to determine the conditions under which the solution to this problem is <span class="math notranslate nohighlight">`x = 0`</span>.</p>
 </section>
 <section id="theoretical-background">
-<h2>Theoretical background<a class="headerlink" href="#theoretical-background" title="Permalink to this heading">¶</a></h2>
+<h2>Theoretical background<a class="headerlink" href="#theoretical-background" title="Link to this heading">¶</a></h2>
 <p>Let</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
@@ -386,7 +386,7 @@ The subdifferential of <span class="math notranslate nohighlight">`|| x ||_1`</s
 <p>We have just shown that the minimizer of <span class="math notranslate nohighlight">`g = f + \lambda || \cdot ||_1`</span> is 0 if and only if <span class="math notranslate nohighlight">`\lambda \geq ||\nabla f(0)||_{\infty}`</span>.</p>
 </section>
 <section id="example">
-<h2>Example<a class="headerlink" href="#example" title="Permalink to this heading">¶</a></h2>
+<h2>Example<a class="headerlink" href="#example" title="Link to this heading">¶</a></h2>
 <p>Consider the loss function for Ordinary Least Squares <span class="math notranslate nohighlight">`f(x) = \frac{1}{2n} ||Ax - b||_2^2`</span>, where <span class="math notranslate nohighlight">`n`</span> is the number of samples. We have:</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
@@ -405,7 +405,7 @@ The subdifferential of <span class="math notranslate nohighlight">`|| x ||_1`</s
 <p>For <span class="math notranslate nohighlight">`\lambda \geq \frac{1}{n}||A^T b||_{\infty}`</span>, the solution to <span class="math notranslate nohighlight">`\min_x \frac{1}{2n} ||Ax - b||_2^2 + \lambda || x||_1`</span> is <span class="math notranslate nohighlight">`x=0`</span>.</p>
 </section>
 <section id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this heading">¶</a></h2>
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">¶</a></h2>
 <p>Refer to Section 3.1 and Proposition 4 in particular of [1] for more details.</p>
 <p id="id1">[1] Eugene Ndiaye, Olivier Fercoq, Alexandre Gramfort, and Joseph Salmon. 2017. Gap safe screening rules for sparsity enforcing penalties. J. Mach. Learn. Res. 18, 1 (January 2017), 4671–4703.</p>
 </section>
@@ -464,13 +464,13 @@ The subdifferential of <span class="math notranslate nohighlight">`|| x ||_1`</s
       
     </aside>
   </div>
-</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=0ecb15ea"></script>
-    <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+</div><script src="../_static/documentation_options.js?v=76eea69e"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=30646c52"></script>
-    <script src="../_static/design-tabs.js?v=36754332"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script>window.MathJax = {"loader": {"load": ["input/asciimath"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/scripts/asciimath-defines.js?v=d20fafab"></script>

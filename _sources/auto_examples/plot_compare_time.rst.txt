@@ -37,7 +37,47 @@ Compare time to solve large scale Lasso problems with scikit-learn.
 
  .. code-block:: none
 
-    file_sizes:   0%|                                   | 0.00/26.8M [00:00<?, ?B/s]    file_sizes:   0%|                           | 24.6k/26.8M [00:00<04:06, 109kB/s]    file_sizes:   0%|                          | 41.0k/26.8M [00:00<05:07, 87.0kB/s]    file_sizes:   0%|                           | 90.1k/26.8M [00:00<03:02, 146kB/s]    file_sizes:   1%|▏                           | 139k/26.8M [00:00<02:33, 174kB/s]    file_sizes:   1%|▍                           | 385k/26.8M [00:01<00:52, 500kB/s]    file_sizes:   2%|▌                           | 582k/26.8M [00:01<00:41, 624kB/s]    file_sizes:   6%|█▌                        | 1.56M/26.8M [00:01<00:13, 1.83MB/s]    file_sizes:   9%|██▎                       | 2.35M/26.8M [00:01<00:10, 2.35MB/s]    file_sizes:  23%|██████                    | 6.28M/26.8M [00:02<00:02, 6.95MB/s]    file_sizes:  35%|█████████▏                | 9.43M/26.8M [00:02<00:01, 9.01MB/s]    file_sizes:  49%|████████████▋             | 13.1M/26.8M [00:02<00:01, 11.0MB/s]    file_sizes:  63%|████████████████▎         | 16.8M/26.8M [00:02<00:00, 12.4MB/s]    file_sizes:  76%|███████████████████▊      | 20.4M/26.8M [00:03<00:00, 13.3MB/s]    file_sizes:  90%|███████████████████████▍  | 24.1M/26.8M [00:03<00:00, 13.9MB/s]    file_sizes: 100%|██████████████████████████| 26.8M/26.8M [00:03<00:00, 8.18MB/s]
+    file_sizes:   0%|                                   | 0.00/26.8M [00:00<?, ?B/s]    file_sizes:   0%|                           | 24.6k/26.8M [00:00<04:05, 109kB/s]    file_sizes:   0%|                           | 49.2k/26.8M [00:00<04:05, 109kB/s]    file_sizes:   0%|                            | 106k/26.8M [00:00<02:32, 175kB/s]    file_sizes:   1%|▏                           | 221k/26.8M [00:00<01:26, 306kB/s]    file_sizes:   2%|▍                           | 451k/26.8M [00:01<00:46, 562kB/s]    file_sizes:   3%|▉                          | 909k/26.8M [00:01<00:24, 1.06MB/s]    file_sizes:   7%|█▊                        | 1.83M/26.8M [00:01<00:12, 2.03MB/s]    file_sizes:  10%|██▌                       | 2.61M/26.8M [00:01<00:09, 2.50MB/s]    file_sizes:  17%|████▎                     | 4.45M/26.8M [00:02<00:05, 4.24MB/s]    file_sizes:  19%|████▊                     | 4.97M/26.8M [00:02<00:05, 3.65MB/s]    file_sizes:  25%|██████▌                   | 6.81M/26.8M [00:02<00:05, 3.84MB/s]    file_sizes:  31%|████████▏                 | 8.38M/26.8M [00:02<00:03, 4.62MB/s]    file_sizes:  33%|████████▋                 | 8.90M/26.8M [00:03<00:04, 4.03MB/s]    file_sizes:  40%|██████████▍               | 10.7M/26.8M [00:03<00:03, 4.04MB/s]    file_sizes:  46%|███████████▉              | 12.3M/26.8M [00:03<00:03, 4.71MB/s]    file_sizes:  48%|████████████▍             | 12.8M/26.8M [00:04<00:03, 4.12MB/s]    file_sizes:  51%|█████████████▏            | 13.6M/26.8M [00:04<00:03, 3.95MB/s]    file_sizes:  54%|█████████████▉            | 14.4M/26.8M [00:04<00:03, 3.83MB/s]    file_sizes:  61%|███████████████▊          | 16.2M/26.8M [00:04<00:02, 3.93MB/s]    file_sizes:  67%|█████████████████▎        | 17.8M/26.8M [00:05<00:01, 4.63MB/s]    file_sizes:  68%|█████████████████▊        | 18.3M/26.8M [00:05<00:02, 4.06MB/s]    file_sizes:  71%|██████████████████▌       | 19.1M/26.8M [00:05<00:01, 3.91MB/s]    file_sizes:  78%|████████████████████▎     | 21.0M/26.8M [00:05<00:01, 5.04MB/s]    file_sizes:  80%|████████████████████▊     | 21.5M/26.8M [00:06<00:01, 4.28MB/s]    file_sizes:  83%|█████████████████████▋    | 22.3M/26.8M [00:06<00:01, 4.06MB/s]    file_sizes:  86%|██████████████████████▍   | 23.1M/26.8M [00:06<00:00, 3.91MB/s]    file_sizes:  93%|████████████████████████▏ | 24.9M/26.8M [00:06<00:00, 5.10MB/s]    file_sizes:  95%|████████████████████████▋ | 25.4M/26.8M [00:07<00:00, 4.30MB/s]    file_sizes:  98%|█████████████████████████▍| 26.2M/26.8M [00:07<00:00, 4.07MB/s]    file_sizes: 100%|██████████████████████████| 26.8M/26.8M [00:07<00:00, 3.70MB/s]
+    /home/circleci/.local/lib/python3.10/site-packages/sklearn/base.py:474: FutureWarning: `BaseEstimator._validate_data` is deprecated in 1.6 and will be removed in 1.7. Use `sklearn.utils.validation.validate_data` instead. This function becomes public and is part of the scikit-learn developer API.
+      warnings.warn(
+    /home/circleci/.local/lib/python3.10/site-packages/sklearn/base.py:474: FutureWarning: `BaseEstimator._validate_data` is deprecated in 1.6 and will be removed in 1.7. Use `sklearn.utils.validation.validate_data` instead. This function becomes public and is part of the scikit-learn developer API.
+      warnings.warn(
+    /home/circleci/.local/lib/python3.10/site-packages/sklearn/base.py:474: FutureWarning: `BaseEstimator._validate_data` is deprecated in 1.6 and will be removed in 1.7. Use `sklearn.utils.validation.validate_data` instead. This function becomes public and is part of the scikit-learn developer API.
+      warnings.warn(
+    /home/circleci/.local/lib/python3.10/site-packages/sklearn/base.py:474: FutureWarning: `BaseEstimator._validate_data` is deprecated in 1.6 and will be removed in 1.7. Use `sklearn.utils.validation.validate_data` instead. This function becomes public and is part of the scikit-learn developer API.
+      warnings.warn(
+    /home/circleci/.local/lib/python3.10/site-packages/sklearn/base.py:474: FutureWarning: `BaseEstimator._validate_data` is deprecated in 1.6 and will be removed in 1.7. Use `sklearn.utils.validation.validate_data` instead. This function becomes public and is part of the scikit-learn developer API.
+      warnings.warn(
+    /home/circleci/.local/lib/python3.10/site-packages/sklearn/base.py:474: FutureWarning: `BaseEstimator._validate_data` is deprecated in 1.6 and will be removed in 1.7. Use `sklearn.utils.validation.validate_data` instead. This function becomes public and is part of the scikit-learn developer API.
+      warnings.warn(
+    /home/circleci/.local/lib/python3.10/site-packages/sklearn/base.py:474: FutureWarning: `BaseEstimator._validate_data` is deprecated in 1.6 and will be removed in 1.7. Use `sklearn.utils.validation.validate_data` instead. This function becomes public and is part of the scikit-learn developer API.
+      warnings.warn(
+    /home/circleci/.local/lib/python3.10/site-packages/sklearn/base.py:474: FutureWarning: `BaseEstimator._validate_data` is deprecated in 1.6 and will be removed in 1.7. Use `sklearn.utils.validation.validate_data` instead. This function becomes public and is part of the scikit-learn developer API.
+      warnings.warn(
+    /home/circleci/.local/lib/python3.10/site-packages/sklearn/base.py:474: FutureWarning: `BaseEstimator._validate_data` is deprecated in 1.6 and will be removed in 1.7. Use `sklearn.utils.validation.validate_data` instead. This function becomes public and is part of the scikit-learn developer API.
+      warnings.warn(
+    /home/circleci/.local/lib/python3.10/site-packages/sklearn/base.py:474: FutureWarning: `BaseEstimator._validate_data` is deprecated in 1.6 and will be removed in 1.7. Use `sklearn.utils.validation.validate_data` instead. This function becomes public and is part of the scikit-learn developer API.
+      warnings.warn(
+    /home/circleci/.local/lib/python3.10/site-packages/sklearn/base.py:474: FutureWarning: `BaseEstimator._validate_data` is deprecated in 1.6 and will be removed in 1.7. Use `sklearn.utils.validation.validate_data` instead. This function becomes public and is part of the scikit-learn developer API.
+      warnings.warn(
+    /home/circleci/.local/lib/python3.10/site-packages/sklearn/base.py:474: FutureWarning: `BaseEstimator._validate_data` is deprecated in 1.6 and will be removed in 1.7. Use `sklearn.utils.validation.validate_data` instead. This function becomes public and is part of the scikit-learn developer API.
+      warnings.warn(
+    /home/circleci/.local/lib/python3.10/site-packages/sklearn/base.py:474: FutureWarning: `BaseEstimator._validate_data` is deprecated in 1.6 and will be removed in 1.7. Use `sklearn.utils.validation.validate_data` instead. This function becomes public and is part of the scikit-learn developer API.
+      warnings.warn(
+    /home/circleci/.local/lib/python3.10/site-packages/sklearn/base.py:474: FutureWarning: `BaseEstimator._validate_data` is deprecated in 1.6 and will be removed in 1.7. Use `sklearn.utils.validation.validate_data` instead. This function becomes public and is part of the scikit-learn developer API.
+      warnings.warn(
+    /home/circleci/.local/lib/python3.10/site-packages/sklearn/base.py:474: FutureWarning: `BaseEstimator._validate_data` is deprecated in 1.6 and will be removed in 1.7. Use `sklearn.utils.validation.validate_data` instead. This function becomes public and is part of the scikit-learn developer API.
+      warnings.warn(
+    /home/circleci/.local/lib/python3.10/site-packages/sklearn/base.py:474: FutureWarning: `BaseEstimator._validate_data` is deprecated in 1.6 and will be removed in 1.7. Use `sklearn.utils.validation.validate_data` instead. This function becomes public and is part of the scikit-learn developer API.
+      warnings.warn(
+    /home/circleci/.local/lib/python3.10/site-packages/sklearn/base.py:474: FutureWarning: `BaseEstimator._validate_data` is deprecated in 1.6 and will be removed in 1.7. Use `sklearn.utils.validation.validate_data` instead. This function becomes public and is part of the scikit-learn developer API.
+      warnings.warn(
+    /home/circleci/.local/lib/python3.10/site-packages/sklearn/base.py:474: FutureWarning: `BaseEstimator._validate_data` is deprecated in 1.6 and will be removed in 1.7. Use `sklearn.utils.validation.validate_data` instead. This function becomes public and is part of the scikit-learn developer API.
+      warnings.warn(
+    /home/circleci/.local/lib/python3.10/site-packages/sklearn/base.py:474: FutureWarning: `BaseEstimator._validate_data` is deprecated in 1.6 and will be removed in 1.7. Use `sklearn.utils.validation.validate_data` instead. This function becomes public and is part of the scikit-learn developer API.
+      warnings.warn(
+    /home/circleci/.local/lib/python3.10/site-packages/sklearn/base.py:474: FutureWarning: `BaseEstimator._validate_data` is deprecated in 1.6 and will be removed in 1.7. Use `sklearn.utils.validation.validate_data` instead. This function becomes public and is part of the scikit-learn developer API.
+      warnings.warn(
 
 
 
@@ -138,7 +178,7 @@ Compare time to solve large scale Lasso problems with scikit-learn.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 47.025 seconds)
+   **Total running time of the script:** (1 minutes 5.833 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_compare_time.py:

@@ -1,11 +1,11 @@
 <!doctype html>
-<html class="no-js" lang="en" data-content_root="">
+<html class="no-js" lang="en" data-content_root="../">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" />
 
-    <link rel="shortcut icon" href="../_static/logo.svg"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.08.06 -->
+    <link rel="shortcut icon" href="../_static/logo.svg"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
         <title>Details on the Positive Group Lasso - skglm 0.5dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
@@ -14,7 +14,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
     <link rel="stylesheet" type="text/css" href="../_static/style.css?v=30bc89f7" />
     
@@ -334,10 +334,10 @@
         </div>
         <article role="main" id="furo-main-content">
           <section id="details-on-the-positive-group-lasso">
-<span id="prox-nn-group-lasso"></span><h1>Details on the Positive Group Lasso<a class="headerlink" href="#details-on-the-positive-group-lasso" title="Permalink to this heading">¶</a></h1>
+<span id="prox-nn-group-lasso"></span><h1>Details on the Positive Group Lasso<a class="headerlink" href="#details-on-the-positive-group-lasso" title="Link to this heading">¶</a></h1>
 <p>This tutorial presents how to derive the proximity operator and subdifferential of the <span class="math notranslate nohighlight">`l_2`</span>-penalty, and the <span class="math notranslate nohighlight">`l_2`</span>-penalty with nonnegative constraints.</p>
 <section id="proximity-operator-of-the-group-lasso">
-<h2>Proximity operator of the group Lasso<a class="headerlink" href="#proximity-operator-of-the-group-lasso" title="Permalink to this heading">¶</a></h2>
+<h2>Proximity operator of the group Lasso<a class="headerlink" href="#proximity-operator-of-the-group-lasso" title="Link to this heading">¶</a></h2>
 <p>Let</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
@@ -347,13 +347,13 @@
 <p>then its Fenchel-Legendre conjugate is</p>
 <div class="math-wrapper docutils container" id="equation-fenchel">
 <div class="math notranslate nohighlight" id="equation-fenchel">
-<span class="eqno">(1)<a class="headerlink" href="#equation-fenchel" title="Permalink to this equation">¶</a></span>`g^{\star}:x \mapsto i_{\norm{x}_2 \leq 1}
+<span class="eqno">(1)<a class="headerlink" href="#equation-fenchel" title="Link to this equation">¶</a></span>`g^{\star}:x \mapsto i_{\norm{x}_2 \leq 1}
 ,`</div>
 </div>
 <p>and for all <span class="math notranslate nohighlight">`x \in \mathbb{R}^p`</span></p>
 <div class="math-wrapper docutils container" id="equation-prox-projection">
 <div class="math notranslate nohighlight" id="equation-prox-projection">
-<span class="eqno">(2)<a class="headerlink" href="#equation-prox-projection" title="Permalink to this equation">¶</a></span>`\text{prox}_{g^{\star}}(x)
+<span class="eqno">(2)<a class="headerlink" href="#equation-prox-projection" title="Link to this equation">¶</a></span>`\text{prox}_{g^{\star}}(x)
 =
 \text{proj}_{\mathcal{B}_2}(x) = \frac{x}{\max(\norm{x}_2, 1)}
 .`</div>
@@ -389,7 +389,7 @@ x
 <p>A similar formula can be derived for the group Lasso with nonnegative constraints.</p>
 </section>
 <section id="proximity-operator-of-the-group-lasso-with-positivity-constraints">
-<h2>Proximity operator of the group Lasso with positivity constraints<a class="headerlink" href="#proximity-operator-of-the-group-lasso-with-positivity-constraints" title="Permalink to this heading">¶</a></h2>
+<h2>Proximity operator of the group Lasso with positivity constraints<a class="headerlink" href="#proximity-operator-of-the-group-lasso-with-positivity-constraints" title="Link to this heading">¶</a></h2>
 <p>Let</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
@@ -400,19 +400,19 @@ x
 <p>Let <span class="math notranslate nohighlight">`x \in \mathbb{R}^p`</span> and <span class="math notranslate nohighlight">`S =  \{ j \in 1, ..., p | x_j &gt; 0 \} \in \mathbb{R}^p`</span>, then</p>
 <div class="math-wrapper docutils container" id="equation-fenchel-nn">
 <div class="math notranslate nohighlight" id="equation-fenchel-nn">
-<span class="eqno">(3)<a class="headerlink" href="#equation-fenchel-nn" title="Permalink to this equation">¶</a></span>`h^{\star} :x  \mapsto i_{\norm{x_S}_2 \leq 1}
+<span class="eqno">(3)<a class="headerlink" href="#equation-fenchel-nn" title="Link to this equation">¶</a></span>`h^{\star} :x  \mapsto i_{\norm{x_S}_2 \leq 1}
 ,`</div>
 </div>
 <p>and</p>
 <div class="math-wrapper docutils container" id="equation-prox-projection-nn-sc">
 <div class="math notranslate nohighlight" id="equation-prox-projection-nn-sc">
-<span class="eqno">(4)<a class="headerlink" href="#equation-prox-projection-nn-sc" title="Permalink to this equation">¶</a></span>`\text{prox}_{h^{\star}}(x)_{S^c}
+<span class="eqno">(4)<a class="headerlink" href="#equation-prox-projection-nn-sc" title="Link to this equation">¶</a></span>`\text{prox}_{h^{\star}}(x)_{S^c}
 =
 x_{S^c}`</div>
 </div>
 <div class="math-wrapper docutils container" id="equation-prox-projection-nn-s">
 <div class="math notranslate nohighlight" id="equation-prox-projection-nn-s">
-<span class="eqno">(5)<a class="headerlink" href="#equation-prox-projection-nn-s" title="Permalink to this equation">¶</a></span>`\text{prox}_{h^{\star}}(x)_S
+<span class="eqno">(5)<a class="headerlink" href="#equation-prox-projection-nn-s" title="Link to this equation">¶</a></span>`\text{prox}_{h^{\star}}(x)_S
 =
 \text{proj}_{\mathcal{B}_2}(x_S) = \frac{x_S}{\max(\norm{x_S}_2, 1)}
 .`</div>
@@ -445,11 +445,11 @@ x
 </div>
 </section>
 <section id="subdifferential-of-the-positive-group-lasso-penalty">
-<span id="subdiff-positive-group-lasso"></span><h2>Subdifferential of the positive Group Lasso penalty<a class="headerlink" href="#subdifferential-of-the-positive-group-lasso-penalty" title="Permalink to this heading">¶</a></h2>
+<span id="subdiff-positive-group-lasso"></span><h2>Subdifferential of the positive Group Lasso penalty<a class="headerlink" href="#subdifferential-of-the-positive-group-lasso-penalty" title="Link to this heading">¶</a></h2>
 <p>For the <code class="docutils literal notranslate"><span class="pre">subdiff_diff</span></code> working set strategy, we compute the distance <span class="math notranslate nohighlight">`D(v)`</span> for some <span class="math notranslate nohighlight">`v`</span> to the subdifferential of the <span class="math notranslate nohighlight">`h`</span> penalty at a point <span class="math notranslate nohighlight">`w`</span>.
 Since the penalty is group-separable, we reduce the case where <span class="math notranslate nohighlight">`w`</span> is a block of variables in <span class="math notranslate nohighlight">`\mathbb{R}^g`</span>.</p>
 <section id="case-w-notin-mathbb-r-g">
-<h3>Case <span class="math notranslate nohighlight">`w \notin \mathbb{R}_+^g`</span><a class="headerlink" href="#case-w-notin-mathbb-r-g" title="Permalink to this heading">¶</a></h3>
+<h3>Case <span class="math notranslate nohighlight">`w \notin \mathbb{R}_+^g`</span><a class="headerlink" href="#case-w-notin-mathbb-r-g" title="Link to this heading">¶</a></h3>
 <p>If any component of <span class="math notranslate nohighlight">`w`</span> is strictly negative, the subdifferential is empty, and the distance is <span class="math notranslate nohighlight">`+ \infty`</span>.</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
@@ -458,7 +458,7 @@ Since the penalty is group-separable, we reduce the case where <span class="math
 </div>
 </section>
 <section id="case-w-0">
-<h3>Case <span class="math notranslate nohighlight">`w = 0`</span><a class="headerlink" href="#case-w-0" title="Permalink to this heading">¶</a></h3>
+<h3>Case <span class="math notranslate nohighlight">`w = 0`</span><a class="headerlink" href="#case-w-0" title="Link to this heading">¶</a></h3>
 <p>At <span class="math notranslate nohighlight">`w = 0`</span>, the subdifferential is:</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
@@ -491,7 +491,7 @@ Intuitively, it is clear that if <span class="math notranslate nohighlight">`v_i
 Treat the case <span class="math notranslate nohighlight">`nu = 0`</span> separately; in the other case show that :math:<cite>u</cite> must be positive, and that <span class="math notranslate nohighlight">`v = (1 + \nu) u + n`</span>, together with <span class="math notranslate nohighlight">`u = \mu / \nu`</span> and complementary slackness, to reach the conclusion.</p>
 </section>
 <section id="case-w-ne-0">
-<h3>Case <span class="math notranslate nohighlight">`|| w  || \ne 0`</span><a class="headerlink" href="#case-w-ne-0" title="Permalink to this heading">¶</a></h3>
+<h3>Case <span class="math notranslate nohighlight">`|| w  || \ne 0`</span><a class="headerlink" href="#case-w-ne-0" title="Link to this heading">¶</a></h3>
 <p>The subdifferential in that case is <span class="math notranslate nohighlight">`\lambda w / {|| w ||} + C_1 \times \ldots \times C_g`</span> where <span class="math notranslate nohighlight">`C_j = {0}`</span> if <span class="math notranslate nohighlight">`w_j &gt; 0`</span> and <span class="math notranslate nohighlight">`C_j = mathbb{R}_-`</span> otherwise (<span class="math notranslate nohighlight">`w_j =0`</span>).</p>
 <p>By letting <span class="math notranslate nohighlight">`p`</span> denotes the projection of <span class="math notranslate nohighlight">`v`</span> onto this set,
 one has</p>
@@ -513,7 +513,7 @@ one has</p>
 </section>
 </section>
 <section id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this heading">¶</a></h2>
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">¶</a></h2>
 <p>[1] <a class="reference external" href="https://math.stackexchange.com/a/2887332/167258">https://math.stackexchange.com/a/2887332/167258</a></p>
 </section>
 </section>
@@ -576,13 +576,13 @@ one has</p>
       
     </aside>
   </div>
-</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=0ecb15ea"></script>
-    <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+</div><script src="../_static/documentation_options.js?v=76eea69e"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=30646c52"></script>
-    <script src="../_static/design-tabs.js?v=36754332"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script>window.MathJax = {"loader": {"load": ["input/asciimath"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/scripts/asciimath-defines.js?v=d20fafab"></script>

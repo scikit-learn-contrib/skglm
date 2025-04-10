@@ -222,7 +222,7 @@ Check that both solvers find solutions having the same objective value:
 
     Objective skglm: 2.494576
     Objective lifelines: 2.494576
-    Difference: 1.47e-10
+    Difference: 6.32e-11
 
 
 
@@ -245,7 +245,7 @@ We can do the same to check how close the two solutions are.
 
  .. code-block:: none
 
-    Euclidean distance between solutions: 3.373e-04
+    Euclidean distance between solutions: 3.360e-04
 
 
 
@@ -382,7 +382,7 @@ with more than x100 less time!
 
  .. code-block:: none
 
-    speed up ratio: 714
+    speed up ratio: 330
 
 
 
@@ -519,8 +519,8 @@ Let's do the same with ``lifelines`` and compare the results
 
     Objective skglm: 2.501289
     Objective lifelines: 2.501289
-    Difference: -1.59e-09
-    Euclidean distance between solutions: 4.046e-04
+    Difference: -1.84e-09
+    Euclidean distance between solutions: 3.975e-04
 
 
 
@@ -566,7 +566,7 @@ Finally, let's compare the timings of both solvers
 
  .. code-block:: none
 
-    speed up ratio: 831
+    speed up ratio: 296
 
 
 
@@ -579,7 +579,7 @@ even for the Efron estimate.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 49.077 seconds)
+   **Total running time of the script:** (0 minutes 29.087 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_survival_analysis.py:

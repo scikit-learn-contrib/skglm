@@ -2,7 +2,7 @@ version: 2
 jobs:
     build_docs:
       docker:
-        - image: circleci/python:3.8.1-buster
+        - image: cimg/python:3.10
       steps:
         - checkout
         - run:
@@ -31,6 +31,13 @@ jobs:
         - restore_cache:
             keys:
               - pip-cache
+
+        # Install Xvfb and related dependencies
+        - run:
+            name: Install Xvfb and dependencies
+            command: |
+              sudo apt-get update
+              sudo apt-get install -y xvfb
 
         - run:
             name: Spin up Xvfb

@@ -54,4 +54,5 @@ doc = [
     "pytest",
     "furo",
     "lifelines",
+    "pydata_sphinx_theme",
 ]

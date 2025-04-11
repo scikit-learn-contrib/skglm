@@ -1,24 +1,87 @@
-.announcement {
-    background-color: #1f77b4;
+:root {
+    /* Bootstrap / PyData colors */
+    --bs-primary: #ff7f0e;
+    /* dev = orange */
+    --bs-link-color: #1f77b4;
+    /* stable = blue links */
+    --bs-link-hover-color: #135b91;
+    /* darker hover */
+    --bs-body-color: #212529;
+    /* dark text */
+    --bs-body-bg: #ffffff;
+    /* white background */
+
+    /* Sphinx Design tokens */
+    --sd-color-primary: #ff7f0e;
+    --sd-color-secondary: #1f77b4;
+    --sd-color-success: #28a745;
+    --sd-color-info: #1f77b4;
+    --sd-color-warning: #f0b37e;
+    --sd-color-danger: #dc3545;
+    --sd-color-light: #f8f9fa;
+    --sd-color-muted: #6c757d;
+    --sd-color-dark: #212529;
+
+    --sd-color-primary-highlight: #e76f00;
+    --sd-color-secondary-highlight: #135b91;
+    --sd-color-success-highlight: #228e3b;
+    --sd-color-info-highlight: #135b91;
+    --sd-color-warning-highlight: #cc986b;
+    --sd-color-danger-highlight: #bb2d3b;
+    --sd-color-light-highlight: #d3d4d5;
+    --sd-color-muted-highlight: #5c636a;
+    --sd-color-dark-highlight: #1c1f23;
+
+    --sd-color-primary-text: #fff;
+    --sd-color-secondary-text: #fff;
+    --sd-color-success-text: #fff;
+    --sd-color-info-text: #fff;
+    --sd-color-warning-text: #212529;
+    --sd-color-danger-text: #fff;
+    --sd-color-light-text: #212529;
+    --sd-color-muted-text: #fff;
+    --sd-color-dark-text: #fff;
+
+    --sd-color-shadow: rgba(0, 0, 0, 0.15);
+    --sd-color-card-border: rgba(0, 0, 0, 0.125);
+    --sd-color-card-border-hover: #1f77b4;
+
+    --sd-color-card-background: transparent;
+    --sd-color-card-text: inherit;
+    --sd-color-card-header: transparent;
+    --sd-color-card-footer: transparent;
+
+    --sd-color-tabs-label-active: #1f77b4;
+    --sd-color-tabs-label-hover: #1f77b4;
+    --sd-color-tabs-label-inactive: hsl(0, 0%, 66%);
+    --sd-color-tabs-underline-active: #1f77b4;
+    --sd-color-tabs-underline-hover: rgba(178, 206, 245, 0.62);
+    --sd-color-tabs-underline-inactive: transparent;
+
+    --sd-color-tabs-overline: rgb(222, 222, 222);
+    --sd-color-tabs-underline: rgb(222, 222, 222);
+
+    --sd-fontsize-tabs-label: 1rem;
+    --sd-fontsize-dropdown-title: 1rem;
+    --sd-fontweight-dropdown-title: 700;
 }
 
-.sidebar-version {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-
-    padding-left: var(--sidebar-item-spacing-horizontal);
-    padding-right: var(--sidebar-item-spacing-horizontal);
-    margin-top: 0px;
+/* Remove default Pygments color for inline code (literal blocks) */
+code,
+.highlight .n,
+.highlight .nf,
+.highlight .nn,
+.highlight .nt,
+.highlight .nb {
+    color: #1f77b4 !important;
+    /* or #ff7f0e if you want orange instead */
 }
 
-.sidebar-version-selected>* {
-    display: flex;
-    align-items: center;
-    padding: 0.25em;
-    border-radius: 0.25rem;
-    background-color: #ff7f0e;
-    color: white;
-    pointer-events: none;
+/* Optional: adjust inline code background */
+code {
+    background-color: #f8f9fa;
+    /* light gray background */
+    border: 1px solid #e0e0e0;
+    padding: 0.15em 0.35em;
+    border-radius: 0.2rem;
 }

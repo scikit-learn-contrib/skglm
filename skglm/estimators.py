@@ -5,7 +5,6 @@ import numpy as np
 from scipy.sparse import issparse
 from scipy.special import expit
 from numbers import Integral, Real
-from skglm.solvers import ProxNewton, LBFGS
 
 from sklearn.utils.validation import (check_is_fitted, check_array,
                                       check_consistent_length)
@@ -19,7 +18,7 @@ from sklearn.utils._param_validation import Interval, StrOptions
 from sklearn.multiclass import OneVsRestClassifier, check_classification_targets
 
 from skglm.utils.jit_compilation import compiled_clone
-from skglm.solvers import AndersonCD, MultiTaskBCD, GroupBCD
+from skglm.solvers import AndersonCD, MultiTaskBCD, GroupBCD, ProxNewton, LBFGS
 from skglm.datafits import (Cox, Quadratic, Logistic, QuadraticSVC,
                             QuadraticMultiTask, QuadraticGroup,)
 from skglm.penalties import (L1, WeightedL1, L1_plus_L2, L2, WeightedGroupL2,

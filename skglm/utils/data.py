@@ -3,6 +3,7 @@ import scipy.sparse
 from numpy.linalg import norm
 from sklearn.utils import check_random_state
 from sklearn.preprocessing import StandardScaler
+from sklearn.datasets import make_sparse_spd_matrix
 
 
 def make_correlated_data(
@@ -252,3 +253,22 @@ def _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights):
             norm(X[:, grp_g_indices].T @ y) / (n_samples * weights[g])
         )
     return alpha_max
+
+
+def make_dummy_covariance_data(n_samples, n_features):
+    rng = check_random_state(0)
+    Theta_true = make_sparse_spd_matrix(
+        n_features, alpha=0.9, random_state=rng)
+    Theta_true += 0.1*np.eye(n_features)
+    Sigma_true = np.linalg.pinv(Theta_true, hermitian=True)
+    X = rng.multivariate_normal(
+        mean=np.zeros(n_features),
+        cov=Sigma_true,
+        size=n_samples,
+    )
+    S = np.cov(X, bias=True, rowvar=False)
+    S_cpy = np.copy(S)
+    np.fill_diagonal(S_cpy, 0.)
+    lmbd_max = np.max(np.abs(S_cpy))
+
+    return S, Theta_true, lmbd_max

@@ -1,9 +1,12 @@
 # License: BSD 3 clause
 
+from skglm.utils.data import make_dummy_covariance_data
+import matplotlib.pyplot as plt
 import numpy as np
 from scipy.linalg import pinvh
 
 from skglm.solvers.gram_cd import barebones_cd_gram
+from skglm.penalties import L0_5
 
 
 class GraphicalLasso():
@@ -159,6 +162,94 @@ class GraphicalLasso():
         return self
 
 
+# class AdaptiveGraphicalLasso():
+#     """ An adaptive version of the Graphical Lasso that solves non-convex penalty
+#     variations using the reweighting strategy from Candès et al., 2007."""
+
+#     def __init__(
+#         self,
+#         alpha=1.,
+#         # strategy="log",
+#         n_reweights=5,
+#         max_iter=1000,
+#         tol=1e-8,
+#         warm_start=False,
+#         penalty=L0_5(1.),
+#     ):
+#         self.alpha = alpha
+#         # self.strategy = strategy  # we can remove this param. it if not used elsewhere
+#         self.n_reweights = n_reweights
+#         self.max_iter = max_iter
+#         self.tol = tol
+#         self.warm_start = warm_start
+#         self.penalty = penalty
+
+#     def fit(self, S):
+#         """ Fit the AdaptiveGraphicalLasso model on the empirical covariance matrix S."""
+#         glasso = GraphicalLasso(
+#             alpha=self.alpha,
+#             algo="primal",
+#             max_iter=self.max_iter,
+#             tol=self.tol,
+#             warm_start=True)
+#         Weights = np.ones(S.shape)
+#         self.n_iter_ = []
+#         for it in range(self.n_reweights):
+#             glasso.weights = Weights
+#             glasso.fit(S)
+#             Theta = glasso.precision_
+
+#             Weights = abs(self.penalty.derivative(Theta))
+
+#             self.n_iter_.append(glasso.n_iter_)
+#             # TODO print losses for original problem?
+#             glasso.covariance_ = np.linalg.pinv(Theta, hermitian=True)
+#         self.precision_ = glasso.precision_
+#         self.covariance_ = glasso.covariance_
+#         return self
+
+
+# if __name__ == "__main__":
+#     import matplotlib.pyplot as plt
+#     from skglm.utils.data import make_dummy_covariance_data
+#     from skglm.penalties import L1  # Import L0_5
+
+#     # Define the dimensions for the dummy data
+#     n = 100    # number of samples
+#     p = 20     # number of features
+
+#     # Create dummy covariance data
+#     S, Theta_true, alpha_max = make_dummy_covariance_data(n, p)
+
+#     # Compute the true covariance matrix as the pseudoinverse of the true precision matrix
+#     true_covariance = np.linalg.pinv(Theta_true, hermitian=True)
+
+#     # Instantiate the AdaptiveGraphicalLasso model with L0_5 penalty
+#     model = AdaptiveGraphicalLasso(
+#         # Pass L0_5 object
+#         alpha=alpha_max * 0.1, n_reweights=5, tol=1e-8, warm_start=True, penalty=L0_5(1.))
+
+#     # Fit the model on the empirical covariance matrix S
+#     model.fit(S)
+
+#     # Compute normalized mean squared error (NMSE) between the true and estimated covariance matrices
+#     nmse = np.linalg.norm(model.covariance_ - true_covariance)**2 / \
+#         np.linalg.norm(true_covariance)**2
+#     print("Normalized MSE (NMSE): {:.3e}".format(nmse))
+
+#     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+#     im0 = axes[0].imshow(true_covariance, cmap="hot", interpolation="nearest")
+#     axes[0].set_title("True Covariance Matrix")
+#     plt.colorbar(im0, ax=axes[0])
+
+#     im1 = axes[1].imshow(model.covariance_, cmap="hot", interpolation="nearest")
+#     axes[1].set_title("Estimated Covariance Matrix\n(Adaptive Graphical Lasso)")
+#     plt.colorbar(im1, ax=axes[1])
+
+#     plt.tight_layout()
+#     plt.show()
+
 class AdaptiveGraphicalLasso():
     """ An adaptive version of the Graphical Lasso that solves non-convex penalty
     variations using the reweighting strategy from Candès et al., 2007."""
@@ -216,3 +307,42 @@ def update_weights(Theta, alpha, strategy="log"):
         return Weights
     else:
         raise ValueError(f"Unknown strategy {strategy}")
+
+
+if __name__ == "__main__":
+
+    # Define the dimensions for the dummy data
+    n = 100    # number of samples
+    p = 20     # number of features
+
+    # Create dummy covariance data
+    S, Theta_true, alpha_max = make_dummy_covariance_data(n, p)
+
+    # Compute the true covariance matrix as the pseudoinverse of the true precision matrix
+    true_covariance = np.linalg.pinv(Theta_true, hermitian=True)
+
+    # Instantiate the AdaptiveGraphicalLasso model with L0_5 penalty
+    model = AdaptiveGraphicalLasso(
+        # Pass L0_5 object
+        alpha=alpha_max * 0.1, n_reweights=5, tol=1e-8, warm_start=True)
+
+    # Fit the model on the empirical covariance matrix S
+    model.fit(S)
+
+    # Compute normalized mean squared error (NMSE) between the true and estimated covariance matrices
+    nmse = np.linalg.norm(model.covariance_ - true_covariance)**2 / \
+        np.linalg.norm(true_covariance)**2
+    print("Normalized MSE (NMSE): {:.3e}".format(nmse))
+
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+    im0 = axes[0].imshow(true_covariance, cmap="hot", interpolation="nearest")
+    axes[0].set_title("True Covariance Matrix")
+    plt.colorbar(im0, ax=axes[0])
+
+    im1 = axes[1].imshow(model.covariance_, cmap="hot", interpolation="nearest")
+    axes[1].set_title("Estimated Covariance Matrix\n(Adaptive Graphical Lasso)")
+    plt.colorbar(im1, ax=axes[1])
+
+    plt.tight_layout()
+    plt.show()

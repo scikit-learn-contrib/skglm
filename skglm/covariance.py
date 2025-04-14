@@ -1,5 +1,10 @@
 # License: BSD 3 clause
 
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+import matplotlib.ticker as mticker
+import matplotlib.colors as mcolors
+from skglm.penalties.separable import LogSumPenalty
+from sklearn.datasets import make_sparse_spd_matrix
 from skglm.utils.data import make_dummy_covariance_data
 import matplotlib.pyplot as plt
 import numpy as np
@@ -162,95 +167,66 @@ class GraphicalLasso():
         return self
 
 
-# class AdaptiveGraphicalLasso():
-#     """ An adaptive version of the Graphical Lasso that solves non-convex penalty
-#     variations using the reweighting strategy from Candès et al., 2007."""
+class AdaptiveGraphicalLassoPenalty():
+    """ An adaptive version of the Graphical Lasso that solves non-convex penalty
+    variations using the reweighting strategy from Candès et al., 2007."""
 
-#     def __init__(
-#         self,
-#         alpha=1.,
-#         # strategy="log",
-#         n_reweights=5,
-#         max_iter=1000,
-#         tol=1e-8,
-#         warm_start=False,
-#         penalty=L0_5(1.),
-#     ):
-#         self.alpha = alpha
-#         # self.strategy = strategy  # we can remove this param. it if not used elsewhere
-#         self.n_reweights = n_reweights
-#         self.max_iter = max_iter
-#         self.tol = tol
-#         self.warm_start = warm_start
-#         self.penalty = penalty
+    def __init__(
+        self,
+        alpha=1.,
+        # strategy="log",
+        n_reweights=5,
+        max_iter=1000,
+        tol=1e-8,
+        warm_start=False,
+        penalty=L0_5(1.),
+    ):
+        self.alpha = alpha
+        # self.strategy = strategy  # we can remove this param. it if not used elsewhere
+        self.n_reweights = n_reweights
+        self.max_iter = max_iter
+        self.tol = tol
+        self.warm_start = warm_start
+        self.penalty = penalty
 
-#     def fit(self, S):
-#         """ Fit the AdaptiveGraphicalLasso model on the empirical covariance matrix S."""
-#         glasso = GraphicalLasso(
-#             alpha=self.alpha,
-#             algo="primal",
-#             max_iter=self.max_iter,
-#             tol=self.tol,
-#             warm_start=True)
-#         Weights = np.ones(S.shape)
-#         self.n_iter_ = []
-#         for it in range(self.n_reweights):
-#             glasso.weights = Weights
-#             glasso.fit(S)
-#             Theta = glasso.precision_
+    def fit(self, S):
+        """ Fit the AdaptiveGraphicalLasso model on the empirical covariance matrix S."""
+        glasso = GraphicalLasso(
+            alpha=self.alpha,
+            algo="primal",
+            max_iter=self.max_iter,
+            tol=self.tol,
+            warm_start=True)
+        Weights = np.ones(S.shape)
+        self.n_iter_ = []
+        for it in range(self.n_reweights):
+            glasso.weights = Weights
+            glasso.fit(S)
+            Theta = glasso.precision_
 
-#             Weights = abs(self.penalty.derivative(Theta))
+            Weights = abs(self.penalty.derivative(Theta))
+            # Theta = (Theta + Theta.T) / 2
+            # Weights = (Weights + Weights.T) / 2
+            # np.fill_diagonal(Weights, 0)
 
-#             self.n_iter_.append(glasso.n_iter_)
-#             # TODO print losses for original problem?
-#             glasso.covariance_ = np.linalg.pinv(Theta, hermitian=True)
-#         self.precision_ = glasso.precision_
-#         self.covariance_ = glasso.covariance_
-#         return self
+            print(
+                f"Min/Max Weights after penalty derivative: {Weights.min():.2e}, {Weights.max():.2e}")
+
+            self.n_iter_.append(glasso.n_iter_)
+            # TODO print losses for original problem?
+
+            glasso.covariance_ = np.linalg.pinv(Theta, hermitian=True)
+        self.precision_ = glasso.precision_
+        self.covariance_ = glasso.covariance_
+        if not np.isclose(self.alpha, self.penalty.alpha):
+            print(
+                f"Alpha mismatch: GLasso alpha = {self.alpha}, Penalty alpha = {self.penalty.alpha}")
+        else:
+            print(f"Alpha values match: {self.alpha}")
+        return self
 
 
-# if __name__ == "__main__":
-#     import matplotlib.pyplot as plt
-#     from skglm.utils.data import make_dummy_covariance_data
-#     from skglm.penalties import L1  # Import L0_5
-
-#     # Define the dimensions for the dummy data
-#     n = 100    # number of samples
-#     p = 20     # number of features
-
-#     # Create dummy covariance data
-#     S, Theta_true, alpha_max = make_dummy_covariance_data(n, p)
-
-#     # Compute the true covariance matrix as the pseudoinverse of the true precision matrix
-#     true_covariance = np.linalg.pinv(Theta_true, hermitian=True)
-
-#     # Instantiate the AdaptiveGraphicalLasso model with L0_5 penalty
-#     model = AdaptiveGraphicalLasso(
-#         # Pass L0_5 object
-#         alpha=alpha_max * 0.1, n_reweights=5, tol=1e-8, warm_start=True, penalty=L0_5(1.))
-
-#     # Fit the model on the empirical covariance matrix S
-#     model.fit(S)
-
-#     # Compute normalized mean squared error (NMSE) between the true and estimated covariance matrices
-#     nmse = np.linalg.norm(model.covariance_ - true_covariance)**2 / \
-#         np.linalg.norm(true_covariance)**2
-#     print("Normalized MSE (NMSE): {:.3e}".format(nmse))
-
-#     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-
-#     im0 = axes[0].imshow(true_covariance, cmap="hot", interpolation="nearest")
-#     axes[0].set_title("True Covariance Matrix")
-#     plt.colorbar(im0, ax=axes[0])
-
-#     im1 = axes[1].imshow(model.covariance_, cmap="hot", interpolation="nearest")
-#     axes[1].set_title("Estimated Covariance Matrix\n(Adaptive Graphical Lasso)")
-#     plt.colorbar(im1, ax=axes[1])
-
-#     plt.tight_layout()
-#     plt.show()
-
-class AdaptiveGraphicalLasso():
+class AdaptiveGraphicalLassoStrategy():
     """ An adaptive version of the Graphical Lasso that solves non-convex penalty
     variations using the reweighting strategy from Candès et al., 2007."""
 
@@ -309,40 +285,111 @@ def update_weights(Theta, alpha, strategy="log"):
         raise ValueError(f"Unknown strategy {strategy}")
 
 
+# Testing
+
+def frobenius_norm_diff(A, B):
+    """Relative Frobenius norm difference between A and B."""
+    return np.linalg.norm(A - B, ord='fro') / np.linalg.norm(B, ord='fro')
+
+
+def generate_problem(dim=20, n_samples=100, seed=42):
+    """Generate data from a known sparse precision matrix."""
+    np.random.seed(seed)
+
+    # Ground-truth sparse precision matrix (positive definite)
+    Theta_true = make_sparse_spd_matrix(n_dim=dim, alpha=0.95, smallest_coef=0.1)
+    Sigma_true = np.linalg.inv(Theta_true)
+
+    # Sample from multivariate normal to get empirical covariance matrix S
+    X = np.random.multivariate_normal(np.zeros(dim), Sigma_true, size=n_samples)
+    S = np.cov(X, rowvar=False)
+
+    return S, Theta_true
+
+
 if __name__ == "__main__":
+    # Set test parameters
+    dim = 20
+    alpha = 0.1
+    n_reweights = 5
+    seed = 42
 
-    # Define the dimensions for the dummy data
-    n = 100    # number of samples
-    p = 20     # number of features
+    # Get empirical covariance and ground truth
+    S, Theta_true = generate_problem(dim=dim, seed=seed)
 
-    # Create dummy covariance data
-    S, Theta_true, alpha_max = make_dummy_covariance_data(n, p)
+    # Define non-convex penalty — this is consistent with 'log' strategy
+    penalty = LogSumPenalty(alpha=alpha, eps=1e-10)
 
-    # Compute the true covariance matrix as the pseudoinverse of the true precision matrix
-    true_covariance = np.linalg.pinv(Theta_true, hermitian=True)
+    # Fit new penalty-based model
+    model_penalty = AdaptiveGraphicalLassoPenalty(
+        alpha=alpha,
+        penalty=penalty,
+        n_reweights=n_reweights,
+    )
+    model_penalty.fit(S)
 
-    # Instantiate the AdaptiveGraphicalLasso model with L0_5 penalty
-    model = AdaptiveGraphicalLasso(
-        # Pass L0_5 object
-        alpha=alpha_max * 0.1, n_reweights=5, tol=1e-8, warm_start=True)
+    # Fit old strategy-based model
+    model_strategy = AdaptiveGraphicalLassoStrategy(
+        alpha=alpha,
+        strategy="log",
+        n_reweights=n_reweights,
+    )
+    model_strategy.fit(S)
 
-    # Fit the model on the empirical covariance matrix S
-    model.fit(S)
+    # Extract precision matrices
+    Theta_penalty = model_penalty.precision_
+    Theta_strategy = model_strategy.precision_
 
-    # Compute normalized mean squared error (NMSE) between the true and estimated covariance matrices
-    nmse = np.linalg.norm(model.covariance_ - true_covariance)**2 / \
-        np.linalg.norm(true_covariance)**2
-    print("Normalized MSE (NMSE): {:.3e}".format(nmse))
+    # Compare the two estimated models
+    rel_diff_between_models = frobenius_norm_diff(Theta_penalty, Theta_strategy)
+    print(
+        f"\n Frobenius norm relative difference between models: {rel_diff_between_models:.2e}")
+    print(" Matrices are close?", np.allclose(
+        Theta_penalty, Theta_strategy, atol=1e-4))
 
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+    # Compare both to ground truth
+    rel_diff_penalty_vs_true = frobenius_norm_diff(Theta_penalty, Theta_true)
+    rel_diff_strategy_vs_true = frobenius_norm_diff(Theta_strategy, Theta_true)
 
-    im0 = axes[0].imshow(true_covariance, cmap="hot", interpolation="nearest")
-    axes[0].set_title("True Covariance Matrix")
-    plt.colorbar(im0, ax=axes[0])
+    print(
+        f"\n Penalty vs true Θ:   Frobenius norm diff = {rel_diff_penalty_vs_true:.2e}")
+    print(
+        f"Strategy vs true Θ:  Frobenius norm diff = {rel_diff_strategy_vs_true:.2e}")
 
-    im1 = axes[1].imshow(model.covariance_, cmap="hot", interpolation="nearest")
-    axes[1].set_title("Estimated Covariance Matrix\n(Adaptive Graphical Lasso)")
-    plt.colorbar(im1, ax=axes[1])
+    print("\nTrue precision matrix:\n", Theta_true)
+    print("\nPenalty-based estimate:\n", Theta_penalty)
+    print("\nStrategy-based estimate:\n", Theta_strategy)
 
-    plt.tight_layout()
+    # Visualization
+    n_features = Theta_true.shape[0]
+
+    plt.close('all')
+    cmap = plt.cm.bwr
+
+    matrices = [Theta_true, Theta_penalty, Theta_strategy]
+    titles = [r"$\Theta_{\mathrm{True}}$",
+              r"$\Theta_{\mathrm{Penalty}}$", r"$\Theta_{\mathrm{Strategy}}$"]
+
+    fig, ax = plt.subplots(3, 1, layout="constrained",
+                           figsize=(4.42, 9.33))
+
+    vmax = max(np.max(mat) for mat in matrices) / 2
+    vmin = min(np.min(mat) for mat in matrices) / 2
+    norm = mcolors.TwoSlopeNorm(vmin=vmin, vmax=vmax, vcenter=0)
+
+    for i in range(3):
+        im = ax[i].imshow(matrices[i], cmap=cmap, norm=norm)
+        sparsity = 100 * (1 - np.count_nonzero(matrices[i]) / (n_features**2))
+        ax[i].set_title(f"{titles[i]}\nsparsity = {sparsity:.2f}%", fontsize=12)
+        ax[i].set_xticks([])
+        ax[i].set_yticks([])
+
+    divider = make_axes_locatable(ax[i])
+    cax = divider.append_axes("right", size="3%", pad=0.05)
+    cbar = fig.colorbar(im, cax=cax, orientation='vertical')
+    ticks_loc = cbar.ax.get_yticks().tolist()
+    cbar.ax.yaxis.set_major_locator(mticker.FixedLocator(ticks_loc))
+    cbar.ax.set_yticklabels([f'{i:.0e}' for i in cbar.get_ticks()])
+    cbar.ax.tick_params(labelsize=10)
+
     plt.show()

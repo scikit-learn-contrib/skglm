@@ -25,6 +25,7 @@ from skglm.datafits import (Cox, Quadratic, Logistic, QuadraticSVC,
 from skglm.penalties import (L1, WeightedL1, L1_plus_L2, L2, WeightedGroupL2,
                              MCPenalty, WeightedMCPenalty, IndicatorBox, L2_1)
 from skglm.utils.data import grp_converter
+from sklearn.utils.validation import validate_data
 
 
 def _glm_fit(X, y, model, datafit, penalty, solver):
@@ -51,8 +52,8 @@ def _glm_fit(X, y, model, datafit, penalty, solver):
             accept_sparse='csc', copy=fit_intercept)
         check_y_params = dict(ensure_2d=False, order='F')
 
-        X, y = model._validate_data(
-            X, y, validate_separately=(check_X_params, check_y_params))
+        X, y = validate_data(
+            model, X, y, validate_separately=(check_X_params, check_y_params))
         X = check_array(X, 'csc', dtype=[np.float64, np.float32],
                         order='F', copy=False, accept_large_sparse=False)
         y = check_array(y, 'csc', dtype=X.dtype.type, order='F', copy=False,
@@ -1473,7 +1474,7 @@ class MultiTaskLasso(RegressorMixin, LinearModel):
                               accept_sparse='csc',
                               copy=self.copy_X and self.fit_intercept)
         check_Y_params = dict(ensure_2d=False, order='F')
-        X, Y = self._validate_data(X, Y, validate_separately=(check_X_params,
+        X, Y = validate_data(self, X, Y, validate_separately=(check_X_params,
                                                               check_Y_params))
         Y = Y.astype(X.dtype)
 

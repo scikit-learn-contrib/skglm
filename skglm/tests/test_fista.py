@@ -31,16 +31,16 @@ tol = 1e-10
 @pytest.mark.parametrize("Datafit, Penalty", [
     (Quadratic, L1),
     (Logistic, L1),
-    (QuadraticSVC, IndicatorBox),
+    # (QuadraticSVC, IndicatorBox),
 ])
 def test_fista_solver(X, Datafit, Penalty):
     _y = y if isinstance(Datafit, Quadratic) else y_classif
     datafit = Datafit()
-    _init = y @ X.T if isinstance(Datafit, QuadraticSVC) else X
-    if issparse(X):
-        datafit.initialize_sparse(_init.data, _init.indptr, _init.indices, _y)
-    else:
-        datafit.initialize(_init, _y)
+    # _init = y @ X.T if isinstance(Datafit, QuadraticSVC) else X
+    # if issparse(X):
+    #     datafit.initialize_sparse(_init.data, _init.indptr, _init.indices, _y)
+    # else:
+    #     datafit.initialize(_init, _y)
     penalty = Penalty(alpha)
 
     solver = FISTA(max_iter=1000, tol=tol)

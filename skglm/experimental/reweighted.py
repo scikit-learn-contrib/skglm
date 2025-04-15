@@ -70,7 +70,8 @@ class IterativeReweightedL1(GeneralizedLinearEstimator):
 
         n_features = X.shape[1]
         # we need to compile this as it is not passed to solver.solve:
-        _penalty = compiled_clone(WeightedL1(self.penalty.alpha, np.ones(n_features)))
+        self.penalty = compiled_clone(self.penalty)
+        _penalty = WeightedL1(self.penalty.alpha, np.ones(n_features))
 
         self.loss_history_ = []
 

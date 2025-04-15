@@ -5,6 +5,7 @@ from scipy.sparse import issparse
 
 from skglm.solvers.base import BaseSolver
 from skglm.utils.anderson import AndersonAcceleration
+from skglm.utils.prox_funcs import ST
 
 
 class GramCD(BaseSolver):
@@ -165,3 +166,30 @@ def _gram_cd_epoch(scaled_gram, w, grad, penalty, greedy_cd):
             grad += (w[j] - old_w_j) * scaled_gram[:, j]
 
     return penalty.subdiff_distance(w, grad, all_features)
+
+
+@njit
+def barebones_cd_gram(H, q, x, alpha, weights, max_iter=100, tol=1e-4):
+    """
+    Solve min .5 * x.T H x + q.T @ x + alpha * norm(x, 1).
+
+    H must be symmetric.
+    """
+    dim = H.shape[0]
+    lc = np.zeros(dim)
+    for j in range(dim):
+        lc[j] = H[j, j]
+    Hx = np.dot(H, x)
+
+    for _ in range(max_iter):
+        max_delta = 0  # max coeff change
+        for j in range(dim):
+            x_j_prev = x[j]
+            x[j] = ST(x[j] - (Hx[j] + q[j]) / lc[j], alpha*weights[j] / lc[j])
+            max_delta = max(max_delta, np.abs(x_j_prev - x[j]))
+            if x_j_prev != x[j]:
+                Hx += (x[j] - x_j_prev) * H[j]
+        if max_delta <= tol:
+            break
+
+    return x

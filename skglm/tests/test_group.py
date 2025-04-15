@@ -14,7 +14,6 @@ from skglm.datafits.group import QuadraticGroup, LogisticGroup
 from skglm.solvers import GroupBCD, GroupProxNewton
 
 from skglm.utils.anderson import AndersonAcceleration
-from skglm.utils.jit_compilation import compiled_clone
 from skglm.utils.data import (make_correlated_data, grp_converter,
                               _alpha_max_group_lasso)
 
@@ -71,9 +70,6 @@ def test_alpha_max(n_groups, n_features, shuffle):
         alpha=alpha_max, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    # compile classes
-    quad_group = compiled_clone(quad_group, to_float32=X.dtype == np.float32)
-    group_penalty = compiled_clone(group_penalty)
     w = GroupBCD(tol=1e-12).solve(X, y, quad_group, group_penalty)[0]
 
     np.testing.assert_allclose(norm(w), 0, atol=1e-14)
@@ -96,9 +92,6 @@ def test_equivalence_lasso(positive):
         alpha=alpha, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights, positive=positive)
 
-    # compile classes
-    quad_group = compiled_clone(quad_group, to_float32=X.dtype == np.float32)
-    group_penalty = compiled_clone(group_penalty)
     w = GroupBCD(tol=1e-12).solve(X, y, quad_group, group_penalty)[0]
 
     celer_lasso = Lasso(
@@ -126,9 +119,6 @@ def test_vs_celer_grouplasso(n_groups, n_features, shuffle):
         alpha=alpha, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    # compile classes
-    quad_group = compiled_clone(quad_group, to_float32=X.dtype == np.float32)
-    group_penalty = compiled_clone(group_penalty)
     w = GroupBCD(tol=1e-12).solve(X, y, quad_group, group_penalty)[0]
 
     model = GroupLasso(groups=groups, alpha=alpha, weights=weights,
@@ -218,8 +208,6 @@ def test_intercept_grouplasso():
         alpha=alpha, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    quad_group = compiled_clone(quad_group, to_float32=X.dtype == np.float32)
-    group_penalty = compiled_clone(group_penalty)
     w = GroupBCD(fit_intercept=True, tol=1e-12).solve(
         X, y, quad_group, group_penalty)[0]
     model = GroupLasso(groups=groups, alpha=alpha, weights=weights,
@@ -247,8 +235,6 @@ def test_equivalence_logreg(solver, rho):
         alpha=alpha, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    group_logistic = compiled_clone(group_logistic, to_float32=X.dtype == np.float32)
-    group_penalty = compiled_clone(group_penalty)
     w = solver(tol=1e-12).solve(X, y, group_logistic, group_penalty)[0]
 
     sk_logreg = LogisticRegression(penalty='l1', C=1/(n_samples * alpha),
@@ -280,8 +266,6 @@ def test_group_logreg(solver, n_groups, rho, fit_intercept):
     group_logistic = LogisticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
     group_penalty = WeightedGroupL2(alpha, weights, grp_ptr, grp_indices)
 
-    group_logistic = compiled_clone(group_logistic, to_float32=X.dtype == np.float32)
-    group_penalty = compiled_clone(group_penalty)
     stop_crit = solver(tol=1e-12, fit_intercept=fit_intercept).solve(
         X, y, group_logistic, group_penalty)[2]
 

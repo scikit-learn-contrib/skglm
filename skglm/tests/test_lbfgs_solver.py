@@ -13,12 +13,15 @@ from skglm.utils.data import make_correlated_data, make_dummy_survival_data
 
 @pytest.mark.parametrize("X_sparse", [True, False])
 def test_lbfgs_L2_logreg(X_sparse):
-    reg = 1.
-    X_density = 1. if not X_sparse else 0.5
+    reg = 1.0
+    X_density = 1.0 if not X_sparse else 0.5
     n_samples, n_features = 100, 50
 
     X, y, _ = make_correlated_data(
-        n_samples, n_features, random_state=0, X_density=X_density,
+        n_samples,
+        n_features,
+        random_state=0,
+        X_density=X_density,
     )
     y = np.sign(y)
 
@@ -29,7 +32,7 @@ def test_lbfgs_L2_logreg(X_sparse):
 
     # fit scikit learn
     estimator = LogisticRegression(
-        penalty='l2',
+        penalty="l2",
         C=1 / (n_samples * reg),
         fit_intercept=False,
         tol=1e-12,
@@ -48,16 +51,18 @@ def test_L2_Cox(use_efron):
             "Run `pip install lifelines`"
         )
 
-    alpha = 10.
+    alpha = 10.0
     n_samples, n_features = 100, 50
 
     X, y = make_dummy_survival_data(
-        n_samples, n_features, normalize=True,
-        with_ties=use_efron, random_state=0)
+        n_samples, n_features, normalize=True, with_ties=use_efron, random_state=0
+    )
 
     datafit = Cox(use_efron)
     penalty = L2(alpha)
 
+    # XXX: intialize is needed here although it is done in LBFGS
+    # is used to evaluate the objective
     datafit.initialize(X, y)
     w, *_ = LBFGS().solve(X, y, datafit, penalty)
 
@@ -65,7 +70,7 @@ def test_L2_Cox(use_efron):
     stacked_y_X = np.hstack((y, X))
     df = pd.DataFrame(stacked_y_X)
 
-    estimator = CoxPHFitter(penalizer=alpha, l1_ratio=0.).fit(
+    estimator = CoxPHFitter(penalizer=alpha, l1_ratio=0.0).fit(
         df, duration_col=0, event_col=1
     )
     w_ll = estimator.params_.values

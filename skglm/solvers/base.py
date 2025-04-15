@@ -94,8 +94,9 @@ class BaseSolver(ABC):
         """
         pass
 
-    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None,
-              *, run_checks=True):
+    def solve(
+        self, X, y, datafit, penalty, w_init=None, Xw_init=None, *, run_checks=True
+    ):
         """Solve the optimization problem after validating its compatibility.
 
         A proxy of ``_solve`` method that implicitly ensures the compatibility
@@ -108,7 +109,8 @@ class BaseSolver(ABC):
         """
         if "jitclass" in str(type(datafit)):
             warnings.warn(
-                "Do not pass a compiled datafit, compilation is done inside solver now")
+                "Do not pass a compiled datafit, compilation is done inside solver now"
+            )
         else:
             if datafit is not None:
                 datafit = compiled_clone(datafit, to_float32=X.dtype == np.float32)

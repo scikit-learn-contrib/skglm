@@ -22,6 +22,16 @@ dependencies = [
 ]
 dynamic = ["version"]
 
+requires-python = ">=3.9"
+
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+]
 
 [tool.setuptools.dynamic]
 version = {attr = "skglm.__version__"}
@@ -38,6 +48,7 @@ test = [
     "flake8",
     "coverage",
     "numpydoc",
+    "celer",
 ]
 
 doc = [
@@ -56,3 +67,7 @@ doc = [
     "lifelines",
     "pydata_sphinx_theme",
 ]
+
+
+[tool.setuptools]
+license-files = []

@@ -23,7 +23,7 @@ Sparse recovery with non-convex penalties
 =========================================
 Illustrate the superior performance of penalties for sparse recovery.
 
-.. GENERATED FROM PYTHON SOURCE LINES 7-141
+.. GENERATED FROM PYTHON SOURCE LINES 7-140
 
 
 
@@ -66,7 +66,6 @@ Illustrate the superior performance of penalties for sparse recovery.
     from skglm.utils.data import make_correlated_data
     from skglm.solvers import AndersonCD
     from skglm.datafits import Quadratic
-    from skglm.utils.jit_compilation import compiled_clone
     from skglm.penalties import L1, MCPenalty, L0_5, L2_3, SCAD
 
     cmap = plt.get_cmap('tab10')
@@ -122,7 +121,7 @@ Illustrate the superior performance of penalties for sparse recovery.
     for idx, estimator in enumerate(penalties.keys()):
         print(f'Running {estimator}...')
         estimator_path = solver.path(
-            X, y, compiled_clone(datafit), compiled_clone(penalties[estimator]),
+            X, y, datafit, penalties[estimator],
             alphas=alphas)
 
         f1_temp = np.zeros(n_alphas)
@@ -190,7 +189,7 @@ Illustrate the superior performance of penalties for sparse recovery.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 8.463 seconds)
+   **Total running time of the script:** (0 minutes 7.671 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_sparse_recovery.py:

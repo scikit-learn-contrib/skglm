@@ -18,7 +18,6 @@ from sklearn.metrics import f1_score, mean_squared_error
 from skglm.utils.data import make_correlated_data
 from skglm.solvers import AndersonCD
 from skglm.datafits import Quadratic
-from skglm.utils.jit_compilation import compiled_clone
 from skglm.penalties import L1, MCPenalty, L0_5, L2_3, SCAD
 
 cmap = plt.get_cmap('tab10')
@@ -74,7 +73,7 @@ solver = AndersonCD(ws_strategy="fixpoint", fit_intercept=False)
 for idx, estimator in enumerate(penalties.keys()):
     print(f'Running {estimator}...')
     estimator_path = solver.path(
-        X, y, compiled_clone(datafit), compiled_clone(penalties[estimator]),
+        X, y, datafit, penalties[estimator],
         alphas=alphas)
 
     f1_temp = np.zeros(n_alphas)

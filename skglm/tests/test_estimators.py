@@ -26,7 +26,6 @@ from skglm.estimators import (
 from skglm.datafits import Logistic, Quadratic, QuadraticSVC, QuadraticMultiTask, Cox
 from skglm.penalties import L1, IndicatorBox, L1_plus_L2, MCPenalty, WeightedL1, SLOPE
 from skglm.solvers import AndersonCD, FISTA, ProxNewton
-from skglm.utils.jit_compilation import compiled_clone
 
 n_samples = 50
 n_tasks = 9
@@ -203,8 +202,8 @@ def test_CoxEstimator(use_efron, use_float_32):
     alpha = reg * alpha_max
 
     # fit Cox using ProxNewton solver
-    datafit = compiled_clone(Cox(use_efron))
-    penalty = compiled_clone(L1(alpha))
+    datafit = Cox(use_efron)
+    penalty = L1(alpha)
 
     datafit.initialize(X, y)
 
@@ -251,8 +250,8 @@ def test_CoxEstimator_sparse(use_efron, use_float_32):
     alpha = reg * alpha_max
 
     # fit Cox using ProxNewton solver
-    datafit = compiled_clone(Cox(use_efron))
-    penalty = compiled_clone(L1(alpha))
+    datafit = Cox(use_efron)
+    penalty = L1(alpha)
 
     datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
 
@@ -343,7 +342,7 @@ def test_equivalence_cox_SLOPE_cox_L1(use_efron, issparse):
         random_state=0)
 
     # init datafit
-    datafit = compiled_clone(Cox(use_efron))
+    datafit = Cox(use_efron)
 
     if not issparse:
         datafit.initialize(X, y)
@@ -357,7 +356,7 @@ def test_equivalence_cox_SLOPE_cox_L1(use_efron, issparse):
     # init penalty
     alpha = reg * alpha_max
     alphas = alpha * np.ones(n_features)
-    penalty = compiled_clone(SLOPE(alphas))
+    penalty = SLOPE(alphas)
 
     solver = FISTA(opt_strategy="fixpoint", max_iter=10_000, tol=1e-9)
 
@@ -378,7 +377,7 @@ def test_cox_SLOPE(use_efron):
         n_samples, n_features, with_ties=use_efron, random_state=0)
 
     # init datafit
-    datafit = compiled_clone(Cox(use_efron))
+    datafit = Cox(use_efron)
     datafit.initialize(X, y)
 
     # compute alpha_max
@@ -388,7 +387,7 @@ def test_cox_SLOPE(use_efron):
     # init penalty
     alpha = reg * alpha_ref
     alphas = alpha / np.arange(n_features + 1)[1:]
-    penalty = compiled_clone(SLOPE(alphas))
+    penalty = SLOPE(alphas)
 
     solver = FISTA(opt_strategy="fixpoint", max_iter=10_000, tol=1e-9)
 

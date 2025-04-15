@@ -9,7 +9,6 @@ from skglm.penalties import L1
 from skglm.solvers import GramCD
 
 from skglm.utils.data import make_correlated_data
-from skglm.utils.jit_compilation import compiled_clone
 
 
 @pytest.mark.parametrize("rho, X_density, greedy_cd",
@@ -23,7 +22,7 @@ def test_vs_lasso_sklearn(rho, X_density, greedy_cd):
     sk_lasso = Lasso(alpha, fit_intercept=False, tol=1e-9)
     sk_lasso.fit(X, y)
 
-    l1_penalty = compiled_clone(L1(alpha))
+    l1_penalty = L1(alpha)
     w = GramCD(tol=1e-9, max_iter=1000, greedy_cd=greedy_cd).solve(
         X, y, None, l1_penalty)[0]
     np.testing.assert_allclose(w, sk_lasso.coef_.flatten(), rtol=1e-7, atol=1e-7)

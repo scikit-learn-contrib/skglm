@@ -8,7 +8,6 @@ from skglm.solvers import FISTA, ProxNewton, GroupBCD, GramCD, GroupProxNewton
 
 from skglm.utils.data import grp_converter
 from skglm.utils.data import make_correlated_data
-from skglm.utils.jit_compilation import compiled_clone
 
 
 def test_datafit_penalty_solver_compatibility():
@@ -27,26 +26,26 @@ def test_datafit_penalty_solver_compatibility():
         AttributeError, match="Missing `raw_grad` and `raw_hessian`"
     ):
         ProxNewton()._validate(
-            X, y, compiled_clone(Huber(1.)), compiled_clone(L1(1.))
+            X, y, Huber(1.), L1(1.)
         )
     with pytest.raises(
         AttributeError, match="Missing `get_global_lipschitz`"
     ):
         FISTA()._validate(
-            X, y, compiled_clone(Poisson()), compiled_clone(L1(1.))
+            X, y, Poisson(), L1(1.)
         )
     with pytest.raises(
         AttributeError, match="Missing `get_global_lipschitz`"
     ):
         FISTA()._validate(
-            X, y, compiled_clone(Poisson()), compiled_clone(L1(1.))
+            X, y, Poisson(), L1(1.)
         )
     # check Gram Solver
     with pytest.raises(
         AttributeError, match="`GramCD` supports only `Quadratic` datafit"
     ):
         GramCD()._validate(
-            X, y, compiled_clone(Poisson()), compiled_clone(L1(1.))
+            X, y, Poisson(), L1(1.)
         )
     # check working set strategy subdiff
     with pytest.raises(
@@ -54,11 +53,9 @@ def test_datafit_penalty_solver_compatibility():
     ):
         GroupBCD()._validate(
             X, y,
-            datafit=compiled_clone(QuadraticGroup(grp_ptr, grp_indices)),
-            penalty=compiled_clone(
-                WeightedL1GroupL2(
-                    1., weights_groups, weights_features, grp_ptr, grp_indices)
-            )
+            datafit=QuadraticGroup(grp_ptr, grp_indices),
+            penalty=WeightedL1GroupL2(
+                1., weights_groups, weights_features, grp_ptr, grp_indices)
         )
     # checks for sparsity
     with pytest.raises(
@@ -67,11 +64,9 @@ def test_datafit_penalty_solver_compatibility():
     ):
         GroupProxNewton()._validate(
             X_sparse, y,
-            datafit=compiled_clone(QuadraticGroup(grp_ptr, grp_indices)),
-            penalty=compiled_clone(
-                WeightedL1GroupL2(
-                    1., weights_groups, weights_features, grp_ptr, grp_indices)
-            )
+            datafit=QuadraticGroup(grp_ptr, grp_indices),
+            penalty=WeightedL1GroupL2(
+                1., weights_groups, weights_features, grp_ptr, grp_indices)
         )
     with pytest.raises(
         AttributeError,
@@ -79,10 +74,8 @@ def test_datafit_penalty_solver_compatibility():
     ):
         GroupBCD()._validate(
             X_sparse, y,
-            datafit=compiled_clone(LogisticGroup(grp_ptr, grp_indices)),
-            penalty=compiled_clone(
-                WeightedGroupL2(1., weights_groups, grp_ptr, grp_indices)
-            )
+            datafit=LogisticGroup(grp_ptr, grp_indices),
+            penalty=WeightedGroupL2(1., weights_groups, grp_ptr, grp_indices)
         )
 
 

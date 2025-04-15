@@ -8,7 +8,6 @@ from skglm.datafits import Logistic, Cox
 
 from sklearn.linear_model import LogisticRegression
 
-from skglm.utils.jit_compilation import compiled_clone
 from skglm.utils.data import make_correlated_data, make_dummy_survival_data
 
 
@@ -24,8 +23,8 @@ def test_lbfgs_L2_logreg(X_sparse):
     y = np.sign(y)
 
     # fit L-BFGS
-    datafit = compiled_clone(Logistic())
-    penalty = compiled_clone(L2(reg))
+    datafit = Logistic()
+    penalty = L2(reg)
     w, *_ = LBFGS(tol=1e-12).solve(X, y, datafit, penalty)
 
     # fit scikit learn
@@ -56,8 +55,8 @@ def test_L2_Cox(use_efron):
         n_samples, n_features, normalize=True,
         with_ties=use_efron, random_state=0)
 
-    datafit = compiled_clone(Cox(use_efron))
-    penalty = compiled_clone(L2(alpha))
+    datafit = Cox(use_efron)
+    penalty = L2(alpha)
 
     datafit.initialize(X, y)
     w, *_ = LBFGS().solve(X, y, datafit, penalty)

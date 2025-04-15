@@ -111,7 +111,9 @@ class BaseSolver(ABC):
                 "Do not pass a compiled datafit, compilation is done inside solver now")
         else:
             datafit = compiled_clone(datafit, to_float32=X.dtype == np.float32)
-            penalty = compiled_clone(penalty, to_float32=X.dtype == np.float32)
+            penalty = compiled_clone(penalty)
+            # TODO add support for bool spec in compiled_clone
+            # penalty = compiled_clone(penalty, to_float32=X.dtype == np.float32)
 
         if run_checks:
             self._validate(X, y, datafit, penalty)

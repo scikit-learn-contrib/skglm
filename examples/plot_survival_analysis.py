@@ -15,6 +15,15 @@ x100 less time.
 # Let's first generate synthetic data on which to run the Cox estimator,
 # using ``skglm`` data utils.
 #
+import warnings
+import time
+from lifelines import CoxPHFitter
+import pandas as pd
+import numpy as np
+from skglm.solvers import ProxNewton
+from skglm.penalties import L1
+from skglm.datafits import Cox
+import matplotlib.pyplot as plt
 from skglm.utils.data import make_dummy_survival_data
 
 n_samples, n_features = 500, 100
@@ -34,7 +43,6 @@ tm, s = y[:, 0], y[:, 1]
 # * ``s`` indicates the observations censorship and follows a Bernoulli(0.5) distribution
 #
 # Let's inspect the data quickly:
-import matplotlib.pyplot as plt
 
 fig, axes = plt.subplots(
     1, 3,
@@ -59,18 +67,14 @@ _ = axes[0].set_ylabel("count")
 # Todo so, we need to combine a Cox datafit and a :math:`\ell_1` penalty
 # and solve the resulting problem using skglm Proximal Newton solver ``ProxNewton``.
 # We set the intensity of the :math:`\ell_1` regularization to ``alpha=1e-2``.
-from skglm.datafits import Cox
-from skglm.penalties import L1
-from skglm.solvers import ProxNewton
 
-from skglm.utils.jit_compilation import compiled_clone
 
 # regularization intensity
 alpha = 1e-2
 
 # skglm internals: init datafit and penalty
-datafit = compiled_clone(Cox())
-penalty = compiled_clone(L1(alpha))
+datafit = Cox()
+penalty = L1(alpha)
 
 datafit.initialize(X, y)
 
@@ -90,9 +94,6 @@ print(
 # %%
 # Let's solve the problem with ``lifelines`` through its ``CoxPHFitter``
 # estimator and compare the objectives found by the two packages.
-import numpy as np
-import pandas as pd
-from lifelines import CoxPHFitter
 
 # format data
 stacked_y_X = np.hstack((y, X))
@@ -126,8 +127,6 @@ print(f"Euclidean distance between solutions: {np.linalg.norm(w_sk - w_ll):.3e}"
 # let's compare their execution time. To get the evolution of the suboptimality
 # (objective - optimal objective) we run both estimators with increasing number of
 # iterations.
-import time
-import warnings
 
 warnings.filterwarnings('ignore')
 
@@ -230,7 +229,7 @@ print(f"Number of unique times {len(np.unique(tm))} out of {n_samples}")
 # We only need to pass in ``use_efron=True`` to the ``Cox`` datafit.
 
 # ensure using Efron estimate
-datafit = compiled_clone(Cox(use_efron=True))
+datafit = Cox(use_efron=True)
 datafit.initialize(X, y)
 
 # solve the problem

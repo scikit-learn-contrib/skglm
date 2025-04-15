@@ -18,7 +18,6 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.utils._param_validation import Interval, StrOptions
 from sklearn.multiclass import OneVsRestClassifier, check_classification_targets
 
-from skglm.utils.jit_compilation import compiled_clone
 from skglm.solvers import AndersonCD, MultiTaskBCD, GroupBCD
 from skglm.datafits import (Cox, Quadratic, Logistic, QuadraticSVC,
                             QuadraticMultiTask, QuadraticGroup)

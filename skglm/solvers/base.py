@@ -1,5 +1,10 @@
+import warnings
 from abc import abstractmethod, ABC
+
+import numpy as np
+
 from skglm.utils.validation import check_attrs
+from skglm.utils.jit_compilation import compiled_clone
 
 
 class BaseSolver(ABC):
@@ -101,6 +106,13 @@ class BaseSolver(ABC):
         >>> ...
         >>> coefs, obj_out, stop_crit = solver.solve(X, y, datafit, penalty)
         """
+        if "jitclass" in str(type(datafit)):
+            warnings.warn(
+                "Do not pass a compiled datafit, compilation is done inside solver now")
+        else:
+            datafit = compiled_clone(datafit, to_float32=X.dtype == np.float32)
+            penalty = compiled_clone(penalty, to_float32=X.dtype == np.float32)
+
         if run_checks:
             self._validate(X, y, datafit, penalty)
 

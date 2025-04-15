@@ -10,7 +10,7 @@ from skglm.solvers import ProxNewton, LBFGS
 from sklearn.utils.validation import (check_is_fitted, check_array,
                                       check_consistent_length)
 from sklearn.linear_model._base import (
-    LinearModel, RegressorMixin,
+    RegressorMixin, LinearModel,
     LinearClassifierMixin, SparseCoefMixin, BaseEstimator
 )
 from sklearn.utils.extmath import softmax
@@ -20,7 +20,7 @@ from sklearn.multiclass import OneVsRestClassifier, check_classification_targets
 
 from skglm.solvers import AndersonCD, MultiTaskBCD, GroupBCD
 from skglm.datafits import (Cox, Quadratic, Logistic, QuadraticSVC,
-                            QuadraticMultiTask, QuadraticGroup)
+                            QuadraticMultiTask, QuadraticGroup,)
 from skglm.penalties import (L1, WeightedL1, L1_plus_L2, L2, WeightedGroupL2,
                              MCPenalty, WeightedMCPenalty, IndicatorBox, L2_1)
 from skglm.utils.data import grp_converter
@@ -301,7 +301,7 @@ class GeneralizedLinearEstimator(LinearModel):
         return params
 
 
-class Lasso(LinearModel, RegressorMixin):
+class Lasso(RegressorMixin, LinearModel):
     r"""Lasso estimator based on Celer solver and primal extrapolation.
 
     The optimization objective for Lasso is:
@@ -448,7 +448,7 @@ class Lasso(LinearModel, RegressorMixin):
         return solver.path(X, y, datafit, penalty, alphas, coef_init, return_n_iter)
 
 
-class WeightedLasso(LinearModel, RegressorMixin):
+class WeightedLasso(RegressorMixin, LinearModel):
     r"""WeightedLasso estimator based on Celer solver and primal extrapolation.
 
     The optimization objective for WeightedLasso is:
@@ -611,7 +611,7 @@ class WeightedLasso(LinearModel, RegressorMixin):
         return _glm_fit(X, y, self, Quadratic(), penalty, solver)
 
 
-class ElasticNet(LinearModel, RegressorMixin):
+class ElasticNet(RegressorMixin, LinearModel):
     r"""Elastic net estimator.
 
     The optimization objective for Elastic net is:
@@ -765,7 +765,7 @@ class ElasticNet(LinearModel, RegressorMixin):
                         L1_plus_L2(self.alpha, self.l1_ratio, self.positive), solver)
 
 
-class MCPRegression(LinearModel, RegressorMixin):
+class MCPRegression(RegressorMixin, LinearModel):
     r"""Linear regression with MCP penalty estimator.
 
     The optimization objective for MCPRegression is, with :math:`x >= 0`:
@@ -958,13 +958,27 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
 
     The optimization objective for sparse Logistic regression is:
 
-    .. math:: 1 / n_"samples" sum_(i=1)^(n_"samples") log(1 + exp(-y_i x_i^T w))
-        + alpha ||w||_1
+    .. math::
+        1 / n_"samples" \sum_{i=1}^{n_"samples"} log(1 + exp(-y_i x_i^T w))
+        + tt"l1_ratio" xx alpha ||w||_1
+        + (1 - tt"l1_ratio") xx alpha/2 ||w||_2 ^ 2
+
+    By default, ``l1_ratio=1.0`` corresponds to Lasso (pure L1 penalty).
+    When ``0 < l1_ratio < 1``, the penalty is a convex combination of L1 and L2
+    (i.e., ElasticNet). ``l1_ratio=0.0`` corresponds to Ridge (pure L2), but note
+    that pure Ridge is not typically used with this class.
 
     Parameters
     ----------
     alpha : float, default=1.0
         Regularization strength; must be a positive float.
+
+    l1_ratio : float, default=1.0
+        The ElasticNet mixing parameter, with ``0 <= l1_ratio <= 1``.
+        Only used when ``penalty="l1_plus_l2"``.
+        For ``l1_ratio = 0`` the penalty is an L2 penalty.
+        ``For l1_ratio = 1`` it is an L1 penalty.
+        For ``0 < l1_ratio < 1``, the penalty is a combination of L1 and L2.
 
     tol : float, optional
         Stopping criterion for the optimization.
@@ -1002,10 +1016,11 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         Number of subproblems solved to reach the specified tolerance.
     """
 
-    def __init__(self, alpha=1.0, tol=1e-4, max_iter=20, max_epochs=1_000, verbose=0,
-                 fit_intercept=True, warm_start=False):
+    def __init__(self, alpha=1.0, l1_ratio=1.0, tol=1e-4, max_iter=20, max_epochs=1_000,
+                 verbose=0, fit_intercept=True, warm_start=False):
         super().__init__()
         self.alpha = alpha
+        self.l1_ratio = l1_ratio
         self.tol = tol
         self.max_iter = max_iter
         self.max_epochs = max_epochs
@@ -1034,7 +1049,8 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
             max_iter=self.max_iter, max_pn_iter=self.max_epochs, tol=self.tol,
             fit_intercept=self.fit_intercept, warm_start=self.warm_start,
             verbose=self.verbose)
-        return _glm_fit(X, y, self, Logistic(), L1(self.alpha), solver)
+        return _glm_fit(X, y, self, Logistic(), L1_plus_L2(self.alpha, self.l1_ratio),
+                        solver)
 
     def predict_proba(self, X):
         """Probability estimates.
@@ -1364,7 +1380,7 @@ class CoxEstimator(LinearModel):
         return self
 
 
-class MultiTaskLasso(LinearModel, RegressorMixin):
+class MultiTaskLasso(RegressorMixin, LinearModel):
     r"""MultiTaskLasso estimator.
 
     The optimization objective for MultiTaskLasso is:
@@ -1540,7 +1556,7 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
         return solver.path(X, Y, datafit, penalty, alphas, coef_init, return_n_iter)
 
 
-class GroupLasso(LinearModel, RegressorMixin):
+class GroupLasso(RegressorMixin, LinearModel):
     r"""GroupLasso estimator based on Celer solver and primal extrapolation.
 
     The optimization objective for GroupLasso is:

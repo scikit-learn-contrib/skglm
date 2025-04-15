@@ -1,12 +1,12 @@
 .. _changes_0_4:
 
-Version 0.4 (in progress)
+Version 0.4 (2023/04/08)
 -------------------------
 - Add :ref:`GroupLasso Estimator <skglm.GroupLasso>` (PR: :gh:`228`)
 - Add support and tutorial for positive coefficients to :ref:`Group Lasso Penalty <skglm.penalties.WeightedGroupL2>` (PR: :gh:`221`)
 - Check compatibility with datafit and penalty in solver (PR :gh:`137`)
 - Add support to weight samples in the quadratic datafit :ref:`Weighted Quadratic Datafit <skglm.datafit.WeightedQuadratic>` (PR: :gh:`258`)
-
+- Add support for ElasticNet regularization (`penalty="l1_plus_l2"`) to :ref:`SparseLogisticRegression <skglm.SparseLogisticRegression>` (PR: :gh:`244`)
 
 Version 0.3.1 (2023/12/21)
 --------------------------

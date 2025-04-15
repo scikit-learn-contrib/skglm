@@ -68,6 +68,7 @@ Datafits
    Poisson
    Quadratic
    QuadraticGroup
+   QuadraticHessian
    QuadraticSVC
    WeightedQuadratic
 

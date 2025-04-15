@@ -82,13 +82,17 @@ class PDCD_WS(BaseSolver):
     _datafit_required_attr = ('prox_conjugate',)
     _penalty_required_attr = ("prox_1d",)
 
-    def __init__(self, max_iter=1000, max_epochs=1000, dual_init=None,
-                 p0=100, tol=1e-6, verbose=False):
+    def __init__(
+        self, max_iter=1000, max_epochs=1000, dual_init=None, p0=100, tol=1e-6,
+        fit_intercept=False, warm_start=True, verbose=False
+    ):
         self.max_iter = max_iter
         self.max_epochs = max_epochs
         self.dual_init = dual_init
         self.p0 = p0
         self.tol = tol
+        self.fit_intercept = fit_intercept  # TODO not handled
+        self.warm_start = warm_start  # TODO not handled
         self.verbose = verbose
 
     def _solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):

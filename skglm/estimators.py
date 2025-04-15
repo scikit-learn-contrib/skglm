@@ -449,6 +449,11 @@ class Lasso(RegressorMixin, LinearModel):
             warm_start=self.warm_start, verbose=self.verbose)
         return solver.path(X, y, datafit, penalty, alphas, coef_init, return_n_iter)
 
+    def __sklearn_tags__(self):
+        tags = super().__sklearn_tags__()
+        tags.input_tags.sparse = True
+        return tags
+
 
 class WeightedLasso(RegressorMixin, LinearModel):
     r"""WeightedLasso estimator based on Celer solver and primal extrapolation.
@@ -612,6 +617,11 @@ class WeightedLasso(RegressorMixin, LinearModel):
             warm_start=self.warm_start, verbose=self.verbose)
         return _glm_fit(X, y, self, Quadratic(), penalty, solver)
 
+    def __sklearn_tags__(self):
+        tags = super().__sklearn_tags__()
+        tags.input_tags.sparse = True
+        return tags
+
 
 class ElasticNet(RegressorMixin, LinearModel):
     r"""Elastic net estimator.
@@ -765,6 +775,11 @@ class ElasticNet(RegressorMixin, LinearModel):
             warm_start=self.warm_start, verbose=self.verbose)
         return _glm_fit(X, y, self, Quadratic(),
                         L1_plus_L2(self.alpha, self.l1_ratio, self.positive), solver)
+
+    def __sklearn_tags__(self):
+        tags = super().__sklearn_tags__()
+        tags.input_tags.sparse = True
+        return tags
 
 
 class MCPRegression(RegressorMixin, LinearModel):
@@ -953,6 +968,11 @@ class MCPRegression(RegressorMixin, LinearModel):
             ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
             warm_start=self.warm_start, verbose=self.verbose)
         return _glm_fit(X, y, self, Quadratic(), penalty, solver)
+
+    def __sklearn_tags__(self):
+        tags = super().__sklearn_tags__()
+        tags.input_tags.sparse = True
+        return tags
 
 
 class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
@@ -1380,6 +1400,11 @@ class CoxEstimator(LinearModel):
         self.feature_names_in_ = np.arange(X.shape[1])
 
         return self
+
+    def __sklearn_tags__(self):
+        tags = super().__sklearn_tags__()
+        tags.input_tags.sparse = True
+        return tags
 
 
 class MultiTaskLasso(RegressorMixin, LinearModel):

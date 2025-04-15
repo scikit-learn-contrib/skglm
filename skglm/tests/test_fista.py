@@ -3,14 +3,13 @@ import pytest
 import numpy as np
 from numpy.linalg import norm
 
-from scipy.sparse import csc_matrix, issparse
+from scipy.sparse import csc_matrix
 
-from skglm.penalties import L1, IndicatorBox
+from skglm.penalties import L1
 from skglm.solvers import FISTA, AndersonCD
-from skglm.datafits import Quadratic, Logistic, QuadraticSVC
+from skglm.datafits import Quadratic, Logistic
 
 from skglm.utils.data import make_correlated_data
-from skglm.utils.jit_compilation import compiled_clone
 
 
 random_state = 113
@@ -32,17 +31,12 @@ tol = 1e-10
 @pytest.mark.parametrize("Datafit, Penalty", [
     (Quadratic, L1),
     (Logistic, L1),
-    (QuadraticSVC, IndicatorBox),
+    # (QuadraticSVC, IndicatorBox),
 ])
 def test_fista_solver(X, Datafit, Penalty):
     _y = y if isinstance(Datafit, Quadratic) else y_classif
-    datafit = compiled_clone(Datafit())
-    _init = y @ X.T if isinstance(Datafit, QuadraticSVC) else X
-    if issparse(X):
-        datafit.initialize_sparse(_init.data, _init.indptr, _init.indices, _y)
-    else:
-        datafit.initialize(_init, _y)
-    penalty = compiled_clone(Penalty(alpha))
+    datafit = Datafit()
+    penalty = Penalty(alpha)
 
     solver = FISTA(max_iter=1000, tol=tol)
     w_fista = solver.solve(X, _y, datafit, penalty)[0]

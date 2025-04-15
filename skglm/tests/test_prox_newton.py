@@ -6,7 +6,6 @@ from skglm.penalties import L1
 from skglm.datafits import Logistic
 from skglm.solvers.prox_newton import ProxNewton
 
-from skglm.utils.jit_compilation import compiled_clone
 from skglm.utils.data import make_correlated_data
 
 
@@ -29,8 +28,8 @@ def test_pn_vs_sklearn(X_density, fit_intercept, ws_strategy):
                                     tol=1e-12, solver='saga', max_iter=1_000_000)
     sk_log_reg.fit(X, y)
 
-    log_datafit = compiled_clone(Logistic())
-    l1_penalty = compiled_clone(L1(alpha))
+    log_datafit = Logistic()
+    l1_penalty = L1(alpha)
     prox_solver = ProxNewton(
         fit_intercept=fit_intercept, tol=1e-12, ws_strategy=ws_strategy)
     w = prox_solver.solve(X, y, log_datafit, l1_penalty)[0]

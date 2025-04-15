@@ -68,7 +68,7 @@ class GroupProxNewton(BaseSolver):
         all_groups = np.arange(n_groups)
         stop_crit = 0.
         p_objs_out = []
-        
+
         # TODO: to be isolated in a seperated method
         is_sparse = issparse(X)
         if is_sparse:

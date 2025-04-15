@@ -573,7 +573,7 @@ Fit check that groups are either all 0 or all non zero
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 13.581 seconds)
+   **Total running time of the script:** (0 minutes 12.103 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_group_logistic_regression.py:

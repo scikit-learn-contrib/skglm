@@ -107,17 +107,23 @@ class BaseSolver(ABC):
         >>> ...
         >>> coefs, obj_out, stop_crit = solver.solve(X, y, datafit, penalty)
         """
+        # TODO do it properly instead of searching for a string
         if "jitclass" in str(type(datafit)):
             warnings.warn(
                 "Do not pass a compiled datafit, compilation is done inside solver now"
+            )
+        if "jitclass" in str(type(penalty)):
+            warnings.warn(
+                "Do not pass a compiled penalty, compilation is done inside solver now"
             )
         else:
             if datafit is not None:
                 datafit = compiled_clone(datafit, to_float32=X.dtype == np.float32)
             if penalty is not None:
                 penalty = compiled_clone(penalty)
-            # TODO add support for bool spec in compiled_clone
-            # penalty = compiled_clone(penalty, to_float32=X.dtype == np.float32)
+                # TODO add support for bool spec in compiled_clone
+                # currently, doing so break the code
+                # penalty = compiled_clone(penalty, to_float32=X.dtype == np.float32)
 
         if run_checks:
             self._validate(X, y, datafit, penalty)

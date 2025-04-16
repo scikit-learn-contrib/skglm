@@ -18,6 +18,30 @@ You get to choose from ``skglm``'s already-made estimators or **customize your o
 Get a hands-on glimpse on ``skglm`` through the :ref:`Getting started page <getting_started>`.
 
 
+Cite
+----
+
+``skglm`` is the result of perseverant research. It is licensed under
+`BSD 3-Clause <https://github.com/scikit-learn-contrib/skglm/blob/main/LICENSE>`_.
+You are free to use it and if you do so, please cite
+
+.. code-block:: bibtex
+
+    @inproceedings{skglm,
+        title     = {Beyond L1: Faster and better sparse models with skglm},
+        author    = {Q. Bertrand and Q. Klopfenstein and P.-A. Bannier
+                     and G. Gidel and M. Massias},
+        booktitle = {NeurIPS},
+        year      = {2022},
+    }
+
+    @article{moufad2023skglm,
+        title={skglm: improving scikit-learn for regularized Generalized Linear Models},
+        author={Moufad, Badr and Bannier, Pierre-Antoine and Bertrand, Quentin and Klopfenstein, Quentin and Massias, Mathurin},
+        year={2023}
+    }
+
+
 Why ``skglm``?
 --------------
 
@@ -56,25 +80,6 @@ It is also available on conda-forge and can be installed using, for instance:
 
 With ``skglm`` being installed, Get the first steps with the package via the :ref:`Getting started section <getting_started>`.
 Other advanced topics and uses-cases are covered in :ref:`Tutorials <tutorials>`.
-
-
-Cite
-----
-
-``skglm`` is the result of perseverant research. It is licensed under
-`BSD 3-Clause <https://github.com/scikit-learn-contrib/skglm/blob/main/LICENSE>`_.
-You are free to use it and if you do so, please cite
-
-.. code-block:: bibtex
-
-    @inproceedings{skglm,
-        title     = {Beyond L1: Faster and better sparse models with skglm},
-        author    = {Q. Bertrand and Q. Klopfenstein and P.-A. Bannier
-                     and G. Gidel and M. Massias},
-        booktitle = {NeurIPS},
-        year      = {2022},
-    }
-
 
 .. it is mandatory to keep the toctree here although it doesn't show up in the page
 .. when adding/modifying pages, don't forget to update the toctree

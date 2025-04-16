@@ -1,10 +1,13 @@
 .. _maths_cox_datafit:
 
+.. meta::
+   :description: Detailed mathematical guide on Cox datafit implementation in skglm, covering Breslow and Efron estimates. Useful for survival analysis.
+
 =============================
 Mathematic behind Cox datafit
 =============================
 
-This tutorial presents the mathematics behind Cox datafit using both Breslow and Efron estimate. 
+This tutorial presents the mathematics behind Cox datafit using both Breslow and Efron estimate.
 
 
 Problem setup
@@ -95,7 +98,7 @@ where the division and the square operations are performed element-wise.
 The Hessian, as it is, is costly to evaluate because of the right hand-side term.
 In particular, the latter involves a :math:`\mathcal{O}(n^3)` operations. We overcome this limitation by using a diagonal upper bound on the Hessian.
 
-We construct such an upper bound by noticing that 
+We construct such an upper bound by noticing that
 
 #. the function :math:`F` is convex and hence :math:`\nabla^2 F(u)` is positive semi-definite
 #. the second term is positive semi-definite
@@ -127,10 +130,10 @@ We can define :math:`y_{i_1}, \ldots, y_{i_m}` the unique times, assumed to be i
 
 .. math::
     :label: def-H
-    
+
     H_{y_{i_l}} = \{ i \ | \ s_i = 1 \ ;\ y_i = y_{i_l} \}
     ,
-    
+
 the set of uncensored observations with the same time :math:`y_{i_l}`.
 
 Again, we refer to the expression of the negative log-likelihood according to Efron estimate [`2`_,  Section 6, equation (6.7)] to get the datafit formula
@@ -139,7 +142,7 @@ Again, we refer to the expression of the negative log-likelihood according to Ef
     :label: efron-estimate
 
     l(\beta) = \frac{1}{n} \sum_{l=1}^{m} (
-        \sum_{i \in H_{i_l}} - \langle x_i, \beta \rangle 
+        \sum_{i \in H_{i_l}} - \langle x_i, \beta \rangle
         + \sum_{i \in H_{i_l}} \log(\sum_{y_j \geq y_{i_l}} e^{\langle x_j, \beta \rangle} - \frac{\#(i) - 1}{ |H_{i_l} |}\sum_{j \in H_{i_l}} e^{\langle x_j, \beta \rangle}))
     ,
 
@@ -158,7 +161,7 @@ On the other hand, the minus term within :math:`\log` can be rewritten as a line
 
 .. math::
 
-    - \frac{\#(i) - 1}{| H_{i_l} |}\sum_{j \in H_{i_l}} e^{\langle x_j, \beta \rangle} 
+    - \frac{\#(i) - 1}{| H_{i_l} |}\sum_{j \in H_{i_l}} e^{\langle x_j, \beta \rangle}
         = \sum_{j=1}^{n} -\frac{\#(i) - 1}{| H_{i_l} |} \ \mathbb{1}_{j \in H_{i_l}} \ e^{\langle x_j, \beta \rangle}
         = \sum_{j=1}^n a_{i,j} e^{\langle x_j, \beta \rangle}
         = \langle a_i, e^{\mathbf{X}\beta} \rangle

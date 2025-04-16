@@ -1,5 +1,8 @@
 .. _alpha_max:
 
+.. meta::
+   :description: Tutorial explaining the critical regularization strength (alpha_max) in skglm. Learn conditions for zero solutions in L1-regularized optimization problems.
+
 ==========================================================
 Critical regularization strength above which solution is 0
 ==========================================================

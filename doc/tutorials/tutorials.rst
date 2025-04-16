@@ -1,5 +1,8 @@
 .. _tutorials:
 
+.. meta::
+   :description: Step-by-step skglm tutorials covering custom datafits, penalties, intercept computations, Cox datafit mathematics, group Lasso details, and regularization strategies.
+
 =========
 Tutorials
 =========

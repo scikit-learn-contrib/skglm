@@ -1,5 +1,9 @@
 .. _contribute:
 
+.. meta::
+   :description: Contribute to skglm by reporting bugs, suggesting features, or submitting pull requests. Join us in making skglm even better!
+    :og:title: Contribute to skglm
+
 Contribute to ``skglm``
 =======================
 

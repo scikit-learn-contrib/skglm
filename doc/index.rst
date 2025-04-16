@@ -3,17 +3,26 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. meta::
+   :og:title: skglm: Fast, Scalable & Flexible Regularized GLMs and Sparse Modeling for Python
+   :description: skglm is the fastest, most modular Python library for regularized GLMs—fully scikit-learn compatible for advanced statistical modeling.
+   :og:image: _static/images/logo.svg
+   :og:url: https://contrib.scikit-learn.org/skglm/
+   :keywords: Generalized Linear Models, GLM, scikit-learn, Lasso, ElasticNet, Cox, modular, efficient, regularized
+
 =========
 ``skglm``
 =========
-*— A fast and modular scikit-learn replacement for regularized GLMs —*
+*— Fast and Flexible Generalized Linear Models for Python —*
 
 --------
 
 
 ``skglm`` is a Python package that offers **fast estimators** for regularized Generalized Linear Models (GLMs)
-that are **100% compatible with** ``scikit-learn``. It is **highly flexible** and supports a wide range of GLMs.
-You get to choose from ``skglm``'s already-made estimators or **customize your own** by combining the available datafits and penalties.
+that are **100% compatible with** ``scikit-learn``. It is **highly flexible** and supports a wide range of GLMs,
+designed to tackle high-dimensional data and scalable machine learning problems.
+Whether you choose from our ready-made estimators or **customize your own** using a modular combination of datafits and penalties,
+skglm delivers performance and flexibility for both academic research and production environments.
 
 Get a hands-on glimpse on ``skglm`` through the :ref:`Getting started page <getting_started>`.
 
@@ -79,6 +88,22 @@ It is also available on conda-forge and can be installed using, for instance:
     $ conda install -c conda-forge skglm
 
 With ``skglm`` being installed, Get the first steps with the package via the :ref:`Getting started section <getting_started>`.
+
+Applications and Use Cases
+---------------------------
+
+``skglm`` drives impactful solutions across diverse sectors with its fast, modular approach to regularized GLMs and sparse modeling. Some examples include:
+
+.. list-table::
+    :widths: 20 80
+
+    * - **Healthcare:**
+      - Enhance clinical trial analytics and early biomarker discovery by efficiently analyzing high-dimensional biological data and features like cox regression modeling.
+    * - **Finance:**
+      - Conduct transparent and interpretable risk modeling with scalable, robust sparse regression across vast datasets.
+    * - **Energy:**
+      - Optimize real-time electricity forecasting and load analysis by processing large time-series datasets for predictive maintenance and anomaly detection.
+
 Other advanced topics and uses-cases are covered in :ref:`Tutorials <tutorials>`.
 
 .. it is mandatory to keep the toctree here although it doesn't show up in the page

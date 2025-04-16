@@ -102,6 +102,14 @@ todo_include_todos = False
 
 html_baseurl = 'https://contrib.scikit-learn.org/skglm/'
 
+extensions.append("sphinxext.opengraph")
+
+# OpenGraph config
+ogp_site_url = html_baseurl
+ogp_image = "https://contrib.scikit-learn.org/skglm/_static/images/logo.svg"
+ogp_description_length = 250
+ogp_type = "website"
+
 
 # -- Options for HTML output ----------------------------------------------
 

@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:36.726** total execution time for 11 files **from all galleries**:
+**01:07.178** total execution time for 11 files **from all galleries**:
 
 .. container::
 
@@ -32,36 +32,36 @@ Computation times
    * - Example
      - Time
      - Mem (MB)
-   * - :ref:`sphx_glr_auto_examples_plot_survival_analysis.py` (``../examples/plot_survival_analysis.py``)
-     - 00:12.096
-     - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_compare_time.py` (``../examples/plot_compare_time.py``)
-     - 00:11.199
+     - 00:43.301
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_survival_analysis.py` (``../examples/plot_survival_analysis.py``)
+     - 00:10.576
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_group_logistic_regression.py` (``../examples/plot_group_logistic_regression.py``)
-     - 00:03.754
+     - 00:03.645
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_sparse_recovery.py` (``../examples/plot_sparse_recovery.py``)
-     - 00:02.677
+     - 00:02.487
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_logreg_various_penalties.py` (``../examples/plot_logreg_various_penalties.py``)
-     - 00:01.759
+     - 00:01.710
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_reweighted_l1.py` (``../examples/plot_reweighted_l1.py``)
-     - 00:01.446
-     - 0.0
-   * - :ref:`sphx_glr_auto_examples_plot_sparse_group_lasso.py` (``../examples/plot_sparse_group_lasso.py``)
-     - 00:01.257
+     - 00:01.437
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_ucurve.py` (``../examples/plot_ucurve.py``)
-     - 00:01.100
+     - 00:01.313
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_sparse_group_lasso.py` (``../examples/plot_sparse_group_lasso.py``)
+     - 00:01.232
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_lasso_vs_weighted.py` (``../examples/plot_lasso_vs_weighted.py``)
-     - 00:00.841
+     - 00:00.835
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_pen_prox.py` (``../examples/plot_pen_prox.py``)
-     - 00:00.518
+     - 00:00.560
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_zero_weights_lasso.py` (``../examples/plot_zero_weights_lasso.py``)
-     - 00:00.077
+     - 00:00.081
      - 0.0

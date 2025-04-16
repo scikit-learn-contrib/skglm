@@ -129,6 +129,7 @@ html_theme_options = {
         "color-brand-content": primary_dark,
         "color-brand-secondary": primary,
     },
+    "navbar_align": "right",
     "navbar_start": ["navbar-logo"],
     "navbar_center": ["navbar-nav"],
     "navbar_end": ["navbar-icon-links"],
@@ -140,15 +141,6 @@ html_theme_options = {
         },
     ],
     "search_bar_text": "Search skglm docs...",
-    "navbar_align": "content",
-    "logo": {
-        "text": "skglm",
-    },
-    "navbar_links": [
-        {"name": "Getting Started", "url": "getting_started.html", "external": False},
-        {"name": "Tutorials",       "url": "tutorials.html",       "external": False},
-        {"name": "API",             "url": "api.html",             "external": False},
-    ],
     "footer_icons": [
         {
             "name": "GitHub",

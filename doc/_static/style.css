@@ -85,3 +85,27 @@ code {
     padding: 0.15em 0.35em;
     border-radius: 0.2rem;
 }
+
+
+/* Force breakpoint in navbar earlier, attention: need to change if navbar titles are changed*/
+@media (max-width: 1104px) {
+    .bd-header .navbar-expand-lg {
+        flex-direction: column !important;
+    }
+
+    .bd-header .navbar-collapse {
+        display: none !important;
+    }
+
+    .bd-header .navbar-toggler {
+        display: block !important;
+    }
+
+    .bd-header .navbar-nav {
+        display: none !important;
+    }
+
+    .bd-header .navbar-collapse.collapse.show {
+        display: block !important;
+    }
+}

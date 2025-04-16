@@ -5,6 +5,7 @@
 /doc/gen_modules/
 /doc/generated/
 /doc/auto_examples/
+/doc/sg_execution_times.rst
 
 __pycache__
 __cache__

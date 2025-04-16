@@ -65,6 +65,7 @@ extensions = [
     'sphinx.ext.linkcode',
     'gh_substitutions',
     'myst_parser',
+    'sphinx_sitemap',
     # custom ext, see ./sphinxext/gh_substitutions.py
 ]
 
@@ -98,6 +99,8 @@ exclude_patterns = ['_build']
 # pygments_style = 'sphinx'
 
 todo_include_todos = False
+
+html_baseurl = 'https://contrib.scikit-learn.org/skglm/'
 
 
 # -- Options for HTML output ----------------------------------------------

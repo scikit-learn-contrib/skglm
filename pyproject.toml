@@ -66,6 +66,7 @@ doc = [
     "furo",
     "lifelines",
     "pydata_sphinx_theme",
+    "sphinx-sitemap",
 ]
 
 

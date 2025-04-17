@@ -5,7 +5,7 @@
 .. meta::
    :description: Step-by-step tutorial on adding custom penalties in skglm. Covers implementation details, proximal operators, and optimality conditions using the L1 penalty.
 
-How to add a custom penalty
+How to Add a Custom Penalty
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 skglm supports any arbitrary proximable penalty.

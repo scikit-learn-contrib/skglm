@@ -76,3 +76,8 @@ code,
     color: #1f77b4 !important;
     /* or #ff7f0e if you want orange instead */
 }
+
+
+div.math mjx-container {
+    text-align: center;
+}

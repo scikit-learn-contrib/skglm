@@ -1,4 +1,5 @@
 .. _how_to_add_custom_datafit:
+
 .. meta::
    :description: Tutorial on creating and implementing a custom datafit in skglm. Step-by-step guide includes deriving gradients, Hessians, and an example with Poisson datafit.
 

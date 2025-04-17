@@ -148,7 +148,14 @@ html_theme_options = {
             "type": "fontawesome",
         },
     ],
-    "navbar_end": ["navbar-icon-links"],
+    "navbar_end": [
+        "navbar-icon-links",
+        "version-switcher",
+    ],
+    "switcher": {
+        "json_url": "/_static/switcher.json",
+        "version_match": "stable" if is_stable_doc else "dev",
+    },
     "navigation_with_keys": True,
     "search_bar_text": "Search skglm docs...",
     "footer_icons": [

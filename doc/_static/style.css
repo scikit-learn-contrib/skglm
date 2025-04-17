@@ -88,7 +88,7 @@ code {
 
 
 /* Force breakpoint in navbar earlier, attention: need to change if navbar titles are changed*/
-@media (max-width: 1104px) {
+@media (max-width: 1177px) {
     .bd-header .navbar-expand-lg {
         flex-direction: column !important;
     }

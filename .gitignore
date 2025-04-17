@@ -6,6 +6,7 @@
 /doc/generated/
 /doc/auto_examples/
 /doc/sg_execution_times.rst
+/doc/.DS_Store
 
 __pycache__
 __cache__

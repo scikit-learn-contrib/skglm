@@ -4,7 +4,7 @@
    :description: Tutorial explaining the critical regularization strength (alpha_max) in skglm. Learn conditions for zero solutions in L1-regularized optimization problems.
 
 ==========================================================
-Critical regularization strength above which solution is 0
+Critical Regularization Strength above which Solution is 0
 ==========================================================
 
 This tutorial shows that for :math:`\lambda \geq \lambda_{\text{max}} = || \nabla f(0) ||_{\infty}`, the solution to

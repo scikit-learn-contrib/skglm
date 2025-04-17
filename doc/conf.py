@@ -173,6 +173,19 @@ html_theme_options = {
     ],
 }
 
+# add sidebars if necessary (e.g. if more tutorials are being added)
+html_sidebars = {
+    "index": [],
+    "getting_started": [],
+    "tutorials": [],
+    "tutorials/*": [],
+    "auto_examples/*": [],
+    "api": [],  # not applied for subpages as it is useful here
+    "contribute": [],
+    "changes": [],
+    "changes/*": []
+}
+
 # Enable asciimath parsing in MathJax and configure the HTML renderer to output
 # the default asciimath delimiters. Asciimath will not be correctly rendered in
 # other output formats, but can likely be fixed using py-asciimath[1] to convert

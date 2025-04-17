@@ -76,36 +76,3 @@ code,
     color: #1f77b4 !important;
     /* or #ff7f0e if you want orange instead */
 }
-
-/* Optional: adjust inline code background */
-code {
-    background-color: #f8f9fa;
-    /* light gray background */
-    border: 1px solid #e0e0e0;
-    padding: 0.15em 0.35em;
-    border-radius: 0.2rem;
-}
-
-
-/* Force breakpoint in navbar earlier, attention: need to change if navbar titles are changed*/
-@media (max-width: 1177px) {
-    .bd-header .navbar-expand-lg {
-        flex-direction: column !important;
-    }
-
-    .bd-header .navbar-collapse {
-        display: none !important;
-    }
-
-    .bd-header .navbar-toggler {
-        display: block !important;
-    }
-
-    .bd-header .navbar-nav {
-        display: none !important;
-    }
-
-    .bd-header .navbar-collapse.collapse.show {
-        display: block !important;
-    }
-}

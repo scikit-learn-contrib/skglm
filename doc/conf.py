@@ -127,6 +127,7 @@ primary_dark = "#135b91" if is_stable_doc else "#e76f00"
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
+    # color configurations
     "light_css_variables": {
         "color-brand-primary": primary,
         "color-brand-content": primary,
@@ -137,9 +138,18 @@ html_theme_options = {
         "color-brand-content": primary_dark,
         "color-brand-secondary": primary,
     },
+
+    # Navbar configuration
     "navbar_align": "left",
     "navbar_start": ["navbar-logo"],
     "navbar_center": ["navbar-nav"],
+    "navbar_end": [
+        "navbar-icon-links",
+        "version-switcher",
+        "theme-switcher",
+    ],
+
+    # other configurations
     "icon_links": [
         {
             "name": "GitHub",
@@ -147,10 +157,6 @@ html_theme_options = {
             "icon": "fab fa-github",
             "type": "fontawesome",
         },
-    ],
-    "navbar_end": [
-        "navbar-icon-links",
-        "version-switcher",
     ],
     "switcher": {
         "json_url": "/_static/switcher.json",

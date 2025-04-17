@@ -4,7 +4,7 @@
    :description: Learn how to fit Lasso and custom GLM estimators with skglm, a modular Python library compatible with scikit-learn. Includes examples and code snippets.
 
 ===============
-Getting started
+Start
 ===============
 ---------------
 

@@ -61,3 +61,37 @@ code {
     font-weight: bold;
     text-align: center;
 }
+
+.hero-section {
+    text-align: center;
+    padding: 4rem 2rem;
+    background-color: var(--pst-color-background);
+    color: var(--pst-color-text);
+}
+
+.hero-logo {
+    width: 150px;
+    margin-bottom: 1rem;
+}
+
+.hero-button {
+    display: inline-block;
+    margin-top: 2rem;
+    padding: 0.75rem 1.5rem;
+    background-color: var(--pst-color-primary);
+    color: white !important;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.hero-button:hover {
+    background-color: var(--pst-color-primary-hover);
+    color: #ec9b4c !important;
+}
+
+.hero-text strong {
+    color: #1f77b4;
+    /* Primary blue color */
+    font-weight: 700;
+}

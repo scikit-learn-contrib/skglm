@@ -4,7 +4,7 @@
    :description: Detailed mathematical guide on Cox datafit implementation in skglm, covering Breslow and Efron estimates. Useful for survival analysis.
 
 =============================
-Mathematic behind Cox datafit
+Mathematic behind Cox Datafit
 =============================
 
 This tutorial presents the mathematics behind Cox datafit using both Breslow and Efron estimate.

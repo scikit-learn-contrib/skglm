@@ -123,6 +123,8 @@ stable_color = "#1f77b4"
 primary = stable_color if is_stable_doc else dev_color
 primary_dark = "#135b91" if is_stable_doc else "#e76f00"
 
+version_match = "stable" if is_stable_doc else "dev"
+
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
@@ -158,9 +160,10 @@ html_theme_options = {
             "type": "fontawesome",
         },
     ],
+    "version_dropdown": True,
     "switcher": {
         "json_url": "/_static/switcher.json",
-        "version_match": "stable" if is_stable_doc else "dev",
+        "version_match": version_match,
     },
     "navigation_with_keys": True,
     "search_bar_text": "Search skglm docs...",
@@ -200,7 +203,10 @@ mathjax_inline = ['`', '`']
 mathjax_display = ['`', '`']
 
 html_static_path = ['_static']
-html_js_files = ["scripts/asciimath-defines.js"]
+html_js_files = [
+    "scripts/asciimath-defines.js",
+    "switcher.json"
+]
 
 # -- Options for copybutton ---------------------------------------------
 # complete explanation of the regex expression can be found here

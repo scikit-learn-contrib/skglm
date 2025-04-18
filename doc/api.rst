@@ -1,4 +1,4 @@
-.. _api_documentation:
+.. _api:
 
 .. meta::
    :description: Browse the skglm API documentation covering estimators (Lasso, ElasticNet, Cox), penalties (L1, SCAD, MCP), datafits (Logistic, Poisson), and optimized solvers.

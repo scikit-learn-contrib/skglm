@@ -77,7 +77,7 @@ myst_enable_extensions = [
     "amsmath"
 ]
 # generate autosummary even if no references
-autosummary_generate = False
+autosummary_generate = True
 
 templates_path = ['_templates']
 

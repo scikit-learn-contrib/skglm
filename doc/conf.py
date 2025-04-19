@@ -162,7 +162,8 @@ html_theme_options = {
     ],
     "version_dropdown": True,
     "switcher": {
-        "json_url": "/_static/switcher.json",
+        # NOTE: must be a URL and not a path relative to doc
+        "json_url": "https://raw.githubusercontent.com/floriankozikowski/skglm/refs/heads/documentation-update/doc/_static/switcher.json",
         "version_match": version_match,
     },
     "navigation_with_keys": True,

@@ -1,6 +1,6 @@
 .. _general_examples:
 
-Examples Gallery
+Examples
 ================
 
 .. contents:: Contents

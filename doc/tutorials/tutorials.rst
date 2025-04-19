@@ -1,40 +1,57 @@
 .. _tutorials:
 
+.. meta::
+   :description: Step-by-step skglm tutorials covering custom datafits, penalties, intercept computations, Cox datafit mathematics, group Lasso details, and regularization strategies.
+
 =========
 Tutorials
 =========
-----------------
 
+.. grid:: 1 1 2 2
+   :gutter: 2
 
-:ref:`How to add a custom datafit <how_to_add_custom_datafit>`
---------------------------------------------------------------
+   .. grid-item-card:: How to Add a Custom Datafit
+      :link: add_datafit.html
+      :text-align: left
 
-Learn to add a custom datafit through a hands-on examples: Implementing a Poisson datafit.
+      Learn to add a custom datafit through a hands-on examples: Implementing a Poisson datafit.
 
+   .. grid-item-card:: How to Add a Custom Penalty
+      :link: add_penalty.html
+      :text-align: left
 
-:ref:`How to add a custom penalty <how_to_add_custom_penalty>`
---------------------------------------------------------------
+      Learn to add a custom penalty by implementing the :math:`\ell_1` penalty.
 
-Learn to add a custom penalty by implementing the :math:`\ell_1` penalty.
+   .. grid-item-card:: Computation of the Intercept
+      :link: intercept.html
+      :text-align: left
 
+      Explore how ``skglm`` fits an unpenalized intercept.
 
-:ref:`Computation of the intercept <maths_unpenalized_intercept>`
------------------------------------------------------------------
+   .. grid-item-card:: Mathematics behind Cox Datafit
+      :link: cox_datafit.html
+      :text-align: left
 
-Explore how ``skglm`` fits an unpenalized intercept.
+      Understand the mathematical foundation of Cox datafit and its applications in survival analysis.
 
+   .. grid-item-card:: Details on the Group Lasso
+      :link: prox_nn_group_lasso.html
+      :text-align: left
 
-:ref:`Mathematics behind Cox datafit <maths_cox_datafit>`
----------------------------------------------------------
+      Mathematical details about the group Lasso, in particular with nonnegativity constraints.
 
-Get details about Cox datafit equations.
+   .. grid-item-card:: Understanding `alpha_max`
+      :link: alpha_max.html
+      :text-align: left
 
-:ref:`Details on the group Lasso <prox_nn_group_lasso>`
--------------------------------------------------------
+      Learn how to choose the regularization strength in :math:`\ell_1`-regularization?
 
-Mathematical details about the group Lasso, in particular with nonnegativity constraints.
+.. toctree::
+   :hidden:
 
-:ref:`Critical regularization strength above which solution is 0 <alpha_max>`
------------------------------------------------------------------------------
-
-How to choose the regularization strength in L1-regularization?
+   add_datafit
+   add_penalty
+   intercept
+   cox_datafit
+   prox_nn_group_lasso
+   alpha_max

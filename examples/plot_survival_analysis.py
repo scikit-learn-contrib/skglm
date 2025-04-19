@@ -71,8 +71,6 @@ alpha = 1e-2
 datafit = Cox()
 penalty = L1(alpha)
 
-datafit.initialize(X, y)
-
 # init solver
 solver = ProxNewton(fit_intercept=False, max_iter=50)
 
@@ -230,7 +228,6 @@ print(f"Number of unique times {len(np.unique(tm))} out of {n_samples}")
 
 # ensure using Efron estimate
 datafit = Cox(use_efron=True)
-datafit.initialize(X, y)
 
 # solve the problem
 solver = ProxNewton(fit_intercept=False, max_iter=50)

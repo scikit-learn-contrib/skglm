@@ -137,7 +137,7 @@ class BaseSolver(ABC):
         if run_checks:
             self._validate(X, y, datafit, penalty)
 
-        # check for None as GramCD solver doesn't take None as datafit
+        # check for None as `GramCD` solver take `None` as datafit
         if datafit is not None and initialize_datafit:
             if issparse(X):
                 datafit.initialize_sparse(X.data, X.indptr, X.indices, y)

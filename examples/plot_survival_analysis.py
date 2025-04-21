@@ -69,6 +69,7 @@ alpha = 1e-2
 
 # skglm internals: init datafit and penalty
 datafit = Cox()
+datafit.initialize(X, y)
 penalty = L1(alpha)
 
 # init solver
@@ -228,6 +229,7 @@ print(f"Number of unique times {len(np.unique(tm))} out of {n_samples}")
 
 # ensure using Efron estimate
 datafit = Cox(use_efron=True)
+datafit.initialize(X, y)
 
 # solve the problem
 solver = ProxNewton(fit_intercept=False, max_iter=50)

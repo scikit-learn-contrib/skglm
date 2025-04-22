@@ -11,7 +11,6 @@ from skglm.penalties import L1, WeightedL1
 from skglm.solvers import AndersonCD, ProxNewton
 from skglm import GeneralizedLinearEstimator
 from skglm.utils.data import make_correlated_data
-from skglm.utils.jit_compilation import compiled_clone
 from skglm.utils.data import make_dummy_survival_data
 
 
@@ -132,7 +131,7 @@ def test_cox(use_efron):
     Xw = X @ w
 
     # check datafit
-    cox_df = compiled_clone(Cox(use_efron))
+    cox_df = Cox(use_efron)
 
     cox_df.initialize(X, y)
     cox_df.value(y, w, Xw)

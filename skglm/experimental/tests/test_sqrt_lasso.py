@@ -7,7 +7,6 @@ from skglm.utils.data import make_correlated_data
 from skglm.experimental.sqrt_lasso import (SqrtLasso, SqrtQuadratic,
                                            _chambolle_pock_sqrt)
 from skglm.experimental.pdcd_ws import PDCD_WS
-from skglm.utils.jit_compilation import compiled_clone
 
 
 def test_alpha_max():
@@ -70,8 +69,8 @@ def test_PDCD_WS(with_dual_init):
 
     dual_init = y / norm(y) if with_dual_init else None
 
-    datafit = compiled_clone(SqrtQuadratic())
-    penalty = compiled_clone(L1(alpha))
+    datafit = SqrtQuadratic()
+    penalty = L1(alpha)
 
     w = PDCD_WS(dual_init=dual_init).solve(X, y, datafit, penalty)[0]
     clf = SqrtLasso(alpha=alpha, tol=1e-12).fit(X, y)

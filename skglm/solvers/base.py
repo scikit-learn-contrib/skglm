@@ -1,5 +1,10 @@
+import warnings
 from abc import abstractmethod, ABC
+
+import numpy as np
+
 from skglm.utils.validation import check_attrs
+from skglm.utils.jit_compilation import compiled_clone
 
 
 class BaseSolver(ABC):
@@ -89,8 +94,9 @@ class BaseSolver(ABC):
         """
         pass
 
-    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None,
-              *, run_checks=True):
+    def solve(
+        self, X, y, datafit, penalty, w_init=None, Xw_init=None, *, run_checks=True
+    ):
         """Solve the optimization problem after validating its compatibility.
 
         A proxy of ``_solve`` method that implicitly ensures the compatibility
@@ -101,6 +107,29 @@ class BaseSolver(ABC):
         >>> ...
         >>> coefs, obj_out, stop_crit = solver.solve(X, y, datafit, penalty)
         """
+        # TODO check for datafit/penalty being jit-compiled properly
+        # instead of searching for a string
+        if "jitclass" in str(type(datafit)):
+            warnings.warn(
+                "Passing in a compiled datafit is deprecated since skglm v0.5 "
+                "Compilation is now done inside solver."
+                "This will raise an error starting skglm v0.6 onwards."
+            )
+        elif datafit is not None:
+            datafit = compiled_clone(datafit, to_float32=X.dtype == np.float32)
+
+        if "jitclass" in str(type(penalty)):
+            warnings.warn(
+                "Passing in a compiled penalty is deprecated since skglm v0.5 "
+                "Compilation is now done inside solver. "
+                "This will raise an error starting skglm v0.6 onwards."
+            )
+        elif penalty is not None:
+            penalty = compiled_clone(penalty)
+            # TODO add support for bool spec in compiled_clone
+            # currently, doing so break the code
+            # penalty = compiled_clone(penalty, to_float32=X.dtype == np.float32)
+
         if run_checks:
             self._validate(X, y, datafit, penalty)
 

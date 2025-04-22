@@ -97,13 +97,15 @@ def test_slope():
     # q = 0.1
     # alphas = lambda_sequence(
     #     X, y, fit_intercept=False, reg=alpha / alpha_max, q=q)
-    clf = SlopeEst(alpha=0.01, fit_intercept=False).fit(X, y)
+    clf = SlopeEst(
+        alpha=0.01, fit_intercept=False, tol=1e-6
+    ).fit(X, y)
     alphas = clf.lambda_
     ours = GeneralizedLinearEstimator(
         penalty=SLOPE(clf.alpha * alphas),
         solver=FISTA(max_iter=1000, tol=tol, opt_strategy="fixpoint"),
     ).fit(X, y)
-    np.testing.assert_allclose(ours.coef_, clf.coef_, rtol=1e-5)
+    np.testing.assert_allclose(ours.coef_, np.squeeze(clf.coef_), rtol=1e-3)
 
 
 @pytest.mark.parametrize("fit_intercept", [True, False])

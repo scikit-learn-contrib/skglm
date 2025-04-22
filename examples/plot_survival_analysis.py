@@ -15,6 +15,7 @@ x100 less time.
 # Let's first generate synthetic data on which to run the Cox estimator,
 # using ``skglm`` data utils.
 #
+
 from skglm.utils.data import make_dummy_survival_data
 
 n_samples, n_features = 500, 100
@@ -59,18 +60,16 @@ _ = axes[0].set_ylabel("count")
 # Todo so, we need to combine a Cox datafit and a :math:`\ell_1` penalty
 # and solve the resulting problem using skglm Proximal Newton solver ``ProxNewton``.
 # We set the intensity of the :math:`\ell_1` regularization to ``alpha=1e-2``.
-from skglm.datafits import Cox
 from skglm.penalties import L1
+from skglm.datafits import Cox
 from skglm.solvers import ProxNewton
-
-from skglm.utils.jit_compilation import compiled_clone
 
 # regularization intensity
 alpha = 1e-2
 
 # skglm internals: init datafit and penalty
-datafit = compiled_clone(Cox())
-penalty = compiled_clone(L1(alpha))
+datafit = Cox()
+penalty = L1(alpha)
 
 datafit.initialize(X, y)
 
@@ -230,7 +229,7 @@ print(f"Number of unique times {len(np.unique(tm))} out of {n_samples}")
 # We only need to pass in ``use_efron=True`` to the ``Cox`` datafit.
 
 # ensure using Efron estimate
-datafit = compiled_clone(Cox(use_efron=True))
+datafit = Cox(use_efron=True)
 datafit.initialize(X, y)
 
 # solve the problem

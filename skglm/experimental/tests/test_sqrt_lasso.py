@@ -7,6 +7,7 @@ from skglm.utils.data import make_correlated_data
 from skglm.experimental.sqrt_lasso import (SqrtLasso, SqrtQuadratic,
                                            _chambolle_pock_sqrt)
 from skglm.experimental.pdcd_ws import PDCD_WS
+from skglm import Lasso
 
 
 def test_alpha_max():
@@ -78,6 +79,33 @@ def test_PDCD_WS(with_dual_init):
     w = PDCD_WS(dual_init=dual_init).solve(X, y, datafit, penalty)[0]
     clf = SqrtLasso(alpha=alpha, fit_intercept=False, tol=1e-12).fit(X, y)
     np.testing.assert_allclose(clf.coef_, w, atol=1e-6)
+
+
+def test_sqrt_lasso_with_intercept():
+    np.random.seed(0)
+    X = np.random.randn(10, 20)
+    y = np.random.randn(10)
+    y += 1
+
+    n = len(y)
+    alpha_max = norm(X.T @ y, ord=np.inf) / n
+    alpha = alpha_max / 10
+
+    # Fit standard Lasso with intercept
+    lass = Lasso(alpha=alpha, fit_intercept=True, tol=1e-8).fit(X, y)
+    w_lass = lass.coef_
+    assert norm(w_lass) > 0
+
+    scal = n / norm(y - lass.predict(X))
+
+    # Fit SqrtLasso with intercept
+    sqrt = SqrtLasso(alpha=alpha * scal, fit_intercept=True, tol=1e-8).fit(X, y)
+
+    # Make sure intercept was learned
+    assert abs(sqrt.intercept_) > 1e-6
+
+    y_pred = sqrt.predict(X)
+    assert y_pred.shape == y.shape
 
 
 if __name__ == '__main__':

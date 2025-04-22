@@ -228,7 +228,7 @@ class AdaptiveGraphicalLassoPenalty():
         return self
 
 
-class AdaptiveGraphicalLassoStrategy():
+class AdaptiveGraphicalLasso():
     """ An adaptive version of the Graphical Lasso that solves non-convex penalty
     variations using the reweighting strategy from Candès et al., 2007."""
 

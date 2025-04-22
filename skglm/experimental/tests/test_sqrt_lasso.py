@@ -77,7 +77,11 @@ def test_PDCD_WS(with_dual_init):
     penalty = L1(alpha)
 
     w = PDCD_WS(dual_init=dual_init).solve(X, y, datafit, penalty)[0]
+<<<<<<< HEAD
     clf = SqrtLasso(alpha=alpha, fit_intercept=False, tol=1e-12).fit(X, y)
+=======
+    clf = SqrtLasso(alpha=alpha, tol=1e-12).fit(X, y)
+>>>>>>> origin/main
     np.testing.assert_allclose(clf.coef_, w, atol=1e-6)
 
 

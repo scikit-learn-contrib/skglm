@@ -106,13 +106,7 @@ class SqrtLasso(LinearModel, RegressorMixin):
     """
 
     def __init__(self, alpha=1., max_iter=100, max_pn_iter=100, p0=10,
-<< << << < HEAD
                  tol=1e-4, verbose=0, fit_intercept=True):
-
-
-== == == =
-                 tol = 1e-4, verbose = 0, fit_intercept = False):
->>>>>> > 69bf74f (first try , add support for fit_intercept in sqrtLasso, TODOS: review if correct, clean up, pot. add support for sparse X (not sure if that works), enhance docstring)
         super().__init__()
         self.alpha = alpha
         self.max_iter = max_iter

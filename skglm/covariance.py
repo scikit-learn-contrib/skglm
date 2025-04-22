@@ -204,10 +204,12 @@ class AdaptiveGraphicalLassoPenalty():
             glasso.fit(S)
             Theta = glasso.precision_
 
-            Weights = abs(self.penalty.derivative(Theta))
-            # Theta = (Theta + Theta.T) / 2
-            # Weights = (Weights + Weights.T) / 2
-            # np.fill_diagonal(Weights, 0)
+            Theta_sym = (Theta + Theta.T) / 2
+            Weights = np.where(
+                Theta_sym == 0,
+                1 / self.penalty.eps,
+                np.abs(self.penalty.derivative(Theta_sym))
+            )
 
             print(
                 f"Min/Max Weights after penalty derivative: {Weights.min():.2e}, {Weights.max():.2e}")

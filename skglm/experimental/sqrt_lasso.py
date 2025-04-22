@@ -106,7 +106,11 @@ class SqrtLasso(LinearModel, RegressorMixin):
     """
 
     def __init__(self, alpha=1., max_iter=100, max_pn_iter=100, p0=10,
+<<<<<<< HEAD
                  tol=1e-4, verbose=0, fit_intercept=True):
+=======
+                 tol=1e-4, verbose=0, fit_intercept=False):
+>>>>>>> 69bf74f (first try, add support for fit_intercept in sqrtLasso, TODOS: review if correct, clean up, pot. add support for sparse X (not sure if that works), enhance docstring)
         super().__init__()
         self.alpha = alpha
         self.max_iter = max_iter
@@ -134,9 +138,26 @@ class SqrtLasso(LinearModel, RegressorMixin):
         self :
             Fitted estimator.
         """
+<<<<<<< HEAD
         self.coef_ = self.path(X, y, alphas=[self.alpha])[1][0]
         if self.fit_intercept:
             self.intercept_ = self.coef_[-1]
+=======
+        # self.coef_ = self.path(X, y, alphas=[self.alpha])[1][0]
+        if self.fit_intercept:
+            X_mean = X.mean(axis=0)
+            y_mean = y.mean()
+            X_centered = X - X_mean
+            y_centered = y - y_mean
+        else:
+            X_centered = X
+            y_centered = y
+
+        self.coef_ = self.path(X_centered, y_centered, alphas=[self.alpha])[1][0]
+
+        if self.fit_intercept:
+            self.intercept_ = y_mean - X_mean @ self.coef_
+>>>>>>> 69bf74f (first try, add support for fit_intercept in sqrtLasso, TODOS: review if correct, clean up, pot. add support for sparse X (not sure if that works), enhance docstring)
         else:
             self.intercept_ = 0.
         return self

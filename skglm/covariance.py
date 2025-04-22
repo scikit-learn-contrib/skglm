@@ -331,7 +331,7 @@ if __name__ == "__main__":
     model_penalty.fit(S)
 
     # Fit old strategy-based model
-    model_strategy = AdaptiveGraphicalLassoStrategy(
+    model_strategy = AdaptiveGraphicalLasso(
         alpha=alpha,
         strategy="log",
         n_reweights=n_reweights,

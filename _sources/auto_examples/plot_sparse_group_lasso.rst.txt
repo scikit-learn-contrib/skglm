@@ -125,8 +125,6 @@ Train the model
 
  .. code-block:: none
 
-    /home/circleci/.local/lib/python3.10/site-packages/sklearn/base.py:474: FutureWarning: `BaseEstimator._validate_data` is deprecated in 1.6 and will be removed in 1.7. Use `sklearn.utils.validation.validate_data` instead. This function becomes public and is part of the scikit-learn developer API.
-      warnings.warn(
     Iteration 1: 2.9165123923, stopping crit: 6.04e-01
     Iteration 2: 2.0255867844, stopping crit: 1.59e-01
     Iteration 3: 1.6882399219, stopping crit: 1.45e-02
@@ -590,14 +588,14 @@ some values are 0 too
  .. code-block:: none
 
 
-    ([<matplotlib.axis.YTick object at 0x7fc1f540b8e0>, <matplotlib.axis.YTick object at 0x7fc1f65a90f0>, <matplotlib.axis.YTick object at 0x7fc1f540bd00>], [Text(0, 0, '0'), Text(0, 1, '1'), Text(0, 2, '2')])
+    ([<matplotlib.axis.YTick object at 0x7f25c9aa9780>, <matplotlib.axis.YTick object at 0x7f25c9370490>, <matplotlib.axis.YTick object at 0x7f25c93735e0>], [Text(0, 0, '0'), Text(0, 1, '1'), Text(0, 2, '2')])
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 4.262 seconds)
+   **Total running time of the script:** (0 minutes 4.214 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_sparse_group_lasso.py:

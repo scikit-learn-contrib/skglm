@@ -137,6 +137,7 @@ class SqrtLasso(LinearModel, RegressorMixin):
         self.coef_ = self.path(X, y, alphas=[self.alpha])[1][0]
         if self.fit_intercept:
             self.intercept_ = self.coef_[-1]
+            self.coef_ = self.coef_[:-1]
         else:
             self.intercept_ = 0.
         return self

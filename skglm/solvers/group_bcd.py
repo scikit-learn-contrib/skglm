@@ -1,9 +1,11 @@
 import numpy as np
 from numba import njit
+from scipy.sparse import issparse
 
 from skglm.solvers.base import BaseSolver
 from skglm.utils.anderson import AndersonAcceleration
-from skglm.utils.validation import check_group_compatible
+from skglm.utils.validation import check_group_compatible, check_attrs
+from skglm.solvers.common import dist_fix_point_bcd
 
 
 class GroupBCD(BaseSolver):
@@ -35,19 +37,25 @@ class GroupBCD(BaseSolver):
         Amount of verbosity. 0/False is silent.
     """
 
-    def __init__(self, max_iter=1000, max_epochs=100, p0=10, tol=1e-4,
-                 fit_intercept=False, warm_start=False, verbose=0):
+    _datafit_required_attr = ("get_lipschitz", "gradient_g")
+    _penalty_required_attr = ("prox_1group",)
+
+    def __init__(
+            self, max_iter=1000, max_epochs=100, p0=10, tol=1e-4, fit_intercept=False,
+            warm_start=False, ws_strategy="subdiff", verbose=0):
         self.max_iter = max_iter
         self.max_epochs = max_epochs
         self.p0 = p0
         self.tol = tol
         self.fit_intercept = fit_intercept
         self.warm_start = warm_start
+        self.ws_strategy = ws_strategy
         self.verbose = verbose
 
-    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
-        check_group_compatible(datafit)
-        check_group_compatible(penalty)
+    def _solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+        if self.ws_strategy not in ("subdiff", "fixpoint"):
+            raise ValueError(
+                'Unsupported value for self.ws_strategy:', self.ws_strategy)
 
         n_samples, n_features = X.shape
         n_groups = len(penalty.grp_ptr) - 1
@@ -66,8 +74,13 @@ class GroupBCD(BaseSolver):
                     f"expected {n_features}, got {len(w)}.")
             raise ValueError(val_error_message)
 
-        datafit.initialize(X, y)
-        lipschitz = datafit.get_lipschitz(X, y)
+        is_sparse = issparse(X)
+        if is_sparse:
+            datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
+            lipschitz = datafit.get_lipschitz_sparse(X.data, X.indptr, X.indices, y)
+        else:
+            datafit.initialize(X, y)
+            lipschitz = datafit.get_lipschitz(X, y)
 
         all_groups = np.arange(n_groups)
         p_objs_out = np.zeros(self.max_iter)
@@ -75,8 +88,19 @@ class GroupBCD(BaseSolver):
         accelerator = AndersonAcceleration(K=5)
 
         for t in range(self.max_iter):
-            grad = _construct_grad(X, y, w, Xw, datafit, all_groups)
-            opt = penalty.subdiff_distance(w, grad, all_groups)
+            if is_sparse:
+                grad = _construct_grad_sparse(
+                    X.data, X.indptr, X.indices, y, w, Xw, datafit, all_groups)
+            else:
+                grad = _construct_grad(X, y, w, Xw, datafit, all_groups)
+
+            if self.ws_strategy == "subdiff":
+                # MM TODO: AndersonCD passes w[:n_features] here
+                opt = penalty.subdiff_distance(w, grad, all_groups)
+            elif self.ws_strategy == "fixpoint":
+                opt = dist_fix_point_bcd(
+                    w[:n_features], grad, lipschitz, datafit, penalty, all_groups
+                )
 
             if self.fit_intercept:
                 intercept_opt = np.abs(datafit.intercept_update_step(y, Xw))
@@ -102,7 +126,13 @@ class GroupBCD(BaseSolver):
 
             for epoch in range(self.max_epochs):
                 # inplace update of w and Xw
-                _bcd_epoch(X, y, w[:n_features], Xw, lipschitz, datafit, penalty, ws)
+                if is_sparse:
+                    _bcd_epoch_sparse(X.data, X.indptr, X.indices, y, w[:n_features],
+                                      Xw, lipschitz, datafit, penalty, ws)
+
+                else:
+                    _bcd_epoch(X, y, w[:n_features], Xw,
+                               lipschitz, datafit, penalty, ws)
 
                 # update intercept
                 if self.fit_intercept:
@@ -122,9 +152,21 @@ class GroupBCD(BaseSolver):
 
                 # check sub-optimality every 10 epochs
                 if epoch % 10 == 0:
-                    grad_ws = _construct_grad(X, y, w, Xw, datafit, ws)
-                    opt_in = penalty.subdiff_distance(w, grad_ws, ws)
-                    stop_crit_in = np.max(opt_in)
+                    if is_sparse:
+                        grad_ws = _construct_grad_sparse(
+                            X.data, X.indptr, X.indices, y, w, Xw, datafit, ws)
+                    else:
+                        grad_ws = _construct_grad(X, y, w, Xw, datafit, ws)
+
+                    if self.ws_strategy == "subdiff":
+                        # TODO MM: AndersonCD uses w[:n_features] here
+                        opt_ws = penalty.subdiff_distance(w, grad_ws, ws)
+                    elif self.ws_strategy == "fixpoint":
+                        opt_ws = dist_fix_point_bcd(
+                            w, grad_ws, lipschitz[ws], datafit, penalty, ws
+                        )
+
+                    stop_crit_in = np.max(opt_ws)
 
                     if max(self.verbose - 1, 0):
                         p_obj = datafit.value(y, w, Xw) + penalty.value(w)
@@ -140,6 +182,24 @@ class GroupBCD(BaseSolver):
 
         return w, p_objs_out, stop_crit
 
+    def custom_checks(self, X, y, datafit, penalty):
+        check_group_compatible(datafit)
+        check_group_compatible(penalty)
+
+        # check datafit support sparse data
+        check_attrs(
+            datafit, solver=self,
+            required_attr=self._datafit_required_attr,
+            support_sparse=issparse(X)
+        )
+
+        # ws strategy
+        if self.ws_strategy == "subdiff" and not hasattr(penalty, "subdiff_distance"):
+            raise AttributeError(
+                "Penalty must implement `subdiff_distance` "
+                "to use ws_strategy='subdiff'."
+            )
+
 
 @njit
 def _bcd_epoch(X, y, w, Xw, lipschitz, datafit, penalty, ws):
@@ -154,13 +214,33 @@ def _bcd_epoch(X, y, w, Xw, lipschitz, datafit, penalty, ws):
         grad_g = datafit.gradient_g(X, y, w, Xw, g)
 
         w[grp_g_indices] = penalty.prox_1group(
-            old_w_g - grad_g / lipschitz_g,
-            1 / lipschitz_g, g
-        )
+            old_w_g - grad_g / lipschitz_g, 1 / lipschitz_g, g)
 
         for idx, j in enumerate(grp_g_indices):
             if old_w_g[idx] != w[j]:
                 Xw += (w[j] - old_w_g[idx]) * X[:, j]
+
+
+@njit
+def _bcd_epoch_sparse(
+        X_data, X_indptr, X_indices, y, w, Xw, lipschitz, datafit, penalty, ws):
+    # perform a single BCD epoch on groups in ws
+    grp_ptr, grp_indices = penalty.grp_ptr, penalty.grp_indices
+
+    for g in ws:
+        grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
+        old_w_g = w[grp_g_indices].copy()
+
+        lipschitz_g = lipschitz[g]
+        grad_g = datafit.gradient_g_sparse(X_data, X_indptr, X_indices, y, w, Xw, g)
+
+        w[grp_g_indices] = penalty.prox_1group(
+            old_w_g - grad_g / lipschitz_g, 1 / lipschitz_g, g)
+
+        for idx, j in enumerate(grp_g_indices):
+            if old_w_g[idx] != w[j]:
+                for i in range(X_indptr[j], X_indptr[j+1]):
+                    Xw[X_indices[i]] += (w[j] - old_w_g[idx]) * X_data[i]
 
 
 @njit
@@ -174,6 +254,22 @@ def _construct_grad(X, y, w, Xw, datafit, ws):
     grad_ptr = 0
     for g in ws:
         grad_g = datafit.gradient_g(X, y, w, Xw, g)
+        grads[grad_ptr: grad_ptr+len(grad_g)] = grad_g
+        grad_ptr += len(grad_g)
+    return grads
+
+
+@njit
+def _construct_grad_sparse(X_data, X_indptr, X_indices, y, w, Xw, datafit, ws):
+    # compute the -gradient according to each group in ws
+    # note: -gradients are stacked in a 1d array ([-grad_ws_1, -grad_ws_2, ...])
+    grp_ptr = datafit.grp_ptr
+    n_features_ws = sum([grp_ptr[g+1] - grp_ptr[g] for g in ws])
+
+    grads = np.zeros(n_features_ws)
+    grad_ptr = 0
+    for g in ws:
+        grad_g = datafit.gradient_g_sparse(X_data, X_indptr, X_indices, y, w, Xw, g)
         grads[grad_ptr: grad_ptr+len(grad_g)] = grad_g
         grad_ptr += len(grad_g)
     return grads

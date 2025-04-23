@@ -7,6 +7,7 @@ from skglm.solvers.common import (
 )
 from skglm.solvers.base import BaseSolver
 from skglm.utils.anderson import AndersonAcceleration
+from skglm.utils.validation import check_attrs
 
 
 class AndersonCD(BaseSolver):
@@ -47,6 +48,9 @@ class AndersonCD(BaseSolver):
            code: https://github.com/mathurinm/andersoncd
     """
 
+    _datafit_required_attr = ("get_lipschitz", "gradient_scalar")
+    _penalty_required_attr = ("prox_1d",)
+
     def __init__(self, max_iter=50, max_epochs=50_000, p0=10,
                  tol=1e-4, ws_strategy="subdiff", fit_intercept=True,
                  warm_start=False, verbose=0):
@@ -59,7 +63,7 @@ class AndersonCD(BaseSolver):
         self.warm_start = warm_start
         self.verbose = verbose
 
-    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+    def _solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
         if self.ws_strategy not in ("subdiff", "fixpoint"):
             raise ValueError(
                 'Unsupported value for self.ws_strategy:', self.ws_strategy)
@@ -103,6 +107,8 @@ class AndersonCD(BaseSolver):
             # The intercept is not taken into account in the optimality conditions since
             # the derivative w.r.t. to the intercept may be very large. It is not likely
             # to change significantly the optimality conditions.
+            # TODO: MM I don't understand the comment above: the intercept is
+            # taken into account intercept_opt 6 lines below
             if self.ws_strategy == "subdiff":
                 opt = penalty.subdiff_distance(w[:n_features], grad, all_feats)
             elif self.ws_strategy == "fixpoint":
@@ -184,7 +190,7 @@ class AndersonCD(BaseSolver):
                         opt_ws = penalty.subdiff_distance(w[:n_features], grad_ws, ws)
                     elif self.ws_strategy == "fixpoint":
                         opt_ws = dist_fix_point_cd(
-                            w[:n_features], grad_ws, lipschitz, datafit, penalty, ws
+                            w[:n_features], grad_ws, lipschitz[ws], datafit, penalty, ws
                         )
 
                     stop_crit_in = np.max(opt_ws)
@@ -266,6 +272,21 @@ class AndersonCD(BaseSolver):
         if return_n_iter:
             results += (n_iters,)
         return results
+
+    def custom_checks(self, X, y, datafit, penalty):
+        # check datafit support sparse data
+        check_attrs(
+            datafit, solver=self,
+            required_attr=self._datafit_required_attr,
+            support_sparse=sparse.issparse(X)
+        )
+
+        # ws strategy
+        if self.ws_strategy == "subdiff" and not hasattr(penalty, "subdiff_distance"):
+            raise AttributeError(
+                "Penalty must implement `subdiff_distance` "
+                "to use ws_strategy='subdiff' in solver AndersonCD."
+            )
 
 
 @njit

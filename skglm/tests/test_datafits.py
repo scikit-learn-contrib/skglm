@@ -5,12 +5,12 @@ import pytest
 from sklearn.linear_model import HuberRegressor
 from numpy.testing import assert_allclose, assert_array_less
 
-from skglm.datafits import Huber, Logistic, Poisson, Gamma, Cox
+from skglm.datafits import (Huber, Logistic, Poisson, Gamma, Cox, WeightedQuadratic,
+                            Quadratic, QuadraticHessian)
 from skglm.penalties import L1, WeightedL1
 from skglm.solvers import AndersonCD, ProxNewton
 from skglm import GeneralizedLinearEstimator
 from skglm.utils.data import make_correlated_data
-from skglm.utils.jit_compilation import compiled_clone
 from skglm.utils.data import make_dummy_survival_data
 
 
@@ -131,7 +131,7 @@ def test_cox(use_efron):
     Xw = X @ w
 
     # check datafit
-    cox_df = compiled_clone(Cox(use_efron))
+    cox_df = Cox(use_efron)
 
     cox_df.initialize(X, y)
     cox_df.value(y, w, Xw)
@@ -167,6 +167,74 @@ def test_cox(use_efron):
         positive_eig = positive_eig[positive_eig >= 0.]
 
         np.testing.assert_allclose(positive_eig, 0., atol=1e-6)
+
+
+@pytest.mark.parametrize("fit_intercept", [True, False])
+def test_sample_weights(fit_intercept):
+    """Test that integers sample weights give same result as duplicating rows."""
+
+    rng = np.random.RandomState(0)
+
+    n_samples = 20
+    n_features = 100
+    X, y, _ = make_correlated_data(
+        n_samples=n_samples, n_features=n_features, random_state=0)
+
+    indices = rng.choice(n_samples, 3 * n_samples)
+
+    sample_weights = np.zeros(n_samples)
+    for i in indices:
+        sample_weights[i] += 1
+
+    X_overs, y_overs = X[indices], y[indices]
+
+    df_weight = WeightedQuadratic(sample_weights=sample_weights)
+    df_overs = Quadratic()
+
+    # same df value
+    w = np.random.randn(n_features)
+    val_overs = df_overs.value(y_overs, X_overs, X_overs @ w)
+    val_weight = df_weight.value(y, X, X @ w)
+    np.testing.assert_allclose(val_overs, val_weight)
+
+    pen = L1(alpha=1)
+    alpha_max = pen.alpha_max(df_weight.gradient(X, y, np.zeros(X.shape[0])))
+    pen.alpha = alpha_max / 10
+    solver = AndersonCD(tol=1e-12, verbose=10, fit_intercept=fit_intercept)
+
+    model_weight = GeneralizedLinearEstimator(df_weight, pen, solver)
+    model_weight.fit(X, y)
+    print("#" * 80)
+    res = model_weight.coef_
+    model = GeneralizedLinearEstimator(df_overs, pen, solver)
+    model.fit(X_overs, y_overs)
+    res_overs = model.coef_
+
+    np.testing.assert_allclose(res, res_overs)
+    # n_iter = model.n_iter_
+    # n_iter_overs = model.n_iter_
+    # due to numerical errors the assert fails, but (inspecting the verbose output)
+    # everything matches up to numerical precision errors in tol:
+    # np.testing.assert_equal(n_iter, n_iter_overs)
+
+
+def test_HessianQuadratic():
+    n_samples = 20
+    n_features = 10
+    X, y, _ = make_correlated_data(
+        n_samples=n_samples, n_features=n_features, random_state=0)
+    A = X.T @ X / n_samples
+    b = -X.T @ y / n_samples
+    alpha = np.max(np.abs(b)) / 10
+
+    pen = L1(alpha)
+    solv = AndersonCD(warm_start=False, verbose=2, fit_intercept=False)
+    lasso = GeneralizedLinearEstimator(Quadratic(), pen, solv).fit(X, y)
+    qpl1 = GeneralizedLinearEstimator(QuadraticHessian(), pen, solv).fit(A, b)
+
+    np.testing.assert_allclose(lasso.coef_, qpl1.coef_)
+    # check that it's not just because we got alpha too high and thus 0 coef
+    np.testing.assert_array_less(0.1, np.max(np.abs(qpl1.coef_)))
 
 
 if __name__ == '__main__':

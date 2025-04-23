@@ -6,12 +6,12 @@
 =========
 ``skglm``
 =========
-*— A fast and modular scikit-learn replacement for sparse GLMs —*
+*— A fast and modular scikit-learn replacement for regularized GLMs —*
 
 --------
 
 
-``skglm`` is a Python package that offers **fast estimators** for sparse Generalized Linear Models (GLMs)
+``skglm`` is a Python package that offers **fast estimators** for regularized Generalized Linear Models (GLMs)
 that are **100% compatible with** ``scikit-learn``. It is **highly flexible** and supports a wide range of GLMs.
 You get to choose from ``skglm``'s already-made estimators or **customize your own** by combining the available datafits and penalties.
 
@@ -21,7 +21,7 @@ Get a hands-on glimpse on ``skglm`` through the :ref:`Getting started page <gett
 Why ``skglm``?
 --------------
 
-``skglm`` is specifically conceived to solve sparse GLMs.
+``skglm`` is specifically conceived to solve regularized GLMs.
 It supports many missing models in ``scikit-learn`` and ensures high performance.
 
 There are several reasons to opt for ``skglm`` among which:
@@ -48,18 +48,14 @@ Installing ``skglm``
 
     $ pip install -U skglm
 
-It is also available on Conda and can be installed via the command
+It is also available on conda-forge and can be installed using, for instance:
 
 .. code-block:: shell
 
-    $ conda install skglm
+    $ conda install -c conda-forge skglm
 
 With ``skglm`` being installed, Get the first steps with the package via the :ref:`Getting started section <getting_started>`.
 Other advanced topics and uses-cases are covered in :ref:`Tutorials <tutorials>`.
-
-.. note::
-
-  - Currently, ``skglm`` is unavailable on Conda but will be released very soon...
 
 
 Cite
@@ -77,13 +73,16 @@ You are free to use it and if you do so, please cite
                      and G. Gidel and M. Massias},
         booktitle = {NeurIPS},
         year      = {2022},
+    }
 
 
-Explore the documentation
--------------------------
+.. it is mandatory to keep the toctree here although it doesn't show up in the page
+.. when adding/modifying pages, don't forget to update the toctree
 
 .. toctree::
     :maxdepth: 1
+    :hidden:
+    :includehidden:
 
     getting_started.rst
     tutorials/tutorials.rst
@@ -91,4 +90,3 @@ Explore the documentation
     api.rst
     contribute.rst
     changes/whats_new.rst
-

@@ -17,6 +17,7 @@ Estimators
    GeneralizedLinearEstimator
    CoxEstimator
    ElasticNet
+   GroupLasso
    Lasso
    LinearSVC
    SparseLogisticRegression
@@ -67,7 +68,9 @@ Datafits
    Poisson
    Quadratic
    QuadraticGroup
+   QuadraticHessian
    QuadraticSVC
+   WeightedQuadratic
 
 
 Solvers

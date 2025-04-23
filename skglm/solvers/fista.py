@@ -3,6 +3,7 @@ from scipy.sparse import issparse
 from skglm.solvers.base import BaseSolver
 from skglm.solvers.common import construct_grad, construct_grad_sparse
 from skglm.utils.prox_funcs import _prox_vec
+from skglm.utils.validation import check_attrs
 
 
 class FISTA(BaseSolver):
@@ -27,6 +28,9 @@ class FISTA(BaseSolver):
            https://epubs.siam.org/doi/10.1137/080716542
     """
 
+    _datafit_required_attr = ("get_global_lipschitz", ("gradient", "gradient_scalar"))
+    _penalty_required_attr = (("prox_1d", "prox_vec"),)
+
     def __init__(self, max_iter=100, tol=1e-4, opt_strategy="subdiff", verbose=0):
         self.max_iter = max_iter
         self.tol = tol
@@ -35,7 +39,7 @@ class FISTA(BaseSolver):
         self.fit_intercept = False   # needed to be passed to GeneralizedLinearEstimator
         self.warm_start = False
 
-    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+    def _solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
         p_objs_out = []
         n_samples, n_features = X.shape
         all_features = np.arange(n_features)
@@ -46,19 +50,14 @@ class FISTA(BaseSolver):
         z = w_init.copy() if w_init is not None else np.zeros(n_features)
         Xw = Xw_init.copy() if Xw_init is not None else np.zeros(n_samples)
 
-        try:
-            if X_is_sparse:
-                lipschitz = datafit.get_global_lipschitz_sparse(
-                    X.data, X.indptr, X.indices, y
-                )
-            else:
-                lipschitz = datafit.get_global_lipschitz(X, y)
-        except AttributeError as e:
-            sparse_suffix = '_sparse' if X_is_sparse else ''
-
-            raise Exception(
-                "Datafit is not compatible with FISTA solver.\n Datafit must "
-                f"implement `get_global_lipschitz{sparse_suffix}` method") from e
+        if X_is_sparse:
+            datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
+            lipschitz = datafit.get_global_lipschitz_sparse(
+                X.data, X.indptr, X.indices, y
+            )
+        else:
+            datafit.initialize(X, y)
+            lipschitz = datafit.get_global_lipschitz(X, y)
 
         for n_iter in range(self.max_iter):
             t_old = t_new
@@ -111,3 +110,18 @@ class FISTA(BaseSolver):
                     print(f"Stopping criterion max violation: {stop_crit:.2e}")
                 break
         return w, np.array(p_objs_out), stop_crit
+
+    def custom_checks(self, X, y, datafit, penalty):
+        # check datafit support sparse data
+        check_attrs(
+            datafit, solver=self,
+            required_attr=self._datafit_required_attr,
+            support_sparse=issparse(X)
+        )
+
+        # optimality check
+        if self.opt_strategy == "subdiff" and not hasattr(penalty, "subdiff_distance"):
+            raise AttributeError(
+                "Penalty must implement `subdiff_distance` "
+                "to use `opt_strategy='subdiff'` in Fista solver."
+            )

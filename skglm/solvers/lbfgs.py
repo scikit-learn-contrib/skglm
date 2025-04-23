@@ -7,6 +7,7 @@ from numpy.linalg import norm
 from scipy.sparse import issparse
 
 from skglm.solvers import BaseSolver
+from skglm.utils.validation import check_attrs
 
 
 class LBFGS(BaseSolver):
@@ -27,12 +28,22 @@ class LBFGS(BaseSolver):
         Amount of verbosity. 0/False is silent.
     """
 
+    _datafit_required_attr = ("gradient",)
+    _penalty_required_attr = ("gradient",)
+
     def __init__(self, max_iter=50, tol=1e-4, verbose=False):
         self.max_iter = max_iter
         self.tol = tol
         self.verbose = verbose
 
-    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+    def _solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+
+        # TODO: to be isolated in a seperated method
+        is_sparse = issparse(X)
+        if is_sparse:
+            datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
+        else:
+            datafit.initialize(X, y)
 
         def objective(w):
             Xw = X @ w
@@ -66,8 +77,7 @@ class LBFGS(BaseSolver):
 
                 it = len(p_objs_out)
                 print(
-                    f"Iteration {it}: {p_obj:.10f}, "
-                    f"stopping crit: {stop_crit:.2e}"
+                    f"Iteration {it}: {p_obj:.10f}, " f"stopping crit: {stop_crit:.2e}"
                 )
 
         n_features = X.shape[1]
@@ -83,7 +93,7 @@ class LBFGS(BaseSolver):
             options=dict(
                 maxiter=self.max_iter,
                 gtol=self.tol,
-                ftol=0.  # set ftol=0. to control convergence using only gtol
+                ftol=0.0,  # set ftol=0. to control convergence using only gtol
             ),
             callback=callback_post_iter,
         )
@@ -93,7 +103,7 @@ class LBFGS(BaseSolver):
                 f"`LBFGS` did not converge for tol={self.tol:.3e} "
                 f"and max_iter={self.max_iter}.\n"
                 "Consider increasing `max_iter` and/or `tol`.",
-                category=ConvergenceWarning
+                category=ConvergenceWarning,
             )
 
         w = result.x
@@ -102,3 +112,12 @@ class LBFGS(BaseSolver):
         stop_crit = norm(result.jac, ord=np.inf)
 
         return w, np.asarray(p_objs_out), stop_crit
+
+    def custom_checks(self, X, y, datafit, penalty):
+        # check datafit support sparse data
+        check_attrs(
+            datafit,
+            solver=self,
+            required_attr=self._datafit_required_attr,
+            support_sparse=issparse(X),
+        )

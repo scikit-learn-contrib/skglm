@@ -6,12 +6,14 @@ from numpy.linalg import norm
 
 from skglm.penalties import L1
 from skglm.datafits import Quadratic
-from skglm.penalties.block_separable import WeightedGroupL2
+from skglm import GeneralizedLinearEstimator
+from skglm.penalties.block_separable import (
+    WeightedL1GroupL2, WeightedGroupL2
+)
 from skglm.datafits.group import QuadraticGroup, LogisticGroup
 from skglm.solvers import GroupBCD, GroupProxNewton
 
 from skglm.utils.anderson import AndersonAcceleration
-from skglm.utils.jit_compilation import compiled_clone
 from skglm.utils.data import (make_correlated_data, grp_converter,
                               _alpha_max_group_lasso)
 
@@ -68,37 +70,33 @@ def test_alpha_max(n_groups, n_features, shuffle):
         alpha=alpha_max, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    # compile classes
-    quad_group = compiled_clone(quad_group, to_float32=X.dtype == np.float32)
-    group_penalty = compiled_clone(group_penalty)
     w = GroupBCD(tol=1e-12).solve(X, y, quad_group, group_penalty)[0]
 
     np.testing.assert_allclose(norm(w), 0, atol=1e-14)
 
 
-def test_equivalence_lasso():
+@pytest.mark.parametrize('positive', [False, True])
+def test_equivalence_lasso(positive):
     n_samples, n_features = 30, 50
-    rnd = np.random.RandomState(1123)
+    rnd = np.random.RandomState(112)
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=rnd)
 
     grp_indices, grp_ptr = grp_converter(1, n_features)
     weights = abs(rnd.randn(n_features))
 
     alpha_max = norm(X.T @ y / weights, ord=np.inf) / n_samples
-    alpha = alpha_max / 10.
+    alpha = alpha_max / 100.
 
     quad_group = QuadraticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
     group_penalty = WeightedGroupL2(
         alpha=alpha, grp_ptr=grp_ptr,
-        grp_indices=grp_indices, weights=weights)
+        grp_indices=grp_indices, weights=weights, positive=positive)
 
-    # compile classes
-    quad_group = compiled_clone(quad_group, to_float32=X.dtype == np.float32)
-    group_penalty = compiled_clone(group_penalty)
     w = GroupBCD(tol=1e-12).solve(X, y, quad_group, group_penalty)[0]
 
     celer_lasso = Lasso(
-        alpha=alpha, fit_intercept=False, tol=1e-12, weights=weights).fit(X, y)
+        alpha=alpha, fit_intercept=False, tol=1e-12, weights=weights,
+        positive=positive).fit(X, y)
 
     np.testing.assert_allclose(celer_lasso.coef_, w)
 
@@ -121,9 +119,6 @@ def test_vs_celer_grouplasso(n_groups, n_features, shuffle):
         alpha=alpha, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    # compile classes
-    quad_group = compiled_clone(quad_group, to_float32=X.dtype == np.float32)
-    group_penalty = compiled_clone(group_penalty)
     w = GroupBCD(tol=1e-12).solve(X, y, quad_group, group_penalty)[0]
 
     model = GroupLasso(groups=groups, alpha=alpha, weights=weights,
@@ -131,6 +126,63 @@ def test_vs_celer_grouplasso(n_groups, n_features, shuffle):
     model.fit(X, y)
 
     np.testing.assert_allclose(model.coef_, w, atol=1e-5)
+
+
+def test_ws_strategy():
+    n_features = 300
+    X, y, _ = make_correlated_data(n_features=n_features, random_state=0)
+
+    grp_indices, grp_ptr = grp_converter(3, n_features)
+    n_groups = len(grp_ptr) - 1
+    weights_g = np.ones(n_groups)
+    alpha_max = _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights_g)
+    pen = WeightedGroupL2(
+        alpha=alpha_max/10, weights=weights_g, grp_indices=grp_indices, grp_ptr=grp_ptr)
+
+    solver = GroupBCD(ws_strategy="subdiff", verbose=3, fit_intercept=False, tol=1e-10)
+
+    model = GeneralizedLinearEstimator(
+        QuadraticGroup(grp_ptr, grp_indices), pen, solver=solver)
+
+    model.fit(X, y)
+    w_subdiff = model.coef_
+    print("####")
+    model.solver.ws_strategy = "fixpoint"
+    model.fit(X, y)
+    w_fixpoint = model.coef_
+    # should not be the eaxct same solution:
+    np.testing.assert_array_less(0, norm(w_fixpoint - w_subdiff))
+    # but still should be close:
+    np.testing.assert_allclose(w_fixpoint, w_subdiff, atol=1e-8)
+
+
+def test_sparse_group():
+    n_features = 30
+    X, y, _ = make_correlated_data(n_features=n_features, random_state=0)
+
+    grp_indices, grp_ptr = grp_converter(3, n_features)
+    n_groups = len(grp_ptr) - 1
+
+    weights_g = np.ones(n_groups, dtype=np.float64)
+    weights_f = 0.5 * np.ones(n_features)
+    pen = WeightedL1GroupL2(
+        alpha=0.1, weights_groups=weights_g,
+        weights_features=weights_f, grp_indices=grp_indices, grp_ptr=grp_ptr)
+
+    solver = GroupBCD(ws_strategy="fixpoint", verbose=3,
+                      fit_intercept=False, tol=1e-10)
+
+    model = GeneralizedLinearEstimator(
+        QuadraticGroup(grp_ptr, grp_indices), pen, solver=solver)
+
+    model.fit(X, y)
+    w = model.coef_.reshape(-1, 3)
+    # some lines are 0:
+    np.testing.assert_equal(w[0], 0)
+    # some non zero lines have 0 entry
+    np.testing.assert_array_less(0, norm(w[1]))
+    # sign error -0 is not 0 without np.abs
+    np.testing.assert_equal(np.abs(w[1, 0]), 0)
 
 
 def test_intercept_grouplasso():
@@ -156,8 +208,6 @@ def test_intercept_grouplasso():
         alpha=alpha, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    quad_group = compiled_clone(quad_group, to_float32=X.dtype == np.float32)
-    group_penalty = compiled_clone(group_penalty)
     w = GroupBCD(fit_intercept=True, tol=1e-12).solve(
         X, y, quad_group, group_penalty)[0]
     model = GroupLasso(groups=groups, alpha=alpha, weights=weights,
@@ -185,8 +235,6 @@ def test_equivalence_logreg(solver, rho):
         alpha=alpha, grp_ptr=grp_ptr,
         grp_indices=grp_indices, weights=weights)
 
-    group_logistic = compiled_clone(group_logistic, to_float32=X.dtype == np.float32)
-    group_penalty = compiled_clone(group_penalty)
     w = solver(tol=1e-12).solve(X, y, group_logistic, group_penalty)[0]
 
     sk_logreg = LogisticRegression(penalty='l1', C=1/(n_samples * alpha),
@@ -218,8 +266,6 @@ def test_group_logreg(solver, n_groups, rho, fit_intercept):
     group_logistic = LogisticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
     group_penalty = WeightedGroupL2(alpha, weights, grp_ptr, grp_indices)
 
-    group_logistic = compiled_clone(group_logistic, to_float32=X.dtype == np.float32)
-    group_penalty = compiled_clone(group_penalty)
     stop_crit = solver(tol=1e-12, fit_intercept=fit_intercept).solve(
         X, y, group_logistic, group_penalty)[2]
 

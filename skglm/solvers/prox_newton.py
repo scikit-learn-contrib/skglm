@@ -52,6 +52,9 @@ class ProxNewton(BaseSolver):
         code: https://github.com/tbjohns/BlitzL1
     """
 
+    _datafit_required_attr = ("raw_grad", "raw_hessian")
+    _penalty_required_attr = ("prox_1d",)
+
     def __init__(self, p0=10, max_iter=20, max_pn_iter=1000, tol=1e-4,
                  ws_strategy="subdiff", fit_intercept=True, warm_start=False,
                  verbose=0):
@@ -64,7 +67,10 @@ class ProxNewton(BaseSolver):
         self.warm_start = warm_start
         self.verbose = verbose
 
-    def solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+    def _solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
+        if self.ws_strategy not in ("subdiff", "fixpoint"):
+            raise ValueError("ws_strategy must be `subdiff` or `fixpoint`, "
+                             f"got {self.ws_strategy}.")
         dtype = X.dtype
         n_samples, n_features = X.shape
         fit_intercept = self.fit_intercept
@@ -78,6 +84,12 @@ class ProxNewton(BaseSolver):
         is_sparse = issparse(X)
         if is_sparse:
             X_bundles = (X.data, X.indptr, X.indices)
+
+        # TODO: to be isolated in a seperated method
+        if is_sparse:
+            datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
+        else:
+            datafit.initialize(X, y)
 
         if self.ws_strategy == "fixpoint":
             X_square = X.multiply(X) if is_sparse else X ** 2
@@ -193,6 +205,14 @@ class ProxNewton(BaseSolver):
             )
         return w, np.asarray(p_objs_out), stop_crit
 
+    def custom_checks(self, X, y, datafit, penalty):
+        # ws strategy
+        if self.ws_strategy == "subdiff" and not hasattr(penalty, "subdiff_distance"):
+            raise AttributeError(
+                "Penalty must implement `subdiff_distance` "
+                "to use ws_strategy='subdiff' in ProxNewton solver"
+            )
+
 
 @njit
 def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
@@ -206,9 +226,9 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
     dtype = X.dtype
     raw_hess = datafit.raw_hessian(y, Xw_epoch)
 
-    lipschitz = np.zeros(len(ws), dtype)
+    lipschitz_ws = np.zeros(len(ws), dtype)
     for idx, j in enumerate(ws):
-        lipschitz[idx] = raw_hess @ X[:, j] ** 2
+        lipschitz_ws[idx] = raw_hess @ X[:, j] ** 2
 
     # for a less costly stopping criterion, we do not compute the exact gradient,
     # but store each coordinate-wise gradient every time we update one coordinate
@@ -224,12 +244,12 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
     for cd_iter in range(MAX_CD_ITER):
         for idx, j in enumerate(ws):
             # skip when X[:, j] == 0
-            if lipschitz[idx] == 0:
+            if lipschitz_ws[idx] == 0:
                 continue
 
             past_grads[idx] = grad_ws[idx] + X[:, j] @ (raw_hess * X_delta_w_ws)
             old_w_idx = w_ws[idx]
-            stepsize = 1 / lipschitz[idx]
+            stepsize = 1 / lipschitz_ws[idx]
 
             w_ws[idx] = penalty.prox_1d(
                 old_w_idx - stepsize * past_grads[idx], stepsize, j)
@@ -253,7 +273,7 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
                 opt = penalty.subdiff_distance(current_w, past_grads, ws)
             elif ws_strategy == "fixpoint":
                 opt = dist_fix_point_cd(
-                    current_w, past_grads, lipschitz, datafit, penalty, ws
+                    current_w, past_grads, lipschitz_ws, datafit, penalty, ws
                 )
             stop_crit = np.max(opt)
 
@@ -264,7 +284,7 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
                 break
 
     # descent direction
-    return w_ws - w_epoch[ws_intercept], X_delta_w_ws, lipschitz
+    return w_ws - w_epoch[ws_intercept], X_delta_w_ws, lipschitz_ws
 
 
 # sparse version of _descent_direction
@@ -275,10 +295,10 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
     dtype = X_data.dtype
     raw_hess = datafit.raw_hessian(y, Xw_epoch)
 
-    lipschitz = np.zeros(len(ws), dtype)
+    lipschitz_ws = np.zeros(len(ws), dtype)
     for idx, j in enumerate(ws):
-        # equivalent to: lipschitz[idx] += raw_hess * X[:, j] ** 2
-        lipschitz[idx] = _sparse_squared_weighted_norm(
+        # equivalent to: lipschitz_ws[idx] += raw_hess * X[:, j] ** 2
+        lipschitz_ws[idx] = _sparse_squared_weighted_norm(
             X_data, X_indptr, X_indices, j, raw_hess)
 
     # see _descent_direction() comment
@@ -294,7 +314,7 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
     for cd_iter in range(MAX_CD_ITER):
         for idx, j in enumerate(ws):
             # skip when X[:, j] == 0
-            if lipschitz[idx] == 0:
+            if lipschitz_ws[idx] == 0:
                 continue
 
             past_grads[idx] = grad_ws[idx]
@@ -303,7 +323,7 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
                 X_data, X_indptr, X_indices, j, X_delta_w_ws, raw_hess)
 
             old_w_idx = w_ws[idx]
-            stepsize = 1 / lipschitz[idx]
+            stepsize = 1 / lipschitz_ws[idx]
 
             w_ws[idx] = penalty.prox_1d(
                 old_w_idx - stepsize * past_grads[idx], stepsize, j)
@@ -328,7 +348,7 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
                 opt = penalty.subdiff_distance(current_w, past_grads, ws)
             elif ws_strategy == "fixpoint":
                 opt = dist_fix_point_cd(
-                    current_w, past_grads, lipschitz, datafit, penalty, ws
+                    current_w, past_grads, lipschitz_ws, datafit, penalty, ws
                 )
             stop_crit = np.max(opt)
 
@@ -339,7 +359,7 @@ def _descent_direction_s(X_data, X_indptr, X_indices, y, w_epoch,
                 break
 
     # descent direction
-    return w_ws - w_epoch[ws_intercept], X_delta_w_ws, lipschitz
+    return w_ws - w_epoch[ws_intercept], X_delta_w_ws, lipschitz_ws
 
 
 @njit

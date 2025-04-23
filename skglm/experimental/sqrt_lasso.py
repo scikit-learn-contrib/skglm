@@ -6,7 +6,6 @@ from sklearn.linear_model._base import LinearModel, RegressorMixin
 
 from skglm.penalties import L1
 from skglm.utils.prox_funcs import ST_vec, proj_L2ball, BST
-from skglm.utils.jit_compilation import compiled_clone
 from skglm.datafits.base import BaseDatafit
 from skglm.solvers.prox_newton import ProxNewton
 
@@ -186,8 +185,8 @@ class SqrtLasso(LinearModel, RegressorMixin):
             alphas = np.sort(alphas)[::-1]
 
         n_features = X.shape[1]
-        sqrt_quadratic = compiled_clone(SqrtQuadratic())
-        l1_penalty = compiled_clone(L1(1.))  # alpha is set along the path
+        sqrt_quadratic = SqrtQuadratic()
+        l1_penalty = L1(1.)  # alpha is set along the path
 
         coefs = np.zeros((n_alphas, n_features + self.fit_intercept))
 

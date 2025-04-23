@@ -3,6 +3,7 @@ import numpy as np
 from numpy.linalg import norm
 
 from skglm.penalties import L1
+from skglm import GeneralizedLinearEstimator
 from skglm.experimental.pdcd_ws import PDCD_WS
 from skglm.experimental.quantile_regression import Pinball
 
@@ -21,17 +22,28 @@ def test_PDCD_WS(quantile_level):
     alpha_max = norm(X.T @ (np.sign(y)/2 + (quantile_level - 0.5)), ord=np.inf)
     alpha = alpha_max / 5
 
+    datafit = Pinball(quantile_level)
+    penalty = L1(alpha)
+
     w = PDCD_WS(
         dual_init=np.sign(y)/2 + (quantile_level - 0.5)
-    ).solve(X, y, Pinball(quantile_level), L1(alpha))[0]
+    ).solve(X, y, datafit, penalty)[0]
 
     clf = QuantileRegressor(
         quantile=quantile_level,
         alpha=alpha/n_samples,
-        fit_intercept=False
+        fit_intercept=False,
+        solver='highs',
     ).fit(X, y)
 
     np.testing.assert_allclose(w, clf.coef_, atol=1e-5)
+    # test compatibility when inside GLM:
+    estimator = GeneralizedLinearEstimator(
+        datafit=Pinball(.2),
+        penalty=L1(alpha=1.),
+        solver=PDCD_WS(),
+    )
+    estimator.fit(X, y)
 
 
 if __name__ == '__main__':

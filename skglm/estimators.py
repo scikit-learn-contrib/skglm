@@ -10,7 +10,7 @@ from skglm.solvers import ProxNewton, LBFGS
 from sklearn.utils.validation import (check_is_fitted, check_array,
                                       check_consistent_length)
 from sklearn.linear_model._base import (
-    LinearModel, RegressorMixin,
+    RegressorMixin, LinearModel,
     LinearClassifierMixin, SparseCoefMixin, BaseEstimator
 )
 from sklearn.utils.extmath import softmax
@@ -18,11 +18,12 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.utils._param_validation import Interval, StrOptions
 from sklearn.multiclass import OneVsRestClassifier, check_classification_targets
 
-from skglm.utils.jit_compilation import compiled_clone
-from skglm.solvers import AndersonCD, MultiTaskBCD
-from skglm.datafits import Cox, Quadratic, Logistic, QuadraticSVC, QuadraticMultiTask
-from skglm.penalties import (L1, WeightedL1, L1_plus_L2, L2,
+from skglm.solvers import AndersonCD, MultiTaskBCD, GroupBCD
+from skglm.datafits import (Cox, Quadratic, Logistic, QuadraticSVC,
+                            QuadraticMultiTask, QuadraticGroup,)
+from skglm.penalties import (L1, WeightedL1, L1_plus_L2, L2, WeightedGroupL2,
                              MCPenalty, WeightedMCPenalty, IndicatorBox, L2_1)
+from skglm.utils.data import grp_converter
 
 
 def _glm_fit(X, y, model, datafit, penalty, solver):
@@ -100,12 +101,10 @@ def _glm_fit(X, y, model, datafit, penalty, solver):
 
     n_samples, n_features = X_.shape
 
-    penalty_jit = compiled_clone(penalty)
-    datafit_jit = compiled_clone(datafit, to_float32=X.dtype == np.float32)
     if issparse(X):
-        datafit_jit.initialize_sparse(X_.data, X_.indptr, X_.indices, y)
+        datafit.initialize_sparse(X_.data, X_.indptr, X_.indices, y)
     else:
-        datafit_jit.initialize(X_, y)
+        datafit.initialize(X_, y)
 
     # if model.warm_start and hasattr(model, 'coef_') and model.coef_ is not None:
     if solver.warm_start and hasattr(model, 'coef_') and model.coef_ is not None:
@@ -134,7 +133,7 @@ def _glm_fit(X, y, model, datafit, penalty, solver):
                 "The size of the WeightedL1 penalty weights should be n_features, "
                 "expected %i, got %i." % (X_.shape[1], len(penalty.weights)))
 
-    coefs, p_obj, kkt = solver.solve(X_, y, datafit_jit, penalty_jit, w, Xw)
+    coefs, p_obj, kkt = solver.solve(X_, y, datafit, penalty, w, Xw)
     model.coef_, model.stop_crit_ = coefs[:n_features], kkt
     if y.ndim == 1:
         model.intercept_ = coefs[-1] if fit_intercept else 0.
@@ -300,7 +299,7 @@ class GeneralizedLinearEstimator(LinearModel):
         return params
 
 
-class Lasso(LinearModel, RegressorMixin):
+class Lasso(RegressorMixin, LinearModel):
     r"""Lasso estimator based on Celer solver and primal extrapolation.
 
     The optimization objective for Lasso is:
@@ -438,16 +437,21 @@ class Lasso(LinearModel, RegressorMixin):
             The number of iterations along the path. If return_n_iter is set to
             ``True``.
         """
-        penalty = compiled_clone(L1(self.alpha, self.positive))
-        datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
+        penalty = L1(self.alpha, self.positive)
+        datafit = Quadratic()
         solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
             ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
             warm_start=self.warm_start, verbose=self.verbose)
         return solver.path(X, y, datafit, penalty, alphas, coef_init, return_n_iter)
 
+    def __sklearn_tags__(self):
+        tags = super().__sklearn_tags__()
+        tags.input_tags.sparse = True
+        return tags
 
-class WeightedLasso(LinearModel, RegressorMixin):
+
+class WeightedLasso(RegressorMixin, LinearModel):
     r"""WeightedLasso estimator based on Celer solver and primal extrapolation.
 
     The optimization objective for WeightedLasso is:
@@ -574,8 +578,8 @@ class WeightedLasso(LinearModel, RegressorMixin):
             raise ValueError("The number of weights must match the number of \
                               features. Got %s, expected %s." % (
                 len(weights), X.shape[1]))
-        penalty = compiled_clone(WeightedL1(self.alpha, weights, self.positive))
-        datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
+        penalty = WeightedL1(self.alpha, weights, self.positive)
+        datafit = Quadratic()
         solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
             ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
@@ -609,8 +613,13 @@ class WeightedLasso(LinearModel, RegressorMixin):
             warm_start=self.warm_start, verbose=self.verbose)
         return _glm_fit(X, y, self, Quadratic(), penalty, solver)
 
+    def __sklearn_tags__(self):
+        tags = super().__sklearn_tags__()
+        tags.input_tags.sparse = True
+        return tags
 
-class ElasticNet(LinearModel, RegressorMixin):
+
+class ElasticNet(RegressorMixin, LinearModel):
     r"""Elastic net estimator.
 
     The optimization objective for Elastic net is:
@@ -732,8 +741,8 @@ class ElasticNet(LinearModel, RegressorMixin):
             The number of iterations along the path. If return_n_iter is set to
             ``True``.
         """
-        penalty = compiled_clone(L1_plus_L2(self.alpha, self.l1_ratio, self.positive))
-        datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
+        penalty = L1_plus_L2(self.alpha, self.l1_ratio, self.positive)
+        datafit = Quadratic()
         solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
             ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
@@ -763,8 +772,13 @@ class ElasticNet(LinearModel, RegressorMixin):
         return _glm_fit(X, y, self, Quadratic(),
                         L1_plus_L2(self.alpha, self.l1_ratio, self.positive), solver)
 
+    def __sklearn_tags__(self):
+        tags = super().__sklearn_tags__()
+        tags.input_tags.sparse = True
+        return tags
 
-class MCPRegression(LinearModel, RegressorMixin):
+
+class MCPRegression(RegressorMixin, LinearModel):
     r"""Linear regression with MCP penalty estimator.
 
     The optimization objective for MCPRegression is, with :math:`x >= 0`:
@@ -900,19 +914,17 @@ class MCPRegression(LinearModel, RegressorMixin):
             ``True``.
         """
         if self.weights is None:
-            penalty = compiled_clone(
-                MCPenalty(self.alpha, self.gamma, self.positive)
-            )
+            penalty = MCPenalty(self.alpha, self.gamma, self.positive)
         else:
             if X.shape[1] != len(self.weights):
                 raise ValueError(
                     "The number of weights must match the number of features. "
                     f"Got {len(self.weights)}, expected {X.shape[1]}."
                 )
-            penalty = compiled_clone(
-                WeightedMCPenalty(self.alpha, self.gamma, self.weights, self.positive)
-            )
-        datafit = compiled_clone(Quadratic(), to_float32=X.dtype == np.float32)
+            penalty = WeightedMCPenalty(
+                self.alpha, self.gamma, self.weights, self.positive)
+
+        datafit = Quadratic()
         solver = AndersonCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
             ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
@@ -951,19 +963,38 @@ class MCPRegression(LinearModel, RegressorMixin):
             warm_start=self.warm_start, verbose=self.verbose)
         return _glm_fit(X, y, self, Quadratic(), penalty, solver)
 
+    def __sklearn_tags__(self):
+        tags = super().__sklearn_tags__()
+        tags.input_tags.sparse = True
+        return tags
+
 
 class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
     r"""Sparse Logistic regression estimator.
 
     The optimization objective for sparse Logistic regression is:
 
-    .. math:: 1 / n_"samples" sum_(i=1)^(n_"samples") log(1 + exp(-y_i x_i^T w))
-        + alpha ||w||_1
+    .. math::
+        1 / n_"samples" \sum_{i=1}^{n_"samples"} log(1 + exp(-y_i x_i^T w))
+        + tt"l1_ratio" xx alpha ||w||_1
+        + (1 - tt"l1_ratio") xx alpha/2 ||w||_2 ^ 2
+
+    By default, ``l1_ratio=1.0`` corresponds to Lasso (pure L1 penalty).
+    When ``0 < l1_ratio < 1``, the penalty is a convex combination of L1 and L2
+    (i.e., ElasticNet). ``l1_ratio=0.0`` corresponds to Ridge (pure L2), but note
+    that pure Ridge is not typically used with this class.
 
     Parameters
     ----------
     alpha : float, default=1.0
         Regularization strength; must be a positive float.
+
+    l1_ratio : float, default=1.0
+        The ElasticNet mixing parameter, with ``0 <= l1_ratio <= 1``.
+        Only used when ``penalty="l1_plus_l2"``.
+        For ``l1_ratio = 0`` the penalty is an L2 penalty.
+        ``For l1_ratio = 1`` it is an L1 penalty.
+        For ``0 < l1_ratio < 1``, the penalty is a combination of L1 and L2.
 
     tol : float, optional
         Stopping criterion for the optimization.
@@ -1001,10 +1032,11 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
         Number of subproblems solved to reach the specified tolerance.
     """
 
-    def __init__(self, alpha=1.0, tol=1e-4, max_iter=20, max_epochs=1_000, verbose=0,
-                 fit_intercept=True, warm_start=False):
+    def __init__(self, alpha=1.0, l1_ratio=1.0, tol=1e-4, max_iter=20, max_epochs=1_000,
+                 verbose=0, fit_intercept=True, warm_start=False):
         super().__init__()
         self.alpha = alpha
+        self.l1_ratio = l1_ratio
         self.tol = tol
         self.max_iter = max_iter
         self.max_epochs = max_epochs
@@ -1033,7 +1065,8 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
             max_iter=self.max_iter, max_pn_iter=self.max_epochs, tol=self.tol,
             fit_intercept=self.fit_intercept, warm_start=self.warm_start,
             verbose=self.verbose)
-        return _glm_fit(X, y, self, Logistic(), L1(self.alpha), solver)
+        return _glm_fit(X, y, self, Logistic(), L1_plus_L2(self.alpha, self.l1_ratio),
+                        solver)
 
     def predict_proba(self, X):
         """Probability estimates.
@@ -1331,10 +1364,6 @@ class CoxEstimator(LinearModel):
         else:
             penalty = L2(self.alpha)
 
-        # skglm internal: JIT compile classes
-        datafit = compiled_clone(datafit)
-        penalty = compiled_clone(penalty)
-
         # init solver
         if self.l1_ratio == 0.:
             solver = LBFGS(max_iter=self.max_iter, tol=self.tol, verbose=self.verbose)
@@ -1362,8 +1391,13 @@ class CoxEstimator(LinearModel):
 
         return self
 
+    def __sklearn_tags__(self):
+        tags = super().__sklearn_tags__()
+        tags.input_tags.sparse = True
+        return tags
 
-class MultiTaskLasso(LinearModel, RegressorMixin):
+
+class MultiTaskLasso(RegressorMixin, LinearModel):
     r"""MultiTaskLasso estimator.
 
     The optimization objective for MultiTaskLasso is:
@@ -1475,14 +1509,14 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
         if not self.warm_start or not hasattr(self, "coef_"):
             self.coef_ = None
 
-        datafit_jit = compiled_clone(QuadraticMultiTask(), X.dtype == np.float32)
-        penalty_jit = compiled_clone(L2_1(self.alpha), X.dtype == np.float32)
+        datafit = QuadraticMultiTask()
+        penalty = L2_1(self.alpha)
 
         solver = MultiTaskBCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
             ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
             warm_start=self.warm_start, verbose=self.verbose)
-        W, obj_out, kkt = solver.solve(X, Y, datafit_jit, penalty_jit)
+        W, obj_out, kkt = solver.solve(X, Y, datafit, penalty)
 
         self.coef_ = W[:X.shape[1], :].T
         self.intercept_ = self.fit_intercept * W[-1, :]
@@ -1530,10 +1564,138 @@ class MultiTaskLasso(LinearModel, RegressorMixin):
             The number of iterations along the path. If return_n_iter is set to
             ``True``.
         """
-        datafit = compiled_clone(QuadraticMultiTask(), to_float32=X.dtype == np.float32)
-        penalty = compiled_clone(L2_1(self.alpha))
+        datafit = QuadraticMultiTask()
+        penalty = L2_1(self.alpha)
         solver = MultiTaskBCD(
             self.max_iter, self.max_epochs, self.p0, tol=self.tol,
             ws_strategy=self.ws_strategy, fit_intercept=self.fit_intercept,
             warm_start=self.warm_start, verbose=self.verbose)
         return solver.path(X, Y, datafit, penalty, alphas, coef_init, return_n_iter)
+
+
+class GroupLasso(RegressorMixin, LinearModel):
+    r"""GroupLasso estimator based on Celer solver and primal extrapolation.
+
+    The optimization objective for GroupLasso is:
+
+    .. math::
+        1 / (2 xx n_"samples") ||y - X w||_2 ^ 2 + alpha \sum_g
+        weights_g ||w_{[g]}||_2
+
+    with :math:`w_{[g]}` the coefficients of the g-th group.
+
+    Parameters
+    ----------
+    groups : int | list of ints | list of lists of ints
+        Partition of features used in the penalty on ``w``.
+        If an int is passed, groups are contiguous blocks of features, of size
+        ``groups``.
+        If a list of ints is passed, groups are assumed to be contiguous,
+        group number ``g`` being of size ``groups[g]``.
+        If a list of lists of ints is passed, ``groups[g]`` contains the
+        feature indices of the group number ``g``.
+
+    alpha : float, optional
+        Penalty strength.
+
+    weights : array, shape (n_groups,), optional (default=None)
+        Positive weights used in the L1 penalty part of the Lasso
+        objective. If ``None``, weights equal to 1 are used.
+
+    max_iter : int, optional (default=50)
+        The maximum number of iterations (subproblem definitions).
+
+    max_epochs : int, optional (default=50_000)
+        Maximum number of CD epochs on each subproblem.
+
+    p0 : int, optional (default=10)
+        First working set size.
+
+    verbose : bool or int, optional (default=0)
+        Amount of verbosity.
+
+    tol : float, optional (default=1e-4)
+        Stopping criterion for the optimization.
+
+    positive : bool, optional (defautl=False)
+        When set to ``True``, forces the coefficient vector to be positive.
+
+    fit_intercept : bool, optional (default=True)
+        Whether or not to fit an intercept.
+
+    warm_start : bool, optional (default=False)
+        When set to ``True``, reuse the solution of the previous call to fit as
+        initialization, otherwise, just erase the previous solution.
+
+    ws_strategy : str, optional (default="subdiff")
+        The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
+
+    Attributes
+    ----------
+    coef_ : array, shape (n_features,)
+        parameter vector (:math:`w` in the cost function formula)
+
+    intercept_ : float
+        constant term in decision function.
+
+    n_iter_ : int
+        Number of subproblems solved to reach the specified tolerance.
+
+    Notes
+    -----
+    Supports weights equal to ``0``, i.e. unpenalized features.
+    """
+
+    def __init__(self, groups, alpha=1., weights=None, max_iter=50, max_epochs=50_000,
+                 p0=10, verbose=0, tol=1e-4, positive=False, fit_intercept=True,
+                 warm_start=False, ws_strategy="subdiff"):
+        super().__init__()
+        self.alpha = alpha
+        self.groups = groups
+        self.weights = weights
+        self.tol = tol
+        self.max_iter = max_iter
+        self.max_epochs = max_epochs
+        self.p0 = p0
+        self.ws_strategy = ws_strategy
+        self.positive = positive
+        self.fit_intercept = fit_intercept
+        self.warm_start = warm_start
+        self.verbose = verbose
+
+    def fit(self, X, y):
+        """Fit the model according to the given training data.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            Training data, where ``n_samples`` is the number of samples and
+            n_features is the number of features.
+        y : array-like, shape (n_samples,)
+            Target vector relative to ``X``.
+
+        Returns
+        -------
+        self : Instance of GroupLasso
+            Fitted estimator.
+        """
+        grp_indices, grp_ptr = grp_converter(self.groups, X.shape[1])
+        group_sizes = np.diff(grp_ptr)
+
+        n_features = np.sum(group_sizes)
+        if X.shape[1] != n_features:
+            raise ValueError(
+                "The total number of group members must equal the number of features. "
+                f"Got {n_features}, expected {X.shape[1]}.")
+
+        weights = np.ones(len(group_sizes)) if self.weights is None else self.weights
+        group_penalty = WeightedGroupL2(alpha=self.alpha, grp_ptr=grp_ptr,
+                                        grp_indices=grp_indices, weights=weights,
+                                        positive=self.positive)
+        quad_group = QuadraticGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
+        solver = GroupBCD(
+            self.max_iter, self.max_epochs, self.p0, tol=self.tol,
+            fit_intercept=self.fit_intercept, warm_start=self.warm_start,
+            verbose=self.verbose)
+
+        return _glm_fit(X, y, self, quad_group, group_penalty, solver)

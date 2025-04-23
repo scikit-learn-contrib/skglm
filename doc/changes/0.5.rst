@@ -2,3 +2,4 @@
 
 Version 0.5 (in progress)
 -------------------------
+- Add support for fitting an intercept in :ref:`SqrtLasso <skglm.experimental.sqrt_lasso.SqrtLasso> (PR: :gh:`298`)

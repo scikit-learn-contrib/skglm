@@ -109,6 +109,24 @@ def test_sqrt_lasso_with_intercept():
     y_pred = sqrt.predict(X)
     assert y_pred.shape == y.shape
 
+    # Check that coef_ and intercept_ are handled separately
+    assert sqrt.coef_.shape == (20,)
+    assert np.isscalar(sqrt.intercept_)
+
+    # Confirm prediction matches manual computation
+    manual_pred = X @ sqrt.coef_ + sqrt.intercept_
+    np.testing.assert_allclose(manual_pred, y_pred, rtol=1e-6)
+
+    np.testing.assert_allclose(
+        sqrt.intercept_, y.mean() - X.mean(axis=0) @ sqrt.coef_, rtol=1e-6
+    )
+
+    sqrt_no_intercept = SqrtLasso(
+        alpha=alpha * scal, fit_intercept=False, tol=1e-8).fit(X, y)
+    assert np.isscalar(sqrt_no_intercept.intercept_)
+    np.testing.assert_allclose(sqrt_no_intercept.predict(
+        X), X @ sqrt_no_intercept.coef_ + sqrt_no_intercept.intercept_)
+
 
 if __name__ == '__main__':
     pass

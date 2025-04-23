@@ -107,6 +107,7 @@ class SqrtLasso(LinearModel, RegressorMixin):
 
     def __init__(self, alpha=1., max_iter=100, max_pn_iter=100, p0=10,
                  tol=1e-4, verbose=0, fit_intercept=True):
+
         super().__init__()
         self.alpha = alpha
         self.max_iter = max_iter
@@ -147,7 +148,8 @@ class SqrtLasso(LinearModel, RegressorMixin):
         self.coef_ = self.path(X_centered, y_centered, alphas=[self.alpha])[1][0]
 
         if self.fit_intercept:
-            self.intercept_ = y_mean - X_mean @ self.coef_
+            self.intercept_ = y_mean - X_mean @ self.coef_[:-1]
+            self.coef_ = self.coef_[:-1]
         else:
             self.intercept_ = 0.
         return self

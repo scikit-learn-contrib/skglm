@@ -81,21 +81,21 @@ def test_PDCD_WS(with_dual_init):
     np.testing.assert_allclose(clf.coef_, w, atol=1e-6)
 
 
-def test_lasso_vs_sqrt_lasso_with_intercept():
-
+@pytest.mark.parametrize("fit_intercept", [True, False])
+def test_lasso_sqrt_lasso_equivalence(fit_intercept):
     n_samples, n_features = 50, 10
     X, y, _ = make_correlated_data(n_samples, n_features, random_state=0)
 
     alpha_max = norm(X.T @ y, ord=np.inf) / norm(y)
     alpha = alpha_max / 10
 
-    lasso = Lasso(alpha=alpha, fit_intercept=True, tol=1e-8).fit(X, y)
-    w_lasso = lasso.coef_
+    lasso = Lasso(alpha=alpha, fit_intercept=fit_intercept, tol=1e-8).fit(X, y)
 
     scal = n_samples / norm(y - lasso.predict(X))
-    sqrt = SqrtLasso(alpha=alpha * scal, fit_intercept=True, tol=1e-8).fit(X, y)
+    sqrt = SqrtLasso(
+        alpha=alpha * scal, fit_intercept=fit_intercept, tol=1e-8).fit(X, y)
 
-    np.testing.assert_allclose(w_lasso, sqrt.coef_, rtol=1e-6)
+    np.testing.assert_allclose(sqrt.coef_, lasso.coef_, rtol=1e-6)
 
 
 if __name__ == '__main__':

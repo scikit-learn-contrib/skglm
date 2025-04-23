@@ -30,7 +30,7 @@ html[data-theme="light"] {
     --pst-color-inline-code: #2c608f;
     --pst-color-inline-code-background: #f0f8ff;
     --pst-color-announcement-background: #fff7ec;
-    --pst-color-secondary-bg: #fff7ec;
+    --pst-color-secondary-bg: #F8FAFC;
 }
 
 /* Dark theme overrides */
@@ -54,44 +54,310 @@ code {
     font-family: monospace;
 }
 
-/* Announcement banner styling */
-.bd-header-announcement {
-    background-color: var(--pst-color-secondary-bg) !important;
-    color: var(--pst-color-primary) !important;
-    font-weight: bold;
-    text-align: center;
+/* Remove underline from rubric elements */
+.rubric {
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
 }
 
-.hero-section {
-    text-align: center;
-    padding: 4rem 2rem;
+/*-------------------------------------------------------------*/
+/*Landing Page Layout*/
+
+
+/* Override style for top-level heading */
+/* Hide only the first h1 visually */
+/* Hide only the <h1> directly inside the landing section on the index page */
+section#skglm>h1 {
+    position: absolute;
+    left: -9999px;
+}
+
+/* Universal image background and border reset for landing images */
+.hero-gallery-img,
+.feature-icon,
+.application-icon,
+.sponsor-logo {
+    background-color: transparent !important;
+    border: none;
+}
+
+
+/*Hero Section Layout*/
+
+.hero-title {
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--pst-color-primary);
+    margin-bottom: 1rem;
+    margin-top: 0;
+}
+
+/* Hero Section Layout */
+.hero-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    padding: 0;
     background-color: var(--pst-color-background);
     color: var(--pst-color-text);
 }
 
-.hero-logo {
-    width: 150px;
-    margin-bottom: 1rem;
+/* Text Block */
+.hero-text {
+    flex: 1;
+    min-width: 300px;
+    padding: 0.5rem;
 }
 
-.hero-button {
-    display: inline-block;
-    margin-top: 2rem;
-    padding: 0.75rem 1.5rem;
+/* Paragraph Styling */
+.hero-description {
+    font-size: 1.25rem;
+    line-height: 1.6;
+    max-width: 40rem;
+    color: var(--pst-color-text);
+}
+
+/* Optional orange emphasis text */
+.highlight-orange,
+.rst-content .orange {
+    color: var(--pst-color-secondary);
+}
+
+/* Buttons */
+.hero-buttons {
+    margin-top: 1.5rem;
+}
+
+.hero-buttons a {
+    padding: 0.75rem 1.25rem;
     background-color: var(--pst-color-primary);
-    color: white !important;
-    border-radius: 0.5rem;
+    color: white;
+    border-radius: 6px;
     text-decoration: none;
-    font-weight: bold;
+    font-weight: 600;
+    display: inline-block;
+    transition: background-color 0.2s ease;
 }
 
-.hero-button:hover {
-    background-color: var(--pst-color-primary-hover);
-    color: #ec9b4c !important;
+.hero-buttons a:hover {
+    color: var(--pst-color-secondary);
+    background-color: var(--pst-color-link-hover);
 }
 
-.hero-text strong {
-    color: #1f77b4;
-    /* Primary blue color */
-    font-weight: 700;
+/* Gallery Section */
+.hero-gallery {
+    flex: 1;
+    min-width: 300px;
+    text-align: center;
+    background-color: transparent !important;
+    padding: 4rem;
+}
+
+.hero-gallery-img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 2rem;
+    transition: transform 0.2s ease;
+}
+
+.hero-gallery-img:hover {
+    transform: scale(1.03);
+}
+
+.highlight-orange,
+.rst-content .highlight-orange {
+    color: var(--pst-color-secondary);
+}
+
+
+/* Key Features Section */
+/* Section spacing (replaces <hr> and margin-top) */
+.section-spacer {
+    margin-top: 3rem;
+}
+
+/* Title */
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: var(--pst-color-text);
+    text-align: center;
+    margin-bottom: 0.25rem;
+}
+
+/* Subtitle paragraph */
+.section-subtitle {
+    font-size: 1.25rem;
+    font-weight: 400;
+    color: var(--pst-color-text-muted, #4a4a4a);
+    max-width: 52rem;
+    margin: 0 auto 2.5rem auto;
+    text-align: center;
+}
+
+/* Optional: add fallback for muted text in dark mode */
+html[data-theme="dark"] .section-subtitle {
+    color: #c0c0c0;
+}
+
+
+
+/* Feature grid styles */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem 3rem;
+    margin-top: 2rem;
+}
+
+.feature-box {
+    background-color: var(--pst-color-secondary-bg);
+    padding: 0.5rem;
+    border-radius: 1rem;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.feature-icon {
+    margin-left: 0.5rem !important;
+    width: 4.5rem;
+    height: 4.5rem;
+}
+
+.feature-title {
+    font-size: 1.2rem;
+    color: var(--pst-color-primary);
+    margin-bottom: 0.5rem;
+    margin-top: 0;
+    font-weight: 600;
+}
+
+.feature-text {
+    padding-right: 1rem !important;
+}
+
+html[data-theme="dark"] .feature-box {
+    background-color: #2e2e2e;
+}
+
+/* Support us section */
+
+
+.support-box {
+    background-color: var(--pst-color-secondary-bg);
+    padding: 2rem;
+    border-radius: 8px;
+    text-align: center;
+    margin-top: 1.5rem;
+}
+
+html[data-theme="dark"] .support-box {
+    background-color: #2e2e2e;
+}
+
+.support-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--pst-color-primary);
+    margin: 0 0 0.5rem 0;
+}
+
+
+/* Citation block styling inside support-box */
+.support-box pre {
+    font-size: 0.85rem;
+    background-color: var(--pst-color-inline-code-background);
+    color: var(--pst-color-inline-code);
+    padding: 1rem 2rem !important;
+    border-radius: 6px;
+    overflow-x: auto;
+    text-align: left;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-width: 100%;
+    max-width: calc(100% - 4rem) !important;
+    margin: 1rem auto 0 auto !important;
+}
+
+html[data-theme="light"] .highlight {
+    background: var(--pst-color-secondary-bg) !important;
+}
+
+html[data-theme="dark"] .support-box pre {
+    background-color: #2e2e2e;
+    padding: 1rem 2rem;
+    max-width: calc(100% - 4rem);
+    margin: 1rem auto 0 auto;
+}
+
+
+/* Applications Grid Section */
+.applications-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.application-box {
+    background-color: var(--pst-color-secondary-bg);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 1.5rem;
+}
+
+html[data-theme="dark"] .application-box {
+    background-color: #2e2e2e;
+}
+
+.application-icon {
+    width: 5rem;
+    height: 5rem;
+}
+
+.application-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    margin-top: 0.75rem;
+    color: var(--pst-color-text);
+}
+
+
+/* Sponsor banner styles */
+.sponsor-banner {
+    margin-top: 4rem;
+    padding: 1.5rem 2rem;
+    background-color: var(--pst-color-secondary-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    color: var(--pst-color-text);
+    text-align: center;
+}
+
+.sponsor-logo {
+    height: 30px;
+}
+
+html[data-theme="dark"] .sponsor-banner {
+    background-color: #2e2e2e;
+}
+
+.sponsor-inline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
 }

@@ -70,6 +70,13 @@ code {
     display: block;
 }
 
+/* Site Speed Setting */
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
 /*-------------------------------------------------------------*/
 /*Landing Page Layout*/
 

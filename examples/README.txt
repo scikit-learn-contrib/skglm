@@ -3,6 +3,7 @@
 Examples
 ================
 
-.. contents:: Contents
-   :local:
-   :depth: 3
+.. toctree::
+   :maxdepth: 1
+
+   auto_examples/index

@@ -175,6 +175,9 @@ html_theme_options = {
             "icon": "fa-brands fa-github",
         },
     ],
+    # site speed improvements
+    "collapse_navigation": True,
+    "navigation_depth": 2,
 }
 
 # add sidebars if necessary (e.g. if more tutorials are being added)
@@ -206,7 +209,9 @@ mathjax_display = ['`', '`']
 html_static_path = ['_static']
 html_js_files = [
     "scripts/asciimath-defines.js",
-    "switcher.json"
+    "switcher.json",
+    "scripts/lazyload.js",
+    "scripts/instantpage.min.js"
 ]
 
 # -- Options for copybutton ---------------------------------------------
@@ -423,6 +428,9 @@ sphinx_gallery_conf = {
     'doc_module': ('skglm', 'sklearn', 'benchopt'),
     'examples_dirs': '../examples',
     'gallery_dirs': 'auto_examples',
+    'download_all_examples': False,
+    'run_stale_examples': True,
+    'remove_config_comments': True,
     'reference_url': {
         'skglm': None,
     }

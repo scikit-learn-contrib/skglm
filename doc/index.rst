@@ -34,8 +34,8 @@ skglm
 
     .. container:: hero-gallery
 
-        .. image:: _static/images/landingpage/hero.png
-            :alt: Illustration showing sparse modeling and GLMs
+        .. image:: _static/images/landingpage/hero.webp
+            :alt: Illustration showing modeling in skglm logo style
             :class: hero-gallery-img
             :target: auto_examples/index.html
 
@@ -55,7 +55,7 @@ skglm
 
     .. container:: feature-box
 
-        .. image:: _static/images/landingpage/ease.png
+        .. image:: _static/images/landingpage/ease.webp
             :alt: Ease icon
             :class: feature-icon
 
@@ -68,7 +68,7 @@ skglm
 
     .. container:: feature-box
 
-        .. image:: _static/images/landingpage/modular.png
+        .. image:: _static/images/landingpage/modular.webp
             :alt: Modular icon
             :class: feature-icon
 
@@ -81,7 +81,7 @@ skglm
 
     .. container:: feature-box
 
-        .. image:: _static/images/landingpage/performance.png
+        .. image:: _static/images/landingpage/performance.webp
             :alt: Performance icon
             :class: feature-icon
 
@@ -94,7 +94,7 @@ skglm
 
     .. container:: feature-box
 
-        .. image:: _static/images/landingpage/compatible.png
+        .. image:: _static/images/landingpage/compatible.webp
             :alt: Compatibility icon
             :class: feature-icon
 
@@ -161,7 +161,7 @@ skglm
 
         .. container:: application-box
 
-            .. image:: _static/images/landingpage/healthcare.png
+            .. image:: _static/images/landingpage/healthcare.webp
                 :alt: Healthcare icon
                 :class: application-icon
 
@@ -174,7 +174,7 @@ skglm
 
         .. container:: application-box
 
-            .. image:: _static/images/landingpage/finance.png
+            .. image:: _static/images/landingpage/finance.webp
                 :alt: Finance icon
                 :class: application-icon
 
@@ -187,7 +187,7 @@ skglm
 
         .. container:: application-box
 
-            .. image:: _static/images/landingpage/energy.png
+            .. image:: _static/images/landingpage/energy.webp
                 :alt: Energy icon
                 :class: application-icon
 
@@ -204,7 +204,7 @@ skglm
 
     This project is made possible thanks to the support of
 
-    .. image:: _static/images/landingpage/inrialogo.png
+    .. image:: _static/images/landingpage/inrialogo.webp
           :alt: Inria logo
           :class: sponsor-logo
           :target: https://www.inria.fr/en

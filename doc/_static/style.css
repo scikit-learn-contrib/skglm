@@ -323,8 +323,8 @@ html[data-theme="dark"] .support-box pre {
 
 .application-box {
     background-color: var(--pst-color-secondary-bg);
-    padding: 1.5rem;
-    border-radius: 8px;
+    padding: 1.5rem !important;
+    border-radius: 1rem;
     margin: 1.5rem;
 }
 
@@ -333,16 +333,21 @@ html[data-theme="dark"] .application-box {
 }
 
 .application-icon {
-    width: 5rem;
-    height: 5rem;
+    height: 6rem;
+    margin: 0 auto;
 }
 
 .application-title {
-    font-size: 1.1rem;
-    font-weight: 600;
+    font-size: 1.2rem;
+    color: var(--pst-color-primary);
     margin-bottom: 0.5rem;
-    margin-top: 0.75rem;
-    color: var(--pst-color-text);
+    margin-top: 0;
+    font-weight: 600;
+}
+
+.application-text {
+    text-align: left;
+    padding-right: 1rem !important;
 }
 
 
@@ -363,7 +368,10 @@ html[data-theme="dark"] .application-box {
 }
 
 .sponsor-logo {
-    height: 30px;
+    height: 1.5rem;
+    vertical-align: baseline;
+    display: inline-block;
+    margin-bottom: 0rem;
 }
 
 html[data-theme="dark"] .sponsor-banner {
@@ -372,8 +380,17 @@ html[data-theme="dark"] .sponsor-banner {
 
 .sponsor-inline {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
     gap: 1rem;
     flex-wrap: wrap;
+    line-height: 1.2;
+    height: 100%;
+}
+
+
+.sponsor-inline>p {
+    margin: 0;
+    display: flex;
+    align-items: flex-end;
 }

@@ -202,6 +202,7 @@ skglm
 
   .. container:: sponsor-inline
 
+
     This project is made possible thanks to the support of
 
     .. image:: _static/images/landingpage/inrialogo.webp

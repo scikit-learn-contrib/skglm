@@ -10,4 +10,5 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         img.setAttribute("loading", "lazy");
     });
+    document.body.classList.add("ready");
 });

@@ -77,6 +77,15 @@ img {
     display: block;
 }
 
+body {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+body.ready {
+    opacity: 1;
+}
+
 /*-------------------------------------------------------------*/
 /*Landing Page Layout*/
 

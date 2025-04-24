@@ -61,6 +61,15 @@ code {
     margin-bottom: 0 !important;
 }
 
+/* Hide Search Matches Button */
+#searchbox .highlight-link {
+    display: none;
+}
+
+.highlighted #searchbox .highlight-link {
+    display: block;
+}
+
 /*-------------------------------------------------------------*/
 /*Landing Page Layout*/
 

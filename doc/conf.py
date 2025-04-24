@@ -117,11 +117,6 @@ ogp_type = "website"
 # a list of builtin themes.
 html_theme = 'pydata_sphinx_theme'
 
-dev_color = "#ff7f0e"
-stable_color = "#1f77b4"
-
-primary = stable_color if is_stable_doc else dev_color
-primary_dark = "#135b91" if is_stable_doc else "#e76f00"
 
 version_match = "stable" if is_stable_doc else "dev"
 
@@ -129,18 +124,6 @@ version_match = "stable" if is_stable_doc else "dev"
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    # color configurations
-    "light_css_variables": {
-        "color-brand-primary": primary,
-        "color-brand-content": primary,
-        "color-brand-secondary": primary_dark,
-    },
-    "dark_css_variables": {
-        "color-brand-primary": primary_dark,
-        "color-brand-content": primary_dark,
-        "color-brand-secondary": primary,
-    },
-
     # Navbar configuration
     "navbar_align": "left",
     "navbar_start": ["navbar-logo"],
@@ -211,7 +194,7 @@ html_js_files = [
     "scripts/asciimath-defines.js",
     "switcher.json",
     "scripts/lazyload.js",
-    "scripts/instantpage.min.js"
+    "scripts/instantpage.min.js",
 ]
 
 # -- Options for copybutton ---------------------------------------------

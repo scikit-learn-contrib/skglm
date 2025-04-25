@@ -5,3 +5,4 @@ Version 0.5 (in progress)
 
 - jit-compile datafits and penalties inside ``Solver.solve`` method (:gh:`270`)
 - Datafits are now initialized inside ``Solver.solve`` method (:gh:`295`)
+- Add support for fitting an intercept in :ref:`SqrtLasso <skglm.experimental.sqrt_lasso.SqrtLasso>` (PR: :gh:`298`)

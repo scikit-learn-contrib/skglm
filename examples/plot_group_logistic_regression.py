@@ -61,6 +61,6 @@ plt.show()
 
 # %%
 # This plot shows the L2 norm of the coefficients for each group.
-# Groups with a norm close to zero have been set inactive by the model,
+# Groups with a zero norm have been set inactive by the model,
 # illustrating how Group Logistic Regression enforces sparsity at the group level.
 # (Note: This example uses a tiny synthetic dataset, so the pattern has limited interpretability.)

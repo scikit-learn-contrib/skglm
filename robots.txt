@@ -1,0 +1,2 @@
+User-agent: *
+Sitemap: https://contrib.scikit-learn.org/skglm/sitemap.xml

@@ -1,4 +1,6 @@
 .. _prox_nn_group_lasso:
+.. meta::
+   :description: Detailed tutorial on deriving the proximity operator and subdifferential for the positive group Lasso penalty in skglm. Includes mathematical proofs and examples.
 
 ===================================
 Details on the Positive Group Lasso

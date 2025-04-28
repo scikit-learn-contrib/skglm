@@ -11,10 +11,10 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://contrib.scikit-learn.org/skglm/auto_examples/plot_group_logistic_regression.html" />
 <meta property="og:site_name" content="skglm" />
-<meta property="og:description" content="Scikit-learn is missing a Group Logistic regression estimator. We show how to implement one with skglm. Classifier creation: combination of penalty, datafit and solver. Train the model Fit check that groups are either all 0 or all non zero Total r..." />
+<meta property="og:description" content="Scikit-learn is missing a Group Logistic regression estimator. We show how to implement one with skglm. Classifier creation: combination of penalty, datafit and solver. Train the model Fit check that groups are either all 0 or all non zero Visuali..." />
 <meta property="og:image" content="https://contrib.scikit-learn.org/skglm/_static/images/logo.svg" />
 <meta property="og:image:alt" content="skglm" />
-<meta name="description" content="Scikit-learn is missing a Group Logistic regression estimator. We show how to implement one with skglm. Classifier creation: combination of penalty, datafit and solver. Train the model Fit check that groups are either all 0 or all non zero Total r..." />
+<meta name="description" content="Scikit-learn is missing a Group Logistic regression estimator. We show how to implement one with skglm. Classifier creation: combination of penalty, datafit and solver. Train the model Fit check that groups are either all 0 or all non zero Visuali..." />
 
     <title>Group Logistic regression in python &#8212; skglm 0.5dev documentation</title>
   
@@ -75,8 +75,8 @@
     <link rel="icon" href="../_static/logo.svg"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Value and proximal operators of penalties" href="plot_pen_prox.html" />
-    <link rel="prev" title="Examples" href="index.html" />
+    <link rel="next" title="Weighted Lasso with some zero weights" href="plot_zero_weights_lasso.html" />
+    <link rel="prev" title="Comparison of Lasso and Weighted Lasso" href="plot_lasso_vs_weighted.html" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -496,6 +496,8 @@ one with <code class="docutils literal notranslate"><span class="pre">skglm</spa
 <span class="kn">from</span><span class="w"> </span><span class="nn">skglm.penalties</span><span class="w"> </span><span class="kn">import</span> <a href="../generated/skglm.penalties.WeightedGroupL2.html#skglm.penalties.WeightedGroupL2" title="skglm.penalties.WeightedGroupL2" class="sphx-glr-backref-module-skglm-penalties sphx-glr-backref-type-py-class"><span class="n">WeightedGroupL2</span></a>
 <span class="kn">from</span><span class="w"> </span><span class="nn">skglm.solvers</span><span class="w"> </span><span class="kn">import</span> <a href="../generated/skglm.solvers.GroupProxNewton.html#skglm.solvers.GroupProxNewton" title="skglm.solvers.GroupProxNewton" class="sphx-glr-backref-module-skglm-solvers sphx-glr-backref-type-py-class"><span class="n">GroupProxNewton</span></a>
 <span class="kn">from</span><span class="w"> </span><span class="nn">skglm.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_correlated_data</span><span class="p">,</span> <span class="n">grp_converter</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
 <span class="n">n_features</span> <span class="o">=</span> <span class="mi">30</span>
 <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">make_correlated_data</span><span class="p">(</span>
@@ -974,7 +976,24 @@ div.sk-label-container:hover .sk-estimator-doc-link.fitted:hover,
  [ 0.57186315 -0.24696147  0.16123249]]
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 12.431 seconds)</p>
+<p>Visualise group-level sparsity</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">coef_by_group</span> <span class="o">=</span> <a href="../generated/skglm.GeneralizedLinearEstimator.html#skglm.GeneralizedLinearEstimator" title="skglm.GeneralizedLinearEstimator" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">clf</span></a><span class="o">.</span><span class="n">coef_</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">grp_size</span><span class="p">)</span>
+<span class="n">group_norms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">coef_by_group</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_groups</span><span class="p">),</span> <span class="n">group_norms</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Group index&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;L2 norm of coefficients&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Group Sparsity Pattern&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<img src="../_images/sphx_glr_plot_group_logistic_regression_001.png" srcset="../_images/sphx_glr_plot_group_logistic_regression_001.png" alt="Group Sparsity Pattern" class = "sphx-glr-single-img"/><p>This plot shows the L2 norm of the coefficients for each group.
+Groups with a zero norm have been set inactive by the model,
+illustrating how Group Logistic Regression enforces sparsity at the group level.
+(Note: This example uses a tiny synthetic dataset, so the pattern has limited interpretability.)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 11.610 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-group-logistic-regression-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/382fdeae60d02217e9c69837e7c101fe/plot_group_logistic_regression.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_group_logistic_regression.ipynb</span></code></a></p>
@@ -1000,20 +1019,20 @@ div.sk-label-container:hover .sk-estimator-doc-link.fitted:hover,
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="index.html"
+       href="plot_lasso_vs_weighted.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Examples</p>
+        <p class="prev-next-title">Comparison of Lasso and Weighted Lasso</p>
       </div>
     </a>
     <a class="right-next"
-       href="plot_pen_prox.html"
+       href="plot_zero_weights_lasso.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Value and proximal operators of penalties</p>
+        <p class="prev-next-title">Weighted Lasso with some zero weights</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

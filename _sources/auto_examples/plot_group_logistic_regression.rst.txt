@@ -24,7 +24,7 @@ Group Logistic regression in python
 Scikit-learn is missing a Group Logistic regression estimator. We show how to implement
 one with ``skglm``.
 
-.. GENERATED FROM PYTHON SOURCE LINES 8-25
+.. GENERATED FROM PYTHON SOURCE LINES 8-27
 
 .. code-block:: Python
 
@@ -39,6 +39,8 @@ one with ``skglm``.
     from skglm.solvers import GroupProxNewton
     from skglm.utils.data import make_correlated_data, grp_converter
 
+    import matplotlib.pyplot as plt
+
     n_features = 30
     X, y, _ = make_correlated_data(
         n_samples=10, n_features=30, random_state=0)
@@ -52,12 +54,12 @@ one with ``skglm``.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 26-28
+.. GENERATED FROM PYTHON SOURCE LINES 28-30
 
 Classifier creation: combination of penalty, datafit and solver.
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 28-37
+.. GENERATED FROM PYTHON SOURCE LINES 30-39
 
 .. code-block:: Python
 
@@ -77,11 +79,11 @@ Classifier creation: combination of penalty, datafit and solver.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-39
+.. GENERATED FROM PYTHON SOURCE LINES 40-41
 
 Train the model
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-42
+.. GENERATED FROM PYTHON SOURCE LINES 41-44
 
 .. code-block:: Python
 
@@ -539,15 +541,16 @@ Train the model
     <br />
     <br />
 
-.. GENERATED FROM PYTHON SOURCE LINES 43-44
+.. GENERATED FROM PYTHON SOURCE LINES 45-46
 
 Fit check that groups are either all 0 or all non zero
 
-.. GENERATED FROM PYTHON SOURCE LINES 44-45
+.. GENERATED FROM PYTHON SOURCE LINES 46-48
 
 .. code-block:: Python
 
     print(clf.coef_.reshape(-1, grp_size))
+
 
 
 
@@ -570,10 +573,49 @@ Fit check that groups are either all 0 or all non zero
 
 
 
+.. GENERATED FROM PYTHON SOURCE LINES 49-50
+
+Visualise group-level sparsity
+
+.. GENERATED FROM PYTHON SOURCE LINES 50-62
+
+.. code-block:: Python
+
+
+    coef_by_group = clf.coef_.reshape(-1, grp_size)
+    group_norms = np.linalg.norm(coef_by_group, axis=1)
+
+    plt.figure(figsize=(8, 4))
+    plt.bar(np.arange(n_groups), group_norms)
+    plt.xlabel("Group index")
+    plt.ylabel("L2 norm of coefficients")
+    plt.title("Group Sparsity Pattern")
+    plt.tight_layout()
+    plt.show()
+
+
+
+
+.. image-sg:: /auto_examples/images/sphx_glr_plot_group_logistic_regression_001.png
+   :alt: Group Sparsity Pattern
+   :srcset: /auto_examples/images/sphx_glr_plot_group_logistic_regression_001.png
+   :class: sphx-glr-single-img
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 63-67
+
+This plot shows the L2 norm of the coefficients for each group.
+Groups with a zero norm have been set inactive by the model,
+illustrating how Group Logistic Regression enforces sparsity at the group level.
+(Note: This example uses a tiny synthetic dataset, so the pattern has limited interpretability.)
+
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 12.431 seconds)
+   **Total running time of the script:** (0 minutes 11.610 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_group_logistic_regression.py:

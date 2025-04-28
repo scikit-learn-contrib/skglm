@@ -1,8 +1,11 @@
 .. _general_examples:
 
-Examples Gallery
-================
+.. title:: Examples
 
-.. contents:: Contents
-   :local:
-   :depth: 3
+Examples
+========
+
+.. toctree::
+   :maxdepth: 1
+
+   auto_examples/index

@@ -65,6 +65,9 @@ doc = [
     "pytest",
     "furo",
     "lifelines",
+    "pydata_sphinx_theme",
+    "sphinx-sitemap",
+    "sphinxext-opengraph",
 ]
 
 

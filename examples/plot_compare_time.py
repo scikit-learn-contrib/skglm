@@ -65,6 +65,12 @@ for ax, model, l1_ratio in zip(axarr, models, [1, 0.5]):
     dict_ours[model].max_iter = 10_000
     w_star = dict_ours[model].fit(X, y).coef_
     pobj_star = compute_obj(X, y, w_star, alpha, l1_ratio)
+
+    # Pre-compile skglm so no JIT shows up in timing
+    for n_iter_us in range(1, 10):
+        dict_ours[model].max_iter = n_iter_us
+        _ = dict_ours[model].fit(X, y).coef_
+
     for n_iter_sklearn in np.unique(np.geomspace(1, 50, num=15).astype(int)):
         dict_sklearn[model].max_iter = n_iter_sklearn
 

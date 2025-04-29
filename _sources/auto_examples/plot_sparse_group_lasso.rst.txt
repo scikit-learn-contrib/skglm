@@ -588,14 +588,14 @@ some values are 0 too
  .. code-block:: none
 
 
-    ([<matplotlib.axis.YTick object at 0x7f1bde70a620>, <matplotlib.axis.YTick object at 0x7f1bdc1dd030>, <matplotlib.axis.YTick object at 0x7f1bd77343a0>], [Text(0, 0, '0'), Text(0, 1, '1'), Text(0, 2, '2')])
+    ([<matplotlib.axis.YTick object at 0x7ffaec0d56c0>, <matplotlib.axis.YTick object at 0x7ffaec0d4130>, <matplotlib.axis.YTick object at 0x7ffaecd58280>], [Text(0, 0, '0'), Text(0, 1, '1'), Text(0, 2, '2')])
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 4.322 seconds)
+   **Total running time of the script:** (0 minutes 4.368 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_sparse_group_lasso.py:

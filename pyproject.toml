@@ -63,7 +63,6 @@ doc = [
     "sphinx-gallery",
     "sphinx-design",
     "pytest",
-    "furo",
     "lifelines",
     "pydata_sphinx_theme",
     "sphinx-sitemap",

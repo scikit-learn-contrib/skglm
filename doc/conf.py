@@ -146,7 +146,7 @@ html_theme_options = {
     "version_dropdown": True,
     "switcher": {
         # NOTE: must be a URL and not a path relative to doc
-        "json_url": "https://raw.githubusercontent.com/floriankozikowski/skglm/refs/heads/documentation-update/doc/_static/switcher.json",
+        "json_url": "https://raw.githubusercontent.com/scikit-learn-contrib/skglm/refs/heads/main/doc/_static/switcher.json",
         "version_match": version_match,
     },
     "navigation_with_keys": True,

@@ -54,10 +54,8 @@ class MultiTaskBCD(BaseSolver):
 
         is_sparse = sparse.issparse(X)
         if is_sparse:
-            datafit.initialize_sparse(X.data, X.indptr, X.indices, Y)
             lipschitz = datafit.get_lipschitz_sparse(X.data, X.indptr, X.indices, Y)
         else:
-            datafit.initialize(X, Y)
             lipschitz = datafit.get_lipschitz(X, Y)
 
         for t in range(self.max_iter):

@@ -615,7 +615,7 @@ illustrating how Group Logistic Regression enforces sparsity at the group level.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 10.789 seconds)
+   **Total running time of the script:** (0 minutes 10.390 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_group_logistic_regression.py:

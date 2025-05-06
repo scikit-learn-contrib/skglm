@@ -6,11 +6,9 @@ from skglm.utils.sparse_ops import spectral_norm
 
 
 class QuantileHuber(BaseDatafit):
-    """Huber-smoothed Pinball (Quantile) loss.
+    """Huber-smoothed Pinball loss for quantile regression.
 
-    This loss function is a smoothed version of the Pinball loss used for quantile
-    regression. By smoothing the non-differentiable point with a quadratic region,
-    it improves numerical stability for solvers like PDCD_WS on larger datasets.
+    This implements a smoothed approximation of the Pinball (quantile) loss by applying Huber-style smoothing at the non-differentiable point. This formulation improves numerical stability and convergence for gradient-based solvers, particularly on larger datasets.
 
     Parameters
     ----------
@@ -23,26 +21,39 @@ class QuantileHuber(BaseDatafit):
 
     Notes
     -----
-    For a residual r = y - Xw, the loss is defined as:
+    The loss function is defined as:
 
-        For |r| ≤ delta:
-            loss = (τ if r > 0 else (1-τ)) * (r²/(2*delta))
+    .. math::
+        L(r) = \begin{cases}
+            \tau \frac{r^2}{2\delta} & \text{if } 0 < r \leq \delta \\
+            (1-\tau) \frac{r^2}{2\delta} & \text{if } -\delta \leq r < 0 \\
+            \tau (r - \frac{\delta}{2}) & \text{if } r > \delta \\
+            (1-\tau) (-r - \frac{\delta}{2}) & \text{if } r < -\delta
+        \end{cases}
 
-        For r > delta:
-            loss = τ * (r - delta/2)
+    where :math:`r = y - Xw` is the residual, :math:`\tau` is the target quantile,
+    and :math:`\delta` controls the smoothing region width.
 
-        For r < -delta:
-            loss = (1-τ) * (-r - delta/2)
+    The gradient is given by:
 
-    Where τ is the quantile parameter.
+    .. math::
+        \nabla L(r) = \begin{cases}
+            \tau \frac{r}{\delta} & \text{if } 0 < r \leq \delta \\
+            (1-\tau) \frac{r}{\delta} & \text{if } -\delta \leq r < 0 \\
+            \tau & \text{if } r > \delta \\
+            -(1-\tau) & \text{if } r < -\delta
+        \end{cases}
 
-    * When τ = 0.5, this reduces to the symmetric Huber loss used for median regression.
-    * As delta → 0, it converges to the standard Pinball loss.
+    This formulation provides twice-differentiable smoothing while maintaining quantile estimation properties. The approach is similar to convolution smoothing with a uniform kernel.
+
+        Special cases:
+            - When :math:`\\tau = 0.5`, this reduces to the symmetric Huber loss used for median regression.
+            - As :math:`\\delta \\to 0`, it converges to the standard Pinball loss.
 
     References
     ----------
-    Friedman, J.H., "Greedy Function Approximation: A Gradient Boosting Machine,"
-    Annals of Statistics, 29(5):1189-1232, 2001.
+    He, X., Pan, X., Tan, K. M., & Zhou, W. X. (2021).
+       "Smoothed Quantile Regression with Large-Scale Inference
     """
 
     def __init__(self, delta, quantile):
@@ -54,39 +65,27 @@ class QuantileHuber(BaseDatafit):
         self.quantile = float(quantile)
 
     def get_spec(self):
-        return (
+        spec = (
             ('delta', float64),
             ('quantile', float64),
         )
+        return spec
 
     def params_to_dict(self):
         return dict(delta=self.delta, quantile=self.quantile)
 
     def get_lipschitz(self, X, y):
-        """Return coordinatewise Lipschitz constants of the gradient.
-
-        Parameters
-        ----------
-        X : array-like, shape (n_samples, n_features)
-            Training data.
-        y : array-like, shape (n_samples,)
-            Target values.
-
-        Returns
-        -------
-        lipschitz : array, shape (n_features,)
-            Coordinatewise Lipschitz constants.
-        """
         n_samples = len(y)
         weight = max(self.quantile, 1 - self.quantile)
+
         lipschitz = weight * (X ** 2).sum(axis=0) / (n_samples * self.delta)
         return lipschitz
 
     def get_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
-        """Return coordinatewise Lipschitz constants for sparse data."""
         n_samples = len(y)
         n_features = len(X_indptr) - 1
         weight = max(self.quantile, 1 - self.quantile)
+
         lipschitz = np.zeros(n_features, dtype=X_data.dtype)
         for j in range(n_features):
             nrm2 = 0.0
@@ -96,17 +95,16 @@ class QuantileHuber(BaseDatafit):
         return lipschitz
 
     def get_global_lipschitz(self, X, y):
-        """Return global Lipschitz constant of the gradient."""
         n_samples = len(y)
-        return norm(X, 2) ** 2 / (n_samples * self.delta)
+        weight = max(self.quantile, 1 - self.quantile)
+        return weight * norm(X, 2) ** 2 / (n_samples * self.delta)
 
     def get_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
-        """Return global Lipschitz constant for sparse data."""
         n_samples = len(y)
-        return spectral_norm(X_data, X_indptr, X_indices, n_samples) ** 2 / (n_samples * self.delta)
+        weight = max(self.quantile, 1 - self.quantile)
+        return weight * spectral_norm(X_data, X_indptr, X_indices, n_samples) ** 2 / (n_samples * self.delta)
 
     def _loss_and_grad_scalar(self, residual):
-        """Return (loss, dℓ/dr) for one residual value."""
         tau, delta = self.quantile, self.delta
         abs_r = abs(residual)
 
@@ -124,22 +122,6 @@ class QuantileHuber(BaseDatafit):
             return (1 - tau) * (-residual - delta/2), -(1 - tau)
 
     def value(self, y, w, Xw):
-        """Compute the value of the loss.
-
-        Parameters
-        ----------
-        y : array-like, shape (n_samples,)
-            Target values.
-        w : array-like, shape (n_features,)
-            Coefficient vector.
-        Xw : array-like, shape (n_samples,)
-            Model predictions.
-
-        Returns
-        -------
-        float
-            Value of the loss.
-        """
         n_samples = len(y)
         res = 0.0
         for i in range(n_samples):
@@ -148,40 +130,38 @@ class QuantileHuber(BaseDatafit):
         return res / n_samples
 
     def _dr(self, residual):
-        # residual: array of shape (n_samples,)
-        τ, δ = self.quantile, self.delta
-        # scale = τ if r>=0 else (1-τ)
-        scale = np.where(residual >= 0, τ, 1-τ)
-        # in the quadratic region, slope = scale * (r/δ), else ±scale
+        """
+        Return the derivative dl/dr for every residual in `residual`.
+        """
+        tau = self.quantile
+        delt = self.delta
+
+        # Pick tau for r >= 0, (1 - tau) for r < 0
+        scale = np.where(residual >= 0, tau, 1 - tau)
+
+        # Inside the quadratic zone: slope = scale * (r / delt)
+        # Outside: slope is ± scale, same sign as r
         dr = np.where(
-            np.abs(residual) <= δ,
-            scale * (residual / δ),
+            np.abs(residual) <= delt,
+            scale * (residual / delt),
             np.sign(residual) * scale
         )
         return dr
 
     def gradient_scalar(self, X, y, w, Xw, j):
-        # 1) compute dr once
         r = y - Xw
         dr = self._dr(r)
-        # 2) dot‐product for feature j
-        #    equivalent to sum_i X[i,j] * dr[i]
         return - X[:, j].dot(dr) / len(y)
 
     def gradient_scalar_sparse(self, X_data, X_indptr, X_indices, y, Xw, j):
-        # 1) compute dr once (dense vector)
         r = y - Xw
         dr = self._dr(r)
-        # 2) only loop over nonzero entries of column j,
-        #    but use the precomputed dr values
         idx_start, idx_end = X_indptr[j], X_indptr[j + 1]
-        rows = X_indices[idx_start:idx_end]        # which sample each entry belongs to
-        vals = X_data[idx_start:idx_end]           # the nonzero values
-        # grad_j = - sum_k vals[k] * dr[ rows[k] ]
+        rows = X_indices[idx_start:idx_end]
+        vals = X_data[idx_start:idx_end]
         return - np.dot(vals, dr[rows]) / len(y)
 
     def full_grad_sparse(self, X_data, X_indptr, X_indices, y, Xw):
-        """Compute the full gradient with sparse data."""
         n_features = len(X_indptr) - 1
         n_samples = len(y)
         grad = np.zeros(n_features, dtype=Xw.dtype)
@@ -196,7 +176,6 @@ class QuantileHuber(BaseDatafit):
         return grad
 
     def intercept_update_step(self, y, Xw):
-        """Compute the update step for the intercept."""
         n_samples = len(y)
         update = 0.0
         for i in range(n_samples):
@@ -206,34 +185,12 @@ class QuantileHuber(BaseDatafit):
         return update / n_samples
 
     def initialize(self, X, y):
-        """Precompute constants to speed up computations.
-        This is a no-op for this loss function.
-        """
         pass
 
     def initialize_sparse(self, X_data, X_indptr, X_indices, y):
-        """Precompute constants for sparse data to speed up computations.
-        This is a no-op for this loss function.
-        """
         pass
 
     def gradient(self, X, y, Xw):
-        """Compute the gradient of the datafit.
-
-        Parameters
-        ----------
-        X : array-like, shape (n_samples, n_features)
-            Design matrix.
-        y : array-like, shape (n_samples,)
-            Target vector.
-        Xw : array-like, shape (n_samples,)
-            Model predictions.
-
-        Returns
-        -------
-        grad : array, shape (n_features,)
-            Gradient vector.
-        """
         n_samples, n_features = X.shape
         grad = np.zeros(n_features)
         for j in range(n_features):

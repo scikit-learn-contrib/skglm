@@ -6,64 +6,45 @@ from skglm.utils.sparse_ops import spectral_norm
 
 
 class QuantileHuber(BaseDatafit):
-    r"""Huber-smoothed Pinball loss for quantile regression.
+    r"""Huber‑smoothed pinball loss for quantile regression.
 
-        This implements a smoothed approximation of the Pinball (quantile) loss
-        by applying Huber-style smoothing at the non-differentiable point. T
-        his formulation improves numerical stability and convergence
-        for gradient-based solvers, particularly on larger datasets.
+    This class implements a smoothed approximation of the pinball (quantile)
+    loss by applying Huber‑style smoothing at the non‑differentiable point.
+    The formulation improves numerical stability and convergence for
+    gradient‑based solvers, particularly on large data sets.
 
-        Parameters
-        ----------
-        delta : float, positive
-            Width of the quadratic region around the origin. Larger values
-            create more smoothing. As delta approaches 0, this approaches the
-            standard Pinball loss.
+    Parameters
+    ----------
+    delta : float, positive
+        Width of the quadratic region around the origin.  Larger values create
+        stronger smoothing.  As ``delta`` -> 0, the loss approaches the
+        standard pinball loss.
 
-        quantile : float, between 0 and 1
-            The desired quantile level. For example, 0.5 corresponds to the
-            median.
+    quantile : float in (0, 1)
+        Target quantile level (e.g. ``0.5`` corresponds to the median).
 
-        Notes
-        -----
-        The loss function is defined as:
+    Notes
+    -----
+    The loss function is defined as
 
-        .. math::
-            L(r) = \begin{cases}
-                \tau \frac{r^2}{2\delta} & \text{if } 0 < r \leq \delta \\
-                (1-\tau) \frac{r^2}{2\delta} & \text{if } -\delta \leq r < 0 \\
-                \tau (r - \frac{\delta}{2}) & \text{if } r > \delta \\
-                (1-\tau) (-r - \frac{\delta}{2}) & \text{if } r < -\delta
-            \end{cases}
+    .. math::
 
-        where :math:`r = y - Xw` is the residual, :math:`\tau` is the target
-        quantile, and :math:`\delta` controls the smoothing region width.
+        L(r) =
+        \\begin{cases}
+            \\tau \\dfrac{r^{2}}{2\\delta}, & 0 < r \\le \\delta \\\\
+            (1-\\tau) \\dfrac{r^{2}}{2\\delta}, & -\\delta \\le r < 0 \\\\
+            \\tau \\left(r - \\dfrac{\\delta}{2}\\right), & r > \\delta \\\\
+            (1-\\tau) \\left(-r - \\dfrac{\\delta}{2}\\right), & r < -\\delta
+        \\end{cases}
 
-        The gradient is given by:
+    where :math:`r = y - Xw` is the residual, :math:`\\tau` is the target
+    quantile, and :math:`\\delta` controls the smoothing width.
 
-        .. math::
-            \nabla L(r) = \begin{cases}
-                \tau \frac{r}{\delta} & \text{if } 0 < r \leq \delta \\
-                (1-\tau) \frac{r}{\delta} & \text{if } -\delta \leq r < 0 \\
-                \tau & \text{if } r > \delta \\
-                -(1-\tau) & \text{if } r < -\delta
-            \end{cases}
-
-        This formulation provides twice-differentiable smoothing while
-        maintaining quantile estimation properties. The approach is similar to
-        convolution smoothing with a uniform kernel.
-
-            Special cases:
-                - When :math:`\\tau = 0.5`, this reduces to the symmetric Huber
-                loss used for median regression.
-                - As :math:`\\delta \\to 0`, it converges to the standard
-                Pinball loss.
-
-        References
-        ----------
-        He, X., Pan, X., Tan, K. M., & Zhou, W. X. (2021).
-        "Smoothed Quantile Regression with Large-Scale Inference
-        """
+    References
+    ----------
+    He, X., Pan, X., Tan, K. M., & Zhou, W. X. (2021).
+    *Smoothed Quantile Regression with Large‑Scale Inference*.
+    """
 
     def __init__(self, delta, quantile):
         if not 0 < quantile < 1:
@@ -145,9 +126,7 @@ class QuantileHuber(BaseDatafit):
         return res / n_samples
 
     def _dr(self, residual):
-        """
-        Return the derivative dl/dr for every residual in `residual`.
-        """
+        """Compute dl/dr for each residual."""
         tau = self.quantile
         delt = self.delta
 

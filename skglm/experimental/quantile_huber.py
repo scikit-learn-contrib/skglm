@@ -8,7 +8,10 @@ from skglm.utils.sparse_ops import spectral_norm
 class QuantileHuber(BaseDatafit):
     """Huber-smoothed Pinball loss for quantile regression.
 
-    This implements a smoothed approximation of the Pinball (quantile) loss by applying Huber-style smoothing at the non-differentiable point. This formulation improves numerical stability and convergence for gradient-based solvers, particularly on larger datasets.
+    This implements a smoothed approximation of the Pinball (quantile) loss
+    by applying Huber-style smoothing at the non-differentiable point. T
+    his formulation improves numerical stability and convergence
+    for gradient-based solvers, particularly on larger datasets.
 
     Parameters
     ----------

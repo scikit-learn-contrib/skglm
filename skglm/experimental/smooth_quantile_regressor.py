@@ -1,12 +1,9 @@
 import copy
-import warnings
 import numpy as np
 from scipy import sparse
 
 from skglm import GeneralizedLinearEstimator
 from skglm.penalties import L1
-from skglm.datafits import Huber
-from skglm.experimental.quantile_regression import Pinball
 from skglm.solvers import FISTA, LBFGS
 
 
@@ -144,16 +141,21 @@ class SmoothQuantileRegressor:
 
         extended_sequence = self.smoothing_sequence[:]
         fine_deltas = [0.15, 0.12, 0.1, 0.08, 0.06, 0.04, 0.02, 0.01]
-        extended_sequence = sorted(set(extended_sequence + fine_deltas), reverse=True)
+        extended_sequence = sorted(set(extended_sequence + fine_deltas),
+                                   reverse=True)
 
         # Progressive smoothing stages
         for stage, delta in enumerate(extended_sequence):
             if self.verbose:
-                print(f"[ProgressiveSmoothing] Stage {stage+1}/{len(extended_sequence)}: "
-                      f"delta = {delta:.3g}")
+                print(
+                    f"[ProgressiveSmoothing] Stage {stage + 1}/"
+                    f"{len(extended_sequence)}: "
+                    f"delta = {delta:.3g}"
+                )
 
             # Always use QuantileHuber for all quantile values
-            datafit = self._quantile_huber_cls(delta=delta, quantile=self.quantile)
+            datafit = self._quantile_huber_cls(delta=delta,
+                                               quantile=self.quantile)
 
             solver = copy.deepcopy(self.smooth_solver)
 
@@ -182,7 +184,8 @@ class SmoothQuantileRegressor:
 
             if self.verbose:
                 print(
-                    f"  Actual quantile: {actual_quantile:.3f}, Error: {quantile_error:.3f}")
+                    f"  Actual quantile: {actual_quantile:.3f},"
+                    f" Error: {quantile_error:.3f}")
 
             if quantile_error < best_quantile_error:
                 best_quantile_error = quantile_error
@@ -192,7 +195,8 @@ class SmoothQuantileRegressor:
 
                 if self.verbose:
                     print(
-                        f"  New best quantile at delta={delta:.3g}, error={quantile_error:.3f}")
+                        f"  New best quantile at delta={delta:.3g},"
+                        f" error={quantile_error:.3f}")
 
             # Record stage information
             obj_value = datafit.value(

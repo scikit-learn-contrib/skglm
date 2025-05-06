@@ -17,7 +17,8 @@ class QuantileHuber(BaseDatafit):
     ----------
     delta : float, positive
         Width of the quadratic region around the origin. Larger values create
-        more smoothing. As delta approaches 0, this approaches the standard Pinball loss.
+        more smoothing. As delta approaches 0, this approaches the standard
+        Pinball loss.
 
     quantile : float, between 0 and 1
         The desired quantile level. For example, 0.5 corresponds to the median.
@@ -34,8 +35,8 @@ class QuantileHuber(BaseDatafit):
             (1-\tau) (-r - \frac{\delta}{2}) & \text{if } r < -\delta
         \end{cases}
 
-    where :math:`r = y - Xw` is the residual, :math:`\tau` is the target quantile,
-    and :math:`\delta` controls the smoothing region width.
+    where :math:`r = y - Xw` is the residual, :math:`\tau` is the target
+    quantile, and :math:`\delta` controls the smoothing region width.
 
     The gradient is given by:
 
@@ -47,11 +48,15 @@ class QuantileHuber(BaseDatafit):
             -(1-\tau) & \text{if } r < -\delta
         \end{cases}
 
-    This formulation provides twice-differentiable smoothing while maintaining quantile estimation properties. The approach is similar to convolution smoothing with a uniform kernel.
+    This formulation provides twice-differentiable smoothing while maintaining
+    quantile estimation properties. The approach is similar to convolution
+    smoothing with a uniform kernel.
 
         Special cases:
-            - When :math:`\\tau = 0.5`, this reduces to the symmetric Huber loss used for median regression.
-            - As :math:`\\delta \\to 0`, it converges to the standard Pinball loss.
+            - When :math:`\\tau = 0.5`, this reduces to the symmetric Huber
+            loss used for median regression.
+            - As :math:`\\delta \\to 0`, it converges to the standard
+            Pinball loss.
 
     References
     ----------
@@ -105,7 +110,11 @@ class QuantileHuber(BaseDatafit):
     def get_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
         n_samples = len(y)
         weight = max(self.quantile, 1 - self.quantile)
-        return weight * spectral_norm(X_data, X_indptr, X_indices, n_samples) ** 2 / (n_samples * self.delta)
+        return (
+            weight
+            * spectral_norm(X_data, X_indptr, X_indices, n_samples) ** 2
+            / (n_samples * self.delta)
+        )
 
     def _loss_and_grad_scalar(self, residual):
         tau, delta = self.quantile, self.delta
@@ -116,7 +125,9 @@ class QuantileHuber(BaseDatafit):
             if residual > 0:
                 return tau * residual**2 / (2 * delta), tau * residual / delta
             else:
-                return (1 - tau) * residual**2 / (2 * delta), (1 - tau) * residual / delta
+                return ((1 - tau) * residual**2 / (2 * delta), (1 - tau)
+                        * residual / delta
+                        )
 
         # Linear tails
         if residual > delta:

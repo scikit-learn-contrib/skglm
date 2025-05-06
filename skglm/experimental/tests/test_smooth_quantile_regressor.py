@@ -107,16 +107,20 @@ def test_issue276_regression():
     rel_gap_sqr_large = (sqr_large_loss - ref_large_loss) / ref_large_loss
 
     assert rel_gap_pdcd_small < 0.05, \
-        f"PDCD_WS should work well on small dataset (rel_gap={rel_gap_pdcd_small:.4f})"
+        f"PDCD_WS should work well on small dataset" \
+        f"(rel_gap={rel_gap_pdcd_small:.4f})"
 
     assert rel_gap_sqr_large < 0.05, \
-        f"SmoothQuantileRegressor failed to fix issue #276 (rel_gap={rel_gap_sqr_large:.4f})"
+        f"SmoothQuantileRegressor failed to fix issue #276" \
+        f"(rel_gap={rel_gap_sqr_large:.4f})"
 
     if rel_gap_pdcd_large > 0.05:
         assert sqr_large_loss < pdcd_large_loss, \
-            "SmoothQuantileRegressor should outperform direct PDCD_WS on large dataset"
+            "SmoothQuantileRegressor should outperform direct" \
+            "PDCD_WS on large dataset"
 
-        assert len(sqr.stage_results_) > 0, "Missing stage results in SmoothQuantileRegressor"
+        assert len(sqr.stage_results_) > 0, "Missing stage results" \
+            "in SmoothQuantileRegressor"
 
     return rel_gap_pdcd_small, rel_gap_pdcd_large, rel_gap_sqr_large
 
@@ -158,7 +162,8 @@ def test_smooth_quantile_regressor_non_median():
     rel_gap = (sqr_loss - ref_loss) / ref_loss
 
     assert rel_gap < 0.05, \
-        f"SmoothQuantileRegressor should work for non-median quantiles (rel_gap={rel_gap:.4f})"
+        f"SmoothQuantileRegressor should work for non-median quantiles" \
+        f"(rel_gap={rel_gap:.4f})"
 
     residuals = y - y_pred_sqr
     n_pos = np.sum(residuals > 0)

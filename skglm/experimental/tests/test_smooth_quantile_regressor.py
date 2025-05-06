@@ -4,7 +4,9 @@ from sklearn.datasets import make_regression
 from sklearn.linear_model import QuantileRegressor
 
 from skglm import GeneralizedLinearEstimator
-from skglm.experimental.smooth_quantile_regressor import SmoothQuantileRegressor
+from skglm.experimental.smooth_quantile_regressor import (
+    SmoothQuantileRegressor,
+)
 from skglm.experimental.pdcd_ws import PDCD_WS
 from skglm.experimental.quantile_regression import Pinball
 from skglm.penalties import L1
@@ -38,10 +40,13 @@ def test_issue276_regression():
     n_samples_small, n_samples_large = 100, 1000
     n_features = 10
 
-    # Create two datasets - small should work with PDCD_WS, large exhibits the issue
-    X_small, y_small = make_regression(n_samples=n_samples_small, n_features=n_features,
+    # Create two datasets, small should work with PDCD_WS,
+    # large exhibits the issue
+    X_small, y_small = make_regression(n_samples=n_samples_small,
+                                       n_features=n_features,
                                        noise=0.1, random_state=42)
-    X_large, y_large = make_regression(n_samples=n_samples_large, n_features=n_features,
+    X_large, y_large = make_regression(n_samples=n_samples_large,
+                                       n_features=n_features,
                                        noise=0.1, random_state=42)
 
     X_small = StandardScaler().fit_transform(X_small)
@@ -58,7 +63,8 @@ def test_issue276_regression():
                                  solver="highs").fit(X_large, y_large)
 
     # Verify PDCD_WS works fine on small dataset
-    pdcd_solver = PDCD_WS(max_iter=500, max_epochs=500, tol=1e-4, verbose=False)
+    pdcd_solver = PDCD_WS(max_iter=500, max_epochs=500, tol=1e-4,
+                          verbose=False)
     pdcd_solver.fit_intercept = True
 
     estimator_small = GeneralizedLinearEstimator(
@@ -71,7 +77,8 @@ def test_issue276_regression():
     pdcd_small_loss = pinball_loss(y_small, y_pred_pdcd_small, tau=tau)
 
     # Apply PDCD_WS to large dataset (should exhibit issue #276)
-    pdcd_solver = PDCD_WS(max_iter=500, max_epochs=200, tol=1e-4, verbose=False)
+    pdcd_solver = PDCD_WS(max_iter=500, max_epochs=200, tol=1e-4,
+                          verbose=False)
     pdcd_solver.fit_intercept = True
     estimator_large = GeneralizedLinearEstimator(
         datafit=Pinball(tau),
@@ -122,8 +129,6 @@ def test_issue276_regression():
         assert len(sqr.stage_results_) > 0, "Missing stage results" \
             "in SmoothQuantileRegressor"
 
-    return rel_gap_pdcd_small, rel_gap_pdcd_large, rel_gap_sqr_large
-
 
 def test_smooth_quantile_regressor_non_median():
     """
@@ -135,7 +140,8 @@ def test_smooth_quantile_regressor_non_median():
     """
     np.random.seed(42)
 
-    X, y = make_regression(n_samples=1000, n_features=10, noise=0.1, random_state=42)
+    X, y = make_regression(n_samples=1000, n_features=10, noise=0.1,
+                           random_state=42)
     X = StandardScaler().fit_transform(X)
 
     tau = 0.8
@@ -149,7 +155,8 @@ def test_smooth_quantile_regressor_non_median():
 
     # SmoothQuantileRegressor solution
     sqr = SmoothQuantileRegressor(
-        smoothing_sequence=[1.0, 0.5, 0.2, 0.1, 0.05, 0.02, 0.01, 0.005, 0.001],
+        smoothing_sequence=[1.0, 0.5, 0.2, 0.1, 0.05,
+                            0.02, 0.01, 0.005, 0.001],
         quantile=tau,
         alpha=alpha,
         verbose=False,
@@ -170,5 +177,3 @@ def test_smooth_quantile_regressor_non_median():
     n_neg = np.sum(residuals < 0)
     assert abs(n_pos / (n_pos + n_neg) - tau) < 0.1, \
         f"Residual distribution doesn't match target quantile {tau}"
-
-    return rel_gap

@@ -10,8 +10,9 @@ from skglm.solvers import FISTA, LBFGS
 class SmoothQuantileRegressor:
     """Progressive smoothing (homotopy) meta-solver.
 
-    This solver addresses convergence issues in non-smooth datafits like Pinball
-    (quantile regression) on large datasets (as discussed in GitHub issue #276).
+    This solver addresses convergence issues in non-smooth datafits like
+    Pinball(quantile regression) on large datasets
+    (as discussed in GitHub issue #276).
 
     It works by progressively solving a sequence of smoothed problems with
     decreasing smoothing parameter.
@@ -59,7 +60,8 @@ class SmoothQuantileRegressor:
 
     Examples
     --------
-    >>> from skglm.experimental.progressive_smoothing import ProgressiveSmoothingSolver
+    >>> from skglm.experimental.progressive_smoothing import
+        ProgressiveSmoothingSolver
     >>> import numpy as np
     >>> X = np.random.randn(1000, 10)
     >>> y = np.random.randn(1000)
@@ -81,7 +83,8 @@ class SmoothQuantileRegressor:
         # if user stops above min_delta, append finer deltas
         min_delta = 1e-3
         if base_seq[-1] > min_delta:
-            extra = np.geomspace(base_seq[-1], min_delta, num=5, endpoint=False)[1:]
+            extra = np.geomspace(base_seq[-1], min_delta, num=5,
+                                 endpoint=False)[1:]
             base_seq = base_seq + list(extra)
         self.smoothing_sequence = base_seq
         self.quantile = float(quantile)
@@ -224,7 +227,8 @@ class SmoothQuantileRegressor:
         self.intercept_ = best_intercept
 
         if self.verbose:
-            print(f"[Final] Using smoothed solution with delta={best_delta:.3g}")
+            print(f"[Final] Using smoothed solution with delta"
+                  f"={best_delta:.3g}")
             print(f"  Best quantile error: {best_quantile_error:.3f}")
 
         self.stage_results_ = stage_results

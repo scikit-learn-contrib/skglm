@@ -59,7 +59,17 @@ def jit_cached_compile(klass, spec, to_float32=False):
     if to_float32:
         spec = spec_to_float32(spec)
 
-    return jitclass(spec)(klass)
+    # Create a new class without slots
+    class CompiledClass:
+        pass
+
+    # Copy over all methods and attributes from the original class
+    for name, value in klass.__dict__.items():
+        # Skip __slots__ and __slotnames__ but keep other special methods
+        if name not in ['__slots__', '__slotnames__']:
+            setattr(CompiledClass, name, value)
+
+    return jitclass(spec)(CompiledClass)
 
 
 def compiled_clone(instance, to_float32=False):

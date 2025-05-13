@@ -8,14 +8,33 @@ from skglm.solvers import FISTA, LBFGS
 
 
 class SmoothQuantileRegressor:
-    """Progressive smoothing (homotopy) meta-solver.
+    r"""Progressive smoothing solver for quantile regression.
 
-    This solver addresses convergence issues in non-smooth datafits like
-    Pinball(quantile regression) on large datasets
-    (as discussed in GitHub issue #276).
+    This solver addresses convergence issues in non-smooth quantile regression
+    on large datasets by using a progressive smoothing approach. The optimization
+    objective is:
 
-    It works by progressively solving a sequence of smoothed problems with
-    decreasing smoothing parameter.
+    .. math::
+        \min_{w \in \mathbb{R}^p} \frac{1}{n} \sum_{i=1}^n \rho_\tau(y_i - x_i^T w)
+        + \alpha \|w\|_1
+
+    where :math:`\rho_\tau` is the pinball loss:
+
+    .. math::
+        \rho_\tau(r) = \begin{cases}
+            \tau r & \text{if } r \geq 0 \\
+            (\tau - 1) r & \text{if } r < 0
+        \end{cases}
+
+    The solver progressively approximates the non-smooth pinball loss using
+    smoothed versions with decreasing smoothing parameter :math:`\delta`:
+
+    .. math::
+        \rho_\tau^\delta(r) = \begin{cases}
+            \tau r - \frac{\delta}{2} & \text{if } r \geq \delta \\
+            \frac{r^2}{2\delta} & \text{if } |r| < \delta \\
+            (\tau - 1) r - \frac{\delta}{2} & \text{if } r \leq -\delta
+        \end{cases}
 
     Parameters
     ----------
@@ -32,8 +51,7 @@ class SmoothQuantileRegressor:
 
     smooth_solver : instance of BaseSolver, default=None
         Solver to use for smooth approximation stages.
-        If None, uses LBFGS(max_iter=500, tol=1e-6).
-
+        If None, uses FISTA(max_iter=2000, tol=1e-8).
 
     verbose : bool, default=False
         If True, prints progress information during fitting.
@@ -41,15 +59,33 @@ class SmoothQuantileRegressor:
     Attributes
     ----------
     coef_ : ndarray of shape (n_features,)
-        Parameter vector (w in the cost function formula).
+        Parameter vector (:math:`w` in the cost function formula).
 
     intercept_ : float
         Intercept term in decision function.
 
     stage_results_ : list
-        Information about each smoothing stage including smoothing parameter,
-        number of iterations, and coefficients.
+        Information about each smoothing stage including:
+        - delta: smoothing parameter
+        - obj_value: objective value
+        - coef_norm: L2 norm of coefficients
+        - quantile_error: absolute difference between target and achieved quantile
+        - actual_quantile: achieved quantile level
+        - coef: coefficient vector
+        - intercept: intercept value
+        - n_iter: number of iterations (if available)
 
+    Notes
+    -----
+    This implementation uses a progressive smoothing approach to solve quantile
+    regression problems. It starts with a highly smoothed approximation and
+    gradually reduces the smoothing parameter to approach the original non-smooth
+    problem. This approach is particularly effective for large datasets where
+    direct optimization of the non-smooth objective can be challenging.
+
+    The solver automatically selects the best solution from all smoothing stages
+    based on the quantile error, ensuring good approximation of the target
+    quantile level.
 
     References
     ----------
@@ -57,17 +93,15 @@ class SmoothQuantileRegressor:
     Journal of Computational and Graphical Statistics, 16(1), 136–164.
     http://www.jstor.org/stable/27594233
 
-
     Examples
     --------
-    >>> from skglm.experimental.progressive_smoothing import
-        ProgressiveSmoothingSolver
+    >>> from skglm.experimental.smooth_quantile_regressor import SmoothQuantileRegressor
     >>> import numpy as np
     >>> X = np.random.randn(1000, 10)
     >>> y = np.random.randn(1000)
-    >>> solver = ProgressiveSmoothingSolver(quantile=0.8)
-    >>> solver.fit(X, y)
-    >>> print(solver.coef_)
+    >>> reg = SmoothQuantileRegressor(quantile=0.8, alpha=0.1)
+    >>> reg.fit(X, y)
+    >>> print(reg.coef_)
     """
 
     def __init__(

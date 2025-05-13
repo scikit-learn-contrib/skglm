@@ -6,44 +6,75 @@ from skglm.utils.sparse_ops import spectral_norm
 
 
 class QuantileHuber(BaseDatafit):
-    r"""Huber‑smoothed pinball loss for quantile regression.
+    r"""Smoothed approximation of the pinball loss for quantile regression.
 
-    This class implements a smoothed approximation of the pinball (quantile)
-    loss by applying Huber‑style smoothing at the non‑differentiable point.
-    The formulation improves numerical stability and convergence for
-    gradient‑based solvers, particularly on large data sets.
+    This class implements a smoothed version of the pinball loss used in quantile
+    regression. The original pinball loss is:
+
+    .. math::
+        \rho_\tau(r) = \begin{cases}
+            \tau r & \text{if } r \geq 0 \\
+            (\tau - 1) r & \text{if } r < 0
+        \end{cases}
+
+    The smoothed version (Huberized pinball loss) is:
+
+    .. math::
+        \rho_\tau^\delta(r) = \begin{cases}
+            \tau r - \frac{\delta}{2} & \text{if } r \geq \delta \\
+            \frac{r^2}{2\delta} & \text{if } |r| < \delta \\
+            (\tau - 1) r - \frac{\delta}{2} & \text{if } r \leq -\delta
+        \end{cases}
+
+    where :math:`\delta` is the smoothing parameter. As :math:`\delta \to 0`,
+    the smoothed loss converges to the original pinball loss.
 
     Parameters
     ----------
-    delta : float, positive
-        Width of the quadratic region around the origin.  Larger values create
-        stronger smoothing.  As ``delta`` -> 0, the loss approaches the
-        standard pinball loss.
+    delta : float, default=1.0
+        Smoothing parameter. Smaller values make the approximation closer to
+        the original pinball loss but may lead to numerical instability.
 
-    quantile : float in (0, 1)
-        Target quantile level (e.g. ``0.5`` corresponds to the median).
+    quantile : float, default=0.5
+        Quantile level between 0 and 1. When 0.5, the loss is symmetric
+        (Huber loss). For other values, the loss is asymmetric.
+
+    Attributes
+    ----------
+    delta : float
+        Current smoothing parameter.
+
+    quantile : float
+        Current quantile level.
 
     Notes
     -----
-    The loss function is defined as
+    The smoothed loss is continuously differentiable everywhere, making it
+    suitable for gradient-based optimization methods. The gradient is:
 
     .. math::
+        \nabla \rho_\tau^\delta(r) = \begin{cases}
+            \tau & \text{if } r \geq \delta \\
+            \frac{r}{\delta} & \text{if } |r| < \delta \\
+            \tau - 1 & \text{if } r \leq -\delta
+        \end{cases}
 
-        L(r) =
-        \\begin{cases}
-            \\tau \\dfrac{r^{2}}{2\\delta}, & 0 < r \\le \\delta \\\\
-            (1-\\tau) \\dfrac{r^{2}}{2\\delta}, & -\\delta \\le r < 0 \\\\
-            \\tau \\left(r - \\dfrac{\\delta}{2}\\right), & r > \\delta \\\\
-            (1-\\tau) \\left(-r - \\dfrac{\\delta}{2}\\right), & r < -\\delta
-        \\end{cases}
+    The Hessian is piecewise constant:
 
-    where :math:`r = y - Xw` is the residual, :math:`\\tau` is the target
-    quantile, and :math:`\\delta` controls the smoothing width.
+    .. math::
+        \nabla^2 \rho_\tau^\delta(r) = \begin{cases}
+            0 & \text{if } |r| \geq \delta \\
+            \frac{1}{\delta} & \text{if } |r| < \delta
+        \end{cases}
 
-    References
-    ----------
-    He, X., Pan, X., Tan, K. M., & Zhou, W. X. (2021).
-    *Smoothed Quantile Regression with Large‑Scale Inference*.
+    Examples
+    --------
+    >>> from skglm.experimental.quantile_huber import QuantileHuber
+    >>> import numpy as np
+    >>> loss = QuantileHuber(delta=0.1, quantile=0.8)
+    >>> r = np.array([-1.0, 0.0, 1.0])
+    >>> print(loss.value(r))  # Compute loss values
+    >>> print(loss.gradient(r))  # Compute gradients
     """
 
     def __init__(self, delta, quantile):

@@ -25,7 +25,7 @@ from skglm.solvers import FISTA
 np.random.seed(42)
 
 # Generate dataset - using a more reasonable size for quick testing
-n_samples, n_features = 10000, 10  # Match test file size
+n_samples, n_features = 1000, 10  # Match test file size
 X, y = make_regression(n_samples=n_samples, n_features=n_features,
                        noise=0.1, random_state=42)
 X = StandardScaler().fit_transform(X)

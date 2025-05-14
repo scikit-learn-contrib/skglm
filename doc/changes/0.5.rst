@@ -3,3 +3,4 @@
 Version 0.5 (in progress)
 -------------------------
 - Add support for fitting an intercept in :ref:`SqrtLasso <skglm.experimental.sqrt_lasso.SqrtLasso>` (PR: :gh:`298`)
+- Add :ref:`SmoothQuantileRegressor <skglm.experimental.smooth_quantile_regressor.SmoothQuantileRegressor>` for fast quantile regression with progressive smoothing (PR: :gh:`276`)

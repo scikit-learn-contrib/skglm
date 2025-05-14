@@ -107,3 +107,5 @@ Experimental
    Pinball
    SqrtQuadratic
    SqrtLasso
+   QuantileHuber
+   SmoothQuantileRegressor

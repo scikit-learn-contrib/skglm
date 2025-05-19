@@ -1,10 +1,7 @@
-"""Stage-based tuning of solver hyper-parameters for continuation and
-progressive-refinement algorithms.
+"""Solver strategy implementations for optimization pipelines.
 
-Early stages: loose tolerance, few iterations, small working set
-            --> quick coarse answers.
-Later stages: tight tolerance, more iterations, suitably sized working set
-            --> refined, accurate solution.
+This module provides strategies for adapting solver parameters during optimization
+stages, particularly for continuation and progressive-smoothing pipelines.
 """
 
 from sklearn.base import clone
@@ -26,8 +23,7 @@ DEFAULT_CONFIG = {
 
 
 class StageBasedSolverStrategy:
-    """Stage-wise tuning of a base solver for continuation and
-    progressive-smoothing pipelines.
+    """Stage-wise tuning of a base solver for continuation and progressive-smoothing.
 
     This class adapts solver parameters based on the stage of optimization.
     """

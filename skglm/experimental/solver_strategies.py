@@ -1,5 +1,5 @@
-"""Stage‑based tuning of solver hyper‑parameters for continuation and
-other progressive‑refinement algorithms.
+"""Stage-based tuning of solver hyper-parameters for continuation and
+progressive-refinement algorithms.
 
 Early stages: loose tolerance, few iterations, small working set
             --> quick coarse answers.
@@ -26,8 +26,10 @@ DEFAULT_CONFIG = {
 
 
 class StageBasedSolverStrategy:
-    """Stage‑wise tuning of a *base_solver* for continuation /
-    progressive‑smoothing pipelines.
+    """Stage-wise tuning of a base solver for continuation and
+    progressive-smoothing pipelines.
+
+    This class adapts solver parameters based on the stage of optimization.
     """
 
     def __init__(self, config=None):
@@ -50,7 +52,7 @@ class StageBasedSolverStrategy:
         )
 
     def create_solver_for_stage(self, base_solver, delta, stage, n_features):
-        """Clone *base_solver* and adapt tol, max_iter and p0 for the given stage."""
+        """Clone base_solver and adapt tol, max_iter and p0 for the given stage."""
         solver = self._clone(base_solver)
         self._set_tol(solver, delta, stage)
         self._set_max_iter(solver, stage)
@@ -66,12 +68,14 @@ class StageBasedSolverStrategy:
             return copy.deepcopy(est)
 
     def _set_tol(self, solver, delta, stage):
+        """Set tolerance based on stage and delta value."""
         if hasattr(solver, "tol"):
             base = self.config["base_tol"]
             solver.tol = base if stage == 0 else max(
                 base, self.config["tol_delta_factor"] * delta)
 
     def _set_max_iter(self, solver, stage):
+        """Set maximum iterations based on stage number."""
         if hasattr(solver, "max_iter"):
             start = self.config["max_iter_start"]
             solver.max_iter = min(
@@ -80,6 +84,7 @@ class StageBasedSolverStrategy:
             )
 
     def _set_working_set(self, solver, n_features):
+        """Set working set size based on number of features."""
         if not hasattr(solver, "p0"):
             return
 

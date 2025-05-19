@@ -13,38 +13,27 @@ class QuantileHuber(BaseDatafit):
 
     .. math::
 
-        \rho_\tau(r) =
-        \begin{cases}
-        \tau r & \text{if } r \geq 0 \\
-        (\tau - 1) r & \text{if } r < 0
-        \end{cases}
+       \rho_\tau(r) =
+       \begin{cases}
+           \tau\, r, & \text{if } r \ge 0,\\
+           (\tau - 1)\, r, & \text{if } r < 0.
+       \end{cases}
 
     where :math:`r = y - X\beta` is the residual and :math:`\tau \in (0, 1)` is
     the desired quantile level.
 
     The smoothed version (Huberized pinball loss) replaces the non-differentiable
-    point at r=0 with a quadratic region for |r| < δ:
+    point at r=0 with a quadratic region for :math:`|r| < \delta`:
 
     .. math::
 
-        \rho_\tau^\delta(r) =
-        \begin{cases}
-        \tau r - \frac{\delta}{2} & \text{if } r \geq \delta \\
-        \frac{\tau r^2}{2\delta} & \text{if } 0 \leq r < \delta \\
-        \frac{(1-\tau) r^2}{2\delta} & \text{if } -\delta < r < 0 \\
-        (\tau - 1) r - \frac{\delta}{2} & \text{if } r \leq -\delta
-        \end{cases}
-
-    This can be more compactly written as:
-
-    .. math::
-        \rho_\tau^\delta(r) = \begin{cases}
-            \tau r - \frac{\delta}{2} & \text{if } r \geq \delta \\
-            \frac{r^2}{2\delta} \cdot s(r) & \text{if } |r| < \delta \\
-            (\tau - 1) r - \frac{\delta}{2} & \text{if } r \leq -\delta
-        \end{cases}
-
-    where s(r) is τ when r ≥ 0 and (1-τ) when r < 0.
+       \rho_\tau^\delta(r) =
+       \begin{cases}
+           \tau\, r - \dfrac{\delta}{2}, & \text{if } r \ge \delta,\\
+           \dfrac{\tau r^{2}}{2\delta}, & \text{if } 0 \le r < \delta,\\
+           \dfrac{(1-\tau) r^{2}}{2\delta}, & \text{if } -\delta < r < 0,\\
+           (\tau - 1)\, r - \dfrac{\delta}{2}, & \text{if } r \le -\delta.
+       \end{cases}
 
     Parameters
     ----------
@@ -72,27 +61,16 @@ class QuantileHuber(BaseDatafit):
 
     .. math::
 
-        \nabla \rho_\tau^\delta(r) =
-        \begin{cases}
-        \tau & \text{if } r \geq \delta \\
-        \frac{\tau r}{\delta} & \text{if } 0 \leq r < \delta \\
-        \frac{(1-\tau) r}{\delta} & \text{if } -\delta < r < 0 \\
-        \tau - 1 & \text{if } r \leq -\delta
-        \end{cases}
+       \nabla \rho_\tau^\delta(r) =
+       \begin{cases}
+           \tau, & \text{if } r \ge \delta,\\
+           \dfrac{\tau\, r}{\delta}, & \text{if } 0 \le r < \delta,\\
+           \dfrac{(1-\tau)\, r}{\delta}, & \text{if } -\delta < r < 0,\\
+           \tau - 1, & \text{if } r \le -\delta.
+       \end{cases}
 
-    This can be more compactly written as:
-
-    .. math::
-        \nabla \rho_\tau^\delta(r) = \begin{cases}
-            \tau & \text{if } r \geq \delta \\
-            \frac{r}{\delta} \cdot s(r) & \text{if } |r| < \delta \\
-            \tau - 1 & \text{if } r \leq -\delta
-        \end{cases}
-
-    where s(r) is τ when r ≥ 0 and (1-τ) when r < 0.
-
-    As δ approaches 0, the smoothed loss converges to the original non-smooth
-    pinball loss, which is exactly the quantile regression objective.
+    As :math:`\delta` approaches 0, the smoothed loss converges to the original
+    non-smooth pinball loss, which is exactly the quantile regression objective.
 
     References
     ----------
@@ -135,14 +113,13 @@ class QuantileHuber(BaseDatafit):
         return dict(delta=self.delta, quantile=self.quantile)
 
     def get_lipschitz(self, X, y):
-        """
-        Compute coordinate-wise Lipschitz constants for the gradient.
+        """Compute coordinate-wise Lipschitz constants for the gradient.
 
         For the smoothed pinball loss, the Lipschitz constant is proportional
         to 1/delta, making it more challenging to optimize as delta gets smaller.
         """
         n_samples = len(y)
-        # The max(τ, 1-τ) factor accounts for the asymmetry of the loss
+        # The max(tau, 1-tau) factor accounts for the asymmetry of the loss
         weight = max(self.quantile, 1 - self.quantile)
 
         # For each feature, compute L_j = weight * ||X_j||^2 / (n * delta)
@@ -164,8 +141,7 @@ class QuantileHuber(BaseDatafit):
         return lipschitz
 
     def get_global_lipschitz(self, X, y):
-        """
-        Compute the global Lipschitz constant for the gradient.
+        """Compute the global Lipschitz constant for the gradient.
 
         Uses the spectral norm of X to find a global constant.
         """
@@ -184,8 +160,7 @@ class QuantileHuber(BaseDatafit):
         )
 
     def _loss_and_grad_scalar(self, residual):
-        """
-        Calculate the smoothed pinball loss and its gradient for a single residual.
+        """Calculate the smoothed pinball loss and its gradient for a single residual.
 
         This implements the core mathematical formulation of the quantile Huber loss.
 
@@ -206,33 +181,32 @@ class QuantileHuber(BaseDatafit):
         delta = self.delta
         abs_r = abs(residual)
 
-        # Quadratic core: |r| ≤ δ
+        # Quadratic core: |r| ≤ delta
         if abs_r <= delta:
             if residual >= 0:
-                # 0 ≤ r ≤ δ
+                # 0 ≤ r ≤ delta
                 loss = tau * residual**2 / (2 * delta)
                 grad = tau * residual / delta
             else:
-                # -δ ≤ r < 0
+                # -delta ≤ r < 0
                 loss = (1 - tau) * residual**2 / (2 * delta)
                 grad = (1 - tau) * residual / delta
             return loss, grad
 
-        # Linear tails: |r| > δ
+        # Linear tails: |r| > delta
         if residual > delta:
-            # r > δ : shift tail down by τδ/2 for continuity
+            # r > delta : shift tail down by tau * delta / 2 for continuity
             loss = tau * (residual - delta / 2)
             grad = tau
             return loss, grad
-        else:  # residual < -δ
-            # r < -δ : shift tail down by (1-τ)δ/2 for continuity
+        else:  # residual < -delta
+            # r < -delta : shift tail down by (1-tau) * delta / 2 for continuity
             loss = (1 - tau) * (-residual - delta / 2)
             grad = tau - 1
             return loss, grad
 
     def value(self, y, w, Xw):
-        """
-        Compute the mean loss across all samples.
+        """Compute the mean loss across all samples.
 
         Parameters
         ----------
@@ -248,7 +222,7 @@ class QuantileHuber(BaseDatafit):
         Returns
         -------
         loss : float
-            Mean loss value across all samples
+            The mean loss value across all samples
         """
         n_samples = len(y)
         res = 0.0
@@ -259,41 +233,53 @@ class QuantileHuber(BaseDatafit):
         return res / n_samples
 
     def _dr(self, residual):
-        """
-        Compute gradient of the loss with respect to residuals (vectorized).
-
-        This function calculates ∂ρ/∂r for an array of residuals.
+        """Compute the derivative of the smoothed pinball loss.
 
         Parameters
         ----------
-        residual : ndarray
-            Array of residuals
+        residual : float
+            The residual value r = y - Xβ
 
         Returns
         -------
-        grad : ndarray
-            Gradient values for each residual
+        derivative : float
+            The derivative of the smoothed pinball loss at this residual
         """
         tau = self.quantile
         delt = self.delta
 
-        # s(r) = τ for r >= 0, (1-τ) for r < 0
+        # s(r) = tau for r >= 0, (1-tau) for r < 0
         scale = np.where(residual >= 0, tau, 1 - tau)
 
         # Inside quadratic zone: grad = scale * (r / delt)
-        # Outside quadratic zone: grad = τ for r > δ, (τ-1) for r < -δ
+        # Outside quadratic zone: grad = tau for r > delta, (tau-1) for r < -delta
         dr = np.where(
             np.abs(residual) <= delt,
-            scale * (residual / delt),  # Quadratic region: r/δ * s(r)
+            scale * (residual / delt),  # Quadratic region: r/delta * s(r)
             np.sign(residual) * scale   # Linear regions: ±s(r)
         )
         return dr
 
     def gradient_scalar(self, X, y, w, Xw, j):
-        """
-        Compute gradient for a single feature j.
+        """Compute the gradient with respect to a single coefficient.
 
-        This is used in coordinate descent algorithms.
+        Parameters
+        ----------
+        X : ndarray, shape (n_samples, n_features)
+            Feature matrix
+        y : ndarray, shape (n_samples,)
+            Target values
+        w : ndarray, shape (n_features,)
+            Current coefficient values
+        Xw : ndarray, shape (n_samples,)
+            Model predictions (X @ w)
+        j : int
+            Index of the coefficient to compute gradient for
+
+        Returns
+        -------
+        gradient : float
+            The gradient with respect to coefficient j
         """
         r = y - Xw
         dr = self._dr(r)
@@ -309,10 +295,25 @@ class QuantileHuber(BaseDatafit):
         return - np.dot(vals, dr[rows]) / len(y)
 
     def full_grad_sparse(self, X_data, X_indptr, X_indices, y, Xw):
-        """
-        Compute the full gradient vector for sparse data.
+        """Compute the full gradient for sparse data.
 
-        This is a more efficient implementation for sparse matrices.
+        Parameters
+        ----------
+        X_data : ndarray
+            Non-zero values of the sparse feature matrix
+        X_indptr : ndarray
+            Index pointer array for the sparse feature matrix
+        X_indices : ndarray
+            Column indices for the sparse feature matrix
+        y : ndarray, shape (n_samples,)
+            Target values
+        Xw : ndarray, shape (n_samples,)
+            Model predictions
+
+        Returns
+        -------
+        gradient : ndarray, shape (n_features,)
+            The full gradient vector
         """
         n_features = len(X_indptr) - 1
         n_samples = len(y)
@@ -330,10 +331,19 @@ class QuantileHuber(BaseDatafit):
         return grad
 
     def intercept_update_step(self, y, Xw):
-        """
-        Compute the gradient update for the intercept.
+        """Compute the optimal intercept update step.
 
-        This is used when fitting an intercept separately.
+        Parameters
+        ----------
+        y : ndarray, shape (n_samples,)
+            Target values
+        Xw : ndarray, shape (n_samples,)
+            Model predictions without intercept
+
+        Returns
+        -------
+        step : float
+            The optimal intercept update step
         """
         n_samples = len(y)
         update = 0.0
@@ -352,27 +362,50 @@ class QuantileHuber(BaseDatafit):
         pass
 
     def gradient(self, X, y, Xw):
-        """
-        Compute the full gradient vector for dense data.
+        """Compute the full gradient vector.
 
         Parameters
         ----------
         X : ndarray, shape (n_samples, n_features)
             Feature matrix
-
         y : ndarray, shape (n_samples,)
             Target values
-
         Xw : ndarray, shape (n_samples,)
             Model predictions
 
         Returns
         -------
-        grad : ndarray, shape (n_features,)
-            Gradient vector
+        gradient : ndarray, shape (n_features,)
+            The full gradient vector
         """
         n_samples, n_features = X.shape
         grad = np.zeros(n_features)
         for j in range(n_features):
             grad[j] = self.gradient_scalar(X, y, None, Xw, j)
         return grad
+
+    def prox_conjugate(self, u, step, y):
+        """Proximal operator of the conjugate function for quantile Huber loss.
+
+        Parameters
+        ----------
+        u : ndarray, shape (n_samples,)
+            Input point (dual variable)
+        step : float
+            Step size for the proximal operator
+        y : ndarray, shape (n_samples,)
+            Target values
+
+        Returns
+        -------
+        prox : ndarray, shape (n_samples,)
+            Proximal operator result
+        """
+        # The proximal operator for quantile Huber involves projecting onto
+        # the domain [-1+tau, tau] after applying the resolvent
+
+        # Apply the resolvent operator
+        z = (u - step * y) / (1 + step * self.delta)
+
+        # Project onto the quantile bounds
+        return np.clip(z, self.quantile - 1, self.quantile)

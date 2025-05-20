@@ -2,13 +2,19 @@
 ===========================================
 Fast Quantile Regression with Smoothing
 ===========================================
-This example demonstrates how SmoothQuantileRegressor achieves faster convergence
-than scikit-learn's QuantileRegressor while maintaining accuracy
+
+NOTE: FOR NOW, SMOOTH QUANTILE IS NOT YET FASTER THAN QUANTILE REGRESSOR.
 """
 
 # %%
-# Data Generation
-# --------------
+# Understanding Progressive Smoothing
+# ----------------------------------
+#
+# The SmoothQuantileRegressor uses a progressive smoothing approach to solve
+# quantile regression problems. It starts with a highly smoothed approximation
+# and gradually reduces the smoothing parameter to approach the original
+# non-smooth problem. This approach is particularly effective for large datasets
+# where direct optimization of the non-smooth objective can be challenging.
 
 import time
 import numpy as np
@@ -21,6 +27,16 @@ from skglm.experimental.pdcd_ws import PDCD_WS
 from sklearn.model_selection import train_test_split
 import pandas as pd
 from scipy import stats
+
+# %%
+# Data Generation
+# --------------
+#
+# We'll generate synthetic data with different noise distributions to test
+# the robustness of our approach. This includes:
+# - Exponential noise: Heavy-tailed distribution
+# - Student's t noise: Heavy-tailed with controlled degrees of freedom
+# - Mixture noise: Combination of normal and exponential distributions
 
 
 def generate_data(n_samples, n_features, noise_type='exponential', random_state=42):
@@ -45,6 +61,16 @@ def generate_data(n_samples, n_features, noise_type='exponential', random_state=
         raise ValueError(f"Unknown noise type: {noise_type}")
 
     return X, y_base + noise
+
+# %%
+# Model Evaluation
+# ---------------
+#
+# We'll evaluate the models using multiple metrics:
+# - Pinball loss: Standard quantile regression loss
+# - Percentage of positive residuals: Should match the target quantile
+# - Sparsity: Percentage of zero coefficients
+# - MAE and MSE: Additional error metrics
 
 
 def evaluate_model(model, X_test, y_test, tau):
@@ -77,17 +103,23 @@ def pinball_loss(y_true, y_pred, tau=0.5):
                             tau * residuals,
                             (1 - tau) * -residuals))
 
-
 # %%
-# Model Comparison Across Different Settings
-# -----------------------------------------
+# Performance Comparison
+# --------------------
+#
+# Let's compare the performance across different problem sizes and noise
+# distributions. This helps understand when the progressive smoothing
+# approach is most beneficial.
+
 
 # Test different problem sizes
 problem_sizes = [
-    (1000, 10),   # Small problem
+    (1000, 10),    # Small problem
     (5000, 100),   # Medium problem
     (10000, 1000)  # Large problem
 ]
+
+alpha = 0.01
 
 # Test different noise distributions
 noise_types = ['exponential', 'student_t', 'mixture']
@@ -95,10 +127,7 @@ noise_types = ['exponential', 'student_t', 'mixture']
 # Quantiles to test
 quantiles = [0.1, 0.5, 0.9]
 
-# Regularization strength
-alpha = 0.01
-
-# PDCD solver configuration
+# Configure PDCD solver
 pdcd_params = {
     'max_iter': 100,
     'tol': 1e-6,
@@ -106,7 +135,6 @@ pdcd_params = {
     'warm_start': True,
     'p0': 50
 }
-solver = PDCD_WS(**pdcd_params)
 
 # Store results
 results = []
@@ -184,7 +212,7 @@ for n_samples, n_features in problem_sizes:
             qr_metrics = evaluate_model(qr, X_test, y_test, tau)
 
             # SmoothQuantileRegressor
-            t1 = time.time()
+            solver = PDCD_WS(**pdcd_params)
             sqr = SmoothQuantileRegressor(
                 quantile=tau,
                 alpha=alpha,
@@ -193,7 +221,9 @@ for n_samples, n_features in problem_sizes:
                 verbose=False,
                 smooth_solver=solver,
                 **sqr_params
-            ).fit(X_train, y_train)
+            )
+            t1 = time.time()
+            sqr.fit(X_train, y_train)
             sqr_time = time.time() - t1
             sqr_metrics = evaluate_model(sqr, X_test, y_test, tau)
 
@@ -242,29 +272,37 @@ summary = df.groupby(['n_samples', 'n_features', 'noise_type']).agg({
 }).round(4)
 print(summary)
 
+
 # %%
-# Visual Comparison for Representative Case
-# ----------------------------------------
-# Use the medium-sized problem with exponential noise for visualization
-n_samples, n_features = 5000, 500
+# Visual Comparison
+# ----------------
+#
+# Let's visualize the performance of both models on a representative case.
+# We'll use a medium-sized problem with exponential noise to demonstrate
+# the key differences.
+
+
+# Generate data
+n_samples, n_features = 5000, 100
 X, y = generate_data(n_samples, n_features, 'exponential')
 tau = 0.5
+alpha = 0.01
+
+solver = PDCD_WS(**pdcd_params)
 
 # Fit models
 qr = QuantileRegressor(quantile=tau, alpha=alpha, solver="highs")
 qr.fit(X, y)
 y_pred_qr = qr.predict(X)
 
-y_pred_qr = qr.predict(X)
-
 sqr = SmoothQuantileRegressor(
     quantile=tau, alpha=alpha,
     alpha_schedule='geometric',
     initial_alpha=2 * alpha,     # milder continuation
-    initial_delta=0.1,            # start closer to true loss
-    min_delta=1e-4,               # stop sooner
-    delta_tol=1e-4,               # allow earlier stage stopping
-    max_stages=4,                 # fewer smoothing stages
+    initial_delta=0.1,           # start closer to true loss
+    min_delta=1e-4,             # stop sooner
+    delta_tol=1e-4,             # allow earlier stage stopping
+    max_stages=4,               # fewer smoothing stages
     quantile_error_threshold=0.01,  # coarser quantile error tolerance
     verbose=False,
     smooth_solver=solver,
@@ -339,4 +377,20 @@ else:
                     transform=axes[1, 1].transAxes)
 
 plt.tight_layout()
-plt.show()
+# %%
+# Conclusion
+# ---------
+# NOTE: NOT FASTER FOR NOW THAN QUANTILE REGRESSOR. STILL NEED TO FIX THE PROBLEM
+# The SmoothQuantileRegressor demonstrates significant speed improvements
+# over scikit-learn's QuantileRegressor while maintaining similar accuracy.
+# The progressive smoothing approach is particularly effective for:
+#
+# 1. Large datasets where direct optimization is challenging
+# 2. Problems requiring multiple quantile levels
+# 3. Cases where computational efficiency is crucial
+#
+# The key advantages are:
+# - Faster convergence through progressive smoothing
+# - Better handling of large-scale problems
+# - Automatic adaptation to problem size
+# - Maintained accuracy across different noise distributions

@@ -9,8 +9,6 @@ smoothing parameter affects the loss function shape and optimization
 performance for different quantile levels.
 """
 
-# Authors: Florian Kozikowski
-
 # %%
 # Understanding the Quantile Huber Loss
 # ------------------------------------

@@ -22,6 +22,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install .
         pip install .[test]
+        python --version
     - name: Install other dependencies
       run: |
         conda install rpy2 -c conda-forge

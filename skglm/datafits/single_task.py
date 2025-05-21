@@ -38,6 +38,23 @@ class Quadratic(BaseDatafit):
     def params_to_dict(self):
         return dict()
 
+    def gradient_at_zero(self, X, y):
+        """Compute gradient at w=0 for cross-validation support.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            Training data.
+        y : array-like, shape (n_samples,)
+            Target values.
+
+        Returns
+        -------
+        grad : array, shape (n_features,)
+            Gradient at w=0.
+        """
+        return -X.T @ y / len(y)
+
     def get_lipschitz(self, X, y):
         n_features = X.shape[1]
 
@@ -94,6 +111,17 @@ class Quadratic(BaseDatafit):
 
     def gradient(self, X, y, Xw):
         return X.T @ (Xw - y) / len(y)
+
+    def gradient_sparse(self, X_data, X_indptr, X_indices, y, Xw):
+        """Compute gradient of datafit wrt to w for sparse X."""
+        n_features = X_indptr.shape[0] - 1
+        out = np.zeros(n_features, dtype=X_data.dtype)
+        raw_grad = self.raw_grad(y, Xw)
+
+        for j in range(n_features):
+            out[j] = _sparse_xj_dot(X_data, X_indptr, X_indices, j, raw_grad)
+
+        return out
 
     def raw_grad(self, y, Xw):
         """Compute gradient of datafit w.r.t ``Xw``."""
@@ -217,6 +245,17 @@ class WeightedQuadratic(BaseDatafit):
     def gradient(self, X, y, Xw):
         return X.T @ (self.sample_weights * (Xw - y)) / self.sample_weights.sum()
 
+    def gradient_sparse(self, X_data, X_indptr, X_indices, y, Xw):
+        """Compute gradient of datafit wrt to w for sparse X."""
+        n_features = X_indptr.shape[0] - 1
+        out = np.zeros(n_features, dtype=X_data.dtype)
+        raw_grad = self.raw_grad(y, Xw)
+
+        for j in range(n_features):
+            out[j] = _sparse_xj_dot(X_data, X_indptr, X_indices, j, raw_grad)
+
+        return out
+
     def raw_grad(self, y, Xw):
         return (self.sample_weights * (Xw - y)) / self.sample_weights.sum()
 
@@ -302,6 +341,23 @@ class Logistic(BaseDatafit):
 
     def params_to_dict(self):
         return dict()
+
+    def gradient_at_zero(self, X, y):
+        """Compute gradient at w=0 for cross-validation support.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            Training data.
+        y : array-like, shape (n_samples,)
+            Target values.
+
+        Returns
+        -------
+        grad : array, shape (n_features,)
+            Gradient at w=0.
+        """
+        return -X.T @ y / (2 * len(y))
 
     def raw_grad(self, y, Xw):
         """Compute gradient of datafit w.r.t ``Xw``."""

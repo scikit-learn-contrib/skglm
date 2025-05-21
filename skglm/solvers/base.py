@@ -143,3 +143,46 @@ class BaseSolver(ABC):
         # some solvers like ProxNewton don't require methods for sparse support
         check_attrs(datafit, self, self._datafit_required_attr)
         check_attrs(penalty, self, self._penalty_required_attr)
+
+    def get_params(self, deep=True):
+        """Get parameters for this solver.
+
+        Parameters
+        ----------
+        deep : bool, default=True
+            If True, will return the parameters for this solver and
+            contained subobjects that are solvers.
+
+        Returns
+        -------
+        params : dict
+            Parameter names mapped to their values.
+        """
+        out = dict()
+        for key in self.__dict__:
+            if not key.startswith('_'):
+                out[key] = getattr(self, key)
+        return out
+
+    def set_params(self, **params):
+        """Set the parameters of this solver.
+
+        Parameters
+        ----------
+        **params : dict
+            Solver parameters.
+
+        Returns
+        -------
+        self : object
+            Solver instance.
+        """
+        if not params:
+            return self
+        valid_params = self.get_params(deep=True)
+        for key, value in params.items():
+            if key not in valid_params:
+                raise ValueError(
+                    f"Invalid parameter {key} for solver {self.__class__.__name__}")
+            setattr(self, key, value)
+        return self

@@ -1,4 +1,3 @@
-
 class BaseDatafit:
     """Base class for datafits."""
 
@@ -19,6 +18,39 @@ class BaseDatafit:
         dict_of_params : dict
             The parameters to instantiate an object of the class.
         """
+
+    def get_params(self, deep=True):
+        """Get parameters for this datafit.
+
+        Parameters
+        ----------
+        deep : bool, default=True
+            If True, will return the parameters for this datafit and
+            contained subobjects that are datafits.
+
+        Returns
+        -------
+        params : dict
+            Parameter names mapped to their values.
+        """
+        return self.params_to_dict()
+
+    def set_params(self, **params):
+        """Set the parameters of this datafit.
+
+        Parameters
+        ----------
+        **params : dict
+            Datafit parameters.
+
+        Returns
+        -------
+        self : object
+            Returns self.
+        """
+        for key, value in params.items():
+            setattr(self, key, value)
+        return self
 
     def initialize(self, X, y):
         """Pre-computations before fitting on X and y.
@@ -68,6 +100,34 @@ class BaseDatafit:
         -------
         value : float
             The datafit value at vector w.
+        """
+
+    def gradient_scalar(self, X, y, w, Xw):
+        """Compute gradient of datafit wrt to scalar w."""
+
+    def gradient(self, X, y, w, Xw):
+        """Compute gradient of datafit wrt to w."""
+
+    def gradient_scalar_sparse(self, data, indptr, indices, y, n_samples, w, Xw):
+        """Compute gradient of datafit wrt to scalar w for sparse X."""
+
+    def gradient_sparse(self, data, indptr, indices, y, n_samples, w, Xw):
+        """Compute gradient of datafit wrt to w for sparse X."""
+
+    def gradient_at_zero(self, X, y):
+        """Compute gradient at w=0 for cross-validation support.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            Training data.
+        y : array-like, shape (n_samples,)
+            Target values.
+
+        Returns
+        -------
+        gradient : array-like, shape (n_features,)
+            Gradient at w=0.
         """
 
 

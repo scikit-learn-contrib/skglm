@@ -12,8 +12,8 @@ from skglm.utils.prox_funcs import (
 class L2_1(BasePenalty):
     """L2/1 row-wise penalty: sum of L2 norms of rows."""
 
-    def __init__(self, alpha):
-        self.alpha = alpha
+    def __init__(self, alpha=1.0):
+        self.alpha = float(alpha) if alpha is not None else 1.0
 
     def get_spec(self):
         spec = (
@@ -55,8 +55,8 @@ class L2_1(BasePenalty):
 class L2_05(BasePenalty):
     """L2/0.5 row-wise penalty: sum of square roots of L2 norms of rows."""
 
-    def __init__(self, alpha):
-        self.alpha = alpha
+    def __init__(self, alpha=1.0):
+        self.alpha = float(alpha) if alpha is not None else 1.0
 
     def get_spec(self):
         spec = (
@@ -417,11 +417,17 @@ class WeightedL1GroupL2(BasePenalty):
     """
 
     def __init__(
-            self, alpha, weights_groups, weights_features, grp_ptr, grp_indices):
-        self.alpha = alpha
-        self.grp_ptr, self.grp_indices = grp_ptr, grp_indices
-        self.weights_groups = weights_groups
-        self.weights_features = weights_features
+            self, alpha=1.0, weights_groups=None, weights_features=None,
+            grp_ptr=None, grp_indices=None):
+        self.alpha = float(alpha) if alpha is not None else 1.0
+        self.grp_ptr = (grp_ptr if grp_ptr is not None
+                        else np.array([0, 1], dtype=np.int32))
+        self.grp_indices = (grp_indices if grp_indices is not None
+                            else np.array([0], dtype=np.int32))
+        self.weights_groups = (weights_groups if weights_groups is not None
+                               else np.ones(1, dtype=np.float64))
+        self.weights_features = (weights_features if weights_features is not None
+                                 else np.ones(1, dtype=np.float64))
 
     def get_spec(self):
         spec = (

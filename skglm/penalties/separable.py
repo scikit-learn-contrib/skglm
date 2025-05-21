@@ -11,8 +11,8 @@ from skglm.utils.prox_funcs import (
 class L1(BasePenalty):
     """:math:`ell_1` penalty."""
 
-    def __init__(self, alpha, positive=False):
-        self.alpha = alpha
+    def __init__(self, alpha=1.0, positive=False):
+        self.alpha = float(alpha) if alpha is not None else 1.0
         self.positive = positive
 
     def get_spec(self):
@@ -71,9 +71,9 @@ class L1(BasePenalty):
 class L1_plus_L2(BasePenalty):
     """:math:`ell_1 + ell_2` penalty (aka ElasticNet penalty)."""
 
-    def __init__(self, alpha, l1_ratio, positive=False):
-        self.alpha = alpha
-        self.l1_ratio = l1_ratio
+    def __init__(self, alpha=1.0, l1_ratio=0.5, positive=False):
+        self.alpha = float(alpha) if alpha is not None else 1.0
+        self.l1_ratio = float(l1_ratio)
         self.positive = positive
 
     def get_spec(self):
@@ -145,9 +145,10 @@ class L1_plus_L2(BasePenalty):
 class WeightedL1(BasePenalty):
     """Weighted L1 penalty."""
 
-    def __init__(self, alpha, weights, positive=False):
-        self.alpha = alpha
-        self.weights = weights.astype(np.float64)
+    def __init__(self, alpha=1.0, weights=None, positive=False):
+        self.alpha = float(alpha) if alpha is not None else 1.0
+        self.weights = weights.astype(
+            np.float64) if weights is not None else np.ones(1, dtype=np.float64)
         self.positive = positive
 
     def get_spec(self):
@@ -503,8 +504,8 @@ class IndicatorBox(BasePenalty):
 class L0_5(BasePenalty):
     """:math:`ell_(0.5)` non-convex quasi-norm penalty."""
 
-    def __init__(self, alpha):
-        self.alpha = alpha
+    def __init__(self, alpha=1.0):
+        self.alpha = float(alpha) if alpha is not None else 1.0
 
     def get_spec(self):
         spec = (
@@ -562,8 +563,8 @@ class L0_5(BasePenalty):
 class L2_3(BasePenalty):
     """:math:`ell_(2/3)` quasi-norm non-convex penalty."""
 
-    def __init__(self, alpha):
-        self.alpha = alpha
+    def __init__(self, alpha=1.0):
+        self.alpha = float(alpha) if alpha is not None else 1.0
 
     def get_spec(self):
         spec = (
@@ -728,8 +729,8 @@ class L2(BasePenalty):
         \alpha / 2  ||w||_2^2
     """
 
-    def __init__(self, alpha):
-        self.alpha = alpha
+    def __init__(self, alpha=1.0):
+        self.alpha = float(alpha) if alpha is not None else 1.0
 
     def get_spec(self):
         spec = (

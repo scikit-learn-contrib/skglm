@@ -25,6 +25,9 @@ from skglm.penalties import (L1, WeightedL1, L1_plus_L2, L2, WeightedGroupL2,
                              MCPenalty, WeightedMCPenalty, IndicatorBox, L2_1)
 from skglm.utils.data import grp_converter
 from sklearn.utils.validation import validate_data
+from sklearn.model_selection import check_cv
+from sklearn.metrics import get_scorer
+from joblib import Parallel, delayed
 
 
 def _glm_fit(X, y, model, datafit, penalty, solver):
@@ -269,30 +272,346 @@ class GeneralizedLinearEstimator(LinearModel):
         else:
             return self._decision_function(X)
 
-    def get_params(self, deep=False):
-        """Get parameters of the estimators including the datafit's and penalty's.
+    def score(self, X, y):
+        """Return the score of the model on the data X and y.
+
+        For regression problems, this is the R² score.
+        For classification problems, this is the accuracy score.
 
         Parameters
         ----------
-        deep : bool
-            Whether or not return the parameters for contained subobjects estimators.
+        X : array-like of shape (n_samples, n_features)
+            Test samples.
+        y : array-like of shape (n_samples,) or (n_samples, n_outputs)
+            True values for X.
+
+        Returns
+        -------
+        score : float
+            Score of self.predict(X) wrt. y.
+        """
+        if isinstance(self.datafit, (Logistic, QuadraticSVC)):
+            return np.mean(self.predict(X) == y)
+        else:
+            y_pred = self.predict(X)
+            return 1 - np.sum((y - y_pred) ** 2) / np.sum((y - np.mean(y)) ** 2)
+
+    def get_params(self, deep=False):
+        """Get parameters for this estimator.
+
+        Parameters
+        ----------
+        deep : bool, default=False
+            If True, will return the parameters for this estimator and
+            contained subobjects that are estimators.
 
         Returns
         -------
         params : dict
-            The parameters of the estimator.
+            Parameter names mapped to their values.
         """
-        params = super().get_params(deep)
-        filtered_types = (float, int, str, np.ndarray)
-        penalty_params = [('penalty__', p, getattr(self.penalty, p)) for p in
-                          dir(self.penalty) if p[0] != "_" and
-                          type(getattr(self.penalty, p)) in filtered_types]
-        datafit_params = [('datafit__', p, getattr(self.datafit, p)) for p in
-                          dir(self.datafit) if p[0] != "_" and
-                          type(getattr(self.datafit, p)) in filtered_types]
-        for p_prefix, p_key, p_val in penalty_params + datafit_params:
-            params[p_prefix + p_key] = p_val
+        params = {}
+        if self.penalty is not None:
+            penalty_params = self.penalty.get_params(deep=deep)
+            for key, value in penalty_params.items():
+                params[f'penalty__{key}'] = value
+        if self.datafit is not None:
+            datafit_params = self.datafit.get_params(deep=deep)
+            for key, value in datafit_params.items():
+                params[f'datafit__{key}'] = value
+        if self.solver is not None:
+            solver_params = self.solver.get_params(deep=deep)
+            for key, value in solver_params.items():
+                params[f'solver__{key}'] = value
         return params
+
+    def set_params(self, **params):
+        """Set the parameters of this estimator.
+
+        Parameters
+        ----------
+        **params : dict
+            Parameter names mapped to their values.
+
+        Returns
+        -------
+        self : object
+            Returns self.
+        """
+        # Handle penalty parameters
+        penalty_params = {}
+        datafit_params = {}
+        other_params = {}
+
+        for key, value in params.items():
+            if key.startswith('penalty__'):
+                penalty_params[key[9:]] = value
+            elif key.startswith('datafit__'):
+                datafit_params[key[9:]] = value
+            else:
+                other_params[key] = value
+
+        # Set regular parameters
+        for key, value in other_params.items():
+            setattr(self, key, value)
+
+        # Set penalty parameters
+        if penalty_params and self.penalty is not None:
+            self.penalty.set_params(**penalty_params)
+
+        # Set datafit parameters
+        if datafit_params and self.datafit is not None:
+            self.datafit.set_params(**datafit_params)
+
+        return self
+
+    # Cross‑validation utility
+    def _alpha_grid(self, X, y, alphas, min_alpha_ratio=1e-3):
+        """Compute a descending geometric grid of alpha values.
+
+        Parameters
+        ----------
+        min_alpha_ratio : float, default=1e-3
+            Minimum alpha value as a ratio of alpha_max.
+        """
+        if not (isinstance(alphas, str) or isinstance(alphas, int)):
+            return np.asarray(alphas, dtype=float)
+
+        n_points = 50 if alphas == 'auto' else int(alphas)
+
+        # Get gradient at zero
+        if hasattr(self.datafit, "gradient_at_zero"):
+            grad0 = self.datafit.gradient_at_zero(X, y)
+        else:
+            raise NotImplementedError(
+                f"{self.datafit.__class__.__name__} must implement "
+                "`gradient_at_zero(X, y)` for CV support."
+            )
+
+        alpha_max = self.penalty.alpha_max(grad0)
+        if not np.isfinite(alpha_max) or alpha_max <= 0:
+            raise ValueError("Invalid alpha_max computed: %s" % alpha_max)
+
+        return np.geomspace(alpha_max, alpha_max * min_alpha_ratio, num=n_points)
+
+    def _fit_fold(self, X, y, train_idx, val_idx, ratio, alphas, scorer):
+        """Run one warm‑started alpha path on a single CV fold."""
+        try:
+            # Create a new estimator instance without cloning
+            est = GeneralizedLinearEstimator(
+                datafit=self.datafit.__class__(),
+                penalty=self.penalty.__class__(**self.penalty.get_params()),
+                solver=self.solver.__class__(**self.solver.get_params())
+            )
+
+            # Initialize intercept_ attribute
+            est.intercept_ = 0.0
+
+            # Add warm start between folds
+            if not hasattr(self, '_last_coef'):
+                self._last_coef = None
+
+            if self._last_coef is not None:
+                est.coef_ = self._last_coef.copy()
+
+            if ratio is not None:
+                est.penalty.l1_ratio = ratio
+            est.solver.warm_start = True
+
+            X_tr, y_tr = X[train_idx], y[train_idx]
+            X_val, y_val = X[val_idx], y[val_idx]
+
+            scores = np.zeros(len(alphas), dtype=float)
+            for k, alpha in enumerate(alphas):
+                est.penalty.alpha = float(alpha)
+                est.fit(X_tr, y_tr)
+                scores[k] = (est.score(X_val, y_val) if scorer is None
+                             else scorer(est, X_val, y_val))
+
+            # Store last coefficients for next fold
+            self._last_coef = est.coef_.copy()
+
+            return scores
+        except Exception as e:
+            warnings.warn(f"Failed to fit fold: {str(e)}")
+            return np.full(len(alphas), np.nan)
+
+    def cross_validate(self, X, y, *, alphas='auto', l1_ratios=(0.5,),
+                       cv=5, scoring=None, n_jobs=None, verbose=0):
+        """Select ``alpha`` (and optionally ``l1_ratio``) via K‑fold CV.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            Training data.
+        y : array-like, shape (n_samples,)
+            Target values.
+        alphas : array-like, 'auto', or int, default='auto'
+            Grid of alpha values to try. If 'auto', compute a geometric grid
+            between alpha_max and alpha_max * 1e-3. If int, use that many
+            points in the grid.
+        l1_ratios : array-like, default=(0.5,)
+            Grid of l1_ratio values to try. Only used if penalty supports l1_ratio.
+        cv : int or cross-validation splitter, default=5
+            Number of folds or cross-validation splitter.
+        scoring : str or callable, default=None
+            Scoring metric to use. If None, use the estimator's default scorer.
+        n_jobs : int, default=None
+            Number of parallel jobs to run.
+        verbose : int, default=0
+            Verbosity level.
+
+        Attributes
+        ----------
+        best_estimator_ : estimator
+            Estimator with best parameters.
+        best_alpha_ : float
+            Best alpha value.
+        best_score_ : float
+            Best cross-validation score.
+        best_l1_ratio_ : float, optional
+            Best l1_ratio value if penalty supports it.
+        cv_scores_ : dict
+            Cross-validation scores for each l1_ratio.
+        alphas_ : array
+            Grid of alpha values used.
+
+        Returns
+        -------
+        self : object
+            Fitted estimator with best parameters.
+
+        Notes
+        -----
+        The implementation is optimized for the most common use cases:
+        1. Lasso (L1 penalty) for regression and classification
+        2. Elastic Net (L1_plus_L2 penalty) for regression and classification
+        3. Logistic Regression with L1 or L1_plus_L2 penalties
+
+        Other models have not been thoroughly tested in cross-validation settings.
+
+        The method uses warm-starting along the alpha path for efficiency and
+        supports parallel computation of CV folds.
+
+        This method supports the following combinations of datafits and penalties:
+
+        Supported Datafits:
+        ------------------
+        - Quadratic: Standard least squares regression
+        - Logistic: Binary and multiclass classification
+        - QuadraticSVC: Support Vector Classification
+        - Cox: Survival analysis (experimental)
+        - QuadraticMultiTask: Multi-task learning (experimental)
+        - QuadraticGroup: Group-structured data (experimental)
+
+        Supported Penalties:
+        ------------------
+        - L1: Lasso regularization (sparse solutions)
+        - L1_plus_L2: Elastic Net regularization (sparse + grouped features)
+        - L2: Ridge regularization (grouped features)
+        - MCPenalty: Minimax Concave Penalty (experimental)
+        - WeightedL1: Feature-specific L1 penalties (experimental)
+        - WeightedGroupL2: Group-specific L2 penalties (experimental)
+
+        Examples
+        --------
+        >>> from skglm import Lasso, ElasticNet, SparseLogisticRegression
+        >>> from skglm.datafits import Quadratic, Logistic
+        >>> from skglm.penalties import L1, L1_plus_L2
+
+        # Lasso regression
+        >>> est = Lasso(alpha=1.0)
+        >>> est.cross_validate(X, y, alphas='auto', cv=5)
+
+        # Elastic Net regression
+        >>> est = ElasticNet(alpha=1.0, l1_ratio=0.5)
+        >>> est.cross_validate(X, y, alphas='auto', l1_ratios=[0.1, 0.5, 0.9], cv=5)
+
+        # Logistic regression with L1 penalty
+        >>> est = SparseLogisticRegression(alpha=1.0)
+        >>> est.cross_validate(X, y, alphas='auto', cv=5)
+        """
+        # Validate penalty has alpha
+        if not hasattr(self.penalty, 'alpha'):
+            raise ValueError("penalty '%s' has no 'alpha' attribute, "
+                             "cannot perform CV."
+                             % self.penalty.__class__.__name__)
+
+        # Validate l1_ratio if present
+        if not hasattr(self.penalty, 'l1_ratio') and l1_ratios != (0.5,):
+            raise ValueError(
+                f"penalty '{self.penalty.__class__.__name__}' does not support "
+                "`l1_ratio`, but l1_ratios={l1_ratios!r} was supplied."
+            )
+
+        # Validate scoring
+        if scoring is not None and not isinstance(scoring, (str, callable)):
+            raise ValueError("scoring must be a string or callable")
+
+        is_classif = isinstance(self.datafit, (Logistic, QuadraticSVC))
+        cv_splitter = check_cv(cv, y, classifier=is_classif)
+
+        # Guard against useless l1_ratio array when the penalty has no such hyper‑param
+        if not hasattr(self.penalty, 'l1_ratio') and l1_ratios != (0.5,):
+            raise ValueError(
+                f"penalty '{self.penalty.__class__.__name__}' does not support "
+                "`l1_ratio`, but l1_ratios={l1_ratios!r} was supplied."
+            )
+
+        ratios = l1_ratios if hasattr(self.penalty, 'l1_ratio') else [None]
+
+        scorer = (get_scorer(scoring) if isinstance(scoring, str)
+                  else scoring)   # callable or None
+
+        # Use joblib's memory management
+        with Parallel(n_jobs=n_jobs, verbose=verbose) as parallel:
+            cv_scores = {}
+            for ratio in ratios:
+                if ratio is not None:
+                    old_ratio = self.penalty.l1_ratio
+                    self.penalty.l1_ratio = ratio
+                alphas_grid = self._alpha_grid(X, y, alphas)
+                if ratio is not None:
+                    self.penalty.l1_ratio = old_ratio
+
+                fold_scores = parallel(
+                    delayed(self._fit_fold)(
+                        X, y, tr, vl, ratio, alphas_grid, scorer
+                    )
+                    for tr, vl in cv_splitter.split(X, y)
+                )
+                cv_scores[ratio] = np.stack(fold_scores, axis=0)
+
+        # After computing cv_scores, add:
+        best_score = -np.inf
+        best_alpha = None
+        best_ratio = None
+
+        for ratio in ratios:
+            means = cv_scores[ratio].mean(axis=0)
+            k = int(means.argmax())
+            if means[k] > best_score:
+                best_score = means[k]
+                best_alpha = alphas_grid[k]
+                best_ratio = ratio
+
+        # Set the best parameters
+        self.penalty.alpha = best_alpha
+        if best_ratio is not None:
+            self.penalty.l1_ratio = best_ratio
+
+        # Store the best parameters and scores
+        self.best_alpha_ = best_alpha
+        self.best_score_ = best_score
+        if best_ratio is not None:
+            self.best_l1_ratio_ = best_ratio
+        self.cv_scores_ = cv_scores
+        self.alphas_ = alphas_grid
+
+        # Fit the final model with the best parameters
+        self.fit(X, y)
+
+        return self
 
 
 class Lasso(RegressorMixin, LinearModel):
@@ -1247,7 +1566,7 @@ class CoxEstimator(LinearModel):
     alpha : float, optional
         Penalty strength. It must be strictly positive.
 
-    l1_ratio : float, default=0.5
+    l1_ratio : float, default=0.7
         The ElasticNet mixing parameter, with ``0 <= l1_ratio <= 1``. For
         ``l1_ratio = 0`` the penalty is an L2 penalty. ``For l1_ratio = 1`` it
         is an L1 penalty.  For ``0 < l1_ratio < 1``, the penalty is a

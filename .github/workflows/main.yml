@@ -25,7 +25,7 @@ jobs:
         python --version
     - name: Install other dependencies
       run: |
-        conda install rpy2 -c conda-forge
+        pip install rpy2
         pip install statsmodels cvxopt
         pip install sortedl1
         # for testing Cox estimator

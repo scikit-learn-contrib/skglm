@@ -21,9 +21,8 @@ estimator = GeneralizedLinearEstimatorCV(
 )
 estimator.fit(X, y)
 
-# Print results
 print(f"Best alpha: {estimator.alpha_:.3f}")
 print(f"L1 ratio: {estimator.penalty.l1_ratio:.3f}")
 print(f"Number of non-zero coefficients: {np.sum(estimator.coef_ != 0)}")
 
-# TODO: add plot
+# TODO: add plot, test with other penalties and datafits

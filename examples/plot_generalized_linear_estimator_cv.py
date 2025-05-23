@@ -5,7 +5,7 @@ Cross Validation for Generalized Linear Estimator
 """
 import numpy as np
 from sklearn.datasets import make_regression
-from skglm.penalties.generalized_linear_cv import GeneralizedLinearEstimatorCV
+from skglm.cv import GeneralizedLinearEstimatorCV
 from skglm.datafits import Quadratic
 from skglm.penalties import L1_plus_L2
 from skglm.solvers import AndersonCD

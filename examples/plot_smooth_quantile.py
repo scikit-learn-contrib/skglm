@@ -1,75 +1,75 @@
 """
-===========================================
-Smooth Quantile Regression Example
-===========================================
-
+QuantileHuber vs Sklearn
 """
-
 import numpy as np
-import matplotlib.pyplot as plt
 import time
-from sklearn.datasets import make_regression
-from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import QuantileRegressor
-from skglm.experimental.smooth_quantile_regressor import SmoothQuantileRegressor
-from skglm.experimental.quantile_huber import QuantileHuber
+from skglm.experimental.quantile_huber import QuantileHuber, SimpleQuantileRegressor
+import matplotlib.pyplot as plt
+from sklearn.datasets import make_regression
 
-X, y = make_regression(n_samples=1000, n_features=10, noise=0.1, random_state=42)
-X = StandardScaler().fit_transform(X)
-tau = 0.75
-
-t0 = time.time()
-reg_skglm = SmoothQuantileRegressor(quantile=tau).fit(X, y)
-t1 = time.time()
-reg_sklearn = QuantileRegressor(quantile=tau, alpha=0.1, solver='highs').fit(X, y)
-t2 = time.time()
-
-y_pred_skglm, y_pred_sklearn = reg_skglm.predict(X), reg_sklearn.predict(X)
-coverage_skglm = np.mean(y <= y_pred_skglm)
-coverage_sklearn = np.mean(y <= y_pred_sklearn)
-
-print(f"\nTiming: skglm={t1-t0:.3f}s, sklearn={t2-t1:.3f}s, "
-      f"speedup={(t2-t1)/(t1-t0):.1f}x")
-print(f"Coverage (target {tau}): skglm={coverage_skglm:.3f}, "
-      f"sklearn={coverage_sklearn:.3f}")
-print(f"Non-zero coefs: skglm={np.sum(reg_skglm.coef_ != 0)}, "
-      f"sklearn={np.sum(reg_sklearn.coef_ != 0)}")
+# TODO: no smoothing and no intercept handling yet
 
 
-# Visualizations
-def pinball(y_true, y_pred):
-    diff = y_true - y_pred
-    return np.mean(np.where(diff >= 0, tau * diff, (1 - tau) * -diff))
+def pinball_loss(residuals, quantile):
+    """True pinball loss."""
+    return np.mean(residuals * (quantile - (residuals < 0)))
 
 
-print(f"Pinball loss: skglm={pinball(y, y_pred_skglm):.4f}, "
-      f"sklearn={pinball(y, y_pred_sklearn):.4f}")
+def create_data(n_samples=1000, n_features=10, noise=0.1):
+    X, y = make_regression(n_samples=n_samples, n_features=n_features, noise=noise)
+    return X, y
 
-plt.figure(figsize=(12, 5))
-plt.subplot(121)
-residuals = np.linspace(-2, 2, 1000)
-for delta in [1.0, 0.5, 0.1]:
-    loss = QuantileHuber(quantile=tau, delta=delta)
-    losses = [loss.value(np.array([r]), np.array([[1]]), np.array([0]))
-              for r in residuals]
-    plt.plot(residuals, losses, label=f'δ={delta}')
-plt.plot(residuals, [tau * max(r, 0) + (1 - tau) * max(-r, 0)
-                     for r in residuals], 'k--', label='Pinball')
-plt.axvline(x=0, color='k', linestyle='--', alpha=0.3)
-plt.xlabel('Residual (y - y_pred)')
-plt.ylabel('Loss')
-plt.title('Quantile Huber Loss (τ=0.75)')
-plt.legend()
-plt.grid(True, alpha=0.3)
 
-plt.subplot(122)
-plt.hist(y - y_pred_skglm, bins=50, alpha=0.5, label='skglm')
-plt.hist(y - y_pred_sklearn, bins=50, alpha=0.5, label='sklearn')
-plt.axvline(0, color='k', linestyle='--')
-plt.xlabel('Residual (y - y_pred)')
-plt.ylabel('Count')
-plt.title('Residuals Histogram')
-plt.legend()
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.show()
+def plot_quantile_huber():
+    quantiles = [0.1, 0.5, 0.9]
+    delta = 0.5
+    residuals = np.linspace(-3, 3, 500)
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
+    for tau in quantiles:
+        qh = QuantileHuber(quantile=tau, delta=delta)
+        loss = [qh._loss_scalar(r) for r in residuals]
+        grad = [qh._grad_scalar(r) for r in residuals]
+        ax1.plot(residuals, loss, label=f"τ={tau}")
+        ax2.plot(residuals, grad, label=f"τ={tau}")
+    ax1.set_title("QuantileHuber Loss")
+    ax1.set_xlabel("Residual")
+    ax1.set_ylabel("Loss")
+    ax1.legend()
+    ax2.set_title("QuantileHuber Gradient")
+    ax2.set_xlabel("Residual")
+    ax2.set_ylabel("Gradient")
+    ax2.legend()
+    plt.tight_layout()
+    plt.show()
+
+
+if __name__ == "__main__":
+    X, y = create_data()
+    tau = 0.8
+
+    start = time.time()
+    sk = QuantileRegressor(quantile=tau, alpha=0.001, fit_intercept=False)
+    sk.fit(X, y)
+    sk_time = time.time() - start
+    sk_pred = sk.predict(X)
+    sk_cov = np.mean(y <= sk_pred)
+    sk_pinball = pinball_loss(y - sk_pred, tau)
+
+    start = time.time()
+    qh = SimpleQuantileRegressor(quantile=tau, alpha=0.001, delta=0.05)
+    qh.fit(X, y)
+    qh_time = time.time() - start
+    qh_pred = qh.predict(X)
+    qh_cov = np.mean(y <= qh_pred)
+    qh_pinball = pinball_loss(y - qh_pred, tau)
+
+    print(f"{'Method':<12} {'Q':<4} {'Coverage':<8} {'Time':<6} "
+          f"{'Pinball':<8}")
+    print("-" * 55)
+    print(f"{'Sklearn':<12} {tau:<4} {sk_cov:<8.3f} {sk_time:<6.3f} "
+          f"{sk_pinball:<8.4f}")
+    print(f"{'QuantileHuber':<12} {tau:<4} {qh_cov:<8.3f} {qh_time:<6.3f} "
+          f"{qh_pinball:<8.4f}")
+
+    plot_quantile_huber()

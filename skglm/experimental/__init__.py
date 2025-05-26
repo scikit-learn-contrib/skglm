@@ -2,8 +2,7 @@ from .reweighted import IterativeReweightedL1
 from .sqrt_lasso import SqrtLasso, SqrtQuadratic
 from .pdcd_ws import PDCD_WS
 from .quantile_regression import Pinball
-from .quantile_huber import QuantileHuber
-from .smooth_quantile_regressor import SmoothQuantileRegressor
+from .quantile_huber import QuantileHuber, SimpleQuantileRegressor
 
 __all__ = [
     IterativeReweightedL1,
@@ -12,5 +11,5 @@ __all__ = [
     SqrtQuadratic,
     SqrtLasso,
     QuantileHuber,
-    SmoothQuantileRegressor,
+    SimpleQuantileRegressor,
 ]

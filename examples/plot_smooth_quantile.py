@@ -4,11 +4,11 @@ QuantileHuber vs Sklearn
 import numpy as np
 import time
 from sklearn.linear_model import QuantileRegressor
-from skglm.experimental.quantile_huber import QuantileHuber, SimpleQuantileRegressor
+from skglm.experimental.quantile_huber import QuantileHuber, SmoothQuantileRegressor
 import matplotlib.pyplot as plt
 from sklearn.datasets import make_regression
 
-# TODO: no smoothing and no intercept handling yet
+# TODO: no intercept handling yet
 
 
 def pinball_loss(residuals, quantile):
@@ -25,7 +25,7 @@ def plot_quantile_huber():
     quantiles = [0.1, 0.5, 0.9]
     delta = 0.5
     residuals = np.linspace(-3, 3, 500)
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
+    _, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
     for tau in quantiles:
         qh = QuantileHuber(quantile=tau, delta=delta)
         loss = [qh._loss_scalar(r) for r in residuals]
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     tau = 0.8
 
     start = time.time()
-    sk = QuantileRegressor(quantile=tau, alpha=0.001, fit_intercept=False)
+    sk = QuantileRegressor(quantile=tau, alpha=0.1, fit_intercept=False)
     sk.fit(X, y)
     sk_time = time.time() - start
     sk_pred = sk.predict(X)
@@ -57,7 +57,14 @@ if __name__ == "__main__":
     sk_pinball = pinball_loss(y - sk_pred, tau)
 
     start = time.time()
-    qh = SimpleQuantileRegressor(quantile=tau, alpha=0.001, delta=0.05)
+    qh = SmoothQuantileRegressor(
+        quantile=tau,
+        alpha=0.1,
+        delta_init=0.5,
+        delta_final=0.05,
+        n_deltas=5,
+        verbose=True
+    )
     qh.fit(X, y)
     qh_time = time.time() - start
     qh_pred = qh.predict(X)

@@ -1,3 +1,4 @@
+import numpy as np
 from numba import float64
 from skglm.datafits.single_task import Huber
 from sklearn.base import BaseEstimator, RegressorMixin
@@ -101,32 +102,58 @@ class QuantileHuber(Huber):
             return tau - 1
 
 
-class SimpleQuantileRegressor(BaseEstimator, RegressorMixin):
-    """Simple quantile regression without progressive smoothing."""
+class SmoothQuantileRegressor(BaseEstimator, RegressorMixin):
+    """Quantile regression with progressive smoothing."""
 
-    def __init__(self, quantile=0.5, alpha=0.1, delta=0.1, max_iter=1000, tol=1e-4):
+    def __init__(self, quantile=0.5, alpha=0.1, delta_init=1.0, delta_final=1e-3,
+                 n_deltas=10, max_iter=1000, tol=1e-4, verbose=False):
         self.quantile = quantile
         self.alpha = alpha
-        self.delta = delta
+        self.delta_init = delta_init
+        self.delta_final = delta_final
+        self.n_deltas = n_deltas
         self.max_iter = max_iter
         self.tol = tol
+        self.verbose = verbose
 
     def fit(self, X, y):
-        """Fit using FISTA with fixed delta."""
+        """Fit using progressive smoothing: delta_init --> delta_final."""
         X, y = check_X_y(X, y)
+        w = np.zeros(X.shape[1])
+        deltas = np.geomspace(self.delta_init, self.delta_final, self.n_deltas)
 
-        datafit = QuantileHuber(quantile=self.quantile, delta=self.delta)
-        penalty = L1(alpha=self.alpha)
-        solver = FISTA(max_iter=self.max_iter, tol=self.tol)
+        if self.verbose:
+            print(
+                f"Progressive smoothing: delta {self.delta_init:.3f} --> "
+                f"{self.delta_final:.3f} in {self.n_deltas} steps")
 
-        est = GeneralizedLinearEstimator(
-            datafit=datafit,
-            penalty=penalty,
-            solver=solver
-        )
+        for i, delta in enumerate(deltas):
+            datafit = QuantileHuber(quantile=self.quantile, delta=delta)
+            penalty = L1(alpha=self.alpha)
+            solver = FISTA(max_iter=self.max_iter, tol=self.tol)
 
-        est.fit(X, y)
-        self.coef_ = est.coef_
+            est = GeneralizedLinearEstimator(
+                datafit=datafit,
+                penalty=penalty,
+                solver=solver
+            )
+
+            if i > 0:
+                est.coef_ = w.copy()
+
+            est.fit(X, y)
+            w = est.coef_.copy()
+
+            if self.verbose:
+                residuals = y - X @ w
+                coverage = np.mean(residuals <= 0)
+                pinball_loss = np.mean(residuals * (self.quantile - (residuals < 0)))
+
+                print(
+                    f"  Stage {i+1:2d}: delta={delta:.4f}, "
+                    f"coverage={coverage:.3f}, pinball_loss={pinball_loss:.6f}")
+
+        self.coef_ = w
 
         return self
 

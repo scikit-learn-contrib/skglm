@@ -8,7 +8,7 @@ from skglm.penalties import L1
 from skglm.estimators import GeneralizedLinearEstimator
 
 
-class QuantileHuber(Huber):
+class QuantileHuber():
     r"""Quantile Huber loss for quantile regression.
 
     Implements the smoothed pinball loss:

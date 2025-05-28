@@ -44,39 +44,38 @@ def plot_quantile_huber():
     plt.show()
 
 
-if __name__ == "__main__":
-    X, y = create_data()
-    tau = 0.8
+X, y = create_data()
+tau = 0.8
 
-    start = time.time()
-    sk = QuantileRegressor(quantile=tau, alpha=0.1, fit_intercept=False)
-    sk.fit(X, y)
-    sk_time = time.time() - start
-    sk_pred = sk.predict(X)
-    sk_cov = np.mean(y <= sk_pred)
-    sk_pinball = pinball_loss(y - sk_pred, tau)
+start = time.time()
+sk = QuantileRegressor(quantile=tau, alpha=0.1, fit_intercept=False)
+sk.fit(X, y)
+sk_time = time.time() - start
+sk_pred = sk.predict(X)
+sk_cov = np.mean(y <= sk_pred)
+sk_pinball = pinball_loss(y - sk_pred, tau)
 
-    start = time.time()
-    qh = SmoothQuantileRegressor(
-        quantile=tau,
-        alpha=0.1,
-        delta_init=0.5,
-        delta_final=0.05,
-        n_deltas=5,
-        verbose=True
-    )
-    qh.fit(X, y)
-    qh_time = time.time() - start
-    qh_pred = qh.predict(X)
-    qh_cov = np.mean(y <= qh_pred)
-    qh_pinball = pinball_loss(y - qh_pred, tau)
+start = time.time()
+qh = SmoothQuantileRegressor(
+    quantile=tau,
+    alpha=0.1,
+    delta_init=0.5,
+    delta_final=0.05,
+    n_deltas=5,
+    verbose=True
+)
+qh.fit(X, y)
+qh_time = time.time() - start
+qh_pred = qh.predict(X)
+qh_cov = np.mean(y <= qh_pred)
+qh_pinball = pinball_loss(y - qh_pred, tau)
 
-    print(f"{'Method':<12} {'Q':<4} {'Coverage':<8} {'Time':<6} "
-          f"{'Pinball':<8}")
-    print("-" * 55)
-    print(f"{'Sklearn':<12} {tau:<4} {sk_cov:<8.3f} {sk_time:<6.3f} "
-          f"{sk_pinball:<8.4f}")
-    print(f"{'QuantileHuber':<12} {tau:<4} {qh_cov:<8.3f} {qh_time:<6.3f} "
-          f"{qh_pinball:<8.4f}")
+print(f"{'Method':<12} {'Q':<4} {'Coverage':<8} {'Time':<6} "
+      f"{'Pinball':<8}")
+print("-" * 55)
+print(f"{'Sklearn':<12} {tau:<4} {sk_cov:<8.3f} {sk_time:<6.3f} "
+      f"{sk_pinball:<8.4f}")
+print(f"{'QuantileHuber':<12} {tau:<4} {qh_cov:<8.3f} {qh_time:<6.3f} "
+      f"{qh_pinball:<8.4f}")
 
-    plot_quantile_huber()
+plot_quantile_huber()

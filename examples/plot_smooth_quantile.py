@@ -8,24 +8,19 @@ from skglm.experimental.quantile_huber import QuantileHuber, SmoothQuantileRegre
 import matplotlib.pyplot as plt
 from sklearn.datasets import make_regression
 
-# TODO: no intercept handling yet
-
 
 def pinball_loss(residuals, quantile):
     """True pinball loss."""
     return np.mean(residuals * (quantile - (residuals < 0)))
 
 
-X, y = make_regression(n_samples=10000, n_features=1000, noise=0.1, random_state=0)
+X, y = make_regression(n_samples=1000, n_features=10, noise=0.1, random_state=0)
 tau = 0.8
-X_c = X - X.mean(axis=0)
-q_tau = np.quantile(y, tau)
-y_c = y - q_tau
 
 start = time.time()
-sk = QuantileRegressor(quantile=tau, alpha=0.1, fit_intercept=False)
-sk.fit(X_c, y_c)
-sk_pred = sk.predict(X_c) + q_tau
+sk = QuantileRegressor(quantile=tau, alpha=0.1, fit_intercept=True)
+sk.fit(X, y)
+sk_pred = sk.predict(X)
 sk_time = time.time() - start
 sk_cov = np.mean(y <= sk_pred)
 sk_pinball = pinball_loss(y - sk_pred, tau)
@@ -38,11 +33,12 @@ qh = SmoothQuantileRegressor(
     delta_final=0.01,
     n_deltas=5,
     solver="AndersonCD",
-    verbose=True
+    verbose=True,
+    fit_intercept=True
 )
-qh.fit(X_c, y_c)
+qh.fit(X, y)
 qh_time = time.time() - start
-qh_pred = qh.predict(X_c) + q_tau
+qh_pred = qh.predict(X)
 qh_cov = np.mean(y <= qh_pred)
 qh_pinball = pinball_loss(y - qh_pred, tau)
 

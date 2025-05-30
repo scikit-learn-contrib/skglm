@@ -115,12 +115,21 @@ class QuantileHuber(BaseDatafit):
         c = max(self.quantile, 1 - self.quantile) / self.delta
         return c * norm(X, ord=2) ** 2 / len(y)
 
+    def intercept_update_step(self, y, Xw):
+        n_samples = len(y)
+        update = 0.0
+        for i in range(n_samples):
+            residual = y[i] - Xw[i]
+            update -= self._grad_per_sample(residual)
+        return update / n_samples
+
 
 class SmoothQuantileRegressor(BaseEstimator, RegressorMixin):
     """Quantile regression with progressive smoothing."""
 
     def __init__(self, quantile=0.5, alpha=0.1, delta_init=1.0, delta_final=1e-3,
-                 n_deltas=10, max_iter=1000, tol=1e-4, verbose=False, solver="FISTA"):
+                 n_deltas=10, max_iter=1000, tol=1e-4, verbose=False,
+                 solver="AndersonCD", fit_intercept=True):
         self.quantile = quantile
         self.alpha = alpha
         self.delta_init = delta_init
@@ -130,6 +139,7 @@ class SmoothQuantileRegressor(BaseEstimator, RegressorMixin):
         self.tol = tol
         self.verbose = verbose
         self.solver = solver
+        self.fit_intercept = fit_intercept
 
     def fit(self, X, y):
         """Fit using progressive smoothing: delta_init --> delta_final."""
@@ -146,11 +156,18 @@ class SmoothQuantileRegressor(BaseEstimator, RegressorMixin):
         # Solver selection
         if isinstance(self.solver, str):
             if self.solver == "FISTA":
+                if self.fit_intercept:
+                    import warnings
+                    warnings.warn(
+                        "FISTA solver does not support intercept. "
+                        "Falling back to fit_intercept=False."
+                    )
+                    self.fit_intercept = False
                 solver = FISTA(max_iter=self.max_iter, tol=self.tol)
                 solver.warm_start = True
             elif self.solver == "AndersonCD":
                 solver = AndersonCD(max_iter=self.max_iter, tol=self.tol,
-                                    warm_start=True, fit_intercept=False)
+                                    warm_start=True, fit_intercept=self.fit_intercept)
             else:
                 raise ValueError(f"Unknown solver: {self.solver}")
         else:
@@ -167,6 +184,8 @@ class SmoothQuantileRegressor(BaseEstimator, RegressorMixin):
 
             if self.verbose:
                 residuals = y - X @ w
+                if self.fit_intercept:
+                    residuals -= est.intercept_
                 coverage = np.mean(residuals <= 0)
                 pinball_loss = np.mean(residuals * (self.quantile - (residuals < 0)))
 

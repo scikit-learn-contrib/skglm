@@ -1,14 +1,14 @@
 import numpy as np
+from numpy.linalg import norm
 from numba import float64
-from skglm.datafits.single_task import Huber
+from skglm.datafits.base import BaseDatafit
 from sklearn.base import BaseEstimator, RegressorMixin
-from sklearn.utils.validation import check_X_y, check_array
-from skglm.solvers import FISTA
+from skglm.solvers import FISTA, AndersonCD
 from skglm.penalties import L1
 from skglm.estimators import GeneralizedLinearEstimator
 
 
-class QuantileHuber(Huber):
+class QuantileHuber(BaseDatafit):
     r"""Quantile Huber loss for quantile regression.
 
     Implements the smoothed pinball loss:
@@ -51,11 +51,11 @@ class QuantileHuber(Huber):
         res = 0.0
         for i in range(n_samples):
             residual = y[i] - Xw[i]
-            res += self._loss_scalar(residual)
+            res += self._loss_sample(residual)
         return res / n_samples
 
-    def _loss_scalar(self, residual):
-        """Calculate loss for a single residual."""
+    def _loss_sample(self, residual):
+        """Calculate loss for a single sample."""
         tau = self.quantile
         delta = self.delta
         r = residual
@@ -79,11 +79,11 @@ class QuantileHuber(Huber):
         grad_j = 0.0
         for i in range(n_samples):
             residual = y[i] - Xw[i]
-            grad_j += -X[i, j] * self._grad_scalar(residual)
+            grad_j += -X[i, j] * self._grad_per_sample(residual)
         return grad_j / n_samples
 
-    def _grad_scalar(self, residual):
-        """Calculate gradient for a single residual."""
+    def _grad_per_sample(self, residual):
+        """Calculate gradient for a single sample."""
         tau = self.quantile
         delta = self.delta
         r = residual
@@ -101,12 +101,26 @@ class QuantileHuber(Huber):
             # Lower linear tail: r <= -delta
             return tau - 1
 
+    def get_lipschitz(self, X, y):
+        n_features = X.shape[1]
+
+        lipschitz = np.zeros(n_features, dtype=X.dtype)
+        c = max(self.quantile, 1 - self.quantile) / self.delta
+        for j in range(n_features):
+            lipschitz[j] = c * (X[:, j] ** 2).sum() / len(y)
+
+        return lipschitz
+
+    def get_global_lipschitz(self, X, y):
+        c = max(self.quantile, 1 - self.quantile) / self.delta
+        return c * norm(X, ord=2) ** 2 / len(y)
+
 
 class SmoothQuantileRegressor(BaseEstimator, RegressorMixin):
     """Quantile regression with progressive smoothing."""
 
     def __init__(self, quantile=0.5, alpha=0.1, delta_init=1.0, delta_final=1e-3,
-                 n_deltas=10, max_iter=1000, tol=1e-4, verbose=False):
+                 n_deltas=10, max_iter=1000, tol=1e-4, verbose=False, solver="FISTA"):
         self.quantile = quantile
         self.alpha = alpha
         self.delta_init = delta_init
@@ -115,10 +129,10 @@ class SmoothQuantileRegressor(BaseEstimator, RegressorMixin):
         self.max_iter = max_iter
         self.tol = tol
         self.verbose = verbose
+        self.solver = solver
 
     def fit(self, X, y):
         """Fit using progressive smoothing: delta_init --> delta_final."""
-        X, y = check_X_y(X, y)
         w = np.zeros(X.shape[1])
         deltas = np.geomspace(self.delta_init, self.delta_final, self.n_deltas)
 
@@ -127,19 +141,26 @@ class SmoothQuantileRegressor(BaseEstimator, RegressorMixin):
                 f"Progressive smoothing: delta {self.delta_init:.3f} --> "
                 f"{self.delta_final:.3f} in {self.n_deltas} steps")
 
+        datafit = QuantileHuber(quantile=self.quantile, delta=self.delta_init)
+        penalty = L1(alpha=self.alpha)
+        # Solver selection
+        if isinstance(self.solver, str):
+            if self.solver == "FISTA":
+                solver = FISTA(max_iter=self.max_iter, tol=self.tol)
+                solver.warm_start = True
+            elif self.solver == "AndersonCD":
+                solver = AndersonCD(max_iter=self.max_iter, tol=self.tol,
+                                    warm_start=True, fit_intercept=False)
+            else:
+                raise ValueError(f"Unknown solver: {self.solver}")
+        else:
+            solver = self.solver
+
+        est = GeneralizedLinearEstimator(
+            datafit=datafit, penalty=penalty, solver=solver)
+
         for i, delta in enumerate(deltas):
-            datafit = QuantileHuber(quantile=self.quantile, delta=delta)
-            penalty = L1(alpha=self.alpha)
-            solver = FISTA(max_iter=self.max_iter, tol=self.tol)
-
-            est = GeneralizedLinearEstimator(
-                datafit=datafit,
-                penalty=penalty,
-                solver=solver
-            )
-
-            if i > 0:
-                est.coef_ = w.copy()
+            datafit.delta = float(delta)
 
             est.fit(X, y)
             w = est.coef_.copy()
@@ -151,13 +172,16 @@ class SmoothQuantileRegressor(BaseEstimator, RegressorMixin):
 
                 print(
                     f"  Stage {i+1:2d}: delta={delta:.4f}, "
-                    f"coverage={coverage:.3f}, pinball_loss={pinball_loss:.6f}")
+                    f"coverage={coverage:.3f}, pinball_loss={pinball_loss:.6f}, "
+                    f"n_iter={est.n_iter_}"
+                )
 
-        self.coef_ = w
+        self.est = est
 
         return self
 
     def predict(self, X):
         """Predict using the fitted model."""
-        X = check_array(X)
-        return X @ self.coef_
+        if not hasattr(self, "est"):
+            raise ValueError("Call 'fit' before 'predict'.")
+        return self.est.predict(X)

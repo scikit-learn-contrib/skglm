@@ -1,6 +1,5 @@
 import numpy as np
 from joblib import Parallel, delayed
-from sklearn.utils.extmath import softmax
 from skglm.datafits import Logistic, QuadraticSVC
 from skglm.estimators import GeneralizedLinearEstimator
 
@@ -45,9 +44,9 @@ class GeneralizedLinearEstimatorCV(GeneralizedLinearEstimator):
         """Fit the model using cross-validation."""
         if not hasattr(self.penalty, "alpha"):
             raise ValueError(
-                "GeneralizedLinearEstimatorCV only supports penalties with 'alpha'."
+                "GeneralizedLinearEstimatorCV only supports penalties which "
+                "expose an 'alpha' parameter."
             )
-        y = np.asarray(y)
         n_samples, n_features = X.shape
         rng = np.random.RandomState(self.random_state)
 
@@ -67,24 +66,21 @@ class GeneralizedLinearEstimatorCV(GeneralizedLinearEstimator):
         mse_path = np.empty((len(l1_ratios), len(alphas), self.cv))
         best_loss = np.inf
 
-        def _solve_fold(k, train, test, alpha, l1, w_start):
+        def _solve_fold(k, train, test, alpha, l1, w_init):
             pen_kwargs = {k: v for k, v in self.penalty.__dict__.items()
                           if k not in ("alpha", "l1_ratio")}
             if has_l1_ratio:
                 pen_kwargs['l1_ratio'] = l1
             pen = type(self.penalty)(alpha=alpha, **pen_kwargs)
 
-            kw = dict(X=X[train], y=y[train], datafit=self.datafit, penalty=pen)
-            if 'w' in self.solver.solve.__code__.co_varnames:
-                kw['w'] = w_start
-            w = self.solver.solve(**kw)
-            w = w[0] if isinstance(w, tuple) else w
-
-            coef, intercept = (w[:n_features], w[n_features]
-                               ) if w.size == n_features + 1 else (w, 0.0)
-
-            y_pred = X[test] @ coef + intercept
-            return w, self._score(y[test], y_pred)
+            est = GeneralizedLinearEstimator(
+                datafit=self.datafit, penalty=pen, solver=self.solver
+            )
+            est.penalty.alpha = alpha
+            est.solver.warm_start = True
+            est.fit(X[train], y[train])
+            y_pred = est.predict(X[test])
+            return est.coef_, est.intercept_, self._score(y[test], y_pred)
 
         for idx_ratio, l1_ratio in enumerate(l1_ratios):
             warm_start = [None] * self.cv
@@ -95,8 +91,9 @@ class GeneralizedLinearEstimatorCV(GeneralizedLinearEstimator):
                     for k, (tr, te) in enumerate(_kfold_split(n_samples, self.cv, rng))
                 )
 
-                for k, (w_fold, loss_fold) in enumerate(fold_results):
-                    warm_start[k] = w_fold
+                for k, (coef_fold, intercept_fold, loss_fold) in \
+                        enumerate(fold_results):
+                    warm_start[k] = (coef_fold, intercept_fold)
                     mse_path[idx_ratio, idx_alpha, k] = loss_fold
 
                 mean_loss = np.mean(mse_path[idx_ratio, idx_alpha])
@@ -106,32 +103,37 @@ class GeneralizedLinearEstimatorCV(GeneralizedLinearEstimator):
                     self.l1_ratio_ = float(l1_ratio) if l1_ratio is not None else None
 
         # Refit on full dataset
-        self.penalty.alpha = self.alpha_
+        pen_kwargs = {k: v for k, v in self.penalty.__dict__.items()
+                      if k not in ("alpha", "l1_ratio")}
         if hasattr(self.penalty, "l1_ratio"):
-            self.penalty.l1_ratio = self.l1_ratio_
-        super().fit(X, y)
+            best_penalty = type(self.penalty)(
+                alpha=self.alpha_, l1_ratio=self.l1_ratio_, **pen_kwargs
+            )
+        else:
+            best_penalty = type(self.penalty)(
+                alpha=self.alpha_, **pen_kwargs
+            )
+        best_estimator = GeneralizedLinearEstimator(
+            datafit=self.datafit,
+            penalty=best_penalty,
+            solver=self.solver
+        )
+        best_estimator.fit(X, y)
+        self.best_estimator_ = best_estimator
+        self.coef_ = best_estimator.coef_
+        self.intercept_ = best_estimator.intercept_
+        self.n_iter_ = getattr(best_estimator, "n_iter_", None)
+        self.n_features_in_ = getattr(best_estimator, "n_features_in_", None)
+        self.feature_names_in_ = getattr(best_estimator, "feature_names_in_", None)
         self.alphas_ = alphas
-        self.mse_path_ = mse_path
+        self.mse_path_ = np.squeeze(mse_path)
         return self
 
     def predict(self, X):
-        """Predict using the linear model."""
-        X = np.asarray(X)
-        if isinstance(self.datafit, (Logistic, QuadraticSVC)):
-            return (X @ self.coef_ + self.intercept_ > 0).astype(int)
-        return X @ self.coef_ + self.intercept_
+        return self.best_estimator_.predict(X)
 
     def predict_proba(self, X):
-        """Probability estimates for classification tasks."""
-        if not isinstance(self.datafit, (Logistic, QuadraticSVC)):
-            raise AttributeError(
-                "predict_proba is only available for classification tasks"
-            )
-        X = np.asarray(X)
-        decision = X @ self.coef_ + self.intercept_
-        decision_2d = np.c_[-decision, decision]
-        return softmax(decision_2d, copy=False)
+        return self.best_estimator_.predict_proba(X)
 
     def score(self, X, y):
-        """Return a 'higher = better' performance metric."""
-        return -self._score(np.asarray(y), self.predict(X))
+        return self.best_estimator_.score(X, y)

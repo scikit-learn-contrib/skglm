@@ -621,9 +621,10 @@ def test_SparseLogReg_elasticnet(X, l1_ratio):
     np.testing.assert_allclose(
         estimator_sk.intercept_, estimator_ours.intercept_, rtol=1e-4)
 
+
 def test_SLOPE_printing():
     alphas = [0.5, 0.1]
-    model = GeneralizedLinearEstimator(penalty = SLOPE(alphas))
+    model = GeneralizedLinearEstimator(penalty=SLOPE(alphas))
     res = repr(model)
     assert isinstance(res, str)
 

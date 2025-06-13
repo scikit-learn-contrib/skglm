@@ -3,9 +3,10 @@ from numpy.linalg import norm
 from numba import float64
 from skglm.datafits.base import BaseDatafit
 from sklearn.base import BaseEstimator, RegressorMixin
-from skglm.solvers import FISTA, AndersonCD
+from skglm.solvers import AndersonCD
 from skglm.penalties import L1
 from skglm.estimators import GeneralizedLinearEstimator
+from sklearn.exceptions import NotFittedError
 
 
 class QuantileHuber(BaseDatafit):
@@ -117,19 +118,25 @@ class QuantileHuber(BaseDatafit):
 
     def intercept_update_step(self, y, Xw):
         n_samples = len(y)
-        update = 0.0
+
+        # Compute gradient
+        grad = 0.0
         for i in range(n_samples):
             residual = y[i] - Xw[i]
-            update -= self._grad_per_sample(residual)
-        return update / n_samples
+            grad -= self._grad_per_sample(residual)
+        grad /= n_samples
+
+        # Apply step size 1/c
+        c = max(self.quantile, 1 - self.quantile) / self.delta
+        return grad / c
 
 
 class SmoothQuantileRegressor(BaseEstimator, RegressorMixin):
     """Quantile regression with progressive smoothing."""
 
     def __init__(self, quantile=0.5, alpha=0.1, delta_init=1.0, delta_final=1e-3,
-                 n_deltas=10, max_iter=1000, tol=1e-4, verbose=False,
-                 solver="AndersonCD", fit_intercept=True):
+                 n_deltas=10, max_iter=1000, tol=1e-6, verbose=False,
+                 fit_intercept=True):
         self.quantile = quantile
         self.alpha = alpha
         self.delta_init = delta_init
@@ -138,7 +145,6 @@ class SmoothQuantileRegressor(BaseEstimator, RegressorMixin):
         self.max_iter = max_iter
         self.tol = tol
         self.verbose = verbose
-        self.solver = solver
         self.fit_intercept = fit_intercept
 
     def fit(self, X, y):
@@ -148,30 +154,16 @@ class SmoothQuantileRegressor(BaseEstimator, RegressorMixin):
 
         if self.verbose:
             print(
-                f"Progressive smoothing: delta {self.delta_init:.3f} --> "
-                f"{self.delta_final:.3f} in {self.n_deltas} steps")
+                f"Progressive smoothing: delta {self.delta_init:.2e} --> "
+                f"{self.delta_final:.2e} in {self.n_deltas} steps")
 
         datafit = QuantileHuber(quantile=self.quantile, delta=self.delta_init)
         penalty = L1(alpha=self.alpha)
-        # Solver selection
-        if isinstance(self.solver, str):
-            if self.solver == "FISTA":
-                if self.fit_intercept:
-                    import warnings
-                    warnings.warn(
-                        "FISTA solver does not support intercept. "
-                        "Falling back to fit_intercept=False."
-                    )
-                    self.fit_intercept = False
-                solver = FISTA(max_iter=self.max_iter, tol=self.tol)
-                solver.warm_start = True
-            elif self.solver == "AndersonCD":
-                solver = AndersonCD(max_iter=self.max_iter, tol=self.tol,
-                                    warm_start=True, fit_intercept=self.fit_intercept)
-            else:
-                raise ValueError(f"Unknown solver: {self.solver}")
-        else:
-            solver = self.solver
+
+        # Use AndersonCD solver
+        solver = AndersonCD(max_iter=self.max_iter, tol=self.tol,
+                            warm_start=True, fit_intercept=self.fit_intercept,
+                            verbose=3)
 
         est = GeneralizedLinearEstimator(
             datafit=datafit, penalty=penalty, solver=solver)
@@ -186,21 +178,26 @@ class SmoothQuantileRegressor(BaseEstimator, RegressorMixin):
                 residuals = y - X @ w
                 if self.fit_intercept:
                     residuals -= est.intercept_
-                coverage = np.mean(residuals <= 0)
                 pinball_loss = np.mean(residuals * (self.quantile - (residuals < 0)))
 
                 print(
-                    f"  Stage {i+1:2d}: delta={delta:.4f}, "
-                    f"coverage={coverage:.3f}, pinball_loss={pinball_loss:.6f}, "
+                    f"  Stage {i+1:2d}: delta={delta:.2e}, "
+                    f"pinball_loss={pinball_loss:.6f}, "
                     f"n_iter={est.n_iter_}"
                 )
 
-        self.est = est
+        self.est_ = est
+        self.coef_ = est.coef_
+        if self.fit_intercept:
+            self.intercept_ = est.intercept_
 
         return self
 
     def predict(self, X):
         """Predict using the fitted model."""
-        if not hasattr(self, "est"):
-            raise ValueError("Call 'fit' before 'predict'.")
-        return self.est.predict(X)
+        if not hasattr(self, "est_"):
+            raise NotFittedError(
+                "This SmoothQuantileRegressor instance is not fitted yet. "
+                "Call 'fit' with appropriate arguments before using this estimator."
+            )
+        return self.est_.predict(X)

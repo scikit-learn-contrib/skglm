@@ -166,7 +166,7 @@ class SmoothQuantileRegressor(BaseEstimator, RegressorMixin):
                 solver = FISTA(max_iter=self.max_iter, tol=self.tol)
                 solver.warm_start = True
             elif self.solver == "AndersonCD":
-                solver = AndersonCD(max_iter=self.max_iter, tol=self.tol,
+                solver = AndersonCD(max_iter=self.max_iter, tol=self.tol, verbose=3,
                                     warm_start=True, fit_intercept=self.fit_intercept)
             else:
                 raise ValueError(f"Unknown solver: {self.solver}")

@@ -32,7 +32,6 @@ qh = SmoothQuantileRegressor(
     delta_init=0.5,
     delta_final=0.01,
     n_deltas=5,
-    solver="AndersonCD",
     verbose=True,
     fit_intercept=True
 )

@@ -2,20 +2,7 @@ import numpy as np
 from joblib import Parallel, delayed
 from skglm.datafits import Logistic, QuadraticSVC
 from skglm.estimators import GeneralizedLinearEstimator
-
-
-def _kfold_split(n_samples, k, rng):
-    indices = rng.permutation(n_samples)
-    fold_size = n_samples // k
-    extra = n_samples % k
-
-    start = 0
-    for i in range(k):
-        end = start + fold_size + (1 if i < extra else 0)
-        test = indices[start:end]
-        train = np.concatenate([indices[:start], indices[end:]])
-        yield train, test
-        start = end
+from sklearn.model_selection import KFold, StratifiedKFold
 
 
 class GeneralizedLinearEstimatorCV(GeneralizedLinearEstimator):
@@ -48,7 +35,6 @@ class GeneralizedLinearEstimatorCV(GeneralizedLinearEstimator):
                 "expose an 'alpha' parameter."
             )
         n_samples, n_features = X.shape
-        rng = np.random.RandomState(self.random_state)
 
         if self.alphas is not None:
             alphas = np.sort(self.alphas)[::-1]
@@ -86,9 +72,17 @@ class GeneralizedLinearEstimatorCV(GeneralizedLinearEstimator):
             warm_start = [None] * self.cv
 
             for idx_alpha, alpha in enumerate(alphas):
+                if isinstance(self.datafit, (Logistic, QuadraticSVC)):
+                    kf = StratifiedKFold(n_splits=self.cv, shuffle=True,
+                                         random_state=self.random_state)
+                    split_iter = kf.split(np.arange(n_samples), y)
+                else:
+                    kf = KFold(n_splits=self.cv, shuffle=True,
+                               random_state=self.random_state)
+                    split_iter = kf.split(np.arange(n_samples))
                 fold_results = Parallel(self.n_jobs)(
                     delayed(_solve_fold)(k, tr, te, alpha, l1_ratio, warm_start[k])
-                    for k, (tr, te) in enumerate(_kfold_split(n_samples, self.cv, rng))
+                    for k, (tr, te) in enumerate(split_iter)
                 )
 
                 for k, (coef_fold, intercept_fold, loss_fold) in \

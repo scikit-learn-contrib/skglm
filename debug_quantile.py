@@ -17,8 +17,9 @@ def pinball_loss(residuals, quantile):
 X, y = make_regression(n_samples=1000, n_features=10, noise=0.1, random_state=0)
 tau = 0.8
 
+fit_intercept = False
 start = time.time()
-sk = QuantileRegressor(quantile=tau, alpha=0.1, fit_intercept=True)
+sk = QuantileRegressor(quantile=tau, alpha=0.1, fit_intercept=fit_intercept)
 sk.fit(X, y)
 sk_pred = sk.predict(X)
 sk_time = time.time() - start
@@ -30,11 +31,11 @@ qh = SmoothQuantileRegressor(
     quantile=tau,
     alpha=0.1,
     delta_init=0.5,
-    delta_final=0.01,
+    delta_final=0.00001,
     n_deltas=5,
     solver="AndersonCD",
     verbose=True,
-    fit_intercept=True
+    fit_intercept=fit_intercept,
 )
 qh.fit(X, y)
 qh_time = time.time() - start

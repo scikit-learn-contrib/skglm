@@ -14,6 +14,8 @@ class SLOPE(BasePenalty):
         Contain regularization levels for every feature.
         When ``alphas`` contain a single unique value, ``SLOPE``
         is equivalent to the ``L1``penalty.
+    alpha : float, default=1.0
+        Scaling factor for the penalty. `alphas` is multiplied by this value.
 
     References
     ----------
@@ -23,24 +25,26 @@ class SLOPE(BasePenalty):
         https://doi.org/10.1214/15-AOAS842
     """
 
-    def __init__(self, alphas):
+    def __init__(self, alphas, alpha=1):
         self.alphas = alphas
+        self.alpha = alpha
 
     def get_spec(self):
         spec = (
+            ('alpha', float64),
             ('alphas', float64[:]),
         )
         return spec
 
     def params_to_dict(self):
-        return dict(alphas=self.alphas)
+        return dict(alphas=self.alphas, alpha=self.alpha)
 
     def value(self, w):
         """Compute the value of SLOPE at w."""
-        return np.sum(np.sort(np.abs(w)) * self.alphas[::-1])
+        return np.sum(np.sort(np.abs(w)) * self.alphas[::-1] * self.alpha)
 
     def prox_vec(self, x, stepsize):
-        alphas = self.alphas
+        alphas = self.alphas * self.alpha
         prox = np.zeros_like(x)
 
         abs_x = np.abs(x)

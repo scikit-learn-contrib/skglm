@@ -62,7 +62,9 @@ class GeneralizedLinearEstimatorCV(GeneralizedLinearEstimator):
             est = GeneralizedLinearEstimator(
                 datafit=self.datafit, penalty=pen, solver=self.solver
             )
-            est.solver.warm_start = True
+            if w_init is not None:
+                est.coef_ = w_init[0]
+                est.intercept_ = w_init[1]
             est.fit(X[train], y[train])
             y_pred = est.predict(X[test])
             return est.coef_, est.intercept_, self._score(y[test], y_pred)

@@ -6,7 +6,8 @@ from skglm.experimental.quantile_huber import SmoothQuantileRegressor
 
 
 @pytest.mark.parametrize('quantile', [0.3, 0.5, 0.7])
-def test_quantile_huber_matches_sklearn(quantile):
+@pytest.mark.parametrize('fit_intercept', [True, False])
+def test_quantile_huber_matches_sklearn(quantile, fit_intercept):
     """Test that SmoothQuantileRegressor with small delta matches sklearn's
     QuantileRegressor."""
     X, y = make_regression(n_samples=1000, n_features=10, noise=0.1, random_state=42)
@@ -19,8 +20,9 @@ def test_quantile_huber_matches_sklearn(quantile):
         delta_final=0.00001,
         n_deltas=15,
         verbose=True,
-        fit_intercept=True,
+        fit_intercept=fit_intercept,
     ).fit(X, y)
 
     assert_allclose(smooth_est.coef_, sk_est.coef_, atol=1e-4)
-    assert_allclose(smooth_est.intercept_, sk_est.intercept_, atol=1e-4)
+    if fit_intercept:
+        assert_allclose(smooth_est.intercept_, sk_est.intercept_, atol=1e-4)

@@ -12,7 +12,8 @@ def test_quantile_huber_matches_sklearn(quantile, fit_intercept):
     QuantileRegressor."""
     X, y = make_regression(n_samples=1000, n_features=10, noise=0.1, random_state=42)
 
-    sk_est = QuantileRegressor(quantile=quantile, alpha=0.1, solver='highs').fit(X, y)
+    sk_est = QuantileRegressor(quantile=quantile, alpha=0.1,
+                               solver='highs', fit_intercept=fit_intercept).fit(X, y)
     smooth_est = SmoothQuantileRegressor(
         quantile=quantile,
         alpha=0.1,

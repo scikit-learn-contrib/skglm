@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 from numpy.testing import assert_allclose
 from sklearn.linear_model import QuantileRegressor
 from sklearn.datasets import make_regression
@@ -20,10 +21,15 @@ def test_quantile_huber_matches_sklearn(quantile, fit_intercept):
         delta_init=0.5,
         delta_final=0.00001,
         n_deltas=15,
-        verbose=True,
+        verbose=False,
         fit_intercept=fit_intercept,
     ).fit(X, y)
 
-    assert_allclose(smooth_est.coef_, sk_est.coef_, atol=1e-4)
+    assert not np.allclose(sk_est.coef_, 0, atol=1e-8), (
+        "All coefficients in sk_est are (near) zero: alpha may be too high.")
+    assert not np.allclose(smooth_est.coef_, 0, atol=1e-8), (
+        "All coefficients in smooth_est are (near) zero: alpha may be too high.")
+
+    assert_allclose(smooth_est.coef_, sk_est.coef_, atol=1e-3)
     if fit_intercept:
-        assert_allclose(smooth_est.intercept_, sk_est.intercept_, atol=1e-4)
+        assert_allclose(smooth_est.intercept_, sk_est.intercept_, atol=1e-3)

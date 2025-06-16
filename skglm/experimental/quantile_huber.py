@@ -163,7 +163,7 @@ class SmoothQuantileRegressor(BaseEstimator, RegressorMixin):
         # Use AndersonCD solver
         solver = AndersonCD(max_iter=self.max_iter, tol=self.tol,
                             warm_start=True, fit_intercept=self.fit_intercept,
-                            verbose=3)
+                            verbose=max(0, self.verbose - 1))
 
         est = GeneralizedLinearEstimator(
             datafit=datafit, penalty=penalty, solver=solver)

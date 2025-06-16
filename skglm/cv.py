@@ -49,8 +49,8 @@ class GeneralizedLinearEstimatorCV(GeneralizedLinearEstimator):
         l1_ratios = [1.] if not has_l1_ratio else np.atleast_1d(
             self.l1_ratio if self.l1_ratio is not None else [1.])
 
-        mse_path = np.empty((len(l1_ratios), len(alphas), self.cv))
-        best_loss = np.inf
+        scores_path = np.empty((len(l1_ratios), len(alphas), self.cv))
+        best_loss = -np.inf
 
         def _solve_fold(k, train, test, alpha, l1, w_init):
             pen_kwargs = {k: v for k, v in self.penalty.__dict__.items()
@@ -62,7 +62,6 @@ class GeneralizedLinearEstimatorCV(GeneralizedLinearEstimator):
             est = GeneralizedLinearEstimator(
                 datafit=self.datafit, penalty=pen, solver=self.solver
             )
-            est.penalty.alpha = alpha
             est.solver.warm_start = True
             est.fit(X[train], y[train])
             y_pred = est.predict(X[test])
@@ -88,18 +87,18 @@ class GeneralizedLinearEstimatorCV(GeneralizedLinearEstimator):
                 for k, (coef_fold, intercept_fold, loss_fold) in \
                         enumerate(fold_results):
                     warm_start[k] = (coef_fold, intercept_fold)
-                    mse_path[idx_ratio, idx_alpha, k] = loss_fold
+                    scores_path[idx_ratio, idx_alpha, k] = loss_fold
 
-                mean_loss = np.mean(mse_path[idx_ratio, idx_alpha])
-                if mean_loss < best_loss:
+                mean_loss = np.mean(scores_path[idx_ratio, idx_alpha])
+                if mean_loss > best_loss:
                     best_loss = mean_loss
                     self.alpha_ = float(alpha)
-                    self.l1_ratio_ = float(l1_ratio) if l1_ratio is not None else None
+                    self.l1_ratio_ = float(l1_ratio) if has_l1_ratio else None
 
         # Refit on full dataset
         pen_kwargs = {k: v for k, v in self.penalty.__dict__.items()
                       if k not in ("alpha", "l1_ratio")}
-        if hasattr(self.penalty, "l1_ratio"):
+        if has_l1_ratio:
             best_penalty = type(self.penalty)(
                 alpha=self.alpha_, l1_ratio=self.l1_ratio_, **pen_kwargs
             )
@@ -120,7 +119,7 @@ class GeneralizedLinearEstimatorCV(GeneralizedLinearEstimator):
         self.n_features_in_ = getattr(best_estimator, "n_features_in_", None)
         self.feature_names_in_ = getattr(best_estimator, "feature_names_in_", None)
         self.alphas_ = alphas
-        self.mse_path_ = np.squeeze(mse_path)
+        self.scores_path_ = np.squeeze(scores_path)
         return self
 
     def predict(self, X):

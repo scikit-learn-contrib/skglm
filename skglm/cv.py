@@ -6,10 +6,62 @@ from sklearn.model_selection import KFold, StratifiedKFold
 
 
 class GeneralizedLinearEstimatorCV(GeneralizedLinearEstimator):
-    """CV wrapper for GeneralizedLinearEstimator."""
+    """
+    Cross-validated wrapper for GeneralizedLinearEstimator.
+
+    This class performs cross-validated selection of the regularization parameter(s)
+    for a generalized linear estimator, supporting both L1 and elastic-net penalties.
+
+    Parameters
+    ----------
+    datafit : object
+        Datafit (loss) function instance (e.g., Logistic, Quadratic).
+    penalty : object
+        Penalty instance with an 'alpha' parameter (and optionally 'l1_ratio').
+    solver : object
+        Solver instance to use for optimization.
+    alphas : array-like of shape (n_alphas,), optional
+        List of alpha values to try. If None, they are set automatically.
+    l1_ratio : float or array-like, optional
+        The ElasticNet mixing parameter(s), with 0 <= l1_ratio <= 1.
+        Only used if the penalty supports 'l1_ratio'. If None, defaults to 1.0 (Lasso).
+    cv : int, default=4
+        Number of cross-validation folds.
+    n_jobs : int, default=1
+        Number of jobs to run in parallel for cross-validation.
+    random_state : int or None, default=None
+        Random seed for cross-validation splitting.
+    eps : float, default=1e-3
+        Ratio of minimum to maximum alpha if alphas are set automatically.
+    n_alphas : int, default=100
+        Number of alphas along the regularization path if alphas are set automatically.
+
+    Attributes
+    ----------
+    alpha_ : float
+        Best alpha found by cross-validation.
+    l1_ratio_ : float or None
+        Best l1_ratio found by cross-validation (if applicable).
+    best_estimator_ : GeneralizedLinearEstimator
+        Estimator fitted on the full data with the best parameters.
+    coef_ : ndarray
+        Coefficients of the fitted model.
+    intercept_ : float or ndarray
+        Intercept of the fitted model.
+    alphas_ : ndarray
+        Array of alphas used in the search.
+    scores_path_ : ndarray
+        Cross-validation scores for each parameter combination.
+    n_iter_ : int or None
+        Number of iterations run by the solver (if available).
+    n_features_in_ : int or None
+        Number of features seen during fit.
+    feature_names_in_ : ndarray or None
+        Names of features seen during fit.
+    """
 
     def __init__(self, datafit, penalty, solver, alphas=None, l1_ratio=None,
-                 cv=4, n_jobs=1, random_state=None, scoring=None,
+                 cv=4, n_jobs=1, random_state=None,
                  eps=1e-3, n_alphas=100):
         super().__init__(datafit=datafit, penalty=penalty, solver=solver)
         self.alphas = alphas
@@ -17,7 +69,6 @@ class GeneralizedLinearEstimatorCV(GeneralizedLinearEstimator):
         self.cv = cv
         self.n_jobs = n_jobs
         self.random_state = random_state
-        self.scoring = scoring
         self.eps = eps
         self.n_alphas = n_alphas
 
@@ -44,7 +95,7 @@ class GeneralizedLinearEstimatorCV(GeneralizedLinearEstimator):
                 alpha_max,
                 alpha_max * self.eps,
                 self.n_alphas
-            )[::-1]
+            )
         has_l1_ratio = hasattr(self.penalty, "l1_ratio")
         l1_ratios = [1.] if not has_l1_ratio else np.atleast_1d(
             self.l1_ratio if self.l1_ratio is not None else [1.])

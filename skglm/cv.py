@@ -6,8 +6,7 @@ from sklearn.model_selection import KFold, StratifiedKFold
 
 
 class GeneralizedLinearEstimatorCV(GeneralizedLinearEstimator):
-    """
-    Cross-validated wrapper for GeneralizedLinearEstimator.
+    """Cross-validated wrapper for GeneralizedLinearEstimator.
 
     This class performs cross-validated selection of the regularization parameter(s)
     for a generalized linear estimator, supporting both L1 and elastic-net penalties.

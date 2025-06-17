@@ -151,13 +151,8 @@ class GeneralizedLinearEstimatorCV(GeneralizedLinearEstimator):
         pen_kwargs = {k: v for k, v in self.penalty.__dict__.items()
                       if k not in ("alpha", "l1_ratio")}
         if has_l1_ratio:
-            best_penalty = type(self.penalty)(
-                alpha=self.alpha_, l1_ratio=self.l1_ratio_, **pen_kwargs
-            )
-        else:
-            best_penalty = type(self.penalty)(
-                alpha=self.alpha_, **pen_kwargs
-            )
+            pen_kwargs["l1_ratio_"] = self.l1_ratio_
+         best_penalty = type(self.penalty)(alpha=self.alpha_, **pen_kwargs)
         best_estimator = GeneralizedLinearEstimator(
             datafit=self.datafit,
             penalty=best_penalty,

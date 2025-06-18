@@ -105,5 +105,7 @@ Experimental
    IterativeReweightedL1
    PDCD_WS
    Pinball
+   QuantileHuber
+   SmoothQuantileRegressor
    SqrtQuadratic
    SqrtLasso

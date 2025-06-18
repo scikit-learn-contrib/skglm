@@ -3,3 +3,4 @@
 Version 0.5 (in progress)
 -------------------------
 - Add support for fitting an intercept in :ref:`SqrtLasso <skglm.experimental.sqrt_lasso.SqrtLasso>` (PR: :gh:`298`)
+- Add experimental :ref:`QuantileHuber <skglm.experimental.quantile_huber.QuantileHuber>` and :ref:`SmoothQuantileRegressor <skglm.experimental.quantile_huber.SmoothQuantileRegressor>` for quantile regression, and an example script (PR: :gh:`312`).

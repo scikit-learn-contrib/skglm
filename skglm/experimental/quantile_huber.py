@@ -1,12 +1,14 @@
 import numpy as np
 from numpy.linalg import norm
 from numba import float64
-from skglm.datafits.base import BaseDatafit
+
 from sklearn.base import BaseEstimator, RegressorMixin
+from sklearn.exceptions import NotFittedError
+
+from skglm.datafits.base import BaseDatafit
 from skglm.solvers import AndersonCD
 from skglm.penalties import L1
 from skglm.estimators import GeneralizedLinearEstimator
-from sklearn.exceptions import NotFittedError
 
 
 class QuantileHuber(BaseDatafit):
@@ -29,7 +31,7 @@ class QuantileHuber(BaseDatafit):
     quantile : float, default=0.5
         Desired quantile level between 0 and 1.
     delta : float, default=1.0
-        Width of quadratic region.
+        Smoothing parameter (0 mean no smoothing).
     """
 
     def __init__(self, quantile=0.5, delta=1.0):

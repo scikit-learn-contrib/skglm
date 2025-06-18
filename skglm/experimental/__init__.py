@@ -8,8 +8,8 @@ __all__ = [
     IterativeReweightedL1,
     PDCD_WS,
     Pinball,
-    SqrtQuadratic,
-    SqrtLasso,
     QuantileHuber,
     SmoothQuantileRegressor,
+    SqrtQuadratic,
+    SqrtLasso,
 ]

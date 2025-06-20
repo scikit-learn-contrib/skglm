@@ -69,9 +69,8 @@ alpha = 1e-2
 
 # skglm internals: init datafit and penalty
 datafit = Cox()
-penalty = L1(alpha)
-
 datafit.initialize(X, y)
+penalty = L1(alpha)
 
 # init solver
 solver = ProxNewton(fit_intercept=False, max_iter=50)

@@ -207,6 +207,8 @@ def test_CoxEstimator(use_efron, use_float_32):
     datafit = Cox(use_efron)
     penalty = L1(alpha)
 
+    # XXX: intialize is needed here although it is done in ProxNewton
+    # it is used to evaluate the objective
     datafit.initialize(X, y)
 
     w, *_ = ProxNewton(
@@ -255,8 +257,6 @@ def test_CoxEstimator_sparse(use_efron, use_float_32):
     # fit Cox using ProxNewton solver
     datafit = Cox(use_efron)
     penalty = L1(alpha)
-
-    datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
 
     *_, stop_crit = ProxNewton(
         fit_intercept=False, tol=1e-6, max_iter=50

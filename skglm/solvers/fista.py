@@ -51,12 +51,10 @@ class FISTA(BaseSolver):
         Xw = Xw_init.copy() if Xw_init is not None else np.zeros(n_samples)
 
         if X_is_sparse:
-            datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
             lipschitz = datafit.get_global_lipschitz_sparse(
                 X.data, X.indptr, X.indices, y
             )
         else:
-            datafit.initialize(X, y)
             lipschitz = datafit.get_global_lipschitz(X, y)
 
         for n_iter in range(self.max_iter):

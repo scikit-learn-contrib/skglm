@@ -2,6 +2,7 @@ import warnings
 from abc import abstractmethod, ABC
 
 import numpy as np
+from scipy.sparse import issparse
 
 from skglm.utils.validation import check_attrs
 from skglm.utils.jit_compilation import compiled_clone
@@ -39,6 +40,8 @@ class BaseSolver(ABC):
     @abstractmethod
     def _solve(self, X, y, datafit, penalty, w_init, Xw_init):
         """Solve an optimization problem.
+
+        This method assumes that datafit was already initialized.
 
         Parameters
         ----------
@@ -95,7 +98,8 @@ class BaseSolver(ABC):
         pass
 
     def solve(
-        self, X, y, datafit, penalty, w_init=None, Xw_init=None, *, run_checks=True
+        self, X, y, datafit, penalty, w_init=None, Xw_init=None, *,
+        run_checks=True, initialize_datafit=True
     ):
         """Solve the optimization problem after validating its compatibility.
 
@@ -132,6 +136,13 @@ class BaseSolver(ABC):
 
         if run_checks:
             self._validate(X, y, datafit, penalty)
+
+        # check for None as `GramCD` solver take `None` as datafit
+        if datafit is not None and initialize_datafit:
+            if issparse(X):
+                datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
+            else:
+                datafit.initialize(X, y)
 
         return self._solve(X, y, datafit, penalty, w_init, Xw_init)
 

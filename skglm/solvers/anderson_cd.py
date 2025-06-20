@@ -80,10 +80,8 @@ class AndersonCD(BaseSolver):
 
         is_sparse = sparse.issparse(X)
         if is_sparse:
-            datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
             lipschitz = datafit.get_lipschitz_sparse(X.data, X.indptr, X.indices, y)
         else:
-            datafit.initialize(X, y)
             lipschitz = datafit.get_lipschitz(X, y)
 
         if len(w) != n_features + self.fit_intercept:

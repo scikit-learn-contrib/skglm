@@ -69,6 +69,7 @@ Datafits
    Logistic
    LogisticGroup
    Poisson
+   PoissonGroup
    Quadratic
    QuadraticGroup
    QuadraticHessian

@@ -10,7 +10,7 @@ from skglm import GeneralizedLinearEstimator
 from skglm.penalties.block_separable import (
     WeightedL1GroupL2, WeightedGroupL2
 )
-from skglm.datafits.group import QuadraticGroup, LogisticGroup
+from skglm.datafits.group import QuadraticGroup, LogisticGroup, PoissonGroup
 from skglm.solvers import GroupBCD, GroupProxNewton
 
 from skglm.utils.anderson import AndersonAcceleration
@@ -19,6 +19,7 @@ from skglm.utils.data import (make_correlated_data, grp_converter,
 
 from celer import GroupLasso, Lasso
 from sklearn.linear_model import LogisticRegression
+from scipy import sparse
 
 
 def _generate_random_grp(n_groups, n_features, shuffle=True):
@@ -310,6 +311,75 @@ def test_anderson_acceleration():
 
     np.testing.assert_array_equal(n_iter_acc, 13)
     np.testing.assert_array_equal(n_iter, 99)
+
+
+@pytest.mark.parametrize("test_type", ["dense_vs_expected", "sparse_finite",
+                                       "sparse_vs_dense"])
+def test_poisson_group_gradient(test_type):
+    np.random.seed(0)
+    X = np.random.randn(15, 6)
+    X[X < 0] = 0
+    X_sparse = sparse.csc_matrix(X)
+    y = np.random.poisson(1.0, 15)
+    w = np.random.randn(6) * 0.1
+    Xw = X @ w
+
+    grp_indices, grp_ptr = grp_converter(2, 6)
+    poisson_group = PoissonGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
+
+    for g in range(2):
+        if test_type == "dense_vs_expected":
+            # Test dense gradient against expected
+            raw_grad = poisson_group.raw_grad(y, Xw)
+            group_idx = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
+            expected = X[:, group_idx].T @ raw_grad
+            grad = poisson_group.gradient_g(X, y, w, Xw, g)
+            np.testing.assert_allclose(grad, expected, rtol=1e-10)
+
+        elif test_type == "sparse_finite":
+            # Test sparse gradient is finite and has correct shape
+            grad = poisson_group.gradient_g_sparse(
+                X_sparse.data, X_sparse.indptr, X_sparse.indices, y, w, Xw, g
+            )
+            assert np.all(np.isfinite(grad))
+            assert grad.shape[0] == grp_ptr[g+1] - grp_ptr[g]
+
+        elif test_type == "sparse_vs_dense":
+            # Test sparse matches dense
+            grad_dense = poisson_group.gradient_g(X, y, w, Xw, g)
+            grad_sparse = poisson_group.gradient_g_sparse(
+                X_sparse.data, X_sparse.indptr, X_sparse.indices, y, w, Xw, g
+            )
+            np.testing.assert_allclose(grad_sparse, grad_dense, rtol=1e-8)
+
+
+@pytest.mark.parametrize("fit_intercept,alpha", [(False, 0.1), (True, 0.01)])
+def test_poisson_group_solver(fit_intercept, alpha):
+    """Test solver convergence, solution quality, and intercept handling."""
+    np.random.seed(0)
+    X = np.random.randn(30, 9)
+    true_intercept = 2.0 if fit_intercept else 0.0
+    y = np.random.poisson(np.exp(0.1 * X.sum(axis=1) + true_intercept))
+
+    grp_indices, grp_ptr = grp_converter(3, 9)
+    datafit = PoissonGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
+    weights = np.array([1.0, 0.5, 2.0])
+    penalty = WeightedGroupL2(alpha=alpha, grp_ptr=grp_ptr,
+                              grp_indices=grp_indices, weights=weights)
+
+    w, _, stop_crit = GroupProxNewton(fit_intercept=fit_intercept, tol=1e-8).solve(
+        X, y, datafit, penalty)
+
+    assert stop_crit < 1e-8 and np.all(np.isfinite(w))
+
+    n_features = 9
+    w_coef = w[:n_features]
+    intercept = w[-1] if fit_intercept else 0.0
+    def loss(w, b): return np.mean(np.exp(X @ w + b) - y * (X @ w + b))
+    assert loss(w_coef, intercept) < loss(np.zeros(n_features), 0.0)
+
+    if fit_intercept:
+        assert 1.0 < w[-1] < 3.0
 
 
 if __name__ == "__main__":

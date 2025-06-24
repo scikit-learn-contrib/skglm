@@ -9,6 +9,7 @@ from skglm.datafits.base import BaseDatafit
 from skglm.solvers import AndersonCD
 from skglm.penalties import L1
 from skglm.estimators import GeneralizedLinearEstimator
+from skglm.utils.sparse_ops import spectral_norm
 
 
 class QuantileHuber(BaseDatafit):
@@ -85,6 +86,15 @@ class QuantileHuber(BaseDatafit):
             grad_j += -X[i, j] * self._grad_per_sample(residual)
         return grad_j / n_samples
 
+    def gradient_scalar_sparse(self, X_data, X_indptr, X_indices, y, Xw, j):
+        """Compute gradient w.r.t. w_j for sparse matrices."""
+        grad_j = 0.0
+        for idx in range(X_indptr[j], X_indptr[j + 1]):
+            i = X_indices[idx]
+            residual = y[i] - Xw[i]
+            grad_j += -X_data[idx] * self._grad_per_sample(residual)
+        return grad_j / len(y)
+
     def _grad_per_sample(self, residual):
         """Calculate gradient for a single sample."""
         tau = self.quantile
@@ -104,6 +114,21 @@ class QuantileHuber(BaseDatafit):
             # Lower linear tail: r <= -delta
             return tau - 1
 
+    def full_grad_sparse(self, X_data, X_indptr, X_indices, y, Xw):
+        """Compute full gradient for sparse matrices."""
+        n_features = X_indptr.shape[0] - 1
+        grad = np.zeros(n_features, dtype=X_data.dtype)
+
+        for j in range(n_features):
+            grad_j = 0.0
+            for idx in range(X_indptr[j], X_indptr[j + 1]):
+                i = X_indices[idx]
+                residual = y[i] - Xw[i]
+                grad_j += -X_data[idx] * self._grad_per_sample(residual)
+            grad[j] = grad_j / len(y)
+
+        return grad
+
     def get_lipschitz(self, X, y):
         n_features = X.shape[1]
 
@@ -114,9 +139,29 @@ class QuantileHuber(BaseDatafit):
 
         return lipschitz
 
+    def get_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+        """Compute Lipschitz constants for sparse matrices."""
+        n_features = len(X_indptr) - 1
+        lipschitz = np.zeros(n_features, dtype=X_data.dtype)
+        c = max(self.quantile, 1 - self.quantile) / self.delta
+
+        for j in range(n_features):
+            nrm2 = 0.0
+            for idx in range(X_indptr[j], X_indptr[j + 1]):
+                nrm2 += X_data[idx] ** 2
+            lipschitz[j] = c * nrm2 / len(y)
+
+        return lipschitz
+
     def get_global_lipschitz(self, X, y):
         c = max(self.quantile, 1 - self.quantile) / self.delta
         return c * norm(X, ord=2) ** 2 / len(y)
+
+    def get_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+        """Compute global Lipschitz constant for sparse matrices."""
+        c = max(self.quantile, 1 - self.quantile) / self.delta
+        spectral_norm_X = spectral_norm(X_data, X_indptr, X_indices, len(y))
+        return c * spectral_norm_X ** 2 / len(y)
 
     def intercept_update_step(self, y, Xw):
         n_samples = len(y)

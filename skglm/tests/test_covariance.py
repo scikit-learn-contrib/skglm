@@ -64,7 +64,8 @@ def test_glasso_weights():
         alpha=alpha,
         warm_start=False,
         max_iter=2000,
-        tol=1e-14,
+        tol=1e-16,
+        inner_tol=1e-10,
         algo="primal",
     ).fit(S)
     prec = model.precision_.copy()

@@ -248,6 +248,8 @@ class AdaptiveGraphicalLassoPenalty():
             print(f"Alpha values match: {self.alpha}")
         return self
 
+# TODO: remove this class and use AdaptiveGraphicalLassoPenalty instead
+
 
 class AdaptiveGraphicalLasso():
     """An adaptive version of the Graphical Lasso with non-convex penalties.
@@ -310,7 +312,22 @@ class AdaptiveGraphicalLasso():
 
 
 def update_weights(Theta, alpha, strategy="log"):
-    """Update weights for adaptive graphical lasso based on strategy."""
+    """Update weights for adaptive graphical lasso based on strategy.
+
+    Parameters
+    ----------
+    Theta : array-like
+        Precision matrix.
+    alpha : float
+        Regularization parameter.
+    strategy : str, default="log"
+        Reweighting strategy: "log", "sqrt", or "mcp".
+
+    Returns
+    -------
+    array-like
+        Updated weights.
+    """
     if strategy == "log":
         return 1/(np.abs(Theta) + 1e-10)
     elif strategy == "sqrt":
@@ -326,16 +343,15 @@ def update_weights(Theta, alpha, strategy="log"):
     else:
         raise ValueError(f"Unknown strategy {strategy}")
 
-
+# TODO: remove this testing code
 # Testing
 
-def frobenius_norm_diff(A, B):
-    """Relative Frobenius norm difference between A and B."""
+
+def _frobenius_norm_diff(A, B):
     return np.linalg.norm(A - B, ord='fro') / np.linalg.norm(B, ord='fro')
 
 
-def generate_problem(dim=20, n_samples=100, seed=42):
-    """Generate data from a known sparse precision matrix."""
+def _generate_problem(dim=20, n_samples=100, seed=42):
     np.random.seed(seed)
 
     # Ground-truth sparse precision matrix (positive definite)
@@ -357,7 +373,7 @@ if __name__ == "__main__":
     seed = 42
 
     # Get empirical covariance and ground truth
-    S, Theta_true = generate_problem(dim=dim, seed=seed)
+    S, Theta_true = _generate_problem(dim=dim, seed=seed)
 
     # Define non-convex penalty — this is consistent with 'log' strategy
     penalty = LogSumPenalty(alpha=alpha, eps=1e-10)
@@ -383,7 +399,7 @@ if __name__ == "__main__":
     Theta_strategy = model_strategy.precision_
 
     # Compare the two estimated models
-    rel_diff_between_models = frobenius_norm_diff(Theta_penalty, Theta_strategy)
+    rel_diff_between_models = _frobenius_norm_diff(Theta_penalty, Theta_strategy)
     print(
         f"\n Frobenius norm relative difference between models: "
         f"{rel_diff_between_models:.2e}")
@@ -391,8 +407,8 @@ if __name__ == "__main__":
         Theta_penalty, Theta_strategy, atol=1e-4))
 
     # Compare both to ground truth
-    rel_diff_penalty_vs_true = frobenius_norm_diff(Theta_penalty, Theta_true)
-    rel_diff_strategy_vs_true = frobenius_norm_diff(Theta_strategy, Theta_true)
+    rel_diff_penalty_vs_true = _frobenius_norm_diff(Theta_penalty, Theta_true)
+    rel_diff_strategy_vs_true = _frobenius_norm_diff(Theta_strategy, Theta_true)
 
     print(
         f"\n Penalty vs true Θ:   Frobenius norm diff = {rel_diff_penalty_vs_true:.2e}")

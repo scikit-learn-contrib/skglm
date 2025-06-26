@@ -18,6 +18,7 @@ Estimators
    :toctree: generated/
 
    GeneralizedLinearEstimator
+   GeneralizedLinearEstimatorCV
    CoxEstimator
    ElasticNet
    GroupLasso
@@ -106,5 +107,7 @@ Experimental
    IterativeReweightedL1
    PDCD_WS
    Pinball
+   QuantileHuber
+   SmoothQuantileRegressor
    SqrtQuadratic
    SqrtLasso

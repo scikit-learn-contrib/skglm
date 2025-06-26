@@ -1,7 +1,10 @@
-.. _api_documentation:
+.. _api:
+
+.. meta::
+   :description: Browse the skglm API documentation covering estimators (Lasso, ElasticNet, Cox), penalties (L1, SCAD, MCP), datafits (Logistic, Poisson), and optimized solvers.
 
 =================
-API Documentation
+API
 =================
 
 .. currentmodule:: skglm
@@ -15,6 +18,7 @@ Estimators
    :toctree: generated/
 
    GeneralizedLinearEstimator
+   GeneralizedLinearEstimatorCV
    CoxEstimator
    ElasticNet
    GroupLasso
@@ -102,5 +106,7 @@ Experimental
    IterativeReweightedL1
    PDCD_WS
    Pinball
+   QuantileHuber
+   SmoothQuantileRegressor
    SqrtQuadratic
    SqrtLasso

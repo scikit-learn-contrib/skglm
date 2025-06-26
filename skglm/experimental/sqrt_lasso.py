@@ -100,10 +100,13 @@ class SqrtLasso(LinearModel, RegressorMixin):
 
     verbose : bool, default False
         Amount of verbosity. 0/False is silent.
+
+    fit_intercept: bool, optional (default=True)
+        Whether or not to fit an intercept.
     """
 
     def __init__(self, alpha=1., max_iter=100, max_pn_iter=100, p0=10,
-                 tol=1e-4, verbose=0):
+                 tol=1e-4, verbose=0, fit_intercept=True):
         super().__init__()
         self.alpha = alpha
         self.max_iter = max_iter
@@ -112,6 +115,7 @@ class SqrtLasso(LinearModel, RegressorMixin):
         self.p0 = p0
         self.tol = tol
         self.verbose = verbose
+        self.fit_intercept = fit_intercept
 
     def fit(self, X, y):
         """Fit the model according to the given training data.
@@ -131,7 +135,11 @@ class SqrtLasso(LinearModel, RegressorMixin):
             Fitted estimator.
         """
         self.coef_ = self.path(X, y, alphas=[self.alpha])[1][0]
-        self.intercept_ = 0.  # TODO handle fit_intercept
+        if self.fit_intercept:
+            self.intercept_ = self.coef_[-1]
+            self.coef_ = self.coef_[:-1]
+        else:
+            self.intercept_ = 0.
         return self
 
     def path(self, X, y, alphas=None, eps=1e-3, n_alphas=10):
@@ -168,7 +176,7 @@ class SqrtLasso(LinearModel, RegressorMixin):
         if not hasattr(self, "solver_"):
             self.solver_ = ProxNewton(
                 tol=self.tol, max_iter=self.max_iter, verbose=self.verbose,
-                fit_intercept=False)
+                fit_intercept=self.fit_intercept)
         # build path
         if alphas is None:
             alpha_max = norm(X.T @ y, ord=np.inf) / (np.sqrt(len(y)) * norm(y))
@@ -181,7 +189,7 @@ class SqrtLasso(LinearModel, RegressorMixin):
         sqrt_quadratic = SqrtQuadratic()
         l1_penalty = L1(1.)  # alpha is set along the path
 
-        coefs = np.zeros((n_alphas, n_features))
+        coefs = np.zeros((n_alphas, n_features + self.fit_intercept))
 
         for i in range(n_alphas):
             if self.verbose:
@@ -192,12 +200,14 @@ class SqrtLasso(LinearModel, RegressorMixin):
 
             l1_penalty.alpha = alphas[i]
             # no warm start for the first alpha
-            coef_init = coefs[i].copy() if i else np.zeros(n_features)
+            coef_init = coefs[i].copy() if i else np.zeros(n_features
+                                                           + self.fit_intercept)
 
             try:
                 coef, _, _ = self.solver_.solve(
                     X, y, sqrt_quadratic, l1_penalty,
-                    w_init=coef_init, Xw_init=X @ coef_init)
+                    w_init=coef_init, Xw_init=X @ coef_init[:-1] + coef_init[-1]
+                    if self.fit_intercept else X @ coef_init)
                 coefs[i] = coef
             except ValueError as val_exception:
                 # make sure to catch residual error
@@ -208,7 +218,8 @@ class SqrtLasso(LinearModel, RegressorMixin):
                 # save coef despite not converging
                 # coef_init holds a ref to coef
                 coef = coef_init
-                res_norm = norm(y - X @ coef)
+                X_coef = X @ coef[:-1] + coef[-1] if self.fit_intercept else X @ coef
+                res_norm = norm(y - X_coef)
                 warnings.warn(
                     f"Small residuals prevented the solver from converging "
                     f"at alpha={alphas[i]:.2e} (residuals' norm: {res_norm:.4e}). "

@@ -74,7 +74,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="skglm.ElasticNet" href="skglm.ElasticNet.html" />
-    <link rel="prev" title="skglm.GeneralizedLinearEstimator" href="skglm.GeneralizedLinearEstimator.html" />
+    <link rel="prev" title="skglm.GeneralizedLinearEstimatorCV" href="skglm.GeneralizedLinearEstimatorCV.html" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -432,6 +432,7 @@
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="skglm.GeneralizedLinearEstimator.html">skglm.GeneralizedLinearEstimator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="skglm.GeneralizedLinearEstimatorCV.html">skglm.GeneralizedLinearEstimatorCV</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">skglm.CoxEstimator</a></li>
 <li class="toctree-l1"><a class="reference internal" href="skglm.ElasticNet.html">skglm.ElasticNet</a></li>
 <li class="toctree-l1"><a class="reference internal" href="skglm.GroupLasso.html">skglm.GroupLasso</a></li>
@@ -554,7 +555,7 @@
 <h1>skglm.CoxEstimator<a class="headerlink" href="#skglm-coxestimator" title="Link to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="skglm.CoxEstimator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.</span></span><span class="sig-name descname"><span class="pre">CoxEstimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'efron'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/c40d4dc/skglm/estimators.py#L1232"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.CoxEstimator" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.</span></span><span class="sig-name descname"><span class="pre">CoxEstimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'efron'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/4b2344c/skglm/estimators.py#L1232"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.CoxEstimator" title="Link to this definition">#</a></dt>
 <dd><p>Elastic Cox estimator with Efron and Breslow estimate.</p>
 <p>Refer to <a class="reference internal" href="../tutorials/cox_datafit.html#maths-cox-datafit"><span class="std std-ref">Mathematics behind Cox datafit</span></a>
 for details about the datafit expression. The data convention for the estimator is</p>
@@ -597,7 +598,7 @@ handle tied observations.</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="skglm.CoxEstimator.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'efron'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/c40d4dc/skglm/estimators.py#L1287"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.CoxEstimator.__init__" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'efron'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/4b2344c/skglm/estimators.py#L1287"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.CoxEstimator.__init__" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
@@ -639,12 +640,12 @@ handle tied observations.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="skglm.GeneralizedLinearEstimator.html"
+       href="skglm.GeneralizedLinearEstimatorCV.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">skglm.GeneralizedLinearEstimator</p>
+        <p class="prev-next-title">skglm.GeneralizedLinearEstimatorCV</p>
       </div>
     </a>
     <a class="right-next"

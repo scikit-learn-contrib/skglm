@@ -3,7 +3,7 @@ from numpy.linalg import norm
 from numba import int32, float64
 
 from skglm.datafits.base import BaseDatafit
-from skglm.datafits.single_task import Logistic
+from skglm.datafits.single_task import Logistic, Poisson
 from skglm.utils.sparse_ops import spectral_norm, sparse_columns_slice
 
 
@@ -160,4 +160,53 @@ class LogisticGroup(Logistic):
         for idx, j in enumerate(grp_g_indices):
             grad_g[idx] = X[:, j] @ raw_grad_val
 
+        return grad_g
+
+
+class PoissonGroup(Poisson):
+    r"""Poisson datafit used with group penalties.
+
+    The datafit reads:
+
+    .. math:: 1 / n_"samples" \sum_{i=1}^{n_"samples"} (\exp((Xw)_i) - y_i (Xw)_i)
+
+    Attributes
+    ----------
+    grp_indices : array, shape (n_features,)
+        The group indices stacked contiguously
+        ``[grp1_indices, grp2_indices, ...]``.
+
+    grp_ptr : array, shape (n_groups + 1,)
+        The group pointers such that two consecutive elements delimit
+        the indices of a group in ``grp_indices``.
+    """
+
+    def __init__(self, grp_ptr, grp_indices):
+        self.grp_ptr, self.grp_indices = grp_ptr, grp_indices
+
+    def get_spec(self):
+        return (
+            ('grp_ptr', int32[:]),
+            ('grp_indices', int32[:]),
+        )
+
+    def params_to_dict(self):
+        return dict(grp_ptr=self.grp_ptr, grp_indices=self.grp_indices)
+
+    def gradient_g(self, X, y, w, Xw, g):
+        grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
+        grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
+        raw_grad_val = self.raw_grad(y, Xw)
+        grad_g = np.zeros(len(grp_g_indices))
+        for idx, j in enumerate(grp_g_indices):
+            grad_g[idx] = X[:, j] @ raw_grad_val
+        return grad_g
+
+    def gradient_g_sparse(self, X_data, X_indptr, X_indices, y, w, Xw, g):
+        grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
+        grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
+        grad_g = np.zeros(len(grp_g_indices))
+        for idx, j in enumerate(grp_g_indices):
+            grad_g[idx] = self.gradient_scalar_sparse(
+                X_data, X_indptr, X_indices, y, Xw, j)
         return grad_g

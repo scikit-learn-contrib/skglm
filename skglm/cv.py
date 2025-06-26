@@ -3,6 +3,7 @@ from joblib import Parallel, delayed
 from skglm.datafits import Logistic, QuadraticSVC
 from skglm.estimators import GeneralizedLinearEstimator
 from sklearn.model_selection import KFold, StratifiedKFold
+from sklearn.metrics import accuracy_score, mean_squared_error
 
 
 class GeneralizedLinearEstimatorCV(GeneralizedLinearEstimator):
@@ -74,8 +75,8 @@ class GeneralizedLinearEstimatorCV(GeneralizedLinearEstimator):
     def _score(self, y_true, y_pred):
         """Compute the performance score (higher is better)."""
         if isinstance(self.datafit, (Logistic, QuadraticSVC)):
-            return float(np.mean(y_true == y_pred))
-        return -float(np.mean((y_true - y_pred) ** 2))
+            return accuracy_score(y_true, y_pred)
+        return -mean_squared_error(y_true, y_pred)
 
     def fit(self, X, y):
         """Fit the model using cross-validation."""
@@ -131,13 +132,12 @@ class GeneralizedLinearEstimatorCV(GeneralizedLinearEstimator):
                     kf = KFold(n_splits=self.cv, shuffle=True,
                                random_state=self.random_state)
                     split_iter = kf.split(np.arange(n_samples))
-                fold_results = Parallel(self.n_jobs)(
+                fold_result = Parallel(self.n_jobs)(
                     delayed(_solve_fold)(k, tr, te, alpha, l1_ratio, warm_start[k])
                     for k, (tr, te) in enumerate(split_iter)
                 )
 
-                for k, (coef_fold, intercept_fold, loss_fold) in \
-                        enumerate(fold_results):
+                for k, (coef_fold, intercept_fold, loss_fold) in enumerate(fold_result):
                     warm_start[k] = (coef_fold, intercept_fold)
                     scores_path[idx_ratio, idx_alpha, k] = loss_fold
 

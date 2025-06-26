@@ -34,8 +34,10 @@ def test_elasticnet_cv_matches_sklearn(n_samples, n_features, noise):
         alphas=alphas, l1_ratio=l1_ratios, cv=5, random_state=seed, n_jobs=1
     ).fit(X, y)
 
-    assert sklearn_model.best_params_['alpha'] == skglm_model.alpha_
-    assert sklearn_model.best_params_['l1_ratio'] == skglm_model.l1_ratio_
+    np.testing.assert_allclose(sklearn_model.best_params_['alpha'],
+                               skglm_model.alpha_, rtol=1e-8, atol=1e-10)
+    np.testing.assert_allclose(sklearn_model.best_params_['l1_ratio'],
+                               skglm_model.l1_ratio_, rtol=1e-8, atol=1e-10)
     np.testing.assert_allclose(sklearn_model.best_estimator_.coef_,
                                skglm_model.coef_.ravel(), rtol=1e-4, atol=1e-6)
     np.testing.assert_allclose(sklearn_model.best_estimator_.intercept_,

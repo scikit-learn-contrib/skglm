@@ -5,7 +5,6 @@ import matplotlib.ticker as mticker
 import matplotlib.colors as mcolors
 from skglm.penalties.separable import LogSumPenalty
 from sklearn.datasets import make_sparse_spd_matrix
-from skglm.utils.data import make_dummy_covariance_data
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.linalg import pinvh
@@ -15,9 +14,11 @@ from skglm.penalties import L0_5
 
 
 class GraphicalLasso():
-    """ A first-order BCD Graphical Lasso solver implementing the GLasso algorithm
-    described in Friedman et al., 2008 and the P-GLasso algorithm described in
-    Mazumder et al., 2012."""
+    """A first-order BCD Graphical Lasso solver.
+
+    Implementing the GLasso algorithm described in Friedman et al., 2008 and
+    the P-GLasso algorithm described in Mazumder et al., 2012.
+    """
 
     def __init__(self,
                  alpha=1.,
@@ -168,8 +169,26 @@ class GraphicalLasso():
 
 
 class AdaptiveGraphicalLassoPenalty():
-    """ An adaptive version of the Graphical Lasso that solves non-convex penalty
-    variations using the reweighting strategy from Candès et al., 2007."""
+    """An adaptive version of the Graphical Lasso with non-convex penalties.
+
+    Solves non-convex penalty variations using the reweighting strategy
+    from Candès et al., 2007.
+
+    Parameters
+    ----------
+    alpha : float, default=1.0
+        Regularization parameter controlling sparsity.
+    n_reweights : int, default=5
+        Number of reweighting iterations.
+    max_iter : int, default=1000
+        Maximum iterations for inner solver.
+    tol : float, default=1e-8
+        Convergence tolerance.
+    warm_start : bool, default=False
+        Whether to use warm start.
+    penalty : Penalty object, default=L0_5(1.)
+        Non-convex penalty function to use for reweighting.
+    """
 
     def __init__(
         self,
@@ -190,7 +209,7 @@ class AdaptiveGraphicalLassoPenalty():
         self.penalty = penalty
 
     def fit(self, S):
-        """ Fit the AdaptiveGraphicalLasso model on the empirical covariance matrix S."""
+        """Fit the AdaptiveGraphicalLasso model on the empirical covariance matrix S."""
         glasso = GraphicalLasso(
             alpha=self.alpha,
             algo="primal",
@@ -212,7 +231,8 @@ class AdaptiveGraphicalLassoPenalty():
             )
 
             print(
-                f"Min/Max Weights after penalty derivative: {Weights.min():.2e}, {Weights.max():.2e}")
+                f"Min/Max Weights after penalty derivative: "
+                f"{Weights.min():.2e}, {Weights.max():.2e}")
 
             self.n_iter_.append(glasso.n_iter_)
             # TODO print losses for original problem?
@@ -222,15 +242,34 @@ class AdaptiveGraphicalLassoPenalty():
         self.covariance_ = glasso.covariance_
         if not np.isclose(self.alpha, self.penalty.alpha):
             print(
-                f"Alpha mismatch: GLasso alpha = {self.alpha}, Penalty alpha = {self.penalty.alpha}")
+                f"Alpha mismatch: GLasso alpha = {self.alpha}, "
+                f"Penalty alpha = {self.penalty.alpha}")
         else:
             print(f"Alpha values match: {self.alpha}")
         return self
 
 
 class AdaptiveGraphicalLasso():
-    """ An adaptive version of the Graphical Lasso that solves non-convex penalty
-    variations using the reweighting strategy from Candès et al., 2007."""
+    """An adaptive version of the Graphical Lasso with non-convex penalties.
+
+    Solves non-convex penalty variations using the reweighting strategy
+    from Candès et al., 2007.
+
+    Parameters
+    ----------
+    alpha : float, default=1.0
+        Regularization parameter controlling sparsity.
+    strategy : str, default="log"
+        Reweighting strategy: "log", "sqrt", or "mcp".
+    n_reweights : int, default=5
+        Number of reweighting iterations.
+    max_iter : int, default=1000
+        Maximum iterations for inner solver.
+    tol : float, default=1e-8
+        Convergence tolerance.
+    warm_start : bool, default=False
+        Whether to use warm start.
+    """
 
     def __init__(
         self,
@@ -271,6 +310,7 @@ class AdaptiveGraphicalLasso():
 
 
 def update_weights(Theta, alpha, strategy="log"):
+    """Update weights for adaptive graphical lasso based on strategy."""
     if strategy == "log":
         return 1/(np.abs(Theta) + 1e-10)
     elif strategy == "sqrt":
@@ -345,7 +385,8 @@ if __name__ == "__main__":
     # Compare the two estimated models
     rel_diff_between_models = frobenius_norm_diff(Theta_penalty, Theta_strategy)
     print(
-        f"\n Frobenius norm relative difference between models: {rel_diff_between_models:.2e}")
+        f"\n Frobenius norm relative difference between models: "
+        f"{rel_diff_between_models:.2e}")
     print(" Matrices are close?", np.allclose(
         Theta_penalty, Theta_strategy, atol=1e-4))
 

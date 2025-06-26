@@ -170,8 +170,7 @@ def _gram_cd_epoch(scaled_gram, w, grad, penalty, greedy_cd):
 
 @njit
 def barebones_cd_gram(H, q, x, alpha, weights, max_iter=100, tol=1e-4):
-    """
-    Solve min .5 * x.T H x + q.T @ x + alpha * norm(x, 1).
+    """Solve min .5 * x.T H x + q.T @ x + alpha * norm(x, 1).
 
     H must be symmetric.
     """

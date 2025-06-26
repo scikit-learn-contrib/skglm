@@ -256,6 +256,11 @@ def _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights):
 
 
 def make_dummy_covariance_data(n_samples, n_features):
+    """Generate dummy data for covariance estimation problems.
+
+    Returns empirical covariance matrix, true precision matrix, and max
+    off-diagonal value.
+    """
     rng = check_random_state(0)
     Theta_true = make_sparse_spd_matrix(
         n_features, alpha=0.9, random_state=rng)

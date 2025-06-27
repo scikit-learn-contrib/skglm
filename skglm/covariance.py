@@ -1,16 +1,9 @@
 # License: BSD 3 clause
 
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-import matplotlib.ticker as mticker
-import matplotlib.colors as mcolors
-from skglm.penalties.separable import LogSumPenalty
-from sklearn.datasets import make_sparse_spd_matrix
-import matplotlib.pyplot as plt
-import numpy as np
-from scipy.linalg import pinvh
-
 from skglm.solvers.gram_cd import barebones_cd_gram
-from skglm.penalties import L0_5
+from scipy.linalg import pinvh
+import numpy as np
+from skglm.penalties.separable import L0_5
 
 
 class GraphicalLasso():
@@ -168,89 +161,6 @@ class GraphicalLasso():
         return self
 
 
-class AdaptiveGraphicalLassoPenalty():
-    """An adaptive version of the Graphical Lasso with non-convex penalties.
-
-    Solves non-convex penalty variations using the reweighting strategy
-    from Candès et al., 2007.
-
-    Parameters
-    ----------
-    alpha : float, default=1.0
-        Regularization parameter controlling sparsity.
-    n_reweights : int, default=5
-        Number of reweighting iterations.
-    max_iter : int, default=1000
-        Maximum iterations for inner solver.
-    tol : float, default=1e-8
-        Convergence tolerance.
-    warm_start : bool, default=False
-        Whether to use warm start.
-    penalty : Penalty object, default=L0_5(1.)
-        Non-convex penalty function to use for reweighting.
-    """
-
-    def __init__(
-        self,
-        alpha=1.,
-        # strategy="log",
-        n_reweights=5,
-        max_iter=1000,
-        tol=1e-8,
-        warm_start=False,
-        penalty=L0_5(1.),
-    ):
-        self.alpha = alpha
-        # self.strategy = strategy  # we can remove this param. it if not used elsewhere
-        self.n_reweights = n_reweights
-        self.max_iter = max_iter
-        self.tol = tol
-        self.warm_start = warm_start
-        self.penalty = penalty
-
-    def fit(self, S):
-        """Fit the AdaptiveGraphicalLasso model on the empirical covariance matrix S."""
-        glasso = GraphicalLasso(
-            alpha=self.alpha,
-            algo="primal",
-            max_iter=self.max_iter,
-            tol=self.tol,
-            warm_start=True)
-        Weights = np.ones(S.shape)
-        self.n_iter_ = []
-        for it in range(self.n_reweights):
-            glasso.weights = Weights
-            glasso.fit(S)
-            Theta = glasso.precision_
-
-            Theta_sym = (Theta + Theta.T) / 2
-            Weights = np.where(
-                Theta_sym == 0,
-                1 / self.penalty.eps,
-                np.abs(self.penalty.derivative(Theta_sym))
-            )
-
-            print(
-                f"Min/Max Weights after penalty derivative: "
-                f"{Weights.min():.2e}, {Weights.max():.2e}")
-
-            self.n_iter_.append(glasso.n_iter_)
-            # TODO print losses for original problem?
-
-            glasso.covariance_ = np.linalg.pinv(Theta, hermitian=True)
-        self.precision_ = glasso.precision_
-        self.covariance_ = glasso.covariance_
-        if not np.isclose(self.alpha, self.penalty.alpha):
-            print(
-                f"Alpha mismatch: GLasso alpha = {self.alpha}, "
-                f"Penalty alpha = {self.penalty.alpha}")
-        else:
-            print(f"Alpha values match: {self.alpha}")
-        return self
-
-# TODO: remove this class and use AdaptiveGraphicalLassoPenalty instead
-
-
 class AdaptiveGraphicalLasso():
     """An adaptive version of the Graphical Lasso with non-convex penalties.
 
@@ -261,8 +171,9 @@ class AdaptiveGraphicalLasso():
     ----------
     alpha : float, default=1.0
         Regularization parameter controlling sparsity.
-    strategy : str, default="log"
-        Reweighting strategy: "log", "sqrt", or "mcp".
+    eps : float, default=1e-10
+        Small value for handling exactly zero elements in reweighting.
+        Controls numerical stability of the adaptive algorithm.
     n_reweights : int, default=5
         Number of reweighting iterations.
     max_iter : int, default=1000
@@ -271,184 +182,67 @@ class AdaptiveGraphicalLasso():
         Convergence tolerance.
     warm_start : bool, default=False
         Whether to use warm start.
+    penalty : Penalty object, default=L0_5(1.)
+        Non-convex penalty function. Must have a 'derivative' method.
+        The penalty's alpha parameter should typically match this class's alpha.
+    verbose : bool, default=False
+        Whether to print verbose output.
     """
 
     def __init__(
         self,
         alpha=1.,
-        strategy="log",
+        eps=1e-10,  # Handles adaptive reweighting of zero elements
         n_reweights=5,
         max_iter=1000,
         tol=1e-8,
         warm_start=False,
+        penalty=L0_5(1.),
+        verbose=False,
     ):
+        if not hasattr(penalty, 'derivative'):
+            raise ValueError("penalty must have a 'derivative' method")
+
         self.alpha = alpha
-        self.strategy = strategy
+        self.eps = eps
         self.n_reweights = n_reweights
         self.max_iter = max_iter
         self.tol = tol
         self.warm_start = warm_start
+        self.penalty = penalty
+        self.verbose = verbose
 
     def fit(self, S):
+        """Fit the AdaptiveGraphicalLasso model on the empirical covariance matrix S."""
         glasso = GraphicalLasso(
             alpha=self.alpha,
             algo="primal",
             max_iter=self.max_iter,
             tol=self.tol,
-            warm_start=True)
+            warm_start=self.warm_start,
+            verbose=self.verbose)
+
         Weights = np.ones(S.shape)
         self.n_iter_ = []
-        for it in range(self.n_reweights):
+
+        for _ in range(self.n_reweights):
             glasso.weights = Weights
             glasso.fit(S)
-            Theta = glasso.precision_
-            Weights = update_weights(Theta, self.alpha, strategy=self.strategy)
+
+            Theta_sym = (glasso.precision_ + glasso.precision_.T) / 2
+            Weights = np.where(
+                Theta_sym == 0,
+                1 / self.eps,
+                np.abs(self.penalty.derivative(Theta_sym))
+            )
+
+            if self.verbose:
+                print(f"Min/Max Weights after penalty derivative: "
+                      f"{Weights.min():.2e}, {Weights.max():.2e}")
+
             self.n_iter_.append(glasso.n_iter_)
             # TODO print losses for original problem?
-            glasso.covariance_ = np.linalg.pinv(Theta, hermitian=True)
+
         self.precision_ = glasso.precision_
         self.covariance_ = glasso.covariance_
         return self
-
-
-def update_weights(Theta, alpha, strategy="log"):
-    """Update weights for adaptive graphical lasso based on strategy.
-
-    Parameters
-    ----------
-    Theta : array-like
-        Precision matrix.
-    alpha : float
-        Regularization parameter.
-    strategy : str, default="log"
-        Reweighting strategy: "log", "sqrt", or "mcp".
-
-    Returns
-    -------
-    array-like
-        Updated weights.
-    """
-    if strategy == "log":
-        return 1/(np.abs(Theta) + 1e-10)
-    elif strategy == "sqrt":
-        return 1/(2*np.sqrt(np.abs(Theta)) + 1e-10)
-    elif strategy == "mcp":
-        gamma = 3.
-        Weights = np.zeros_like(Theta)
-        Weights[np.abs(Theta)
-                < gamma*alpha] = (alpha -
-                                  np.abs(Theta[np.abs(Theta)
-                                               < gamma*alpha])/gamma)
-        return Weights
-    else:
-        raise ValueError(f"Unknown strategy {strategy}")
-
-# TODO: remove this testing code
-# Testing
-
-
-def _frobenius_norm_diff(A, B):
-    return np.linalg.norm(A - B, ord='fro') / np.linalg.norm(B, ord='fro')
-
-
-def _generate_problem(dim=20, n_samples=100, seed=42):
-    np.random.seed(seed)
-
-    # Ground-truth sparse precision matrix (positive definite)
-    Theta_true = make_sparse_spd_matrix(n_dim=dim, alpha=0.95, smallest_coef=0.1)
-    Sigma_true = np.linalg.inv(Theta_true)
-
-    # Sample from multivariate normal to get empirical covariance matrix S
-    X = np.random.multivariate_normal(np.zeros(dim), Sigma_true, size=n_samples)
-    S = np.cov(X, rowvar=False)
-
-    return S, Theta_true
-
-
-if __name__ == "__main__":
-    # Set test parameters
-    dim = 20
-    alpha = 0.1
-    n_reweights = 5
-    seed = 42
-
-    # Get empirical covariance and ground truth
-    S, Theta_true = _generate_problem(dim=dim, seed=seed)
-
-    # Define non-convex penalty — this is consistent with 'log' strategy
-    penalty = LogSumPenalty(alpha=alpha, eps=1e-10)
-
-    # Fit new penalty-based model
-    model_penalty = AdaptiveGraphicalLassoPenalty(
-        alpha=alpha,
-        penalty=penalty,
-        n_reweights=n_reweights,
-    )
-    model_penalty.fit(S)
-
-    # Fit old strategy-based model
-    model_strategy = AdaptiveGraphicalLasso(
-        alpha=alpha,
-        strategy="log",
-        n_reweights=n_reweights,
-    )
-    model_strategy.fit(S)
-
-    # Extract precision matrices
-    Theta_penalty = model_penalty.precision_
-    Theta_strategy = model_strategy.precision_
-
-    # Compare the two estimated models
-    rel_diff_between_models = _frobenius_norm_diff(Theta_penalty, Theta_strategy)
-    print(
-        f"\n Frobenius norm relative difference between models: "
-        f"{rel_diff_between_models:.2e}")
-    print(" Matrices are close?", np.allclose(
-        Theta_penalty, Theta_strategy, atol=1e-4))
-
-    # Compare both to ground truth
-    rel_diff_penalty_vs_true = _frobenius_norm_diff(Theta_penalty, Theta_true)
-    rel_diff_strategy_vs_true = _frobenius_norm_diff(Theta_strategy, Theta_true)
-
-    print(
-        f"\n Penalty vs true Θ:   Frobenius norm diff = {rel_diff_penalty_vs_true:.2e}")
-    print(
-        f"Strategy vs true Θ:  Frobenius norm diff = {rel_diff_strategy_vs_true:.2e}")
-
-    print("\nTrue precision matrix:\n", Theta_true)
-    print("\nPenalty-based estimate:\n", Theta_penalty)
-    print("\nStrategy-based estimate:\n", Theta_strategy)
-
-    # Visualization
-    n_features = Theta_true.shape[0]
-
-    plt.close('all')
-    cmap = plt.cm.bwr
-
-    matrices = [Theta_true, Theta_penalty, Theta_strategy]
-    titles = [r"$\Theta_{\mathrm{True}}$",
-              r"$\Theta_{\mathrm{Penalty}}$", r"$\Theta_{\mathrm{Strategy}}$"]
-
-    fig, ax = plt.subplots(3, 1, layout="constrained",
-                           figsize=(4.42, 9.33))
-
-    vmax = max(np.max(mat) for mat in matrices) / 2
-    vmin = min(np.min(mat) for mat in matrices) / 2
-    norm = mcolors.TwoSlopeNorm(vmin=vmin, vmax=vmax, vcenter=0)
-
-    for i in range(3):
-        im = ax[i].imshow(matrices[i], cmap=cmap, norm=norm)
-        sparsity = 100 * (1 - np.count_nonzero(matrices[i]) / (n_features**2))
-        ax[i].set_title(f"{titles[i]}\nsparsity = {sparsity:.2f}%", fontsize=12)
-        ax[i].set_xticks([])
-        ax[i].set_yticks([])
-
-    divider = make_axes_locatable(ax[i])
-    cax = divider.append_axes("right", size="3%", pad=0.05)
-    cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-    ticks_loc = cbar.ax.get_yticks().tolist()
-    cbar.ax.yaxis.set_major_locator(mticker.FixedLocator(ticks_loc))
-    cbar.ax.set_yticklabels([f'{i:.0e}' for i in cbar.get_ticks()])
-    cbar.ax.tick_params(labelsize=10)
-
-    plt.show()

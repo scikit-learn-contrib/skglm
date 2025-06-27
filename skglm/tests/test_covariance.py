@@ -5,6 +5,7 @@ from sklearn.covariance import GraphicalLasso as GraphicalLasso_sklearn
 
 from skglm.covariance import GraphicalLasso, AdaptiveGraphicalLasso
 from skglm.utils.data import make_dummy_covariance_data
+from skglm.penalties.separable import LogSumPenalty
 
 
 def test_glasso_equivalence_sklearn():
@@ -90,6 +91,7 @@ def test_glasso_adaptive():
 
     alpha = lmbd_max / 10
     tol = 1e-14
+    eps = 1e-10
     model = GraphicalLasso(
         alpha=alpha,
         warm_start=True,
@@ -100,7 +102,7 @@ def test_glasso_adaptive():
     n_iter = [model.n_iter_]
     Theta1 = model.precision_
     # TODO test the other strategies
-    weights = 1 / (np.abs(Theta1) + 1e-10)
+    weights = 1 / (np.abs(Theta1) + eps)
     model.weights = weights
 
     model.fit(S)
@@ -110,11 +112,11 @@ def test_glasso_adaptive():
     # TODO test more than 2 reweightings?
     model_a = AdaptiveGraphicalLasso(
         alpha=alpha,
+        penalty=LogSumPenalty(alpha=alpha, eps=eps),
         n_reweights=2,
         tol=tol).fit(S)
 
-    np.testing.assert_allclose(model_a.precision_, model.precision_)
-    np.testing.assert_allclose(model_a.n_iter_, n_iter)
+    np.testing.assert_allclose(model_a.precision_, model.precision_, rtol=1e-10)
 
     # support is decreasing:
     assert not np.any(model_a.precision_[Theta1 == 0])

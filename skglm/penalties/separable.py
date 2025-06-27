@@ -244,6 +244,8 @@ class MCPenalty(BasePenalty):
     def value(self, w):
         return value_MCP(w, self.alpha, self.gamma)
 
+    # TODO: add derivate for method to work with Adaptive Graphical Lasso
+
     def prox_1d(self, value, stepsize, j):
         """Compute the proximal operator of MCP."""
         return prox_MCP(value, stepsize, self.alpha, self.gamma, self.positive)
@@ -320,6 +322,8 @@ class WeightedMCPenalty(BasePenalty):
 
     def value(self, w):
         return value_weighted_MCP(w, self.alpha, self.gamma, self.weights)
+
+    # TODO: add derivate for method to work with Adaptive Graphical Lasso
 
     def prox_1d(self, value, stepsize, j):
         """Compute the proximal operator of the weighted MCP."""

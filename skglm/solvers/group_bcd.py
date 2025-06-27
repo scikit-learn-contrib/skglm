@@ -76,10 +76,8 @@ class GroupBCD(BaseSolver):
 
         is_sparse = issparse(X)
         if is_sparse:
-            datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
             lipschitz = datafit.get_lipschitz_sparse(X.data, X.indptr, X.indices, y)
         else:
-            datafit.initialize(X, y)
             lipschitz = datafit.get_lipschitz(X, y)
 
         all_groups = np.arange(n_groups)

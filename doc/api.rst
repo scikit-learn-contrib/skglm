@@ -30,6 +30,18 @@ Estimators
    WeightedLasso
 
 
+Covariance
+==========
+
+.. currentmodule:: skglm
+
+.. autosummary::
+   :toctree: generated/
+
+   GraphicalLasso
+   AdaptiveGraphicalLasso
+
+
 Penalties
 =========
 

@@ -4,13 +4,50 @@ from skglm.solvers.gram_cd import barebones_cd_gram
 from scipy.linalg import pinvh
 import numpy as np
 from skglm.penalties.separable import L0_5
+from sklearn.base import BaseEstimator
 
 
-class GraphicalLasso():
-    """A first-order BCD Graphical Lasso solver.
+class GraphicalLasso(BaseEstimator):
+    """Block Coordinate Descent (BCD) solver for the Graphical Lasso (GLasso) problem.
 
-    Implementing the GLasso algorithm described in Friedman et al., 2008 and
-    the P-GLasso algorithm described in Mazumder et al., 2012.
+    Implements the sparse inverse covariance estimation algorithm from Friedman et al.
+    (2008) and its weighted/primal variant from Mazumder et al. (2012), supporting both
+    primal and dual coordinate descent.
+
+    Parameters
+    ----------
+    alpha : float, default=1.0
+        Regularization strength.
+    weights : ndarray or None, default=None
+        Symmetric matrix of penalty weights, or None for uniform weights.
+    algo : {'dual', 'primal'}, default='dual'
+        Algorithm variant to use.
+    max_iter : int, default=100
+        Maximum number of coordinate descent iterations.
+    tol : float, default=1e-8
+        Convergence tolerance.
+    warm_start : bool, default=False
+        Use previous solution as initialization (primal only).
+    inner_tol : float, default=1e-4
+        Tolerance for inner solver.
+    verbose : bool, default=False
+        Print convergence info.
+
+    Attributes
+    ----------
+    precision_ : ndarray
+        Estimated precision (inverse covariance) matrix.
+    covariance_ : ndarray
+        Estimated covariance matrix.
+    n_iter_ : int
+        Number of iterations run.
+
+    References
+    ----------
+    .. [1] Friedman et al., Biostatistics, 2008.
+           https://doi.org/10.1093/biostatistics/kxm045
+    .. [2] Mazumder et al., Electron. J. Statist., 2012.
+           https://doi.org/10.1214/12-EJS740
     """
 
     def __init__(self,
@@ -32,7 +69,33 @@ class GraphicalLasso():
         self.inner_tol = inner_tol
         self.verbose = verbose
 
-    def fit(self, S):
+    def fit(self, X, y=None, mode='empirical'):
+        """Fit the GraphicalLasso model.
+
+        Parameters
+        ----------
+        X : ndarray
+            Data matrix (n_samples, n_features) if mode='empirical', or
+            covariance matrix (n_features, n_features) if mode='precomputed'.
+        mode : {'empirical', 'precomputed'}, default='empirical'
+            If 'empirical', X is treated as a data matrix and the empirical
+            covariance is computed.
+            If 'precomputed', X is treated as a covariance matrix.
+        y : Ignored
+            Not used, present for API consistency by convention.
+
+        Returns
+        -------
+        self : object
+            Fitted estimator.
+        """
+        X = np.asarray(X)
+        if X.ndim != 2:
+            raise ValueError("Input must be a 2D array.")
+        if mode == 'precomputed':
+            S = X
+        else:
+            S = np.cov(X, bias=True, rowvar=False)
         p = S.shape[-1]
         indices = np.arange(p)
 
@@ -50,10 +113,13 @@ class GraphicalLasso():
             Theta = self.precision_
             W = self.covariance_
         else:
-            W = S.copy()
-            W *= 0.95
-            diagonal = S.flat[:: p + 1]
-            W.flat[:: p + 1] = diagonal
+            # Ensure W is SPD
+            eigvals = np.linalg.eigvalsh(S)
+            min_eig = eigvals[0]
+            eps = max(self.tol, np.finfo(float).eps)
+            ridge = max(0.0, -min_eig + eps)
+            W = S + ridge * np.eye(p)
+
             Theta = pinvh(W)
 
         W_11 = np.copy(W[1:, 1:], order="C")
@@ -161,7 +227,7 @@ class GraphicalLasso():
         return self
 
 
-class AdaptiveGraphicalLasso():
+class AdaptiveGraphicalLasso(BaseEstimator):
     """An adaptive version of the Graphical Lasso with non-convex penalties.
 
     Solves non-convex penalty variations using the reweighting strategy
@@ -187,6 +253,19 @@ class AdaptiveGraphicalLasso():
         The penalty's alpha parameter should typically match this class's alpha.
     verbose : bool, default=False
         Whether to print verbose output.
+
+    Attributes
+    ----------
+    precision_ : ndarray
+        Estimated precision (inverse covariance) matrix.
+    covariance_ : ndarray
+        Estimated covariance matrix.
+    n_iter_ : int
+        Number of iterations run.
+
+    References
+    ----------
+    .. [1] Candès et al., 2007.
     """
 
     def __init__(
@@ -212,8 +291,35 @@ class AdaptiveGraphicalLasso():
         self.penalty = penalty
         self.verbose = verbose
 
-    def fit(self, S):
-        """Fit the AdaptiveGraphicalLasso model on the empirical covariance matrix S."""
+    def fit(self, X, y=None, mode='empirical'):
+        """Fit the AdaptiveGraphicalLasso model.
+
+        Parameters
+        ----------
+        X : ndarray of shape (n_samples, n_features) or (n_features, n_features)
+            Data matrix or empirical covariance matrix. If a data matrix is provided,
+            the empirical covariance is computed. If a square matrix is provided,
+            it is always treated as a covariance matrix.
+        mode : {'empirical', 'precomputed'}, default='empirical'
+            If 'empirical', X is treated as a data matrix and the empirical
+            covariance is computed.
+            If 'precomputed', X is treated as a covariance matrix.
+        y : Ignored
+            Not used, present for API consistency by convention.
+
+        Returns
+        -------
+        self : object
+            Fitted estimator.
+        """
+        X = np.asarray(X)
+        if X.ndim != 2:
+            raise ValueError("Input must be a 2D array.")
+
+        if mode == 'precomputed':
+            S = X
+        else:
+            S = np.cov(X, bias=True, rowvar=False)
         glasso = GraphicalLasso(
             alpha=self.alpha,
             algo="primal",
@@ -227,13 +333,13 @@ class AdaptiveGraphicalLasso():
 
         for _ in range(self.n_reweights):
             glasso.weights = Weights
-            glasso.fit(S)
+            glasso.fit(S, mode='precomputed')
 
-            Theta_sym = (glasso.precision_ + glasso.precision_.T) / 2
+            Theta = glasso.precision_
             Weights = np.where(
-                Theta_sym == 0,
+                Theta == 0,
                 1 / self.eps,
-                np.abs(self.penalty.derivative(Theta_sym))
+                np.abs(self.penalty.derivative(Theta))
             )
 
             if self.verbose:

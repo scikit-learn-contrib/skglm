@@ -258,7 +258,7 @@ def _alpha_max_group_lasso(X, y, grp_indices, grp_ptr, weights):
 def make_dummy_covariance_data(n_samples, n_features):
     """Generate dummy data for covariance estimation problems.
 
-    Returns empirical covariance matrix, true precision matrix, and max
+    Returns empirical covariance matrix, data matrix, true precision matrix, and max
     off-diagonal value.
     """
     rng = check_random_state(0)
@@ -276,4 +276,4 @@ def make_dummy_covariance_data(n_samples, n_features):
     np.fill_diagonal(S_cpy, 0.)
     lmbd_max = np.max(np.abs(S_cpy))
 
-    return S, Theta_true, lmbd_max
+    return S, X, Theta_true, lmbd_max

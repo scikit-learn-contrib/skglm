@@ -1,5 +1,6 @@
 # Authors: Can Pouliquen
 #          Mathurin Massias
+#          Florian Kozikowski
 """
 =======================================================================
 Regularization paths for the Graphical Lasso and its Adaptive variation
@@ -21,6 +22,10 @@ The plots show normalized mean square error (NMSE) for reconstruction accuracy
 and F1 score for sparsity pattern recovery across different regularization levels.
 """
 
+# Authors: Can Pouliquen
+#          Mathurin Massias
+#          Florian Kozikowski
+
 import numpy as np
 from numpy.linalg import norm
 import matplotlib.pyplot as plt
@@ -36,7 +41,7 @@ from skglm.utils.data import make_dummy_covariance_data
 
 p = 100
 n = 1000
-S, Theta_true, alpha_max = make_dummy_covariance_data(n, p)
+S, _, Theta_true, alpha_max = make_dummy_covariance_data(n, p)
 alphas = alpha_max*np.geomspace(1, 1e-4, num=10)
 
 # %%
@@ -82,7 +87,7 @@ for i, (penalty, model) in enumerate(zip(penalties, models)):
             end="")
 
         model.alpha = alpha
-        model.fit(S)
+        model.fit(S, mode='precomputed')
 
         Theta_est = model.precision_
         nmse = norm(Theta_est - Theta_true)**2 / norm(Theta_true)**2

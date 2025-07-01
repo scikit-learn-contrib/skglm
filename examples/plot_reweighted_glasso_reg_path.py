@@ -1,6 +1,3 @@
-# Authors: Can Pouliquen
-#          Mathurin Massias
-#          Florian Kozikowski
 """
 =======================================================================
 Regularization paths for the Graphical Lasso and its Adaptive variation

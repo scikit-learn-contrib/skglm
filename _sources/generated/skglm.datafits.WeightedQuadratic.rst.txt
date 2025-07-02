@@ -1,0 +1,38 @@
+﻿skglm.datafits.WeightedQuadratic
+================================
+
+.. currentmodule:: skglm.datafits
+
+.. autoclass:: WeightedQuadratic
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~WeightedQuadratic.__init__
+      ~WeightedQuadratic.full_grad_sparse
+      ~WeightedQuadratic.get_global_lipschitz
+      ~WeightedQuadratic.get_global_lipschitz_sparse
+      ~WeightedQuadratic.get_lipschitz
+      ~WeightedQuadratic.get_lipschitz_sparse
+      ~WeightedQuadratic.get_spec
+      ~WeightedQuadratic.gradient
+      ~WeightedQuadratic.gradient_scalar
+      ~WeightedQuadratic.gradient_scalar_sparse
+      ~WeightedQuadratic.initialize
+      ~WeightedQuadratic.initialize_sparse
+      ~WeightedQuadratic.intercept_update_step
+      ~WeightedQuadratic.params_to_dict
+      ~WeightedQuadratic.raw_grad
+      ~WeightedQuadratic.raw_hessian
+      ~WeightedQuadratic.value
+   
+   
+
+   
+   
+   

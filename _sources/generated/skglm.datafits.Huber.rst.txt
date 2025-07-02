@@ -1,0 +1,35 @@
+﻿skglm.datafits.Huber
+====================
+
+.. currentmodule:: skglm.datafits
+
+.. autoclass:: Huber
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Huber.__init__
+      ~Huber.full_grad_sparse
+      ~Huber.get_global_lipschitz
+      ~Huber.get_global_lipschitz_sparse
+      ~Huber.get_lipschitz
+      ~Huber.get_lipschitz_sparse
+      ~Huber.get_spec
+      ~Huber.gradient_scalar
+      ~Huber.gradient_scalar_sparse
+      ~Huber.initialize
+      ~Huber.initialize_sparse
+      ~Huber.intercept_update_step
+      ~Huber.params_to_dict
+      ~Huber.value
+   
+   
+
+   
+   
+   

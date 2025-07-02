@@ -1,0 +1,25 @@
+﻿skglm.solvers.MultiTaskBCD
+==========================
+
+.. currentmodule:: skglm.solvers
+
+.. autoclass:: MultiTaskBCD
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~MultiTaskBCD.__init__
+      ~MultiTaskBCD.custom_checks
+      ~MultiTaskBCD.path
+      ~MultiTaskBCD.solve
+   
+   
+
+   
+   
+   

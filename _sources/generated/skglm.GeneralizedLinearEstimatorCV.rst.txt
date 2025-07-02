@@ -1,0 +1,29 @@
+﻿skglm.GeneralizedLinearEstimatorCV
+==================================
+
+.. currentmodule:: skglm
+
+.. autoclass:: GeneralizedLinearEstimatorCV
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~GeneralizedLinearEstimatorCV.__init__
+      ~GeneralizedLinearEstimatorCV.fit
+      ~GeneralizedLinearEstimatorCV.get_metadata_routing
+      ~GeneralizedLinearEstimatorCV.get_params
+      ~GeneralizedLinearEstimatorCV.predict
+      ~GeneralizedLinearEstimatorCV.predict_proba
+      ~GeneralizedLinearEstimatorCV.score
+      ~GeneralizedLinearEstimatorCV.set_params
+   
+   
+
+   
+   
+   

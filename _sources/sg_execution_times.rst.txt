@@ -1,0 +1,73 @@
+
+:orphan:
+
+.. _sphx_glr_sg_execution_times:
+
+
+Computation times
+=================
+**02:32.680** total execution time for 13 files **from all galleries**:
+
+.. container::
+
+  .. raw:: html
+
+    <style scoped>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+    </style>
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script type="text/javascript" class="init">
+    $(document).ready( function () {
+        $('table.sg-datatable').DataTable({order: [[1, 'desc']]});
+    } );
+    </script>
+
+  .. list-table::
+   :header-rows: 1
+   :class: table table-striped sg-datatable
+
+   * - Example
+     - Time
+     - Mem (MB)
+   * - :ref:`sphx_glr_auto_examples_plot_compare_time.py` (``../examples/plot_compare_time.py``)
+     - 00:57.575
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_survival_analysis.py` (``../examples/plot_survival_analysis.py``)
+     - 00:30.422
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_ucurve.py` (``../examples/plot_ucurve.py``)
+     - 00:13.290
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_generalized_linear_estimator_cv.py` (``../examples/plot_generalized_linear_estimator_cv.py``)
+     - 00:10.208
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_group_logistic_regression.py` (``../examples/plot_group_logistic_regression.py``)
+     - 00:09.900
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_sparse_recovery.py` (``../examples/plot_sparse_recovery.py``)
+     - 00:08.084
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_logreg_various_penalties.py` (``../examples/plot_logreg_various_penalties.py``)
+     - 00:06.141
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_pen_prox.py` (``../examples/plot_pen_prox.py``)
+     - 00:04.017
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_sparse_group_lasso.py` (``../examples/plot_sparse_group_lasso.py``)
+     - 00:04.000
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_reweighted_l1.py` (``../examples/plot_reweighted_l1.py``)
+     - 00:03.528
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_lasso_vs_weighted.py` (``../examples/plot_lasso_vs_weighted.py``)
+     - 00:02.927
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_smooth_quantile.py` (``../examples/plot_smooth_quantile.py``)
+     - 00:02.276
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_zero_weights_lasso.py` (``../examples/plot_zero_weights_lasso.py``)
+     - 00:00.313
+     - 0.0

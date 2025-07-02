@@ -1,0 +1,32 @@
+﻿skglm.LinearSVC
+===============
+
+.. currentmodule:: skglm
+
+.. autoclass:: LinearSVC
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~LinearSVC.__init__
+      ~LinearSVC.decision_function
+      ~LinearSVC.densify
+      ~LinearSVC.fit
+      ~LinearSVC.get_metadata_routing
+      ~LinearSVC.get_params
+      ~LinearSVC.predict
+      ~LinearSVC.score
+      ~LinearSVC.set_params
+      ~LinearSVC.set_score_request
+      ~LinearSVC.sparsify
+   
+   
+
+   
+   
+   

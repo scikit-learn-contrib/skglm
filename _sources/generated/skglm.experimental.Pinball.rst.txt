@@ -1,0 +1,30 @@
+﻿skglm.experimental.Pinball
+==========================
+
+.. currentmodule:: skglm.experimental
+
+.. autoclass:: Pinball
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Pinball.__init__
+      ~Pinball.get_spec
+      ~Pinball.initialize
+      ~Pinball.initialize_sparse
+      ~Pinball.params_to_dict
+      ~Pinball.prox
+      ~Pinball.prox_conjugate
+      ~Pinball.subdiff_distance
+      ~Pinball.value
+   
+   
+
+   
+   
+   

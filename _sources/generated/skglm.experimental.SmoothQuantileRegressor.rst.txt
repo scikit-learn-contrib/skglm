@@ -1,0 +1,29 @@
+﻿skglm.experimental.SmoothQuantileRegressor
+==========================================
+
+.. currentmodule:: skglm.experimental
+
+.. autoclass:: SmoothQuantileRegressor
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~SmoothQuantileRegressor.__init__
+      ~SmoothQuantileRegressor.fit
+      ~SmoothQuantileRegressor.get_metadata_routing
+      ~SmoothQuantileRegressor.get_params
+      ~SmoothQuantileRegressor.predict
+      ~SmoothQuantileRegressor.score
+      ~SmoothQuantileRegressor.set_params
+      ~SmoothQuantileRegressor.set_score_request
+   
+   
+
+   
+   
+   

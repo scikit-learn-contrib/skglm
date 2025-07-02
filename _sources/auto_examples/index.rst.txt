@@ -1,0 +1,274 @@
+:orphan:
+
+.. _general_examples:
+
+.. title:: Examples
+
+Examples
+========
+
+.. toctree::
+   :maxdepth: 1
+
+   auto_examples/index
+
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbnails">
+
+.. thumbnail-parent-div-open
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Value and proximal operators of penalties">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_pen_prox_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_plot_pen_prox.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Value and proximal operators of penalties</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Show U-curve of regularization">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_ucurve_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_plot_ucurve.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Show U-curve of regularization</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Comparison of Lasso and Weighted Lasso">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_lasso_vs_weighted_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_plot_lasso_vs_weighted.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Comparison of Lasso and Weighted Lasso</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Group Logistic regression in python">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_group_logistic_regression_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_plot_group_logistic_regression.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Group Logistic regression in python</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example demonstrates how to use a weighted lasso with some vanishing weights. The fast solver is adapted to use primal Anderson acceleration, allowing it to not compute the dual and handle 0 weights.">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_zero_weights_lasso_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_plot_zero_weights_lasso.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Weighted Lasso with some zero weights</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Fast Sparse Group Lasso in python">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_sparse_group_lasso_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_plot_sparse_group_lasso.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Fast Sparse Group Lasso in python</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Logistic regression with Elastic net and minimax concave penalties">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_logreg_various_penalties_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_plot_logreg_various_penalties.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Logistic regression with Elastic net and minimax concave penalties</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Timing comparison between direct prox computation and reweighting">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_reweighted_l1_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_plot_reweighted_l1.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Timing comparison between direct prox computation and reweighting</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Timing comparison with scikit-learn for Lasso">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_compare_time_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_plot_compare_time.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Timing comparison with scikit-learn for Lasso</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use cross-validation to automatically select the optimal regularization parameter for generalized linear models.">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_generalized_linear_estimator_cv_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_plot_generalized_linear_estimator_cv.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Cross-Validation for Generalized Linear Models</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example compares sklearn&#x27;s standard quantile regression with skglm&#x27;s smooth approximation. Skglm&#x27;s quantile regression uses a smooth Huber-like approximation (quadratic near zero, linear in the tails) to replace the non-differentiable pinball loss. Progressive smoothing enables efficient gradient-based optimization, maintaining speed and accuracy also on large-scale, high-dimensional datasets.">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_smooth_quantile_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_plot_smooth_quantile.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Smooth Quantile Regression with QuantileHuber</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Sparse recovery with non-convex penalties">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_sparse_recovery_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_plot_sparse_recovery.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Sparse recovery with non-convex penalties</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Comparison of lifelines with skglm for survival analysis">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_survival_analysis_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_plot_survival_analysis.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Comparison of lifelines with skglm for survival analysis</div>
+    </div>
+
+
+.. thumbnail-parent-div-close
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/plot_pen_prox
+   /auto_examples/plot_ucurve
+   /auto_examples/plot_lasso_vs_weighted
+   /auto_examples/plot_group_logistic_regression
+   /auto_examples/plot_zero_weights_lasso
+   /auto_examples/plot_sparse_group_lasso
+   /auto_examples/plot_logreg_various_penalties
+   /auto_examples/plot_reweighted_l1
+   /auto_examples/plot_compare_time
+   /auto_examples/plot_generalized_linear_estimator_cv
+   /auto_examples/plot_smooth_quantile
+   /auto_examples/plot_sparse_recovery
+   /auto_examples/plot_survival_analysis
+
+
+
+.. only:: html
+
+ .. rst-class:: sphx-glr-signature
+
+    `Gallery generated by Sphinx-Gallery <https://sphinx-gallery.github.io>`_

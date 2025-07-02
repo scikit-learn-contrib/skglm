@@ -1,0 +1,30 @@
+﻿skglm.penalties.L1\_plus\_L2
+============================
+
+.. currentmodule:: skglm.penalties
+
+.. autoclass:: L1_plus_L2
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~L1_plus_L2.__init__
+      ~L1_plus_L2.alpha_max
+      ~L1_plus_L2.generalized_support
+      ~L1_plus_L2.get_spec
+      ~L1_plus_L2.is_penalized
+      ~L1_plus_L2.params_to_dict
+      ~L1_plus_L2.prox_1d
+      ~L1_plus_L2.subdiff_distance
+      ~L1_plus_L2.value
+   
+   
+
+   
+   
+   

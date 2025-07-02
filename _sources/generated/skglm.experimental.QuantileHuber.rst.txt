@@ -1,0 +1,35 @@
+﻿skglm.experimental.QuantileHuber
+================================
+
+.. currentmodule:: skglm.experimental
+
+.. autoclass:: QuantileHuber
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~QuantileHuber.__init__
+      ~QuantileHuber.full_grad_sparse
+      ~QuantileHuber.get_global_lipschitz
+      ~QuantileHuber.get_global_lipschitz_sparse
+      ~QuantileHuber.get_lipschitz
+      ~QuantileHuber.get_lipschitz_sparse
+      ~QuantileHuber.get_spec
+      ~QuantileHuber.gradient_scalar
+      ~QuantileHuber.gradient_scalar_sparse
+      ~QuantileHuber.initialize
+      ~QuantileHuber.initialize_sparse
+      ~QuantileHuber.intercept_update_step
+      ~QuantileHuber.params_to_dict
+      ~QuantileHuber.value
+   
+   
+
+   
+   
+   

@@ -28,7 +28,7 @@ The solvers of `skglm` update the intercept after each update of $beta$ by doing
 ```
 
 where $L_0$ is the Lipschitz constant associated to the intercept.
-The local Lipschitz constant $L_0$ statisfies the following inequality
+The local Lipschitz constant $L_0$ satisfies the following inequality
 
 $$
 \forall x, x_0 in RR^p times RR, \forall h in RR, |nabla_(x_0) f(x, x_0 + h) - nabla_(x_0) f(x, x_0)| <= L_0 |h| \ .

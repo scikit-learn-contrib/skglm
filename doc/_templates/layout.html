@@ -1,0 +1,7 @@
+{% extends "!layout.html" %}
+
+{% block extrahead %}
+{{ super() }}
+<link rel="preload" as="image" href="{{ pathto('_static/images/landingpage/hero.webp', 1) }}" type="image/webp">
+<link rel="icon" type="image/svg+xml" href="{{ pathto('_static/images/logo.svg', 1) }}">
+{% endblock %}

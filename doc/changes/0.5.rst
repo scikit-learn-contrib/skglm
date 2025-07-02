@@ -1,0 +1,7 @@
+.. _changes_0_5:
+
+Version 0.5 (in progress)
+-------------------------
+- Add support for fitting an intercept in :ref:`SqrtLasso <skglm.experimental.sqrt_lasso.SqrtLasso>` (PR: :gh:`298`)
+- Add experimental :ref:`QuantileHuber <skglm.experimental.quantile_huber.QuantileHuber>` and :ref:`SmoothQuantileRegressor <skglm.experimental.quantile_huber.SmoothQuantileRegressor>` for quantile regression, and an example script (PR: :gh:`312`).
+- Add :ref:`GeneralizedLinearEstimatorCV <skglm.cv.GeneralizedLinearEstimatorCV>` for cross-validation with automatic parameter selection for L1 and elastic-net penalties (PR: :gh:`299`)

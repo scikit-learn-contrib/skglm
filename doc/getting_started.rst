@@ -1,7 +1,10 @@
 .. _getting_started:
 
+.. meta::
+   :description: Learn how to fit Lasso and custom GLM estimators with skglm, a modular Python library compatible with scikit-learn. Includes examples and code snippets.
+
 ===============
-Getting started
+Start
 ===============
 ---------------
 
@@ -31,7 +34,7 @@ Fitting a Lasso estimator
 -------------------------
 
 Let's start first by generating a toy dataset and splitting it to train and test sets.
-For that, we will use ``scikit-learn`` 
+For that, we will use ``scikit-learn``
 `make_regression <https://scikit-learn.org/stable/modules/generated/sklearn.datasets.make_regression.html#sklearn.datasets.make_regression>`_
 
 .. code-block:: python
@@ -42,7 +45,7 @@ For that, we will use ``scikit-learn``
 
     # generate toy data
     X, y = make_regression(n_samples=100, n_features=1000)
-    
+
     # split data
     X_train, X_test, y_train, y_test = train_test_split(X, y)
 
@@ -52,7 +55,7 @@ Then let's fit ``skglm`` :ref:`Lasso <skglm.Lasso>` estimator and prints its sco
 
     # import estimator
     from skglm import Lasso
-    
+
     # init and fit
     estimator = Lasso()
     estimator.fit(X_train, y_train)
@@ -63,7 +66,7 @@ Then let's fit ``skglm`` :ref:`Lasso <skglm.Lasso>` estimator and prints its sco
 
 .. note::
 
-    - The first fit after importing ``skglm`` has an overhead as ``skglm`` uses `Numba <https://numba.pydata.org/>`_ 
+    - The first fit after importing ``skglm`` has an overhead as ``skglm`` uses `Numba <https://numba.pydata.org/>`_
       The subsequent fits will achieve top speed since Numba compilation is cached.
 
 ``skglm`` has several other ``scikit-learn`` compatible estimators.
@@ -138,7 +141,7 @@ and pass it to ``GeneralizedLinearEstimator``. Explore the list of supported :re
 
 .. important::
 
-    - It is possible to create your own datafit and penalties. Check the tutorials on :ref:`how to add a custom datafit <how_to_add_custom_datafit>` 
+    - It is possible to create your own datafit and penalties. Check the tutorials on :ref:`how to add a custom datafit <how_to_add_custom_datafit>`
       and :ref:`how to add a custom penalty <how_to_add_custom_penalty>`.
 
 

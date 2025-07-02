@@ -29,7 +29,9 @@ def spec_to_float32(spec):
             else:
                 dtype32 = dtype
         else:
-            raise ValueError(f"Unknown spec type {dtype}")
+            # raise ValueError(f"Unknown spec type {dtype}")
+            # bool types and others are not affected:
+            dtype32 = dtype
         spec32.append((name, dtype32))
     return spec32
 

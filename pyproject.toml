@@ -17,11 +17,21 @@ readme = {file = "README.md", content-type = "text/markdown"}
 dependencies = [
     "numpy>=1.12",
     "numba",
-    "scikit-learn>=1.0",
+    "scikit-learn>=1.6",
     "scipy>=0.18.0",
 ]
 dynamic = ["version"]
 
+requires-python = ">=3.9"
+
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+]
 
 [tool.setuptools.dynamic]
 version = {attr = "skglm.__version__"}
@@ -38,6 +48,7 @@ test = [
     "flake8",
     "coverage",
     "numpydoc",
+    "celer",
 ]
 
 doc = [
@@ -52,6 +63,12 @@ doc = [
     "sphinx-gallery",
     "sphinx-design",
     "pytest",
-    "furo",
     "lifelines",
+    "pydata_sphinx_theme",
+    "sphinx-sitemap",
+    "sphinxext-opengraph",
 ]
+
+
+[tool.setuptools]
+license-files = []

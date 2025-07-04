@@ -4,14 +4,14 @@ from itertools import product
 import numpy as np
 from numpy.linalg import norm
 
-from skglm.penalties import L1
-from skglm.datafits import Quadratic
+from skglm.penalties import L1, L2
+from skglm.datafits import Quadratic, Poisson
 from skglm import GeneralizedLinearEstimator
 from skglm.penalties.block_separable import (
     WeightedL1GroupL2, WeightedGroupL2
 )
-from skglm.datafits.group import QuadraticGroup, LogisticGroup
-from skglm.solvers import GroupBCD, GroupProxNewton
+from skglm.datafits.group import QuadraticGroup, LogisticGroup, PoissonGroup
+from skglm.solvers import GroupBCD, GroupProxNewton, LBFGS
 
 from skglm.utils.anderson import AndersonAcceleration
 from skglm.utils.data import (make_correlated_data, grp_converter,
@@ -19,6 +19,7 @@ from skglm.utils.data import (make_correlated_data, grp_converter,
 
 from celer import GroupLasso, Lasso
 from sklearn.linear_model import LogisticRegression
+from scipy import sparse
 
 
 def _generate_random_grp(n_groups, n_features, shuffle=True):
@@ -310,6 +311,83 @@ def test_anderson_acceleration():
 
     np.testing.assert_array_equal(n_iter_acc, 13)
     np.testing.assert_array_equal(n_iter, 99)
+
+
+def test_poisson_group_gradient():
+    """Test gradient computation for PoissonGroup and compare sparse vs dense."""
+    n_samples, n_features = 15, 6
+    n_groups = 2
+
+    np.random.seed(0)
+    X = np.random.randn(n_samples, n_features)
+    X[X < 0] = 0
+    X_sparse = sparse.csc_matrix(X)
+    y = np.random.poisson(1.0, n_samples)
+    w = np.random.randn(n_features) * 0.1
+    Xw = X @ w
+
+    grp_indices, grp_ptr = grp_converter(n_groups, n_features)
+    poisson_group = PoissonGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
+
+    for group_id in range(n_groups):
+        # Test dense gradient against expected
+        raw_grad = poisson_group.raw_grad(y, Xw)
+        group_idx = grp_indices[grp_ptr[group_id]:grp_ptr[group_id+1]]
+        expected = X[:, group_idx].T @ raw_grad
+        grad = poisson_group.gradient_g(X, y, w, Xw, group_id)
+        np.testing.assert_allclose(grad, expected, rtol=1e-10)
+
+        # Test sparse matches dense
+        grad_dense = poisson_group.gradient_g(X, y, w, Xw, group_id)
+        grad_sparse = poisson_group.gradient_g_sparse(
+            X_sparse.data, X_sparse.indptr, X_sparse.indices, y, w, Xw, group_id
+        )
+        np.testing.assert_allclose(grad_sparse, grad_dense, rtol=1e-8)
+
+
+def test_poisson_group_solver():
+    """Test solver convergence, solution quality."""
+    n_samples, n_features = 30, 9
+    n_groups = 3
+    alpha = 0.1
+
+    np.random.seed(0)
+    X = np.random.randn(n_samples, n_features)
+    y = np.random.poisson(np.exp(alpha * X.sum(axis=1)))
+
+    grp_indices, grp_ptr = grp_converter(n_groups, n_features)
+    datafit = PoissonGroup(grp_ptr=grp_ptr, grp_indices=grp_indices)
+    weights = np.array([1.0, 0.5, 2.0])
+    penalty = WeightedGroupL2(alpha=alpha, grp_ptr=grp_ptr,
+                              grp_indices=grp_indices, weights=weights)
+
+    w, _, stop_crit = GroupProxNewton(fit_intercept=False, tol=1e-8).solve(
+        X, y, datafit, penalty)
+
+    assert stop_crit < 1e-8 and np.all(np.isfinite(w))
+
+
+def test_poisson_vs_poisson_group_equivalence():
+    """Test that Poisson and PoissonGroup give same results when group size is 1."""
+    n_samples = 20
+    n_features = 8
+    alpha = 0.05
+
+    np.random.seed(42)
+    X = np.random.randn(n_samples, n_features)
+    y = np.random.poisson(np.exp(0.1 * X.sum(axis=1)))
+
+    # Poisson with L2 penalty
+    w_poisson, _, _ = LBFGS(tol=1e-10
+                            ).solve(X, y, Poisson(), L2(alpha=alpha))
+
+    # PoissonGroup with group size = 1, other settings same as Poisson
+    grp_indices, grp_ptr = grp_converter(n_features, n_features)
+    w_group, _, _ = LBFGS(tol=1e-10).solve(
+        X, y, PoissonGroup(grp_ptr=grp_ptr, grp_indices=grp_indices),
+        L2(alpha=alpha))
+
+    np.testing.assert_equal(w_poisson, w_group)
 
 
 if __name__ == "__main__":

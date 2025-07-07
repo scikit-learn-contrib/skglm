@@ -1,10 +1,11 @@
 # License: BSD 3 clause
 
-from skglm.solvers.gram_cd import barebones_cd_gram
+from skglm.solvers.gram_cd import barebones_cd_gram, GramCD, _gram_cd_epoch
 from scipy.linalg import pinvh
 import numpy as np
-from skglm.penalties.separable import L0_5
+from skglm.penalties.separable import L0_5, WeightedL1
 from sklearn.base import BaseEstimator
+from skglm.utils.jit_compilation import compiled_clone
 
 
 class GraphicalLasso(BaseEstimator):
@@ -58,7 +59,8 @@ class GraphicalLasso(BaseEstimator):
                  tol=1e-8,
                  warm_start=False,
                  inner_tol=1e-4,
-                 verbose=False
+                 verbose=False,
+                 solver="barebones"
                  ):
         self.alpha = alpha
         self.weights = weights
@@ -68,6 +70,7 @@ class GraphicalLasso(BaseEstimator):
         self.warm_start = warm_start
         self.inner_tol = inner_tol
         self.verbose = verbose
+        self.solver = solver
 
     def fit(self, X, y=None, mode='empirical'):
         """Fit the GraphicalLasso model.
@@ -162,15 +165,51 @@ class GraphicalLasso(BaseEstimator):
                 else:
                     raise ValueError(f"Unsupported algo {self.algo}")
 
-                beta = barebones_cd_gram(
-                    Q,
-                    s_12,
-                    x=beta_init,
-                    alpha=self.alpha,
-                    weights=Weights[indices != col, col],
-                    tol=self.inner_tol,
-                    max_iter=self.max_iter,
-                )
+                if self.solver == "barebones":
+                    beta = barebones_cd_gram(
+                        Q,
+                        s_12,
+                        x=beta_init,
+                        alpha=self.alpha,
+                        weights=Weights[indices != col, col],
+                        tol=self.inner_tol,
+                        max_iter=self.max_iter,
+                    )
+
+                elif self.solver == "epoch":
+                    penalty = WeightedL1(self.alpha, Weights[indices != col, col])
+                    penalty = compiled_clone(penalty)
+                    w = beta_init.copy()
+                    grad = Q @ w + s_12
+                    for _ in range(self.max_iter):
+                        w_old = w.copy()
+                        _gram_cd_epoch(Q, w, grad, penalty, greedy_cd=False)
+                        if np.max(np.abs(w - w_old)) <= self.inner_tol:
+                            break
+                    beta = w
+                elif self.solver == "standard_gramcd":
+                    penalty = WeightedL1(self.alpha, Weights[indices != col, col])
+                    penalty = compiled_clone(penalty)
+
+                    beta = beta_init.copy()
+                    for _ in range(self.max_iter):
+                        beta_old = beta.copy()
+                        gramcd_solver = GramCD(
+                            tol=1e-14,
+                            greedy_cd=False,
+                            verbose=self.verbose,
+                            precomputed=True,
+                        )
+                        beta, _, _ = gramcd_solver._solve(
+                            X=Q,
+                            y=-s_12,
+                            datafit=None,
+                            penalty=penalty,
+                            w_init=beta,
+                            Xw_init=None
+                        )
+                        if np.max(np.abs(beta - beta_old)) <= self.inner_tol:
+                            break
 
                 if self.algo == "dual":
                     w_12 = -np.dot(W_11, beta)

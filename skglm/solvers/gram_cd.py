@@ -55,7 +55,7 @@ class GramCD(BaseSolver):
     _penalty_required_attr = ("prox_1d", "subdiff_distance")
 
     def __init__(self, max_iter=100, use_acc=False, greedy_cd=True, tol=1e-4,
-                 fit_intercept=True, warm_start=False, verbose=0):
+                 fit_intercept=True, warm_start=False, verbose=0, precomputed=False):
         self.max_iter = max_iter
         self.use_acc = use_acc
         self.greedy_cd = greedy_cd
@@ -63,23 +63,34 @@ class GramCD(BaseSolver):
         self.fit_intercept = fit_intercept
         self.warm_start = warm_start
         self.verbose = verbose
+        self.precomputed = precomputed
 
     def _solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
         # we don't pass Xw_init as the solver uses Gram updates
         # to keep the gradient up-to-date instead of Xw
-        n_samples, n_features = X.shape
 
-        if issparse(X):
-            scaled_gram = X.T.dot(X)
-            scaled_gram = scaled_gram.toarray() / n_samples
-            scaled_Xty = X.T.dot(y) / n_samples
+        if self.precomputed:
+            scaled_gram = X
+            scaled_Xty = y
+            n_features = X.shape[0]
+            scaled_y_norm2 = 0
+
         else:
-            scaled_gram = X.T @ X / n_samples
-            scaled_Xty = X.T @ y / n_samples
+            n_samples, n_features = X.shape
+
+            if issparse(X):
+                scaled_gram = X.T.dot(X)
+                scaled_gram = scaled_gram.toarray() / n_samples
+                scaled_Xty = X.T.dot(y) / n_samples
+            else:
+                scaled_gram = X.T @ X / n_samples
+                scaled_Xty = X.T @ y / n_samples
 
         # TODO potential improvement: allow to pass scaled_gram
         # (e.g. for path computation)
-        scaled_y_norm2 = np.linalg.norm(y) ** 2 / (2 * n_samples)
+        # adressed (TODO on PR #280 / GraphicalLasso)
+        # if approved, update docstring and remove comment
+            scaled_y_norm2 = np.linalg.norm(y) ** 2 / (2 * n_samples)
 
         all_features = np.arange(n_features)
         stop_crit = np.inf  # prevent ref before assign

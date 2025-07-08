@@ -5,6 +5,4 @@ Version 0.5 (in progress)
 - Add support for fitting an intercept in :ref:`SqrtLasso <skglm.experimental.sqrt_lasso.SqrtLasso>` (PR: :gh:`298`)
 - Add experimental :ref:`QuantileHuber <skglm.experimental.quantile_huber.QuantileHuber>` and :ref:`SmoothQuantileRegressor <skglm.experimental.quantile_huber.SmoothQuantileRegressor>` for quantile regression, and an example script (PR: :gh:`312`).
 - Add :ref:`GeneralizedLinearEstimatorCV <skglm.cv.GeneralizedLinearEstimatorCV>` for cross-validation with automatic parameter selection for L1 and elastic-net penalties (PR: :gh:`299`)
-- Add :ref:`GraphicalLasso <skglm.covariance.GraphicalLasso>` for sparse inverse covariance estimation with both primal and dual algorithms
-- Add :ref:`AdaptiveGraphicalLasso <skglm.covariance.AdaptiveGraphicalLasso>` for non-convex penalty variations using iterative reweighting strategy
-- Add example demonstrating regularization paths for Graphical Lasso and its adaptive variations
+- Add :class:`skglm.datafits.group.PoissonGroup` datafit for group-structured Poisson regression. (PR: :gh:`317`)

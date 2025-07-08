@@ -1,0 +1,36 @@
+﻿skglm.datafits.PoissonGroup
+===========================
+
+.. currentmodule:: skglm.datafits
+
+.. autoclass:: PoissonGroup
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~PoissonGroup.__init__
+      ~PoissonGroup.full_grad_sparse
+      ~PoissonGroup.get_spec
+      ~PoissonGroup.gradient
+      ~PoissonGroup.gradient_g
+      ~PoissonGroup.gradient_g_sparse
+      ~PoissonGroup.gradient_scalar
+      ~PoissonGroup.gradient_scalar_sparse
+      ~PoissonGroup.initialize
+      ~PoissonGroup.initialize_sparse
+      ~PoissonGroup.intercept_update_step
+      ~PoissonGroup.params_to_dict
+      ~PoissonGroup.raw_grad
+      ~PoissonGroup.raw_hessian
+      ~PoissonGroup.value
+   
+   
+
+   
+   
+   

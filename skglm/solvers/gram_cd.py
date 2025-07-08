@@ -164,5 +164,4 @@ def _gram_cd_epoch(scaled_gram, w, grad, penalty, greedy_cd):
         if w[j] != old_w_j:
             grad += (w[j] - old_w_j) * scaled_gram[:, j]
 
-    if return_subdiff:
-        return penalty.subdiff_distance(w, grad, all_features)
+    return penalty.subdiff_distance(w, grad, all_features)

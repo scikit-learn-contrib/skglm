@@ -1,19 +1,66 @@
 # License: BSD 3 clause
 
-from skglm.solvers.gram_cd import barebones_cd_gram, GramCD, _gram_cd_epoch
-from scipy.linalg import pinvh
 import numpy as np
-from skglm.penalties.separable import L0_5, WeightedL1
+from numba import njit
+from scipy.linalg import pinvh
 from sklearn.base import BaseEstimator
-from skglm.utils.jit_compilation import compiled_clone
+
+from skglm.utils.prox_funcs import ST
+from skglm.penalties.separable import L0_5
+
+
+# GLasso uses this minimal Numba-compiled CD kernel because it is noticeably
+# faster than the generic GramCD/epoch solvers (see discussion:
+# https://github.com/scikit-learn-contrib/skglm/pull/280#discussion_r2172199185).
+
+@njit
+def barebones_cd_gram(H, q, x, alpha, weights, max_iter=100, tol=1e-4):
+    """Solve min .5 * x.T H x + q.T @ x + alpha * norm(x, 1).
+
+    with *H* symmetric positive definite.
+
+    This variant is kept minimal (no penalty abstraction, no greedy feature
+    selection) to minimise Python overhead and maximise Numba optimisation.  It
+    consistently outperforms the generic `GramCD`/`epoch` variants in the
+    GraphicalLasso context (see link above).
+    """
+    dim = H.shape[0]
+    lc = np.zeros(dim)
+    for j in range(dim):
+        lc[j] = H[j, j]
+    Hx = np.dot(H, x)
+
+    for _ in range(max_iter):
+        max_delta = 0  # max coeff change
+        for j in range(dim):
+            x_j_prev = x[j]
+            x[j] = ST(x[j] - (Hx[j] + q[j]) / lc[j], alpha*weights[j] / lc[j])
+            max_delta = max(max_delta, np.abs(x_j_prev - x[j]))
+            if x_j_prev != x[j]:
+                Hx += (x[j] - x_j_prev) * H[j]
+        if max_delta <= tol:
+            break
+
+    return x
 
 
 class GraphicalLasso(BaseEstimator):
-    """Block Coordinate Descent (BCD) solver for the Graphical Lasso (GLasso) problem.
+    r"""Block Coordinate Descent (BCD) solver for the Graphical Lasso (GLasso) problem.
 
     Implements the sparse inverse covariance estimation algorithm from Friedman et al.
     (2008) and its weighted/primal variant from Mazumder et al. (2012), supporting both
     primal and dual coordinate descent.
+
+    The problem is defined as:
+
+    .. math::
+
+        \Theta^* = \underset{\Theta \succ 0}{\arg\min}\ -\log\det(\Theta)
+        + \langle S, \Theta \rangle + \alpha \sum_{i \ne j} w_{ij} |\Theta_{ij}|
+
+    where :math:`S` is the empirical covariance matrix, :math:`\Theta` the
+    precision matrix, :math:`\alpha` the regularisation strength, and
+    :math:`w_{ij}` optional positive weights (uniform when ``weights=None``).
 
     Parameters
     ----------
@@ -165,52 +212,16 @@ class GraphicalLasso(BaseEstimator):
                 else:
                     raise ValueError(f"Unsupported algo {self.algo}")
 
-                if self.solver == "barebones":
-                    beta = barebones_cd_gram(
-                        Q,
-                        s_12,
-                        x=beta_init,
-                        alpha=self.alpha,
-                        weights=Weights[indices != col, col],
-                        tol=self.inner_tol,
-                        max_iter=self.max_iter,
-                    )
-
-                elif self.solver == "epoch":
-                    penalty = WeightedL1(self.alpha, Weights[indices != col, col])
-                    penalty = compiled_clone(penalty)
-                    w = beta_init.copy()
-                    grad = Q @ w + s_12
-                    for _ in range(self.max_iter):
-                        w_old = w.copy()
-                        _gram_cd_epoch(
-                            Q, w, grad, penalty, greedy_cd=False, return_subdiff=False)
-                        if np.max(np.abs(w - w_old)) <= self.inner_tol:
-                            break
-                    beta = w
-                elif self.solver == "standard_gramcd":
-                    penalty = WeightedL1(self.alpha, Weights[indices != col, col])
-                    penalty = compiled_clone(penalty)
-
-                    beta = beta_init.copy()
-                    for _ in range(self.max_iter):
-                        beta_old = beta.copy()
-                        gramcd_solver = GramCD(
-                            tol=1e-14,
-                            greedy_cd=False,
-                            verbose=self.verbose,
-                            precomputed=True,
-                        )
-                        beta, _, _ = gramcd_solver._solve(
-                            X=Q,
-                            y=-s_12,
-                            datafit=None,
-                            penalty=penalty,
-                            w_init=beta,
-                            Xw_init=None
-                        )
-                        if np.max(np.abs(beta - beta_old)) <= self.inner_tol:
-                            break
+                # use the specialised bare-bones gram-cd solver
+                beta = barebones_cd_gram(
+                    Q,
+                    s_12,
+                    x=beta_init,
+                    alpha=self.alpha,
+                    weights=Weights[indices != col, col],
+                    tol=self.inner_tol,
+                    max_iter=self.max_iter,
+                )
 
                 if self.algo == "dual":
                     w_12 = -np.dot(W_11, beta)
@@ -268,10 +279,29 @@ class GraphicalLasso(BaseEstimator):
 
 
 class AdaptiveGraphicalLasso(BaseEstimator):
-    """An adaptive version of the Graphical Lasso with non-convex penalties.
+    r"""Adaptive version of the Graphical Lasso with non-convex penalties.
 
-    Solves non-convex penalty variations using the reweighting strategy
-    from Candès et al., 2007.
+    Solves non-convex penalty variations using an iterative reweighting strategy
+    (Candès et al., 2007).
+
+    At each reweighting iteration, it solves
+
+    .. math::
+
+        \Theta^* = \underset{\Theta \succ 0}{\arg\min}\ -\log\det(\Theta)
+        + \langle S, \Theta \rangle + \alpha \sum_{i \ne j} w_{ij}^{(k)} |\Theta_{ij}|
+
+    where the weights are updated as
+
+    .. math::
+
+        w_{ij}^{(k)} = \frac{1}{\epsilon} \quad \text{if } \Theta_{ij}^{(k-1)} = 0
+
+    .. math::
+
+        w_{ij}^{(k)} = |p'(\Theta_{ij}^{(k-1)})| \quad \text{otherwise}
+
+    where :math:`p'(\cdot)` is the derivative of the non-convex penalty function.
 
     Parameters
     ----------

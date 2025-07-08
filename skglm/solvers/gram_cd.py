@@ -5,7 +5,6 @@ from scipy.sparse import issparse
 
 from skglm.solvers.base import BaseSolver
 from skglm.utils.anderson import AndersonAcceleration
-from skglm.utils.prox_funcs import ST
 
 
 class GramCD(BaseSolver):
@@ -55,7 +54,7 @@ class GramCD(BaseSolver):
     _penalty_required_attr = ("prox_1d", "subdiff_distance")
 
     def __init__(self, max_iter=100, use_acc=False, greedy_cd=True, tol=1e-4,
-                 fit_intercept=True, warm_start=False, verbose=0, precomputed=False):
+                 fit_intercept=True, warm_start=False, verbose=0):
         self.max_iter = max_iter
         self.use_acc = use_acc
         self.greedy_cd = greedy_cd
@@ -63,34 +62,23 @@ class GramCD(BaseSolver):
         self.fit_intercept = fit_intercept
         self.warm_start = warm_start
         self.verbose = verbose
-        self.precomputed = precomputed
 
     def _solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
         # we don't pass Xw_init as the solver uses Gram updates
         # to keep the gradient up-to-date instead of Xw
+        n_samples, n_features = X.shape
 
-        if self.precomputed:
-            scaled_gram = X
-            scaled_Xty = y
-            n_features = X.shape[0]
-            scaled_y_norm2 = 0
-
+        if issparse(X):
+            scaled_gram = X.T.dot(X)
+            scaled_gram = scaled_gram.toarray() / n_samples
+            scaled_Xty = X.T.dot(y) / n_samples
         else:
-            n_samples, n_features = X.shape
-
-            if issparse(X):
-                scaled_gram = X.T.dot(X)
-                scaled_gram = scaled_gram.toarray() / n_samples
-                scaled_Xty = X.T.dot(y) / n_samples
-            else:
-                scaled_gram = X.T @ X / n_samples
-                scaled_Xty = X.T @ y / n_samples
+            scaled_gram = X.T @ X / n_samples
+            scaled_Xty = X.T @ y / n_samples
 
         # TODO potential improvement: allow to pass scaled_gram
         # (e.g. for path computation)
-        # adressed (TODO on PR #280 / GraphicalLasso)
-        # if approved, update docstring and remove comment
-            scaled_y_norm2 = np.linalg.norm(y) ** 2 / (2 * n_samples)
+        scaled_y_norm2 = np.linalg.norm(y) ** 2 / (2 * n_samples)
 
         all_features = np.arange(n_features)
         stop_crit = np.inf  # prevent ref before assign
@@ -157,7 +145,7 @@ class GramCD(BaseSolver):
 
 
 @njit
-def _gram_cd_epoch(scaled_gram, w, grad, penalty, greedy_cd, return_subdiff=True):
+def _gram_cd_epoch(scaled_gram, w, grad, penalty, greedy_cd):
     all_features = np.arange(len(w))
     for cd_iter in all_features:
         # select feature j
@@ -178,29 +166,3 @@ def _gram_cd_epoch(scaled_gram, w, grad, penalty, greedy_cd, return_subdiff=True
 
     if return_subdiff:
         return penalty.subdiff_distance(w, grad, all_features)
-
-
-@njit
-def barebones_cd_gram(H, q, x, alpha, weights, max_iter=100, tol=1e-4):
-    """Solve min .5 * x.T H x + q.T @ x + alpha * norm(x, 1).
-
-    H must be symmetric.
-    """
-    dim = H.shape[0]
-    lc = np.zeros(dim)
-    for j in range(dim):
-        lc[j] = H[j, j]
-    Hx = np.dot(H, x)
-
-    for _ in range(max_iter):
-        max_delta = 0  # max coeff change
-        for j in range(dim):
-            x_j_prev = x[j]
-            x[j] = ST(x[j] - (Hx[j] + q[j]) / lc[j], alpha*weights[j] / lc[j])
-            max_delta = max(max_delta, np.abs(x_j_prev - x[j]))
-            if x_j_prev != x[j]:
-                Hx += (x[j] - x_j_prev) * H[j]
-        if max_delta <= tol:
-            break
-
-    return x

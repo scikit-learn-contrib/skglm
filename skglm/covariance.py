@@ -183,7 +183,8 @@ class GraphicalLasso(BaseEstimator):
                     grad = Q @ w + s_12
                     for _ in range(self.max_iter):
                         w_old = w.copy()
-                        _gram_cd_epoch(Q, w, grad, penalty, greedy_cd=False)
+                        _gram_cd_epoch(
+                            Q, w, grad, penalty, greedy_cd=False, return_subdiff=False)
                         if np.max(np.abs(w - w_old)) <= self.inner_tol:
                             break
                     beta = w

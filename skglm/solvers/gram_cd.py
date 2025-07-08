@@ -157,7 +157,7 @@ class GramCD(BaseSolver):
 
 
 @njit
-def _gram_cd_epoch(scaled_gram, w, grad, penalty, greedy_cd):
+def _gram_cd_epoch(scaled_gram, w, grad, penalty, greedy_cd, return_subdiff=True):
     all_features = np.arange(len(w))
     for cd_iter in all_features:
         # select feature j
@@ -176,7 +176,8 @@ def _gram_cd_epoch(scaled_gram, w, grad, penalty, greedy_cd):
         if w[j] != old_w_j:
             grad += (w[j] - old_w_j) * scaled_gram[:, j]
 
-    return penalty.subdiff_distance(w, grad, all_features)
+    if return_subdiff:
+        return penalty.subdiff_distance(w, grad, all_features)
 
 
 @njit

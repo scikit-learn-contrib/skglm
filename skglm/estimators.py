@@ -1369,12 +1369,6 @@ class CoxEstimator(LinearModel):
                 fit_intercept=False,
             )
 
-        # solve problem
-        if not issparse(X):
-            datafit.initialize(X, y)
-        else:
-            datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
-
         w, _, stop_crit = solver.solve(X, y, datafit, penalty)
 
         # save to attribute

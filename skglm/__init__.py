@@ -5,3 +5,4 @@ from skglm.estimators import (  # noqa F401
     SparseLogisticRegression, GeneralizedLinearEstimator, CoxEstimator, GroupLasso,
 )
 from .cv import GeneralizedLinearEstimatorCV  # noqa F401
+from .covariance import GraphicalLasso, AdaptiveGraphicalLasso  # noqa F401

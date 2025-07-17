@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**03:00.878** total execution time for 13 files **from auto_examples**:
+**04:03.847** total execution time for 14 files **from auto_examples**:
 
 .. container::
 
@@ -32,42 +32,45 @@ Computation times
    * - Example
      - Time
      - Mem (MB)
+   * - :ref:`sphx_glr_auto_examples_plot_reweighted_glasso_reg_path.py` (``plot_reweighted_glasso_reg_path.py``)
+     - 01:32.052
+     - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_compare_time.py` (``plot_compare_time.py``)
-     - 01:12.832
+     - 00:59.232
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_survival_analysis.py` (``plot_survival_analysis.py``)
-     - 00:31.116
+     - 00:27.745
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_ucurve.py` (``plot_ucurve.py``)
-     - 00:17.252
+     - 00:14.163
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_group_logistic_regression.py` (``plot_group_logistic_regression.py``)
-     - 00:12.090
+     - 00:10.256
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_generalized_linear_estimator_cv.py` (``plot_generalized_linear_estimator_cv.py``)
-     - 00:11.597
+     - 00:09.716
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_sparse_recovery.py` (``plot_sparse_recovery.py``)
-     - 00:08.409
+     - 00:07.316
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_logreg_various_penalties.py` (``plot_logreg_various_penalties.py``)
-     - 00:07.077
-     - 0.0
-   * - :ref:`sphx_glr_auto_examples_plot_pen_prox.py` (``plot_pen_prox.py``)
-     - 00:05.399
+     - 00:06.156
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_sparse_group_lasso.py` (``plot_sparse_group_lasso.py``)
-     - 00:04.506
+     - 00:04.164
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_plot_pen_prox.py` (``plot_pen_prox.py``)
+     - 00:04.127
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_reweighted_l1.py` (``plot_reweighted_l1.py``)
-     - 00:03.993
+     - 00:03.492
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_lasso_vs_weighted.py` (``plot_lasso_vs_weighted.py``)
-     - 00:03.847
+     - 00:02.889
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_smooth_quantile.py` (``plot_smooth_quantile.py``)
-     - 00:02.413
+     - 00:02.199
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_zero_weights_lasso.py` (``plot_zero_weights_lasso.py``)
-     - 00:00.346
+     - 00:00.339
      - 0.0

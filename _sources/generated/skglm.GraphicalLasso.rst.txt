@@ -1,0 +1,27 @@
+﻿skglm.GraphicalLasso
+====================
+
+.. currentmodule:: skglm
+
+.. autoclass:: GraphicalLasso
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~GraphicalLasso.__init__
+      ~GraphicalLasso.fit
+      ~GraphicalLasso.get_metadata_routing
+      ~GraphicalLasso.get_params
+      ~GraphicalLasso.set_fit_request
+      ~GraphicalLasso.set_params
+   
+   
+
+   
+   
+   

@@ -209,6 +209,23 @@ Examples
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="The Adaptive Graphical Lasso uses iterative reweighting to approximate non-convex penalties, following Candès et al. (2007). Non-convex penalties often produce better sparsity patterns by more aggressively shrinking small coefficients while preserving large ones.">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_reweighted_glasso_reg_path_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_plot_reweighted_glasso_reg_path.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Regularization paths for the Graphical Lasso and its Adaptive variation</div>
+    </div>
+
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="Sparse recovery with non-convex penalties">
 
 .. only:: html
@@ -262,6 +279,7 @@ Examples
    /auto_examples/plot_compare_time
    /auto_examples/plot_generalized_linear_estimator_cv
    /auto_examples/plot_smooth_quantile
+   /auto_examples/plot_reweighted_glasso_reg_path
    /auto_examples/plot_sparse_recovery
    /auto_examples/plot_survival_analysis
 

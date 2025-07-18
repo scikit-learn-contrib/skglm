@@ -381,7 +381,7 @@ with more than x100 less time!
 
  .. code-block:: none
 
-    speed up ratio: 285
+    speed up ratio: 308
 
 
 
@@ -565,7 +565,7 @@ Finally, let's compare the timings of both solvers
 
  .. code-block:: none
 
-    speed up ratio: 283
+    speed up ratio: 308
 
 
 
@@ -578,7 +578,7 @@ even for the Efron estimate.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 27.745 seconds)
+   **Total running time of the script:** (0 minutes 30.813 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_survival_analysis.py:

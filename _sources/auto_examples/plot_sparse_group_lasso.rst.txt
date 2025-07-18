@@ -628,7 +628,7 @@ Train the model
                               this.parentElement.nextElementSibling)"
                 ></i></td>
                 <td class="param">datafit&nbsp;</td>
-                <td class="value">&lt;skglm.datafi...x7fade188dc00&gt;</td>
+                <td class="value">&lt;skglm.datafi...x7f7d21997be0&gt;</td>
             </tr>
     
 
@@ -638,7 +638,7 @@ Train the model
                               this.parentElement.nextElementSibling)"
                 ></i></td>
                 <td class="param">penalty&nbsp;</td>
-                <td class="value">&lt;skglm.penalt...x7fade188e200&gt;</td>
+                <td class="value">&lt;skglm.penalt...x7f7d206515d0&gt;</td>
             </tr>
     
 
@@ -648,7 +648,7 @@ Train the model
                               this.parentElement.nextElementSibling)"
                 ></i></td>
                 <td class="param">solver&nbsp;</td>
-                <td class="value">&lt;skglm.solver...x7fade188e1a0&gt;</td>
+                <td class="value">&lt;skglm.solver...x7f7d21996cb0&gt;</td>
             </tr>
     
 
@@ -802,14 +802,14 @@ some values are 0 too
  .. code-block:: none
 
 
-    ([<matplotlib.axis.YTick object at 0x7fade18306d0>, <matplotlib.axis.YTick object at 0x7fade14e1c90>, <matplotlib.axis.YTick object at 0x7fade15b79d0>], [Text(0, 0, '0'), Text(0, 1, '1'), Text(0, 2, '2')])
+    ([<matplotlib.axis.YTick object at 0x7f7d20215a20>, <matplotlib.axis.YTick object at 0x7f7d2027ff40>, <matplotlib.axis.YTick object at 0x7f7d2011d510>], [Text(0, 0, '0'), Text(0, 1, '1'), Text(0, 2, '2')])
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 4.164 seconds)
+   **Total running time of the script:** (0 minutes 4.799 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_sparse_group_lasso.py:

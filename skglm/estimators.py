@@ -18,8 +18,9 @@ from sklearn.utils._param_validation import Interval, StrOptions
 from sklearn.multiclass import OneVsRestClassifier, check_classification_targets
 
 from skglm.solvers import AndersonCD, MultiTaskBCD, GroupBCD, ProxNewton, LBFGS
-from skglm.datafits import (Cox, Quadratic, Logistic, QuadraticSVC,
-                            QuadraticMultiTask, QuadraticGroup,)
+from skglm.datafits import (
+    Cox, Quadratic, Logistic, Poisson, PoissonGroup, QuadraticSVC,
+    QuadraticMultiTask, QuadraticGroup,)
 from skglm.penalties import (L1, WeightedL1, L1_plus_L2, L2, WeightedGroupL2,
                              MCPenalty, WeightedMCPenalty, IndicatorBox, L2_1)
 from skglm.utils.data import grp_converter
@@ -265,6 +266,8 @@ class GeneralizedLinearEstimator(LinearModel):
             else:
                 indices = scores.argmax(axis=1)
             return self.classes_[indices]
+        elif isinstance(self.datafit, (Poisson, PoissonGroup)):
+            return np.exp(self._decision_function(X))
         else:
             return self._decision_function(X)
 

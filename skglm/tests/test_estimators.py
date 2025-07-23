@@ -14,6 +14,7 @@ from sklearn.linear_model import Lasso as Lasso_sklearn
 from sklearn.linear_model import ElasticNet as ElasticNet_sklearn
 from sklearn.linear_model import LogisticRegression as LogReg_sklearn
 from sklearn.linear_model import MultiTaskLasso as MultiTaskLasso_sklearn
+from sklearn.linear_model import PoissonRegressor, GammaRegressor
 from sklearn.model_selection import GridSearchCV
 from sklearn.svm import LinearSVC as LinearSVC_sklearn
 from sklearn.utils.estimator_checks import check_estimator
@@ -23,8 +24,12 @@ from skglm.utils.data import (make_correlated_data, make_dummy_survival_data,
 from skglm.estimators import (
     GeneralizedLinearEstimator, Lasso, MultiTaskLasso, WeightedLasso, ElasticNet,
     MCPRegression, SparseLogisticRegression, LinearSVC, GroupLasso, CoxEstimator)
-from skglm.datafits import Logistic, Quadratic, QuadraticSVC, QuadraticMultiTask, Cox
-from skglm.penalties import L1, IndicatorBox, L1_plus_L2, MCPenalty, WeightedL1, SLOPE
+from skglm.datafits import (
+    Logistic, Quadratic, QuadraticSVC, QuadraticMultiTask, Cox, Poisson, Gamma
+)
+from skglm.penalties import (
+    L1, IndicatorBox, L1_plus_L2, MCPenalty, WeightedL1, SLOPE
+)
 from skglm.solvers import AndersonCD, FISTA, ProxNewton
 
 n_samples = 50
@@ -627,6 +632,46 @@ def test_SLOPE_printing():
     model = GeneralizedLinearEstimator(penalty=SLOPE(alphas))
     res = repr(model)
     assert isinstance(res, str)
+
+
+def test_poisson_predictions_match_sklearn():
+    """Test that skglm Poisson estimator predictions match sklearn PoissonRegressor."""
+    np.random.seed(42)
+    X = np.random.randn(20, 5)
+    y = np.random.poisson(np.exp(X.sum(axis=1) * 0.1))
+
+    # Fit sklearn PoissonRegressor (no regularization due to different alpha scaling)
+    sklearn_pred = PoissonRegressor(
+        alpha=0.0, max_iter=10_000, tol=1e-8).fit(X, y).predict(X)
+
+    # Fit skglm equivalent (no regularization)
+    skglm_pred = GeneralizedLinearEstimator(
+        datafit=Poisson(),
+        penalty=L1_plus_L2(0.0, l1_ratio=0.0),
+        solver=ProxNewton(fit_intercept=True, max_iter=10_000, tol=1e-8)
+    ).fit(X, y).predict(X)
+
+    np.testing.assert_allclose(sklearn_pred, skglm_pred, rtol=1e-6, atol=1e-8)
+
+
+def test_gamma_predictions_match_sklearn():
+    """Test that skglm Gamma estimator predictions match sklearn GammaRegressor."""
+    np.random.seed(42)
+    X = np.random.randn(20, 5)
+    y = np.random.gamma(2.0, np.exp(X.sum(axis=1) * 0.1))
+
+    # Fit sklearn GammaRegressor (no regularization due to different alpha scaling)
+    sklearn_pred = GammaRegressor(
+        alpha=0.0, max_iter=10_000, tol=1e-8).fit(X, y).predict(X)
+
+    # Fit skglm equivalent (no regularization)
+    skglm_pred = GeneralizedLinearEstimator(
+        datafit=Gamma(),
+        penalty=L1_plus_L2(0.0, l1_ratio=0.0),
+        solver=ProxNewton(fit_intercept=True, max_iter=10_000, tol=1e-8)
+    ).fit(X, y).predict(X)
+
+    np.testing.assert_allclose(sklearn_pred, skglm_pred, rtol=1e-6, atol=1e-8)
 
 
 if __name__ == "__main__":

@@ -634,43 +634,30 @@ def test_SLOPE_printing():
     assert isinstance(res, str)
 
 
-def test_poisson_predictions_match_sklearn():
-    """Test that skglm Poisson estimator predictions match sklearn PoissonRegressor."""
+@pytest.mark.parametrize(
+    "sklearn_reg, skglm_datafit, y_gen",
+    [
+        (
+            PoissonRegressor, Poisson,
+            lambda X: np.random.poisson(np.exp(X.sum(axis=1) * 0.1))
+        ),
+        (
+            GammaRegressor, Gamma,
+            lambda X: np.random.gamma(2.0, np.exp(X.sum(axis=1) * 0.1))
+        ),
+    ]
+)
+def test_inverse_link_prediction(sklearn_reg, skglm_datafit, y_gen):
     np.random.seed(42)
     X = np.random.randn(20, 5)
-    y = np.random.poisson(np.exp(X.sum(axis=1) * 0.1))
-
-    # Fit sklearn PoissonRegressor (no regularization due to different alpha scaling)
-    sklearn_pred = PoissonRegressor(
-        alpha=0.0, max_iter=10_000, tol=1e-8).fit(X, y).predict(X)
-
-    # Fit skglm equivalent (no regularization)
+    y = y_gen(X)
+    sklearn_pred = sklearn_reg(alpha=0.0, max_iter=10_000,
+                               tol=1e-8).fit(X, y).predict(X)
     skglm_pred = GeneralizedLinearEstimator(
-        datafit=Poisson(),
+        datafit=skglm_datafit(),
         penalty=L1_plus_L2(0.0, l1_ratio=0.0),
         solver=ProxNewton(fit_intercept=True, max_iter=10_000, tol=1e-8)
     ).fit(X, y).predict(X)
-
-    np.testing.assert_allclose(sklearn_pred, skglm_pred, rtol=1e-6, atol=1e-8)
-
-
-def test_gamma_predictions_match_sklearn():
-    """Test that skglm Gamma estimator predictions match sklearn GammaRegressor."""
-    np.random.seed(42)
-    X = np.random.randn(20, 5)
-    y = np.random.gamma(2.0, np.exp(X.sum(axis=1) * 0.1))
-
-    # Fit sklearn GammaRegressor (no regularization due to different alpha scaling)
-    sklearn_pred = GammaRegressor(
-        alpha=0.0, max_iter=10_000, tol=1e-8).fit(X, y).predict(X)
-
-    # Fit skglm equivalent (no regularization)
-    skglm_pred = GeneralizedLinearEstimator(
-        datafit=Gamma(),
-        penalty=L1_plus_L2(0.0, l1_ratio=0.0),
-        solver=ProxNewton(fit_intercept=True, max_iter=10_000, tol=1e-8)
-    ).fit(X, y).predict(X)
-
     np.testing.assert_allclose(sklearn_pred, skglm_pred, rtol=1e-6, atol=1e-8)
 
 

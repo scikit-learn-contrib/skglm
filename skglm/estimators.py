@@ -19,7 +19,7 @@ from sklearn.multiclass import OneVsRestClassifier, check_classification_targets
 
 from skglm.solvers import AndersonCD, MultiTaskBCD, GroupBCD, ProxNewton, LBFGS
 from skglm.datafits import (
-    Cox, Quadratic, Logistic, Poisson, PoissonGroup, Gamma, QuadraticSVC,
+    Cox, Quadratic, Logistic, QuadraticSVC,
     QuadraticMultiTask, QuadraticGroup,)
 from skglm.penalties import (L1, WeightedL1, L1_plus_L2, L2, WeightedGroupL2,
                              MCPenalty, WeightedMCPenalty, IndicatorBox, L2_1)
@@ -266,8 +266,8 @@ class GeneralizedLinearEstimator(LinearModel):
             else:
                 indices = scores.argmax(axis=1)
             return self.classes_[indices]
-        elif isinstance(self.datafit, (Poisson, PoissonGroup, Gamma)):
-            return np.exp(self._decision_function(X))
+        elif hasattr(self.datafit, "inverse_link"):
+            return self.datafit.inverse_link(self._decision_function(X))
         else:
             return self._decision_function(X)
 

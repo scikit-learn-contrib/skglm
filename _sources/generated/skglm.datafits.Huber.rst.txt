@@ -25,6 +25,7 @@
       ~Huber.initialize
       ~Huber.initialize_sparse
       ~Huber.intercept_update_step
+      ~Huber.inverse_link
       ~Huber.params_to_dict
       ~Huber.value
    

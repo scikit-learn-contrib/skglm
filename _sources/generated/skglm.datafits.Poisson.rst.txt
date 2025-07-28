@@ -22,6 +22,7 @@
       ~Poisson.initialize
       ~Poisson.initialize_sparse
       ~Poisson.intercept_update_step
+      ~Poisson.inverse_link
       ~Poisson.params_to_dict
       ~Poisson.raw_grad
       ~Poisson.raw_hessian

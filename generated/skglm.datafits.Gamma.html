@@ -562,7 +562,7 @@
 <h1>skglm.datafits.Gamma<a class="headerlink" href="#skglm-datafits-gamma" title="Link to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="skglm.datafits.Gamma">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">Gamma</span></span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/27288ed/skglm/datafits/single_task.py#L649"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.Gamma" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">Gamma</span></span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/ba5d9d9b/skglm/datafits/single_task.py#L653"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.Gamma" title="Link to this definition">#</a></dt>
 <dd><p>Gamma datafit.</p>
 <p>The datafit reads:</p>
 <div class="math notranslate nohighlight">
@@ -573,7 +573,7 @@
 This allows for faster computations.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skglm.datafits.Gamma.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/27288ed/skglm/datafits/single_task.py#L664"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.Gamma.__init__" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/ba5d9d9b/skglm/datafits/single_task.py#L668"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.Gamma.__init__" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
@@ -597,16 +597,19 @@ This allows for faster computations.</p>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">intercept_update_step</span></code>(y, Xw)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">inverse_link</span></code>(Xw)</p></td>
+<td><p>Inverse link function (identity by default).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
 <td><p>Get the parameters to initialize an instance of the class.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">raw_grad</span></code>(y, Xw)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">raw_grad</span></code>(y, Xw)</p></td>
 <td><p>Compute gradient of datafit w.r.t.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">raw_hessian</span></code>(y, Xw)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">raw_hessian</span></code>(y, Xw)</p></td>
 <td><p>Compute Hessian of datafit w.r.t.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(y, w, Xw)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(y, w, Xw)</p></td>
 <td><p>Value of datafit at vector w.</p></td>
 </tr>
 </tbody>

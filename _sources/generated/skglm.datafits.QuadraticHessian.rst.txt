@@ -19,6 +19,7 @@
       ~QuadraticHessian.gradient_scalar
       ~QuadraticHessian.initialize
       ~QuadraticHessian.initialize_sparse
+      ~QuadraticHessian.inverse_link
       ~QuadraticHessian.params_to_dict
       ~QuadraticHessian.value
    

@@ -24,6 +24,7 @@
       ~QuadraticSVC.gradient_scalar_sparse
       ~QuadraticSVC.initialize
       ~QuadraticSVC.initialize_sparse
+      ~QuadraticSVC.inverse_link
       ~QuadraticSVC.params_to_dict
       ~QuadraticSVC.value
    

@@ -28,6 +28,7 @@
       ~LogisticGroup.initialize
       ~LogisticGroup.initialize_sparse
       ~LogisticGroup.intercept_update_step
+      ~LogisticGroup.inverse_link
       ~LogisticGroup.params_to_dict
       ~LogisticGroup.raw_grad
       ~LogisticGroup.raw_hessian

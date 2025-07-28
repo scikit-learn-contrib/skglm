@@ -17,6 +17,7 @@
       ~SqrtQuadratic.get_spec
       ~SqrtQuadratic.initialize
       ~SqrtQuadratic.initialize_sparse
+      ~SqrtQuadratic.inverse_link
       ~SqrtQuadratic.params_to_dict
       ~SqrtQuadratic.prox
       ~SqrtQuadratic.prox_conjugate

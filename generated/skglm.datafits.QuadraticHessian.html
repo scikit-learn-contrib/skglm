@@ -562,7 +562,7 @@
 <h1>skglm.datafits.QuadraticHessian<a class="headerlink" href="#skglm-datafits-quadratichessian" title="Link to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="skglm.datafits.QuadraticHessian">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">QuadraticHessian</span></span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/27288ed/skglm/datafits/single_task.py#L242"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.QuadraticHessian" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">QuadraticHessian</span></span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/ba5d9d9b/skglm/datafits/single_task.py#L242"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.QuadraticHessian" title="Link to this definition">#</a></dt>
 <dd><p>Quadratic datafit where we pass the Hessian A directly.</p>
 <p>The datafit reads:</p>
 <div class="math notranslate nohighlight">
@@ -572,7 +572,7 @@
 When the Hessian is available, this datafit is more efficient than using Quadratic.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skglm.datafits.QuadraticHessian.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/27288ed/skglm/datafits/single_task.py#L254"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.QuadraticHessian.__init__" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/ba5d9d9b/skglm/datafits/single_task.py#L254"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.QuadraticHessian.__init__" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
@@ -596,10 +596,13 @@ When the Hessian is available, this datafit is more efficient than using Quadrat
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_sparse</span></code>(X_data, X_indptr, X_indices, y)</p></td>
 <td><p>Pre-computations before fitting on X and y when X is a sparse matrix.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">inverse_link</span></code>(Xw)</p></td>
+<td><p>Inverse link function (identity by default).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
 <td><p>Get the parameters to initialize an instance of the class.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(b, x, Ax)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(b, x, Ax)</p></td>
 <td><p>Value of datafit at vector w.</p></td>
 </tr>
 </tbody>

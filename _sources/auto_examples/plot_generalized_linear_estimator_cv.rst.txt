@@ -101,8 +101,8 @@ The CV estimator automatically finds the best regularization strength
 
  .. code-block:: none
 
-    Best alpha: 0.189
-    Non-zero coefficients: 85 (true: 60)
+    Best alpha: 0.093
+    Non-zero coefficients: 106 (true: 60)
 
 
 
@@ -231,7 +231,7 @@ Compute how well different regularization strengths recover the true coefficient
 
  .. code-block:: none
 
-    Distance at CV-selected alpha: 40.051
+    Distance at CV-selected alpha: 42.600
 
 
 
@@ -246,7 +246,7 @@ finds a good balance without needing access to the ground truth.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 10.261 seconds)
+   **Total running time of the script:** (0 minutes 10.162 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_generalized_linear_estimator_cv.py:

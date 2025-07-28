@@ -17,6 +17,7 @@
       ~Pinball.get_spec
       ~Pinball.initialize
       ~Pinball.initialize_sparse
+      ~Pinball.inverse_link
       ~Pinball.params_to_dict
       ~Pinball.prox
       ~Pinball.prox_conjugate

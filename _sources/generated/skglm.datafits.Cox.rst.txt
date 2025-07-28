@@ -21,6 +21,7 @@
       ~Cox.gradient_sparse
       ~Cox.initialize
       ~Cox.initialize_sparse
+      ~Cox.inverse_link
       ~Cox.params_to_dict
       ~Cox.raw_grad
       ~Cox.raw_hessian

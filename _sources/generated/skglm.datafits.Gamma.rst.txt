@@ -19,6 +19,7 @@
       ~Gamma.initialize
       ~Gamma.initialize_sparse
       ~Gamma.intercept_update_step
+      ~Gamma.inverse_link
       ~Gamma.params_to_dict
       ~Gamma.raw_grad
       ~Gamma.raw_hessian

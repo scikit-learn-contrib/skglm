@@ -507,6 +507,22 @@ and <span class="math notranslate nohighlight">`\beta \in \mathbb{R}^p`</span> i
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">BaseDatafit</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for datafits.&quot;&quot;&quot;</span>
 
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">inverse_link</span><span class="p">(</span><span class="n">Xw</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Inverse link function (identity by default).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        Xw : array-like</span>
+<span class="sd">            Linear predictor values.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        array-like</span>
+<span class="sd">            Transformed values in response scale.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Xw</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">get_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Specify the numba types of the class attributes.</span>
 
@@ -638,6 +654,10 @@ it is the derivative of the datafit with respect to the <span class="math notran
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">inverse_link</span><span class="p">(</span><span class="n">Xw</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">Xw</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span>

@@ -26,6 +26,7 @@
       ~Quadratic.initialize
       ~Quadratic.initialize_sparse
       ~Quadratic.intercept_update_step
+      ~Quadratic.inverse_link
       ~Quadratic.params_to_dict
       ~Quadratic.raw_grad
       ~Quadratic.raw_hessian

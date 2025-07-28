@@ -24,6 +24,7 @@
       ~QuadraticGroup.initialize
       ~QuadraticGroup.initialize_sparse
       ~QuadraticGroup.intercept_update_step
+      ~QuadraticGroup.inverse_link
       ~QuadraticGroup.params_to_dict
       ~QuadraticGroup.value
    

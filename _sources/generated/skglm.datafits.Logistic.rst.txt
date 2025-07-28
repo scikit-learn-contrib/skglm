@@ -27,6 +27,7 @@
       ~Logistic.initialize
       ~Logistic.initialize_sparse
       ~Logistic.intercept_update_step
+      ~Logistic.inverse_link
       ~Logistic.params_to_dict
       ~Logistic.raw_grad
       ~Logistic.raw_hessian

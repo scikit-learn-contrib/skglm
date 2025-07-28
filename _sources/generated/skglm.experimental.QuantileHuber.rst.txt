@@ -25,6 +25,7 @@
       ~QuantileHuber.initialize
       ~QuantileHuber.initialize_sparse
       ~QuantileHuber.intercept_update_step
+      ~QuantileHuber.inverse_link
       ~QuantileHuber.params_to_dict
       ~QuantileHuber.value
    

@@ -562,7 +562,7 @@
 <h1>skglm.datafits.PoissonGroup<a class="headerlink" href="#skglm-datafits-poissongroup" title="Link to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="skglm.datafits.PoissonGroup">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">PoissonGroup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grp_ptr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp_indices</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/27288ed/skglm/datafits/group.py#L166"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.PoissonGroup" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skglm.datafits.</span></span><span class="sig-name descname"><span class="pre">PoissonGroup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grp_ptr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp_indices</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/ba5d9d9b/skglm/datafits/group.py#L166"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.PoissonGroup" title="Link to this definition">#</a></dt>
 <dd><p>Poisson datafit used with group penalties.</p>
 <p>The datafit reads:</p>
 <div class="math notranslate nohighlight">
@@ -581,7 +581,7 @@ the indices of a group in <code class="docutils literal notranslate"><span class
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="skglm.datafits.PoissonGroup.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grp_ptr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp_indices</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/27288ed/skglm/datafits/group.py#L184"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.PoissonGroup.__init__" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grp_ptr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp_indices</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/blob/ba5d9d9b/skglm/datafits/group.py#L184"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#skglm.datafits.PoissonGroup.__init__" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
@@ -620,16 +620,19 @@ the indices of a group in <code class="docutils literal notranslate"><span class
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">intercept_update_step</span></code>(y, Xw)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">inverse_link</span></code>(Xw)</p></td>
+<td><p>Inverse link function (identity by default).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">params_to_dict</span></code>()</p></td>
 <td><p>Get the parameters to initialize an instance of the class.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">raw_grad</span></code>(y, Xw)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">raw_grad</span></code>(y, Xw)</p></td>
 <td><p>Compute gradient of datafit w.r.t <code class="docutils literal notranslate"><span class="pre">Xw</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">raw_hessian</span></code>(y, Xw)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">raw_hessian</span></code>(y, Xw)</p></td>
 <td><p>Compute Hessian of datafit w.r.t <code class="docutils literal notranslate"><span class="pre">Xw</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(y, w, Xw)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code>(y, w, Xw)</p></td>
 <td><p>Value of datafit at vector w.</p></td>
 </tr>
 </tbody>

@@ -26,6 +26,7 @@
       ~WeightedQuadratic.initialize
       ~WeightedQuadratic.initialize_sparse
       ~WeightedQuadratic.intercept_update_step
+      ~WeightedQuadratic.inverse_link
       ~WeightedQuadratic.params_to_dict
       ~WeightedQuadratic.raw_grad
       ~WeightedQuadratic.raw_hessian

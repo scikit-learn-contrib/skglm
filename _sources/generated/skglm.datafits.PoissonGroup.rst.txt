@@ -24,6 +24,7 @@
       ~PoissonGroup.initialize
       ~PoissonGroup.initialize_sparse
       ~PoissonGroup.intercept_update_step
+      ~PoissonGroup.inverse_link
       ~PoissonGroup.params_to_dict
       ~PoissonGroup.raw_grad
       ~PoissonGroup.raw_hessian

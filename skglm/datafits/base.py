@@ -2,6 +2,22 @@
 class BaseDatafit:
     """Base class for datafits."""
 
+    @staticmethod
+    def inverse_link(Xw):
+        """Inverse link function (identity by default).
+
+        Parameters
+        ----------
+        Xw : array-like
+            Linear predictor values.
+
+        Returns
+        -------
+        array-like
+            Transformed values in response scale.
+        """
+        return Xw
+
     def get_spec(self):
         """Specify the numba types of the class attributes.
 

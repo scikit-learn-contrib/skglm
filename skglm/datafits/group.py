@@ -184,6 +184,10 @@ class PoissonGroup(Poisson):
     def __init__(self, grp_ptr, grp_indices):
         self.grp_ptr, self.grp_indices = grp_ptr, grp_indices
 
+    @staticmethod
+    def inverse_link(Xw):
+        return np.exp(Xw)
+
     def get_spec(self):
         return (
             ('grp_ptr', int32[:]),

@@ -635,22 +635,13 @@ def test_SLOPE_printing():
 
 
 @pytest.mark.parametrize(
-    "sklearn_reg, skglm_datafit, y_gen",
-    [
-        (
-            PoissonRegressor, Poisson,
-            lambda X: np.random.poisson(np.exp(X.sum(axis=1) * 0.1))
-        ),
-        (
-            GammaRegressor, Gamma,
-            lambda X: np.random.gamma(2.0, np.exp(X.sum(axis=1) * 0.1))
-        ),
-    ]
+    "sklearn_reg, skglm_datafit",
+    [(PoissonRegressor, Poisson), (GammaRegressor, Gamma)]
 )
-def test_inverse_link_prediction(sklearn_reg, skglm_datafit, y_gen):
+def test_inverse_link_prediction(sklearn_reg, skglm_datafit):
     np.random.seed(42)
     X = np.random.randn(20, 5)
-    y = y_gen(X)
+    y = np.random.randint(1, 6, size=20)  # Use 1-6 for both (Gamma needs y>0)
     sklearn_pred = sklearn_reg(alpha=0.0, max_iter=10_000,
                                tol=1e-8).fit(X, y).predict(X)
     skglm_pred = GeneralizedLinearEstimator(

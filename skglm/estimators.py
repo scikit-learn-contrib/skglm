@@ -266,10 +266,8 @@ class GeneralizedLinearEstimator(LinearModel):
             else:
                 indices = scores.argmax(axis=1)
             return self.classes_[indices]
-        elif hasattr(self.datafit, "inverse_link"):
-            return self.datafit.inverse_link(self._decision_function(X))
         else:
-            return self._decision_function(X)
+            return self.datafit.inverse_link(self._decision_function(X))
 
     def get_params(self, deep=False):
         """Get parameters of the estimators including the datafit's and penalty's.

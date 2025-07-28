@@ -591,8 +591,8 @@ class Poisson(BaseDatafit):
         pass
 
     @staticmethod
-    def inverse_link(x):
-        return np.exp(x)
+    def inverse_link(Xw):
+        return np.exp(Xw)
 
     def get_spec(self):
         pass
@@ -669,8 +669,8 @@ class Gamma(BaseDatafit):
         pass
 
     @staticmethod
-    def inverse_link(x):
-        return np.exp(x)
+    def inverse_link(Xw):
+        return np.exp(Xw)
 
     def get_spec(self):
         pass

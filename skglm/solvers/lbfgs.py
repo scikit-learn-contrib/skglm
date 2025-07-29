@@ -24,6 +24,9 @@ class LBFGS(BaseSolver):
     tol : float, default 1e-4
         Tolerance for convergence.
 
+    fit_intercept : bool, default False
+        Whether or not to fit an intercept.
+
     verbose : bool, default False
         Amount of verbosity. 0/False is silent.
     """
@@ -31,9 +34,11 @@ class LBFGS(BaseSolver):
     _datafit_required_attr = ("gradient",)
     _penalty_required_attr = ("gradient",)
 
-    def __init__(self, max_iter=50, tol=1e-4, verbose=False):
+    def __init__(self, max_iter=50, tol=1e-4, fit_intercept=False, verbose=False):
         self.max_iter = max_iter
         self.tol = tol
+        self.fit_intercept = fit_intercept
+        self.warm_start = False
         self.verbose = verbose
 
     def _solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
@@ -46,25 +51,46 @@ class LBFGS(BaseSolver):
             datafit.initialize(X, y)
 
         def objective(w):
-            Xw = X @ w
-            datafit_value = datafit.value(y, w, Xw)
-            penalty_value = penalty.value(w)
+            if self.fit_intercept:
+                Xw = X @ w[:-1] + w[-1]
+                datafit_value = datafit.value(y, w[:-1], Xw)
+                penalty_value = penalty.value(w[:-1])
+            else:
+                Xw = X @ w
+                datafit_value = datafit.value(y, w, Xw)
+                penalty_value = penalty.value(w)
 
             return datafit_value + penalty_value
 
         def d_jac(w):
-            Xw = X @ w
-            datafit_grad = datafit.gradient(X, y, Xw)
-            penalty_grad = penalty.gradient(w)
+            if self.fit_intercept:
+                Xw = X @ w[:-1] + w[-1]
+                datafit_grad = datafit.gradient(X, y, Xw)
+                penalty_grad = penalty.gradient(w[:-1])
+                intercept_grad = datafit.intercept_update_step(y, Xw)
+                return np.concatenate([datafit_grad + penalty_grad, [intercept_grad]])
+            else:
+                Xw = X @ w
+                datafit_grad = datafit.gradient(X, y, Xw)
+                penalty_grad = penalty.gradient(w)
 
-            return datafit_grad + penalty_grad
+                return datafit_grad + penalty_grad
 
         def s_jac(w):
-            Xw = X @ w
-            datafit_grad = datafit.gradient_sparse(X.data, X.indptr, X.indices, y, Xw)
-            penalty_grad = penalty.gradient(w)
+            if self.fit_intercept:
+                Xw = X @ w[:-1] + w[-1]
+                datafit_grad = datafit.gradient_sparse(
+                    X.data, X.indptr, X.indices, y, Xw)
+                penalty_grad = penalty.gradient(w[:-1])
+                intercept_grad = datafit.intercept_update_step(y, Xw)
+                return np.concatenate([datafit_grad + penalty_grad, [intercept_grad]])
+            else:
+                Xw = X @ w
+                datafit_grad = datafit.gradient_sparse(
+                    X.data, X.indptr, X.indices, y, Xw)
+                penalty_grad = penalty.gradient(w)
 
-            return datafit_grad + penalty_grad
+                return datafit_grad + penalty_grad
 
         def callback_post_iter(w_k):
             # save p_obj
@@ -81,7 +107,7 @@ class LBFGS(BaseSolver):
                 )
 
         n_features = X.shape[1]
-        w = np.zeros(n_features) if w_init is None else w_init
+        w = np.zeros(n_features + self.fit_intercept) if w_init is None else w_init
         jac = s_jac if issparse(X) else d_jac
         p_objs_out = []
 

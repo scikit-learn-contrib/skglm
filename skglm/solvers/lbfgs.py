@@ -51,45 +51,39 @@ class LBFGS(BaseSolver):
             datafit.initialize(X, y)
 
         def objective(w):
+            w_features = w[:n_features]
+            Xw = X @ w_features
             if self.fit_intercept:
-                Xw = X @ w[:-1] + w[-1]
-                datafit_value = datafit.value(y, w[:-1], Xw)
-                penalty_value = penalty.value(w[:-1])
-            else:
-                Xw = X @ w
-                datafit_value = datafit.value(y, w, Xw)
-                penalty_value = penalty.value(w)
-
+                Xw += w[-1]
+            datafit_value = datafit.value(y, w_features, Xw)
+            penalty_value = penalty.value(w_features)
             return datafit_value + penalty_value
 
         def d_jac(w):
+            w_features = w[:n_features]
+            Xw = X @ w_features
             if self.fit_intercept:
-                Xw = X @ w[:-1] + w[-1]
-                datafit_grad = datafit.gradient(X, y, Xw)
-                penalty_grad = penalty.gradient(w[:-1])
-                intercept_grad = datafit.intercept_update_step(y, Xw)
+                Xw += w[-1]
+            datafit_grad = datafit.gradient(X, y, Xw)
+            penalty_grad = penalty.gradient(w_features)
+            if self.fit_intercept:
+                intercept_grad = datafit.raw_grad(y, Xw).sum()
                 return np.concatenate([datafit_grad + penalty_grad, [intercept_grad]])
             else:
-                Xw = X @ w
-                datafit_grad = datafit.gradient(X, y, Xw)
-                penalty_grad = penalty.gradient(w)
-
                 return datafit_grad + penalty_grad
 
         def s_jac(w):
+            w_features = w[:n_features]
+            Xw = X @ w_features
             if self.fit_intercept:
-                Xw = X @ w[:-1] + w[-1]
-                datafit_grad = datafit.gradient_sparse(
-                    X.data, X.indptr, X.indices, y, Xw)
-                penalty_grad = penalty.gradient(w[:-1])
-                intercept_grad = datafit.intercept_update_step(y, Xw)
+                Xw += w[-1]
+            datafit_grad = datafit.gradient_sparse(
+                X.data, X.indptr, X.indices, y, Xw)
+            penalty_grad = penalty.gradient(w_features)
+            if self.fit_intercept:
+                intercept_grad = datafit.raw_grad(y, Xw).sum()
                 return np.concatenate([datafit_grad + penalty_grad, [intercept_grad]])
             else:
-                Xw = X @ w
-                datafit_grad = datafit.gradient_sparse(
-                    X.data, X.indptr, X.indices, y, Xw)
-                penalty_grad = penalty.gradient(w)
-
                 return datafit_grad + penalty_grad
 
         def callback_post_iter(w_k):

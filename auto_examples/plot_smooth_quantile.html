@@ -16,7 +16,7 @@
 <meta property="og:image:alt" content="skglm" />
 <meta name="description" content="This example compares sklearn’s standard quantile regression with skglm’s smooth approximation. Skglm’s quantile regression uses a smooth Huber-like approximation (quadratic near zero, linear in the tails) to replace the non-differentiable pinball..." />
 
-    <title>Smooth Quantile Regression with QuantileHuber &#8212; skglm 0.5dev documentation</title>
+    <title>Smooth Quantile Regression with QuantileHuber &#8212; skglm 0.6dev documentation</title>
   
   
   
@@ -53,7 +53,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=22624279"></script>
+    <script src="../_static/documentation_options.js?v=b01d9c92"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -80,7 +80,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.5dev" />
+  <meta name="docsearch:version" content="0.6dev" />
 <link rel="preload" as="image" href="../_static/images/landingpage/hero.webp" type="image/webp">
 <link rel="icon" type="image/svg+xml" href="../_static/images/logo.svg">
 
@@ -152,8 +152,8 @@
       
     
     
-    <img src="../_static/logo.svg" class="logo__image only-light" alt="skglm 0.5dev documentation - Home"/>
-    <img src="../_static/logo.svg" class="logo__image only-dark pst-js-only" alt="skglm 0.5dev documentation - Home"/>
+    <img src="../_static/logo.svg" class="logo__image only-light" alt="skglm 0.6dev documentation - Home"/>
+    <img src="../_static/logo.svg" class="logo__image only-dark pst-js-only" alt="skglm 0.6dev documentation - Home"/>
   
   
 </a></div>
@@ -555,8 +555,8 @@ likely faster on small datasets.</p>
 </div>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Method          Coverage   Time (s)   Pinball Loss
 --------------------------------------------------
-Sklearn         0.799      0.063      28.2682
-SmoothQuantile  0.798      1.949      28.2699
+Sklearn         0.799      0.058      28.2682
+SmoothQuantile  0.798      2.010      28.2699
 </pre></div>
 </div>
 </section>
@@ -617,7 +617,7 @@ loss function approaches the standard pinball loss.
 The right plot reveals the key advantage: gradients transition smoothly through
 zero, unlike standard quantile regression which has a kink. This smoothing
 enables fast convergence with gradient-based solvers.</p>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 2.293 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 2.362 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-smooth-quantile-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/3dae5605b3caa47ab8a168661856def6/plot_smooth_quantile.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_smooth_quantile.ipynb</span></code></a></p>

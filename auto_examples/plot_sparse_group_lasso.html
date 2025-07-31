@@ -16,7 +16,7 @@
 <meta property="og:image:alt" content="skglm" />
 <meta name="description" content="Scikit-learn is missing a Sparse Group Lasso regression estimator. We show how to implement one with skglm. Model creation: combination of penalty, datafit and solver. penalty: Train the model Some groups are fully 0, and inside non zero groups, s..." />
 
-    <title>Fast Sparse Group Lasso in python &#8212; skglm 0.5dev documentation</title>
+    <title>Fast Sparse Group Lasso in python &#8212; skglm 0.6dev documentation</title>
   
   
   
@@ -53,7 +53,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=22624279"></script>
+    <script src="../_static/documentation_options.js?v=b01d9c92"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -80,7 +80,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.5dev" />
+  <meta name="docsearch:version" content="0.6dev" />
 <link rel="preload" as="image" href="../_static/images/landingpage/hero.webp" type="image/webp">
 <link rel="icon" type="image/svg+xml" href="../_static/images/logo.svg">
 
@@ -152,8 +152,8 @@
       
     
     
-    <img src="../_static/logo.svg" class="logo__image only-light" alt="skglm 0.5dev documentation - Home"/>
-    <img src="../_static/logo.svg" class="logo__image only-dark pst-js-only" alt="skglm 0.5dev documentation - Home"/>
+    <img src="../_static/logo.svg" class="logo__image only-light" alt="skglm 0.6dev documentation - Home"/>
+    <img src="../_static/logo.svg" class="logo__image only-dark pst-js-only" alt="skglm 0.6dev documentation - Home"/>
   
   
 </a></div>
@@ -1029,7 +1029,7 @@ div.sk-label-container:hover .sk-estimator-doc-link.fitted:hover,
                           this.parentElement.nextElementSibling)"
             ></i></td>
             <td class="param">datafit&nbsp;</td>
-            <td class="value">&lt;skglm.datafi...x7fdacc4c6b90&gt;</td>
+            <td class="value">&lt;skglm.datafi...x7f18c4d51bd0&gt;</td>
         </tr>
 
 
@@ -1039,7 +1039,7 @@ div.sk-label-container:hover .sk-estimator-doc-link.fitted:hover,
                           this.parentElement.nextElementSibling)"
             ></i></td>
             <td class="param">penalty&nbsp;</td>
-            <td class="value">&lt;skglm.penalt...x7fdacc2ab0a0&gt;</td>
+            <td class="value">&lt;skglm.penalt...x7f18c64b9b40&gt;</td>
         </tr>
 
 
@@ -1049,7 +1049,7 @@ div.sk-label-container:hover .sk-estimator-doc-link.fitted:hover,
                           this.parentElement.nextElementSibling)"
             ></i></td>
             <td class="param">solver&nbsp;</td>
-            <td class="value">&lt;skglm.solver...x7fdacc4c7280&gt;</td>
+            <td class="value">&lt;skglm.solver...x7f18c4d520e0&gt;</td>
         </tr>
 
 
@@ -1181,10 +1181,10 @@ some values are 0 too</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">yticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_groups</span><span class="p">));</span>
 </pre></div>
 </div>
-<img src="../_images/sphx_glr_plot_sparse_group_lasso_001.png" srcset="../_images/sphx_glr_plot_sparse_group_lasso_001.png" alt="Non zero values (in black) in model coefficients" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>([&lt;matplotlib.axis.YTick object at 0x7fdac5c09fc0&gt;, &lt;matplotlib.axis.YTick object at 0x7fdac5c0abf0&gt;, &lt;matplotlib.axis.YTick object at 0x7fdac59e6950&gt;], [Text(0, 0, &#39;0&#39;), Text(0, 1, &#39;1&#39;), Text(0, 2, &#39;2&#39;)])
+<img src="../_images/sphx_glr_plot_sparse_group_lasso_001.png" srcset="../_images/sphx_glr_plot_sparse_group_lasso_001.png" alt="Non zero values (in black) in model coefficients" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>([&lt;matplotlib.axis.YTick object at 0x7f18c5187820&gt;, &lt;matplotlib.axis.YTick object at 0x7f18c5186ce0&gt;, &lt;matplotlib.axis.YTick object at 0x7f18c4c5a350&gt;], [Text(0, 0, &#39;0&#39;), Text(0, 1, &#39;1&#39;), Text(0, 2, &#39;2&#39;)])
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 4.358 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 4.385 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-sparse-group-lasso-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/5c80f1f9f9b119b18c74f23b9d54985c/plot_sparse_group_lasso.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_sparse_group_lasso.ipynb</span></code></a></p>

@@ -11,12 +11,12 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://contrib.scikit-learn.org/skglm/auto_examples/plot_compare_time.html" />
 <meta property="og:site_name" content="skglm" />
-<meta property="og:description" content="Compare time to solve large scale Lasso problems with scikit-learn., Total running time of the script:(1 minutes 4.305 seconds) Download Jupyter notebook: plot_compare_time.ipynb Download Python source code: plot_compare_time.py Download zipped: p..." />
+<meta property="og:description" content="Compare time to solve large scale Lasso problems with scikit-learn., Total running time of the script:(1 minutes 0.790 seconds) Download Jupyter notebook: plot_compare_time.ipynb Download Python source code: plot_compare_time.py Download zipped: p..." />
 <meta property="og:image" content="https://contrib.scikit-learn.org/skglm/_static/images/logo.svg" />
 <meta property="og:image:alt" content="skglm" />
-<meta name="description" content="Compare time to solve large scale Lasso problems with scikit-learn., Total running time of the script:(1 minutes 4.305 seconds) Download Jupyter notebook: plot_compare_time.ipynb Download Python source code: plot_compare_time.py Download zipped: p..." />
+<meta name="description" content="Compare time to solve large scale Lasso problems with scikit-learn., Total running time of the script:(1 minutes 0.790 seconds) Download Jupyter notebook: plot_compare_time.ipynb Download Python source code: plot_compare_time.py Download zipped: p..." />
 
-    <title>Timing comparison with scikit-learn for Lasso &#8212; skglm 0.5dev documentation</title>
+    <title>Timing comparison with scikit-learn for Lasso &#8212; skglm 0.6dev documentation</title>
   
   
   
@@ -53,7 +53,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=22624279"></script>
+    <script src="../_static/documentation_options.js?v=b01d9c92"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -80,7 +80,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.5dev" />
+  <meta name="docsearch:version" content="0.6dev" />
 <link rel="preload" as="image" href="../_static/images/landingpage/hero.webp" type="image/webp">
 <link rel="icon" type="image/svg+xml" href="../_static/images/logo.svg">
 
@@ -152,8 +152,8 @@
       
     
     
-    <img src="../_static/logo.svg" class="logo__image only-light" alt="skglm 0.5dev documentation - Home"/>
-    <img src="../_static/logo.svg" class="logo__image only-dark pst-js-only" alt="skglm 0.5dev documentation - Home"/>
+    <img src="../_static/logo.svg" class="logo__image only-light" alt="skglm 0.6dev documentation - Home"/>
+    <img src="../_static/logo.svg" class="logo__image only-dark pst-js-only" alt="skglm 0.6dev documentation - Home"/>
   
   
 </a></div>
@@ -487,23 +487,22 @@ to download the full example code.</p>
 <span id="sphx-glr-auto-examples-plot-compare-time-py"></span><h1>Timing comparison with scikit-learn for Lasso<a class="headerlink" href="#timing-comparison-with-scikit-learn-for-lasso" title="Link to this heading">#</a></h1>
 <p>Compare time to solve large scale Lasso problems with scikit-learn.</p>
 <img src="../_images/sphx_glr_plot_compare_time_001.png" srcset="../_images/sphx_glr_plot_compare_time_001.png" alt="lasso, enet" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>file_sizes:   0%|                                   | 0.00/26.8M [00:00&lt;?, ?B/s]
-file_sizes:   0%|                           | 24.6k/26.8M [00:00&lt;04:24, 101kB/s]
-file_sizes:   0%|                          | 41.0k/26.8M [00:00&lt;05:29, 81.2kB/s]
-file_sizes:   0%|                           | 90.1k/26.8M [00:00&lt;03:15, 136kB/s]
-file_sizes:   1%|▏                           | 139k/26.8M [00:00&lt;02:44, 162kB/s]
-file_sizes:   1%|▎                           | 254k/26.8M [00:01&lt;01:37, 273kB/s]
-file_sizes:   3%|▊                           | 745k/26.8M [00:01&lt;00:30, 865kB/s]
-file_sizes:   4%|█                         | 1.14M/26.8M [00:01&lt;00:23, 1.11MB/s]
-file_sizes:   8%|█▉                        | 2.06M/26.8M [00:01&lt;00:12, 1.96MB/s]
-file_sizes:  15%|███▊                      | 3.89M/26.8M [00:02&lt;00:08, 2.82MB/s]
-file_sizes:  36%|█████████▍                | 9.66M/26.8M [00:02&lt;00:02, 7.96MB/s]
-file_sizes:  40%|██████████▍               | 10.7M/26.8M [00:02&lt;00:02, 7.11MB/s]
-file_sizes:  50%|████████████▉             | 13.3M/26.8M [00:03&lt;00:01, 8.13MB/s]
-file_sizes:  60%|███████████████▍          | 15.9M/26.8M [00:03&lt;00:01, 8.88MB/s]
-file_sizes:  69%|██████████████████        | 18.6M/26.8M [00:03&lt;00:00, 9.43MB/s]
-file_sizes:  83%|█████████████████████▌    | 22.2M/26.8M [00:03&lt;00:00, 11.0MB/s]
-file_sizes:  91%|███████████████████████▋  | 24.3M/26.8M [00:04&lt;00:00, 10.4MB/s]
-file_sizes: 100%|██████████████████████████| 26.8M/26.8M [00:04&lt;00:00, 6.41MB/s]
+file_sizes:   0%|                           | 24.6k/26.8M [00:00&lt;04:13, 106kB/s]
+file_sizes:   0%|                           | 49.2k/26.8M [00:00&lt;04:13, 106kB/s]
+file_sizes:   0%|                            | 106k/26.8M [00:00&lt;02:37, 169kB/s]
+file_sizes:   1%|▏                           | 221k/26.8M [00:00&lt;01:29, 296kB/s]
+file_sizes:   2%|▍                           | 451k/26.8M [00:01&lt;00:48, 544kB/s]
+file_sizes:   3%|▉                          | 909k/26.8M [00:01&lt;00:25, 1.03MB/s]
+file_sizes:   7%|█▊                        | 1.83M/26.8M [00:01&lt;00:12, 1.97MB/s]
+file_sizes:  14%|███▌                      | 3.66M/26.8M [00:01&lt;00:06, 3.84MB/s]
+file_sizes:  20%|█████                     | 5.23M/26.8M [00:02&lt;00:04, 4.73MB/s]
+file_sizes:  33%|████████▋                 | 8.90M/26.8M [00:02&lt;00:02, 8.10MB/s]
+file_sizes:  45%|███████████▋              | 12.1M/26.8M [00:02&lt;00:01, 9.75MB/s]
+file_sizes:  59%|███████████████▎          | 15.7M/26.8M [00:02&lt;00:00, 11.5MB/s]
+file_sizes:  74%|███████████████████▎      | 19.9M/26.8M [00:03&lt;00:00, 12.9MB/s]
+file_sizes:  84%|█████████████████████▉    | 22.5M/26.8M [00:03&lt;00:00, 13.0MB/s]
+file_sizes: 100%|█████████████████████████▉| 26.7M/26.8M [00:03&lt;00:00, 13.6MB/s]
+file_sizes: 100%|██████████████████████████| 26.8M/26.8M [00:03&lt;00:00, 7.52MB/s]
 </pre></div>
 </div>
 <div class="line-block">
@@ -595,7 +594,7 @@ file_sizes: 100%|█████████████████████
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 4.305 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 0.790 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-compare-time-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/2c9537288a512ce6fe5c8f920df56f33/plot_compare_time.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_compare_time.ipynb</span></code></a></p>

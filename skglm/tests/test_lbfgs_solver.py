@@ -12,7 +12,8 @@ from skglm.utils.data import make_correlated_data, make_dummy_survival_data
 
 
 @pytest.mark.parametrize("X_sparse", [True, False])
-def test_lbfgs_L2_logreg(X_sparse):
+@pytest.mark.parametrize("fit_intercept", [True, False])
+def test_lbfgs_L2_logreg(X_sparse, fit_intercept):
     reg = 1.0
     X_density = 1.0 if not X_sparse else 0.5
     n_samples, n_features = 100, 50
@@ -28,17 +29,21 @@ def test_lbfgs_L2_logreg(X_sparse):
     # fit L-BFGS
     datafit = Logistic()
     penalty = L2(reg)
-    w, *_ = LBFGS(tol=1e-12).solve(X, y, datafit, penalty)
+    w, *_ = LBFGS(tol=1e-12, fit_intercept=fit_intercept).solve(X, y, datafit, penalty)
 
     # fit scikit learn
     estimator = LogisticRegression(
         penalty="l2",
         C=1 / (n_samples * reg),
-        fit_intercept=False,
+        fit_intercept=fit_intercept,
         tol=1e-12,
     ).fit(X, y)
 
-    np.testing.assert_allclose(w, estimator.coef_.flatten(), atol=1e-5)
+    if fit_intercept:
+        np.testing.assert_allclose(w[:-1], estimator.coef_.flatten(), atol=1e-5)
+        np.testing.assert_allclose(w[-1], estimator.intercept_[0], atol=1e-5)
+    else:
+        np.testing.assert_allclose(w, estimator.coef_.flatten(), atol=1e-5)
 
 
 @pytest.mark.parametrize("use_efron", [True, False])

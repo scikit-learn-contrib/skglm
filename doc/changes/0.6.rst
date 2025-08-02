@@ -2,3 +2,5 @@
 
 Version 0.6 (in progress)
 -------------------------
+
+- :class:`skglm.solvers.LBFGS` now supports fitting an intercept with the `fit_intercept` parameter.

@@ -611,7 +611,7 @@ Train the model
                               this.parentElement.nextElementSibling)"
                 ></i></td>
                 <td class="param">datafit&nbsp;</td>
-                <td class="value">&lt;skglm.datafi...x7f18c5c10370&gt;</td>
+                <td class="value">&lt;skglm.datafi...x7ff0fd2ad6f0&gt;</td>
             </tr>
     
 
@@ -621,7 +621,7 @@ Train the model
                               this.parentElement.nextElementSibling)"
                 ></i></td>
                 <td class="param">penalty&nbsp;</td>
-                <td class="value">&lt;skglm.penalt...x7f18c5c11c30&gt;</td>
+                <td class="value">&lt;skglm.penalt...x7ff0fd2adff0&gt;</td>
             </tr>
     
 
@@ -631,7 +631,7 @@ Train the model
                               this.parentElement.nextElementSibling)"
                 ></i></td>
                 <td class="param">solver&nbsp;</td>
-                <td class="value">&lt;skglm.solver...x7f18c5c10340&gt;</td>
+                <td class="value">&lt;skglm.solver...x7ff0fd2ac070&gt;</td>
             </tr>
     
 
@@ -819,7 +819,7 @@ illustrating how Group Logistic Regression enforces sparsity at the group level.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 11.476 seconds)
+   **Total running time of the script:** (0 minutes 9.499 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_group_logistic_regression.py:

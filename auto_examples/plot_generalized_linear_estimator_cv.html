@@ -530,8 +530,8 @@ the optimal regularization parameter for generalized linear models.</p>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Non-zero coefficients: </span><span class="si">{</span><span class="n">n_nonzero</span><span class="si">}</span><span class="s2"> (true: </span><span class="si">{</span><span class="n">n_true_nonzero</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Best alpha: 0.217
-Non-zero coefficients: 79 (true: 60)
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Best alpha: 0.093
+Non-zero coefficients: 106 (true: 60)
 </pre></div>
 </div>
 </section>
@@ -617,14 +617,14 @@ highlighting a sparse subset of key predictors.</p>
     <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><a href="../generated/skglm.GeneralizedLinearEstimatorCV.html#skglm.GeneralizedLinearEstimatorCV" title="skglm.GeneralizedLinearEstimatorCV" class="sphx-glr-backref-module-skglm sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">estimator</span></a><span class="o">.</span><span class="n">coef_</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">true_coef</span><span class="p">,</span><span class="w"> </span><span class="nb">ord</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<img src="../_images/sphx_glr_plot_generalized_linear_estimator_cv_002.png" srcset="../_images/sphx_glr_plot_generalized_linear_estimator_cv_002.png" alt="Recovery of True Coefficients" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Distance at CV-selected alpha: 39.973
+<img src="../_images/sphx_glr_plot_generalized_linear_estimator_cv_002.png" srcset="../_images/sphx_glr_plot_generalized_linear_estimator_cv_002.png" alt="Recovery of True Coefficients" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Distance at CV-selected alpha: 42.600
 </pre></div>
 </div>
 <p>The U-shaped curve shows two failure modes: small alpha doesn’t induce
 enough sparsity (keeping noisy/irrelevant features), while large alpha
 overshrinks all coefficients including the true signals. Cross-validation
 finds a good balance without needing access to the ground truth.</p>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 10.057 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 10.099 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-generalized-linear-estimator-cv-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/1076fcaa8b9888dc13df02cafb771de3/plot_generalized_linear_estimator_cv.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_generalized_linear_estimator_cv.ipynb</span></code></a></p>

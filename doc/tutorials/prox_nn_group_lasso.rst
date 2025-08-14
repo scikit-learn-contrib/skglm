@@ -68,7 +68,6 @@ Using the Moreau decomposition, Equations :eq:`fenchel` and :eq:`prox_projection
 
 A similar formula can be derived for the group Lasso with nonnegative constraints.
 
-
 Proximity operator of the group Lasso with positivity constraints
 =================================================================
 
@@ -135,8 +134,6 @@ and thus, combined with Equations :eq:`prox_projection_nn_Sc` and :eq:`prox_proj
     (1 - \frac{\lambda}{\norm{x_S}})_{+} x_S
     .
 
-
-
 .. _subdiff_positive_group_lasso:
 
 Subdifferential of the positive Group Lasso penalty
@@ -184,7 +181,7 @@ Minimizing over :math:`n` then over :math:`u`, thanks to [`1 <https://math.stack
 where :math:`v^+` is :math:`v` restricted to its positive coordinates.
 Intuitively, it is clear that if :math:`v_i < 0`, we can cancel it exactly in the objective function by taking :math:`n_i = - v_i` and :math:`u_i = 0`; on the other hand, if :math:`v_i>0`, taking a non zero :math:`n_i` will only increase the quantity that :math:`u_i` needs to bring closer to 0.
 
-For a rigorous derivation of this, introduce the Lagrangian on a squared objective
+**Rigorous derivation:** Consider the Lagrangian (where we have squared the objective and the :math:`u` constraint for convenience when taking derivatives):
 
 .. math::
 
@@ -192,12 +189,33 @@ For a rigorous derivation of this, introduce the Lagrangian on a squared objecti
     \frac{1}{2}\norm{u + n - v}^2 + \nu(\frac{1}{2} \norm{u}^2 - \lambda^2 / 2) + \langle \mu, n \rangle
     ,
 
-and write down the optimality condition with respect to :math:`u` and :math:`n`.
-Treat the case :math:`nu = 0` separately; in the other case show that :\math:`u` must be positive, and that :math:`v = (1 + \nu) u + n`, together with :math:`u = \mu / \nu` and complementary slackness, to reach the conclusion.
+with a positive scalar :math:`\nu` and a positive vector :math:`\mu`.
+
+Slater's condition is met (assuming :math:`\lambda > 0`), so the KKT conditions are necessary and sufficient. Considering the optimality with respect to :math:`u` and :math:`n` respectively, we obtain:
+
+.. math::
+
+    u + n - v + \nu u &= 0 \\
+    u + n - v + \mu &= 0
+
+Hence :math:`\mu = \nu u`. If :math:`\nu = 0`, then :math:`v = u + n` and the optimal objective is 0. Else, :math:`\nu > 0` and :math:`\mu \geq 0`, so any solution :math:`u = \frac{1}{\nu}\mu` must be positive. By complementary slackness, :math:`\mu_j n_j = 0 = \nu u_j n_j`. So :math:`u` and :math:`n` have disjoint supports.
+
+Since :math:`v = (1 + \nu)u + n`, it is clear that:
+
+- If :math:`v_j > 0`, it is :math:`u_j` which is nonzero, equal to :math:`v_j/(1 + \nu)`
+- If :math:`v_j < 0`, it is :math:`n_j` which is nonzero and equal to :math:`v_j`
+
+We have :math:`v_j > 0 \Rightarrow n_j = 0` and :math:`v_j < 0 \Rightarrow u_j = 0`, so we can rewrite the problem as:
+
+.. math::
+
+    \min_{u} \sum_{j: v_j > 0} (u_j - v_j)^2 \quad \text{s.t.} \quad \sum_{j: v_j > 0} u_j^2 \leq \lambda^2
+
+which is the projection problem yielding the final result.
 
 Case :math:`|| w  || \ne 0`
 ---------------------------
-The subdifferential in that case is :math:`\lambda w / {|| w ||} + C_1 \times \ldots \times C_g` where :math:`C_j = {0}` if :math:`w_j > 0` and :math:`C_j = mathbb{R}_-` otherwise (:math:`w_j =0`).
+The subdifferential in that case is :math:`\lambda w / {|| w ||} + C_1 \times \ldots \times C_g` where :math:`C_j = {0}` if :math:`w_j > 0` and :math:`C_j = \mathbb{R}_-` otherwise (:math:`w_j =0`).
 
 By letting :math:`p` denotes the projection of :math:`v` onto this set,
 one has
@@ -216,10 +234,9 @@ The distance to the subdifferential is then:
 
 .. math::
 
-    D(v) = || v - p || = \sqrt{\sum_{j, w_j > 0} (v_j - \lambda \frac{w_j}{||w||})^2 + \sum_{j, w_j=0} \max(0, v_j)^2
+    D(v) = || v - p || = \sqrt{\sum_{j, w_j > 0} (v_j - \lambda \frac{w_j}{||w||})^2 + \sum_{j, w_j=0} \max(0, v_j)^2}
 
 since :math:`v_j - \min(v_j, 0) = v_j + \max(-v_j, 0) = \max(0, v_j)`.
-
 
 
 References

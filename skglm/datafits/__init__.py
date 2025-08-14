@@ -6,9 +6,9 @@ from .group import QuadraticGroup, LogisticGroup, PoissonGroup
 
 
 __all__ = [
-    BaseDatafit, BaseMultitaskDatafit,
-    Quadratic, QuadraticSVC, Logistic, Huber, Poisson, Gamma, Cox,
-    QuadraticMultiTask,
-    QuadraticGroup, LogisticGroup, PoissonGroup, WeightedQuadratic,
-    QuadraticHessian
+    'BaseDatafit', 'BaseMultitaskDatafit',
+    'Quadratic', 'QuadraticSVC', 'Logistic', 'Huber', 'Poisson', 'Gamma', 'Cox',
+    'QuadraticMultiTask',
+    'QuadraticGroup', 'LogisticGroup', 'PoissonGroup', 'WeightedQuadratic',
+    'QuadraticHessian'
 ]

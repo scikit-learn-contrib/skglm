@@ -84,7 +84,7 @@ class PDCD_WS(BaseSolver):
 
     def __init__(
         self, max_iter=1000, max_epochs=1000, dual_init=None, p0=100, tol=1e-6,
-        fit_intercept=False, warm_start=True, verbose=False
+        fit_intercept=False, warm_start=True, verbose=0
     ):
         self.max_iter = max_iter
         self.max_epochs = max_epochs
@@ -99,11 +99,22 @@ class PDCD_WS(BaseSolver):
         n_samples, n_features = X.shape
 
         # init steps
-        # Despite violating the conditions mentioned in [1]
-        # this choice of steps yield in practice a convergent algorithm
-        # with better speed of convergence
-        dual_step = 1 / norm(X, ord=2)
-        primal_steps = 1 / norm(X, axis=0, ord=2)
+        # choose steps to verify condition: Assumption 2.1 e)
+        scale = np.sqrt(2 * n_features)
+        dual_step = 1 / (norm(X, ord=2) * scale)
+        primal_steps = 1 / (norm(X, axis=0, ord=2) * scale)
+
+        # NOTE: primal and dual steps verify condition on steps when multiplied/divided
+        # by an arbitrary positive constant
+        # HACK: balance primal and dual variable: take bigger steps
+        # in the space with highest number of variable
+        ratio = n_samples / n_features
+        if n_samples > n_features:
+            dual_step *= ratio
+            primal_steps /= ratio
+        else:
+            dual_step /= ratio
+            primal_steps *= ratio
 
         # primal vars
         w = np.zeros(n_features) if w_init is None else w_init

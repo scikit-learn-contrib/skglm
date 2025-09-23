@@ -455,7 +455,9 @@ class WeightedL1GroupL2(BasePenalty):
 
     def prox_1group(self, value, stepsize, g):
         """Compute the proximal operator of group ``g``."""
-        res = ST_vec(value, self.alpha * stepsize * self.weights_features[g])
+        grp_ptr, grp_indices = self.grp_ptr, self.grp_indices
+        grp_g_indices = grp_indices[grp_ptr[g]: grp_ptr[g+1]]
+        res = ST_vec(value, self.alpha * stepsize * self.weights_features[grp_g_indices])
         return BST(res, self.alpha * stepsize * self.weights_groups[g])
 
     def is_penalized(self, n_groups):

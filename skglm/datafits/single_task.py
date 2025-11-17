@@ -96,11 +96,11 @@ class Quadratic(BaseDatafit):
         return X.T @ (Xw - y) / len(y)
 
     def raw_grad(self, y, Xw):
-        """Compute gradient of datafit w.r.t ``Xw``."""
+        """Compute gradient of datafit w.r.t. ``Xw``."""
         return (Xw - y) / len(y)
 
     def raw_hessian(self, y, Xw):
-        """Compute Hessian of datafit w.r.t ``Xw``."""
+        """Compute Hessian of datafit w.r.t. ``Xw``."""
         return np.ones(len(y)) / len(y)
 
     def full_grad_sparse(
@@ -304,11 +304,11 @@ class Logistic(BaseDatafit):
         return dict()
 
     def raw_grad(self, y, Xw):
-        """Compute gradient of datafit w.r.t ``Xw``."""
+        """Compute gradient of datafit w.r.t. ``Xw``."""
         return -y / (1 + np.exp(y * Xw)) / len(y)
 
     def raw_hessian(self, y, Xw):
-        """Compute Hessian of datafit w.r.t ``Xw``."""
+        """Compute Hessian of datafit w.r.t. ``Xw``."""
         exp_minus_yXw = np.exp(-y * Xw)
         return exp_minus_yXw / (1 + exp_minus_yXw) ** 2 / len(y)
 
@@ -613,11 +613,11 @@ class Poisson(BaseDatafit):
                 "when fitting a Poisson model.")
 
     def raw_grad(self, y, Xw):
-        """Compute gradient of datafit w.r.t ``Xw``."""
+        """Compute gradient of datafit w.r.t. ``Xw``."""
         return (np.exp(Xw) - y) / len(y)
 
     def raw_hessian(self, y, Xw):
-        """Compute Hessian of datafit w.r.t ``Xw``."""
+        """Compute Hessian of datafit w.r.t. ``Xw``."""
         return np.exp(Xw) / len(y)
 
     def value(self, y, w, Xw):

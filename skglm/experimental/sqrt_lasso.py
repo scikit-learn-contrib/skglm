@@ -34,7 +34,7 @@ class SqrtQuadratic(BaseDatafit):
         return np.linalg.norm(y - Xw)
 
     def raw_grad(self, y, Xw):
-        """Compute gradient of datafit w.r.t ``Xw``.
+        """Compute gradient of datafit w.r.t. ``Xw``.
 
         Raises
         ------

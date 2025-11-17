@@ -1613,7 +1613,7 @@ class GroupLasso(RegressorMixin, LinearModel):
     tol : float, optional (default=1e-4)
         Stopping criterion for the optimization.
 
-    positive : bool, optional (defautl=False)
+    positive : bool, optional (default=False)
         When set to ``True``, forces the coefficient vector to be positive.
 
     fit_intercept : bool, optional (default=True)

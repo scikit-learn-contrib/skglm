@@ -178,16 +178,16 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
     n_features_ws = sum([penalty.grp_ptr[g+1] - penalty.grp_ptr[g] for g in ws])
     raw_hess = datafit.raw_hessian(y, Xw_epoch)
 
-    lipchitz = np.zeros(len(ws))
+    lipschitz = np.zeros(len(ws))
     for idx, g in enumerate(ws):
         grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
         # compute efficiently (few multiplications and avoid copying the cols of X)
         # norm(X[:, grp_g_indices].T @ np.diag(raw_hess) @ X[:, grp_g_indices], ord=2)
-        lipchitz[idx] = norm(_diag_times_X_g(
+        lipschitz[idx] = norm(_diag_times_X_g(
             np.sqrt(raw_hess), X, grp_g_indices), ord=2)**2
 
     if fit_intercept:
-        lipchitz_intercept = np.sum(raw_hess)
+        lipschitz_intercept = np.sum(raw_hess)
         grad_intercept = np.sum(datafit.raw_grad(y, Xw_epoch))
 
     # for a less costly stopping criterion, we do no compute the exact gradient,
@@ -200,7 +200,7 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
         ptr = 0
         for idx, g in enumerate(ws):
             # skip when X[:, grp_g_indices] == 0
-            if lipchitz[idx] == 0.:
+            if lipschitz[idx] == 0.:
                 continue
 
             grp_g_indices = grp_indices[grp_ptr[g]:grp_ptr[g+1]]
@@ -212,7 +212,7 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
                 X, raw_hess * X_delta_w_ws, grp_g_indices)
 
             old_w_ws_g = w_ws[range_grp_g].copy()
-            stepsize = 1 / lipchitz[idx]
+            stepsize = 1 / lipschitz[idx]
 
             w_ws[range_grp_g] = penalty.prox_1group(
                 old_w_ws_g - stepsize * past_grads[range_grp_g], stepsize, g)
@@ -228,7 +228,7 @@ def _descent_direction(X, y, w_epoch, Xw_epoch, fit_intercept, grad_ws, datafit,
         if fit_intercept:
             past_grads_intercept = grad_intercept + raw_hess @ X_delta_w_ws
             old_intercept = w_ws[-1]
-            w_ws[-1] -= past_grads_intercept / lipchitz_intercept
+            w_ws[-1] -= past_grads_intercept / lipschitz_intercept
 
             if w_ws[-1] != old_intercept:
                 X_delta_w_ws += w_ws[-1] - old_intercept

@@ -104,7 +104,7 @@ html_baseurl = 'https://contrib.scikit-learn.org/skglm/'
 
 extensions.append("sphinxext.opengraph")
 
-# OpenGraph config
+# Open Graph config
 ogp_site_url = html_baseurl
 ogp_image = "https://contrib.scikit-learn.org/skglm/_static/images/logo.svg"
 ogp_description_length = 250

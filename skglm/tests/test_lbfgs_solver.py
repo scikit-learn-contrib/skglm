@@ -66,7 +66,7 @@ def test_L2_Cox(use_efron):
     datafit = Cox(use_efron)
     penalty = L2(alpha)
 
-    # XXX: intialize is needed here although it is done in LBFGS
+    # XXX: initialize is needed here although it is done in LBFGS
     # is used to evaluate the objective
     datafit.initialize(X, y)
     w, *_ = LBFGS().solve(X, y, datafit, penalty)

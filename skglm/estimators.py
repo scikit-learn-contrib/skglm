@@ -331,7 +331,7 @@ class Lasso(RegressorMixin, LinearModel):
 
     warm_start : bool, optional (default=False)
         When set to ``True``, reuse the solution of the previous call to fit as
-        initialization, otherwise, just erase the previous solution.
+        initialization; otherwise, just erase the previous solution.
 
     ws_strategy : str
         The score used to build the working set. Can be ``"fixpoint"`` or ``"subdiff"``.
@@ -487,7 +487,7 @@ class WeightedLasso(RegressorMixin, LinearModel):
 
     warm_start : bool, optional (default=False)
         When set to ``True``, reuse the solution of the previous call to fit as
-        initialization, otherwise, just erase the previous solution.
+        initialization; otherwise, just erase the previous solution.
 
     ws_strategy : str
         The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
@@ -659,7 +659,7 @@ class ElasticNet(RegressorMixin, LinearModel):
 
     warm_start : bool, optional (default=False)
         When set to ``True``, reuse the solution of the previous call to fit as
-        initialization, otherwise, just erase the previous solution.
+        initialization; otherwise, just erase the previous solution.
 
     ws_strategy : str
         The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
@@ -829,7 +829,7 @@ class MCPRegression(RegressorMixin, LinearModel):
 
     warm_start : bool, optional (default=False)
         When set to ``True``, reuse the solution of the previous call to fit as
-        initialization, otherwise, just erase the previous solution.
+        initialization; otherwise, just erase the previous solution.
 
     ws_strategy : str
         The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
@@ -1009,7 +1009,7 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
 
     warm_start : bool, optional (default=False)
         When set to ``True``, reuse the solution of the previous call to fit as
-        initialization, otherwise, just erase the previous solution.
+        initialization; otherwise, just erase the previous solution.
 
     Attributes
     ----------
@@ -1167,7 +1167,7 @@ class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):
 
     warm_start : bool, optional (default=False)
         When set to ``True``, reuse the solution of the previous call to fit as
-        initialization, otherwise, just erase the previous solution.
+        initialization; otherwise, just erase the previous solution.
 
     ws_strategy : str
         The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
@@ -1240,7 +1240,7 @@ class CoxEstimator(LinearModel):
       and the second ``s`` is of censoring.
 
     For L2-regularized Cox (``l1_ratio=0.``) :ref:`LBFGS <skglm.solvers.LBFGS>`
-    is the used solver, otherwise it is :ref:`ProxNewton <skglm.solvers.ProxNewton>`.
+    is the used solver; otherwise, it is :ref:`ProxNewton <skglm.solvers.ProxNewton>`.
 
     Parameters
     ----------
@@ -1428,7 +1428,7 @@ class MultiTaskLasso(RegressorMixin, LinearModel):
 
     warm_start : bool, optional (default=False)
         When set to ``True``, reuse the solution of the previous call to fit as
-        initialization, otherwise, just erase the previous solution.
+        initialization; otherwise, just erase the previous solution.
 
     ws_strategy : str
         The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.
@@ -1621,7 +1621,7 @@ class GroupLasso(RegressorMixin, LinearModel):
 
     warm_start : bool, optional (default=False)
         When set to ``True``, reuse the solution of the previous call to fit as
-        initialization, otherwise, just erase the previous solution.
+        initialization; otherwise, just erase the previous solution.
 
     ws_strategy : str, optional (default="subdiff")
         The score used to build the working set. Can be ``fixpoint`` or ``subdiff``.

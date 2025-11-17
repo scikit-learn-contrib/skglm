@@ -85,7 +85,7 @@ class ProxNewton(BaseSolver):
         if is_sparse:
             X_bundles = (X.data, X.indptr, X.indices)
 
-        # TODO: to be isolated in a seperated method
+        # TODO: to be isolated in a separated method
         if is_sparse:
             datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
         else:

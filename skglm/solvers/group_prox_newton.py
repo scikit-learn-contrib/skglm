@@ -69,7 +69,7 @@ class GroupProxNewton(BaseSolver):
         stop_crit = 0.
         p_objs_out = []
 
-        # TODO: to be isolated in a seperated method
+        # TODO: to be isolated in a separated method
         is_sparse = issparse(X)
         if is_sparse:
             datafit.initialize_sparse(X.data, X.indptr, X.indices, y)

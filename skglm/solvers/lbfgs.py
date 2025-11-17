@@ -43,7 +43,7 @@ class LBFGS(BaseSolver):
 
     def _solve(self, X, y, datafit, penalty, w_init=None, Xw_init=None):
 
-        # TODO: to be isolated in a seperated method
+        # TODO: to be isolated in a separated method
         is_sparse = issparse(X)
         if is_sparse:
             datafit.initialize_sparse(X.data, X.indptr, X.indices, y)

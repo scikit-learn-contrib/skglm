@@ -189,7 +189,7 @@ Gradient and Hessian
 --------------------
 
 Now that we cast the Efron estimate in form similar to :eq:`vectorized-cox-breslow`, the evaluation of gradient and the diagonal upper of the Hessian reduces to subtracting a linear term.
-Algorithm  2 provides an efficient procedure to evaluate :math:`\mathbf{A}^\top v` for some :math:`v` in :math:`\mathbb{R}^n`.
+Algorithm 2 provides an efficient procedure to evaluate :math:`\mathbf{A}^\top v` for some :math:`v` in :math:`\mathbb{R}^n`.
 
 .. image:: /_static/images/cox-tutorial/A_transpose_dot_v.png
     :width: 400

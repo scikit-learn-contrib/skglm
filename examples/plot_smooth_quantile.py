@@ -52,7 +52,7 @@ smooth_time = time.time() - start
 # Coverage: fraction of true values below predictions (should ≈ tau)
 # Pinball loss: standard quantile regression evaluation metric
 #
-# Note: No robust benchmarking conducted yet. The speed advantagous likely only
+# Note: No robust benchmarking conducted yet. The speed advantageous likely only
 # shows on large-scale, high-dimensional datasets. The sklearn implementation is
 # likely faster on small datasets.
 

@@ -59,6 +59,50 @@ def test_log_datafit():
     np.testing.assert_almost_equal(-grad * (y + n_samples * grad), hess)
 
 
+def test_logistic_intercept_newton_step():
+    # The intercept update is a 1D Newton step on
+    #     beta_0 -> F(beta_0, beta) = mean log(1 + exp(-y(X beta + beta_0))).
+    # Check (a) the closed-form matches sum(raw_grad)/sum(raw_hessian), and
+    # (b) iterating the update converges quadratically to the analytic
+    # optimizer log(p/(1-p)) when beta = 0.
+    rng = np.random.RandomState(0)
+    n_samples = 200
+    y = np.where(rng.random(n_samples) < 0.95, 1.0, -1.0)  # mu_0 ~= 0.95
+    p_hat = (y == 1).mean()
+
+    df = Logistic()
+    Xw = np.zeros(n_samples)  # beta = 0, beta_0 = 0
+
+    step = df.intercept_update_step(y, Xw)
+    expected = np.sum(df.raw_grad(y, Xw)) / np.sum(df.raw_hessian(y, Xw))
+    np.testing.assert_allclose(step, expected)
+
+    intercept = 0.0
+    for _ in range(10):
+        intercept -= df.intercept_update_step(y, Xw + intercept)
+    np.testing.assert_allclose(intercept, np.log(p_hat / (1 - p_hat)), rtol=1e-8)
+
+
+def test_logistic_intercept_imbalanced_converges():
+    # Regression test for the Newton intercept update: on a strongly imbalanced
+    # logistic problem the previous gradient-strategy update (step 1/(4n)
+    # scaled gradient) stalled and failed to reach the tolerance within the
+    # default iteration budget. The Newton step converges quickly.
+    from skglm import SparseLogisticRegression
+
+    rng = np.random.RandomState(0)
+    n_samples, n_features = 300, 100
+    X = rng.randn(n_samples, n_features)
+    # mu_0 ~ 0.97
+    y = np.where(rng.random(n_samples) < 0.97, 1.0, -1.0)
+
+    tol = 1e-8
+    est = SparseLogisticRegression(
+        alpha=0.05, tol=tol, fit_intercept=True, max_iter=50,
+    ).fit(X, y)
+    assert est.stop_crit_ < tol
+
+
 def test_poisson():
     try:
         from statsmodels.discrete.discrete_model import Poisson as PoissonRegressor  # noqa

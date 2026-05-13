@@ -28,7 +28,7 @@ Illustrate the modularity of ``skglm`` by using ``GeneralizedLinearEstimator`` w
 
 
 .. image-sg:: /auto_examples/images/sphx_glr_plot_logreg_various_penalties_001.png
-   :alt: MCP F1: 0.600, Elastic Net F1: 0.667
+   :alt: MCP F1: 0.571, Elastic Net F1: 0.625
    :srcset: /auto_examples/images/sphx_glr_plot_logreg_various_penalties_001.png
    :class: sphx-glr-single-img
 
@@ -112,7 +112,7 @@ Illustrate the modularity of ``skglm`` by using ``GeneralizedLinearEstimator`` w
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 9.708 seconds)
+   **Total running time of the script:** (0 minutes 9.372 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_logreg_various_penalties.py:

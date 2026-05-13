@@ -370,7 +370,9 @@ class Logistic(BaseDatafit):
         return grad / len(Xw)
 
     def intercept_update_step(self, y, Xw):
-        return np.mean(- y * sigmoid(- y * Xw)) / 4
+        # Newton step on the 1D intercept subproblem:
+        #     beta_0 <- beta_0 - (sum f'(Xw_i; y_i)) / (sum f''(Xw_i; y_i)).
+        return np.sum(self.raw_grad(y, Xw)) / np.sum(self.raw_hessian(y, Xw))
 
 
 class QuadraticSVC(BaseDatafit):

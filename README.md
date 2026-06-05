@@ -3,7 +3,7 @@
 <img src="doc/_static/images/logo.svg" alt="skglm logo" width="34%" align="center"/>
 
 
-## A fast ⚡ and modular ⚒️ scikit-learn replacement for sparse GLMs
+## A fast ⚡ and modular ⚒️ scikit-learn replacement for regularized GLMs
 
 ![build](https://github.com/scikit-learn-contrib/skglm/workflows/pytest/badge.svg)
 ![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)
@@ -15,7 +15,7 @@
 </section>
 
 
-``skglm`` is a Python package that offers **fast estimators** for sparse Generalized Linear Models (GLMs) that are **100% compatible with ``scikit-learn``**. It is **highly flexible** and supports a wide range of GLMs.
+``skglm`` is a Python package that offers **fast estimators** for regularized Generalized Linear Models (GLMs) that are **100% compatible with ``scikit-learn``**. It is **highly flexible** and supports a wide range of GLMs.
 You get to choose from ``skglm``'s already-made estimators or **customize your own** by combining the available datafits and penalties.
 
 Excited to have a tour on ``skglm`` [documentation](https://contrib.scikit-learn.org/skglm/)?
@@ -45,7 +45,7 @@ Excited to have a tour on ``skglm`` [documentation](https://contrib.scikit-learn
 
 # Why ``skglm``?
 
-``skglm`` is specifically conceived to solve sparse GLMs.
+``skglm`` is specifically conceived to solve regularized GLMs.
 It supports many missing models in ``scikit-learn`` and ensures high performance.
 There are several reasons to opt for ``skglm`` among which:
 

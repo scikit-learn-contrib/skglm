@@ -5,15 +5,16 @@ from numpy.linalg import norm
 from numpy.testing import assert_array_less
 
 from sklearn.linear_model import LinearRegression
+from sklearn.utils import check_random_state
 
 from skglm.datafits import Quadratic, QuadraticMultiTask
 from skglm.penalties import (
-    L1, L1_plus_L2, WeightedL1, MCPenalty, SCAD, IndicatorBox, L0_5, L2_3, SLOPE,
+    L1, L1_plus_L2, WeightedL1, WeightedL1_plus_L2, MCPenalty, SCAD, IndicatorBox,
+    L0_5, L2_3, SLOPE,
     LogSumPenalty, PositiveConstraint, L2_1, L2_05, BlockMCPenalty, BlockSCAD)
 from skglm import GeneralizedLinearEstimator, Lasso
 from skglm.solvers import AndersonCD, MultiTaskBCD, FISTA
 from skglm.utils.data import make_correlated_data
-
 from skglm.utils.prox_funcs import prox_log_sum, _log_sum_prox_val
 
 
@@ -31,10 +32,16 @@ alpha = alpha_max / 1000
 
 tol = 1e-10
 
+rng = check_random_state(0)
+weights_l1 = np.abs(rng.randn(n_features))
+weights_l2 = np.abs(rng.randn(n_features))
+
 penalties = [
     L1(alpha=alpha),
     L1_plus_L2(alpha=alpha, l1_ratio=0.5),
-    WeightedL1(alpha=1, weights=np.arange(n_features)),
+    WeightedL1(alpha=1, weights=weights_l1),
+    WeightedL1_plus_L2(alpha=1, weights_l1=weights_l1, weights_l2=weights_l2,
+                       l1_ratio=.8),
     MCPenalty(alpha=alpha, gamma=4),
     SCAD(alpha=alpha, gamma=4),
     IndicatorBox(alpha=alpha),

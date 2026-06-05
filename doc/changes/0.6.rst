@@ -3,5 +3,7 @@
 Version 0.6 (in progress)
 -------------------------
 
+- Added support for wieghted ElasticNet penalty via :class:`skglm.penalties.WeightedL1_plus_L2`.
+
 - :class:`skglm.solvers.LBFGS` now supports fitting an intercept with the `fit_intercept` parameter.
-- The intercept update for the :class:`~skglm.datafits.Logistic` datafit is now a 1-D Newton step on the intercept subproblem (previously a gradient step at the global Lipschitz constant ``L_0 = 1/4``). This eliminates the slow convergence regime under response imbalance for direct-CD solvers (:class:`~skglm.solvers.AndersonCD`, :class:`~skglm.solvers.GroupBCD`) and inherits to :class:`~skglm.datafits.LogisticGroup`  (PR: :gh:`337`) 
+- The intercept update for the :class:`~skglm.datafits.Logistic` datafit is now a 1-D Newton step on the intercept subproblem (previously a gradient step at the global Lipschitz constant ``L_0 = 1/4``). This eliminates the slow convergence regime under response imbalance for direct-CD solvers (:class:`~skglm.solvers.AndersonCD`, :class:`~skglm.solvers.GroupBCD`) and inherits to :class:`~skglm.datafits.LogisticGroup`  (PR: :gh:`337`)

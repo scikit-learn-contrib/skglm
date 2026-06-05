@@ -142,6 +142,93 @@ class L1_plus_L2(BasePenalty):
         return np.max(np.abs(gradient0))
 
 
+class WeightedL1_plus_L2(BasePenalty):
+    """Weighted :math:`ell_1 + ell_2` penalty (aka weighted ElasticNet penalty)."""
+
+    def __init__(self, alpha, l1_ratio, weights_l1, weights_l2, positive=False):
+        self.alpha = alpha
+        self.l1_ratio = l1_ratio
+        self.weights_l1 = weights_l1
+        self.weights_l2 = weights_l2
+        self.positive = positive
+
+    def get_spec(self):
+        spec = (
+            ('alpha', float64),
+            ('l1_ratio', float64),
+            ('weights_l1', float64[:]),
+            ('weights_l2', float64[:]),
+            ('positive', bool_),
+        )
+        return spec
+
+    def params_to_dict(self):
+        return dict(
+            alpha=self.alpha, l1_ratio=self.l1_ratio, weights_l1=self.weights_l1,
+            weights_l2=self.weights_l2, positive=self.positive)
+
+    def value(self, w):
+        """Compute the L1 + L2 penalty value."""
+        value = self.l1_ratio * self.alpha * np.sum(self.weights_l1 * np.abs(w))
+        value += (1 - self.l1_ratio) * self.alpha / 2 * np.sum(self.weights_l2 * w ** 2)
+        return value
+
+    def prox_1d(self, value, stepsize, j):
+        """Compute the proximal operator (scaled soft-thresholding)."""
+        prox = ST(value, self.l1_ratio * self.alpha * stepsize * self.weights_l1[j],
+                  self.positive)
+        prox /= (1 + stepsize * (1 - self.l1_ratio) * self.alpha * self.weights_l2[j])
+        return prox
+
+    def subdiff_distance(self, w, grad, ws):
+        """Compute distance of negative gradient to the subdifferential at w."""
+        subdiff_dist = np.zeros_like(grad)
+        alpha = self.alpha
+        l1_ratio = self.l1_ratio
+
+        for idx, j in enumerate(ws):
+            we1 = self.weights_l1[j]
+            we2 = self.weights_l2[j]
+            if self.positive:
+                if w[j] < 0:
+                    subdiff_dist[idx] = np.inf
+                elif w[j] == 0:
+                    # distance of -grad_j to (-infty, alpha * l1_ratio * we1]
+                    subdiff_dist[idx] = max(0, -grad[idx] - alpha * l1_ratio * we1)
+                else:
+                    # distance of -grad_j to alpha * {l1_ratio * we1 +
+                    #                                 (1 - l1_ratio) * we2 * w[j]}
+                    subdiff_dist[idx] = np.abs(
+                        grad[idx] + alpha * (l1_ratio * we1
+                                             + (1 - l1_ratio) * we2 * w[j]))
+            else:
+                if w[j] == 0:
+                    # distance of -grad_j to alpha * l1_ratio * we1 * [-1, 1]
+                    subdiff_dist[idx] = max(
+                        0, np.abs(grad[idx]) - alpha * l1_ratio * we1)
+                else:
+                    # distance of -grad_j to
+                    # {alpha * (l1 ratio * sign(w[j]) + (1 - l1_ratio) * w[j])}
+                    subdiff_dist[idx] = np.abs(
+                        grad[idx] + alpha * (l1_ratio * we1 * np.sign(w[j])
+                                             + (1 - l1_ratio) * we2 * w[j]))
+        return subdiff_dist
+
+    def is_penalized(self, n_features):
+        """Return a binary mask with the penalized features."""
+        return (self.weights_l1 != 0) * (self.weights_l2 != 0)
+
+    def generalized_support(self, w):
+        """Return a mask with non-zero coefficients."""
+        return w != 0
+
+    def alpha_max(self, gradient0):
+        """Return penalization value for which 0 is solution."""
+        # L2 part plays no role, same as WeightedL1
+        nnz_weights = self.weights_l1 != 0
+        return np.max(np.abs(gradient0[nnz_weights] / self.weights_l1[nnz_weights]))
+
+
 class WeightedL1(BasePenalty):
     """Weighted L1 penalty."""
 

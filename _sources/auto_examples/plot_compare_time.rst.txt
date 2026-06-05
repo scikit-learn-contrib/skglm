@@ -139,7 +139,7 @@ Compare time to solve large scale Lasso problems with scikit-learn.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 3.477 seconds)
+   **Total running time of the script:** (1 minutes 29.085 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_compare_time.py:

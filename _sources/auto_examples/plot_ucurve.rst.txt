@@ -151,7 +151,7 @@ Notice the "sweet spot" at around ``1e-4``, which sits at the boundary between u
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 16.333 seconds)
+   **Total running time of the script:** (0 minutes 19.615 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_ucurve.py:

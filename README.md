@@ -32,10 +32,14 @@ Excited to have a tour on ``skglm`` [documentation](https://contrib.scikit-learn
     year      = {2022},
 }
 
-@article{moufad2023skglm,
-  title={skglm: improving scikit-learn for regularized Generalized Linear Models},
+@article{moufad2025skglm,
+  title={skglm: Improving scikit-learn for Regularized Generalized Linear Models},
   author={Moufad, Badr and Bannier, Pierre-Antoine and Bertrand, Quentin and Klopfenstein, Quentin and Massias, Mathurin},
-  year={2023}
+  journal={Journal of Machine Learning Research},
+  volume={26},
+  number={149},
+  pages={1--6},
+  year={2025}
 }
 ```
 

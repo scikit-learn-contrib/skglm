@@ -61,6 +61,7 @@ Penalties
    MCPenalty
    PositiveConstraint
    WeightedL1
+   WeightedL1_plus_L2
    WeightedGroupL2
    WeightedMCPenalty
    SCAD

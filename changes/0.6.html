@@ -11,10 +11,10 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://contrib.scikit-learn.org/skglm/changes/0.6.html" />
 <meta property="og:site_name" content="skglm" />
-<meta property="og:description" content="skglm.solvers.LBFGS now supports fitting an intercept with the fit_intercept parameter., The intercept update for the Logistic datafit is now a 1-D Newton step on the intercept subproblem (previously a gradient step at the global Lipschitz constan..." />
+<meta property="og:description" content="Added support for wieghted ElasticNet penalty via skglm.penalties.WeightedL1_plus_L2., skglm.solvers.LBFGS now supports fitting an intercept with the fit_intercept parameter., The intercept update for the Logistic datafit is now a 1-D Newton step ..." />
 <meta property="og:image" content="https://contrib.scikit-learn.org/skglm/_static/images/logo.svg" />
 <meta property="og:image:alt" content="skglm" />
-<meta name="description" content="skglm.solvers.LBFGS now supports fitting an intercept with the fit_intercept parameter., The intercept update for the Logistic datafit is now a 1-D Newton step on the intercept subproblem (previously a gradient step at the global Lipschitz constan..." />
+<meta name="description" content="Added support for wieghted ElasticNet penalty via skglm.penalties.WeightedL1_plus_L2., skglm.solvers.LBFGS now supports fitting an intercept with the fit_intercept parameter., The intercept update for the Logistic datafit is now a 1-D Newton step ..." />
 
     <title>Version 0.6 (in progress) &#8212; skglm 0.6dev documentation</title>
   
@@ -488,6 +488,7 @@
   <section id="version-0-6-in-progress">
 <span id="changes-0-6"></span><h1>Version 0.6 (in progress)<a class="headerlink" href="#version-0-6-in-progress" title="Link to this heading">#</a></h1>
 <ul class="simple">
+<li><p>Added support for wieghted ElasticNet penalty via <a class="reference internal" href="../generated/skglm.penalties.WeightedL1_plus_L2.html#skglm.penalties.WeightedL1_plus_L2" title="skglm.penalties.WeightedL1_plus_L2"><code class="xref py py-class docutils literal notranslate"><span class="pre">skglm.penalties.WeightedL1_plus_L2</span></code></a>.</p></li>
 <li><p><a class="reference internal" href="../generated/skglm.solvers.LBFGS.html#skglm.solvers.LBFGS" title="skglm.solvers.LBFGS"><code class="xref py py-class docutils literal notranslate"><span class="pre">skglm.solvers.LBFGS</span></code></a> now supports fitting an intercept with the <cite>fit_intercept</cite> parameter.</p></li>
 <li><p>The intercept update for the <a class="reference internal" href="../generated/skglm.datafits.Logistic.html#skglm.datafits.Logistic" title="skglm.datafits.Logistic"><code class="xref py py-class docutils literal notranslate"><span class="pre">Logistic</span></code></a> datafit is now a 1-D Newton step on the intercept subproblem (previously a gradient step at the global Lipschitz constant <code class="docutils literal notranslate"><span class="pre">L_0</span> <span class="pre">=</span> <span class="pre">1/4</span></code>). This eliminates the slow convergence regime under response imbalance for direct-CD solvers (<a class="reference internal" href="../generated/skglm.solvers.AndersonCD.html#skglm.solvers.AndersonCD" title="skglm.solvers.AndersonCD"><code class="xref py py-class docutils literal notranslate"><span class="pre">AndersonCD</span></code></a>, <a class="reference internal" href="../generated/skglm.solvers.GroupBCD.html#skglm.solvers.GroupBCD" title="skglm.solvers.GroupBCD"><code class="xref py py-class docutils literal notranslate"><span class="pre">GroupBCD</span></code></a>) and inherits to <a class="reference internal" href="../generated/skglm.datafits.LogisticGroup.html#skglm.datafits.LogisticGroup" title="skglm.datafits.LogisticGroup"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogisticGroup</span></code></a>  (PR: <a class="reference external" href="https://github.com/scikit-learn-contrib/skglm/pull/337">#337</a>)</p></li>
 </ul>

@@ -3,6 +3,9 @@
 Version 0.6 (in progress)
 -------------------------
 
+- Fixed zero-norm block proximal operators returning NaNs or raising a division
+  by zero error in multi-task and group penalties.
+
 - Added support for wieghted ElasticNet penalty via :class:`skglm.penalties.WeightedL1_plus_L2`.
 
 - :class:`skglm.solvers.LBFGS` now supports fitting an intercept with the `fit_intercept` parameter.

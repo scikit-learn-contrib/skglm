@@ -61,7 +61,7 @@ def BST(x, u, positive=False):
         result[positive_entries] = BST(x[positive_entries], u, positive=False)
         return result
     norm_x = norm(x)
-    if norm_x < u:
+    if norm_x <= u:
         return np.zeros_like(x)
     else:
         return (1 - u / norm_x) * x
@@ -162,6 +162,8 @@ def prox_05(x, u):
 def prox_block_2_05(x, u):
     """Proximal operator of block L0.5 penalty."""
     norm_x = norm(x, ord=2)
+    if norm_x == 0:
+        return 0. * x
     return (prox_05(norm_x, u) / norm_x) * x
 
 

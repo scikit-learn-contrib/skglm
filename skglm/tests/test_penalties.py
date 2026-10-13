@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+from scipy import sparse
 
 from numpy.linalg import norm
 from numpy.testing import assert_array_less
@@ -16,6 +17,7 @@ from skglm import GeneralizedLinearEstimator, Lasso
 from skglm.solvers import AndersonCD, MultiTaskBCD, FISTA
 from skglm.utils.data import make_correlated_data
 from skglm.utils.prox_funcs import prox_log_sum, _log_sum_prox_val
+from skglm.utils.jit_compilation import compiled_clone
 
 
 n_samples = 20
@@ -79,6 +81,50 @@ def test_subdiff_diff_block(block_penalty):
     ).fit(X, Y)
     # assert the stopping criterion is satisfied
     assert_array_less(est.stop_crit_, est.solver.tol)
+
+
+@pytest.mark.parametrize("penalty_class", [L2_1, L2_05, BlockMCPenalty, BlockSCAD])
+@pytest.mark.parametrize("alpha", [0., 0.1])
+@pytest.mark.parametrize("compiled", [False, True])
+def test_block_prox_zero(penalty_class, alpha, compiled):
+    kwargs = {"gamma": 4.} if penalty_class in (BlockMCPenalty, BlockSCAD) else {}
+    penalty = penalty_class(alpha=alpha, **kwargs)
+    if compiled:
+        penalty = compiled_clone(penalty)
+    value = np.zeros(2)
+
+    result = penalty.prox_1feat(value, 1., 0)
+
+    np.testing.assert_array_equal(result, np.zeros(2))
+    np.testing.assert_array_equal(value, np.zeros(2))
+
+
+@pytest.mark.parametrize("penalty_class", [L2_1, L2_05, BlockMCPenalty, BlockSCAD])
+@pytest.mark.parametrize("sparse_input", [False, True])
+def test_multitask_zero_blocks(penalty_class, sparse_input):
+    # Adding orthogonal features with zero response must not affect the fit.
+    X = np.asfortranarray(np.sqrt(3) * np.eye(3))
+    Y = np.asfortranarray([[3., 4.], [0., 0.], [0., 0.]])
+    if sparse_input:
+        X = sparse.csc_matrix(X)
+    kwargs = {"gamma": 4.} if penalty_class in (BlockMCPenalty, BlockSCAD) else {}
+    alpha = 0. if penalty_class is L2_1 else 0.1
+
+    def fit(X):
+        return GeneralizedLinearEstimator(
+            datafit=QuadraticMultiTask(),
+            penalty=penalty_class(alpha=alpha, **kwargs),
+            solver=MultiTaskBCD(fit_intercept=False, use_acc=False,
+                                ws_strategy="fixpoint", tol=1e-10,
+                                max_iter=5, max_epochs=20),
+        ).fit(X, Y)
+
+    reference = fit(X[:, :1])
+    estimator = fit(X)
+
+    np.testing.assert_allclose(estimator.coef_[:1], reference.coef_)
+    np.testing.assert_array_equal(estimator.coef_[1:], np.zeros((2, 2)))
+    assert estimator.stop_crit_ < estimator.solver.tol
 
 
 def test_slope_lasso():

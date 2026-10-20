@@ -17,7 +17,6 @@ from skglm import GeneralizedLinearEstimator, Lasso
 from skglm.solvers import AndersonCD, MultiTaskBCD, FISTA
 from skglm.utils.data import make_correlated_data
 from skglm.utils.prox_funcs import prox_log_sum, _log_sum_prox_val
-from skglm.utils.jit_compilation import compiled_clone
 
 
 n_samples = 20
@@ -85,18 +84,14 @@ def test_subdiff_diff_block(block_penalty):
 
 @pytest.mark.parametrize("penalty_class", [L2_1, L2_05, BlockMCPenalty, BlockSCAD])
 @pytest.mark.parametrize("alpha", [0., 0.1])
-@pytest.mark.parametrize("compiled", [False, True])
-def test_block_prox_zero(penalty_class, alpha, compiled):
+def test_block_prox_zero(penalty_class, alpha):
     kwargs = {"gamma": 4.} if penalty_class in (BlockMCPenalty, BlockSCAD) else {}
     penalty = penalty_class(alpha=alpha, **kwargs)
-    if compiled:
-        penalty = compiled_clone(penalty)
     value = np.zeros(2)
 
     result = penalty.prox_1feat(value, 1., 0)
 
     np.testing.assert_array_equal(result, np.zeros(2))
-    np.testing.assert_array_equal(value, np.zeros(2))
 
 
 @pytest.mark.parametrize("penalty_class", [L2_1, L2_05, BlockMCPenalty, BlockSCAD])

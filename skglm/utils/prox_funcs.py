@@ -61,6 +61,7 @@ def BST(x, u, positive=False):
         result[positive_entries] = BST(x[positive_entries], u, positive=False)
         return result
     norm_x = norm(x)
+    # Equality includes x=0, u=0: the other branch would divide by zero.
     if norm_x <= u:
         return np.zeros_like(x)
     else:

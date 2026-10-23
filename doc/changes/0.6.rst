@@ -3,6 +3,9 @@
 Version 0.6 (in progress)
 -------------------------
 
+- Fix binary probabilities from :meth:`skglm.SparseLogisticRegression.predict_proba`
+  to apply the logistic link without doubling the decision scores.
+
 - Added support for wieghted ElasticNet penalty via :class:`skglm.penalties.WeightedL1_plus_L2`.
 
 - :class:`skglm.solvers.LBFGS` now supports fitting an intercept with the `fit_intercept` parameter.

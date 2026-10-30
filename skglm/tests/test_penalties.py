@@ -1,6 +1,5 @@
 import pytest
 import numpy as np
-from scipy import sparse
 
 from numpy.linalg import norm
 from numpy.testing import assert_array_less

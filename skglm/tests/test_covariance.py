@@ -13,7 +13,7 @@ def test_glasso_equivalence_sklearn():
     alpha = lmbd_max / 5
 
     model_sk = GraphicalLasso_sklearn(
-        alpha=alpha, tol=1e-10)
+        alpha=alpha, tol=1e-10, max_iter=1_000)
     model_sk.fit(X)
 
     for algo in ("primal", "dual"):

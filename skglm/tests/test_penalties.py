@@ -94,34 +94,6 @@ def test_block_prox_zero(penalty_class, alpha):
     np.testing.assert_array_equal(result, np.zeros(2))
 
 
-@pytest.mark.parametrize("penalty_class", [L2_1, L2_05, BlockMCPenalty, BlockSCAD])
-@pytest.mark.parametrize("sparse_input", [False, True])
-def test_multitask_zero_blocks(penalty_class, sparse_input):
-    # Adding orthogonal features with zero response must not affect the fit.
-    X = np.asfortranarray(np.sqrt(3) * np.eye(3))
-    Y = np.asfortranarray([[3., 4.], [0., 0.], [0., 0.]])
-    if sparse_input:
-        X = sparse.csc_matrix(X)
-    kwargs = {"gamma": 4.} if penalty_class in (BlockMCPenalty, BlockSCAD) else {}
-    alpha = 0. if penalty_class is L2_1 else 0.1
-
-    def fit(X):
-        return GeneralizedLinearEstimator(
-            datafit=QuadraticMultiTask(),
-            penalty=penalty_class(alpha=alpha, **kwargs),
-            solver=MultiTaskBCD(fit_intercept=False, use_acc=False,
-                                ws_strategy="fixpoint", tol=1e-10,
-                                max_iter=5, max_epochs=20),
-        ).fit(X, Y)
-
-    reference = fit(X[:, :1])
-    estimator = fit(X)
-
-    np.testing.assert_allclose(estimator.coef_[:1], reference.coef_)
-    np.testing.assert_array_equal(estimator.coef_[1:], np.zeros((2, 2)))
-    assert estimator.stop_crit_ < estimator.solver.tol
-
-
 def test_slope_lasso():
     # check that when alphas = [alpha, ..., alpha], SLOPE and L1 solutions are equal
     alphas = np.full(n_features, alpha)

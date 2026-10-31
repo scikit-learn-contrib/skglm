@@ -12,7 +12,6 @@ from sklearn.linear_model._base import (
     RegressorMixin, LinearModel,
     LinearClassifierMixin, SparseCoefMixin, BaseEstimator
 )
-from sklearn.utils.extmath import softmax
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils._param_validation import Interval, StrOptions
 from sklearn.multiclass import OneVsRestClassifier, check_classification_targets
@@ -1108,14 +1107,8 @@ class SparseLogisticRegression(LinearClassifierMixin, SparseCoefMixin, BaseEstim
             # OvR normalization, like LibLinear's
             return _predict_proba_lr(X)
         else:
-            decision = self.decision_function(X)
-            if decision.ndim == 1:
-                # Workaround for multi_class="multinomial" and binary outcomes
-                # which requires softmax prediction with only a 1D decision.
-                decision_2d = np.c_[-decision, decision]
-            else:
-                decision_2d = decision
-            return softmax(decision_2d, copy=False)
+            prob = expit(self.decision_function(X))
+            return np.vstack([1 - prob, prob]).T
 
 
 class LinearSVC(LinearClassifierMixin, SparseCoefMixin, BaseEstimator):

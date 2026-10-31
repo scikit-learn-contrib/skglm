@@ -132,6 +132,8 @@ class BlockMCPenalty(BasePenalty):
     def prox_1feat(self, value, stepsize, j):
         """Compute the proximal operator of BlockMCP."""
         norm_rows = norm(value)
+        if norm_rows == 0:
+            return 0. * value
         prox = prox_MCP(norm_rows, stepsize, self.alpha, self.gamma)
         return prox * value / norm_rows
 
@@ -200,6 +202,8 @@ class BlockSCAD(BasePenalty):
     def prox_1feat(self, value, stepsize, j):
         """Compute the proximal operator of BlockSCAD."""
         norm_value = norm(value)
+        if norm_value == 0:
+            return 0. * value
         prox = prox_SCAD(norm_value, stepsize, self.alpha, self.gamma)
         return prox * value / norm_value
 

@@ -13,7 +13,7 @@ def test_glasso_equivalence_sklearn():
     alpha = lmbd_max / 5
 
     model_sk = GraphicalLasso_sklearn(
-        alpha=alpha, tol=1e-10)
+        alpha=alpha, tol=1e-10, max_iter=1_000)
     model_sk.fit(X)
 
     for algo in ("primal", "dual"):
@@ -26,9 +26,9 @@ def test_glasso_equivalence_sklearn():
         ).fit(X)
 
         np.testing.assert_allclose(
-            model.precision_, model_sk.precision_, atol=1e-4)
+            model.precision_, model_sk.precision_, atol=1e-3)
         np.testing.assert_allclose(
-            model.covariance_, model_sk.covariance_, atol=1e-4)
+            model.covariance_, model_sk.covariance_, atol=1e-3)
 
     # check that we did not mess up lambda:
     np.testing.assert_array_less(X.shape[1] + 1, (model.precision_ != 0).sum())

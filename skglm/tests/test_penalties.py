@@ -81,6 +81,18 @@ def test_subdiff_diff_block(block_penalty):
     assert_array_less(est.stop_crit_, est.solver.tol)
 
 
+@pytest.mark.parametrize("penalty_class", [L2_1, L2_05, BlockMCPenalty, BlockSCAD])
+@pytest.mark.parametrize("alpha", [0., 0.1])
+def test_block_prox_zero(penalty_class, alpha):
+    kwargs = {"gamma": 4.} if penalty_class in (BlockMCPenalty, BlockSCAD) else {}
+    penalty = penalty_class(alpha=alpha, **kwargs)
+    value = np.zeros(2)
+
+    result = penalty.prox_1feat(value, 1., 0)
+
+    np.testing.assert_array_equal(result, np.zeros(2))
+
+
 def test_slope_lasso():
     # check that when alphas = [alpha, ..., alpha], SLOPE and L1 solutions are equal
     alphas = np.full(n_features, alpha)

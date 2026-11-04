@@ -101,7 +101,15 @@ def value_weighted_MCP(w, alpha, gamma, weights):
 def prox_MCP(value, stepsize, alpha, gamma, positive=False, weight=1.):
     """Compute the proximal operator of stepsize * weight MCP penalty."""
     wstepsize = weight * stepsize  # weighted stepsize
-    if (np.abs(value) <= alpha * wstepsize) or (positive and value <= 0.):
+    if positive and value <= 0.:
+        return 0.
+    if wstepsize >= gamma:
+        # The objective is concave on |x| < alpha * gamma, so the minimizer is
+        # either 0 or value: hard thresholding at alpha * sqrt(wstepsize * gamma).
+        if np.abs(value) <= alpha * np.sqrt(wstepsize * gamma):
+            return 0.
+        return value
+    if np.abs(value) <= alpha * wstepsize:
         return 0.
     if np.abs(value) > alpha * gamma:
         return value

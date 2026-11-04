@@ -15,7 +15,8 @@ from skglm.penalties import (
 from skglm import GeneralizedLinearEstimator, Lasso
 from skglm.solvers import AndersonCD, MultiTaskBCD, FISTA
 from skglm.utils.data import make_correlated_data
-from skglm.utils.prox_funcs import prox_log_sum, _log_sum_prox_val
+from skglm.utils.prox_funcs import (
+    prox_log_sum, _log_sum_prox_val, prox_MCP, value_MCP)
 
 
 n_samples = 20
@@ -158,6 +159,24 @@ def test_logsum_prox():
         )
 
         np.testing.assert_equal(is_lowest, True)
+
+
+@pytest.mark.parametrize("gamma", [1.1, 3.])
+@pytest.mark.parametrize("stepsize", [0.5, 2., 5.])
+@pytest.mark.parametrize("weight", [1., 2.])
+def test_mcp_prox(gamma, stepsize, weight):
+    # the prox must minimize stepsize * weight * MCP(x) + (x - value)^2 / 2,
+    # including when stepsize * weight >= gamma and the objective is not convex
+    alpha = 0.7
+    grid_x = np.linspace(-8, 8, num=16001)
+    pen_grid = np.array([value_MCP(np.array([x]), alpha, gamma) for x in grid_x])
+    obj_grid = (stepsize * weight * pen_grid[:, None]
+                + (grid_x[:, None] - grid_x[::50][None, :]) ** 2 / 2)
+    for value, obj_min in zip(grid_x[::50], obj_grid.min(axis=0)):
+        prox = prox_MCP(value, stepsize, alpha, gamma, weight=weight)
+        obj_at_prox = (stepsize * weight * value_MCP(np.array([prox]), alpha, gamma)
+                       + (prox - value) ** 2 / 2)
+        np.testing.assert_array_less(obj_at_prox, obj_min + 1e-10)
 
 
 if __name__ == "__main__":

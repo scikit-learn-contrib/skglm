@@ -652,6 +652,131 @@ class Poisson(BaseDatafit):
         return np.sum(self.raw_grad(y, Xw))
 
 
+
+
+class WeightedPoisson(BaseDatafit):
+    def __init__(self, sample_weights):
+        self.sample_weights = np.asarray(sample_weights, dtype=np.float64)
+        self.weight_sum = 1.0
+
+    def get_spec(self):
+        return (('sample_weights', float64[:]), ('weight_sum', float64),)
+
+    def params_to_dict(self):
+        return {'sample_weights': self.sample_weights}
+
+    def initialize(self, X, y):
+        if np.any(y < 0):
+            raise ValueError("y must be non-negative for Poisson.")
+        if self.sample_weights.shape != y.shape:
+            raise ValueError("Shape mismatch.")
+        if np.any(self.sample_weights < 0):
+            raise ValueError("Weights must be non-negative.")
+        if np.any(np.isnan(self.sample_weights)) or np.any(np.isinf(self.sample_weights)):
+            raise ValueError("Weights contain NaN or Inf.")
+
+        w_sum = np.sum(self.sample_weights)
+        if w_sum <= 0:
+            raise ValueError("Sum of weights must be strictly greater than 0.")
+        self.weight_sum = w_sum
+
+    def initialize_sparse(self, X_data, X_indptr, X_indices, y):
+        self.initialize(None, y)
+
+    def raw_grad(self, y, Xw):
+        Xw_clipped = np.clip(Xw, -500, 500)
+        return self.sample_weights * (np.exp(Xw_clipped) - y) / self.weight_sum
+
+    def raw_hessian(self, y, Xw):
+        Xw_clipped = np.clip(Xw, -500, 500)
+        return self.sample_weights * np.exp(Xw_clipped) / self.weight_sum
+
+    def value(self, y, w, Xw):
+        Xw_clipped = np.clip(Xw, -500, 500)
+        return np.sum(self.sample_weights * (np.exp(Xw_clipped) - y * Xw_clipped)) / self.weight_sum
+
+    def gradient(self, X, y, Xw):
+        return X.T @ self.raw_grad(y, Xw)
+
+    def gradient_scalar(self, X, y, w, Xw, j):
+        Xw_clipped = np.clip(Xw, -500, 500)
+        return np.dot(X[:, j], self.sample_weights * (np.exp(Xw_clipped) - y)) / self.weight_sum
+
+    def gradient_scalar_sparse(self, X_data, X_indptr, X_indices, y, Xw, j):
+        grad = 0.0
+        Xw_clipped = np.clip(Xw, -500, 500)
+        residual = np.exp(Xw_clipped) - y
+
+        for i in range(X_indptr[j], X_indptr[j + 1]):
+            idx_i = X_indices[i]
+            grad += X_data[i] * self.sample_weights[idx_i] * residual[idx_i]
+        return grad / self.weight_sum
+
+    def full_grad_sparse(self, X_data, X_indptr, X_indices, y, Xw):
+        n_features = X_indptr.shape[0] - 1
+        grad = np.zeros(n_features, dtype=X_data.dtype)
+        Xw_clipped = np.clip(Xw, -500, 500)
+        residual = self.sample_weights * (np.exp(Xw_clipped) - y)
+
+        for j in range(n_features):
+            tmp = 0.0
+            for i in range(X_indptr[j], X_indptr[j + 1]):
+                idx_i = X_indices[i]
+                tmp += X_data[i] * residual[idx_i]
+            grad[j] = tmp
+        return grad / self.weight_sum
+
+    def get_lipschitz(self, X, y):
+        n_features = X.shape[1]
+        lipschitz = np.zeros(n_features, dtype=X.dtype)
+        for j in range(n_features):
+            val = np.sum(self.sample_weights * (X[:, j] ** 2)) / self.weight_sum
+            lipschitz[j] = val if val > 1e-15 else 1.0
+        return lipschitz
+
+    def get_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+        n_features = len(X_indptr) - 1
+        lipschitz = np.zeros(n_features, dtype=X_data.dtype)
+
+        for j in range(n_features):
+            nrm2 = 0.0
+            for i in range(X_indptr[j], X_indptr[j + 1]):
+                nrm2 += self.sample_weights[X_indices[i]] * (X_data[i] ** 2)
+            val = nrm2 / self.weight_sum
+            lipschitz[j] = val if val > 1e-15 else 1.0
+        return lipschitz
+
+    def get_global_lipschitz(self, X, y):
+        if not np.any(np.isfinite(X)):
+            return 1.0
+        weighted_X = X * np.sqrt(self.sample_weights[:, None])
+        norm_sq = np.linalg.norm(weighted_X, ord=2) ** 2
+        result = norm_sq / self.weight_sum
+        if not np.isfinite(result) or result < 1e-12:
+            return 1.0
+        return result
+
+    def get_global_lipschitz_sparse(self, X_data, X_indptr, X_indices, y):
+        from skglm.utils.sparse_ops import spectral_norm
+        if len(X_data) == 0:
+            return 1.0
+        n_samples = len(y)
+        weighted_data = np.empty_like(X_data)
+        for i in range(len(X_data)):
+            weighted_data[i] = X_data[i] * np.sqrt(self.sample_weights[X_indices[i]])
+        norm_sq = spectral_norm(weighted_data, X_indptr, X_indices, n_samples) ** 2
+        result = norm_sq / self.weight_sum
+        if not np.isfinite(result) or result < 1e-12:
+            return 1.0
+        return result
+
+    def intercept_update_step(self, y, Xw):
+        return np.sum(self.raw_grad(y, Xw)) / self.weight_sum
+
+    @staticmethod
+    def inverse_link(Xw):
+        return np.exp(Xw)
+        
 class Gamma(BaseDatafit):
     r"""Gamma datafit.
 
@@ -936,3 +1061,4 @@ class Cox(BaseDatafit):
         indptr.append(n_indices)
 
         return np.asarray(indptr, dtype=np.int64)
+

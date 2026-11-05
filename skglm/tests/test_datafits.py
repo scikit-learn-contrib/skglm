@@ -6,12 +6,16 @@ from sklearn.linear_model import HuberRegressor
 from numpy.testing import assert_allclose, assert_array_less
 
 from skglm.datafits import (Huber, Logistic, Poisson, Gamma, Cox, WeightedQuadratic,
-                            Quadratic, QuadraticHessian)
+                            Quadratic, QuadraticHessian,WeightedPoisson)
 from skglm.penalties import L1, WeightedL1
 from skglm.solvers import AndersonCD, ProxNewton
 from skglm import GeneralizedLinearEstimator
 from skglm.utils.data import make_correlated_data
 from skglm.utils.data import make_dummy_survival_data
+
+
+
+
 
 
 @pytest.mark.parametrize('fit_intercept', [False, True])
@@ -279,7 +283,54 @@ def test_HessianQuadratic():
     np.testing.assert_allclose(lasso.coef_, qpl1.coef_)
     # check that it's not just because we got alpha too high and thus 0 coef
     np.testing.assert_array_less(0.1, np.max(np.abs(qpl1.coef_)))
+# =============================================================================
+# Tests for WeightedPoisson
+# =============================================================================
 
+
+
+
+
+
+def test_weighted_poisson_duplication():
+    np.random.seed(42)
+    n_samples, n_features = 50, 5
+    X = np.random.randn(n_samples, n_features)
+    w_true = np.random.randn(n_features)
+    y = np.random.poisson(lam=np.exp(X @ w_true))
+
+    weights = np.ones(n_samples)
+    weights[0] = 0
+    weights[1] = 2
+
+    indices = []
+    for i, w in enumerate(weights):
+        if w == 2:
+            indices.extend([i, i])
+        elif w == 1:
+            indices.append(i)
+
+    X_dup = X[indices]
+    y_dup = y[indices]
+
+    alpha_base = 0.05
+
+    model_weighted = GeneralizedLinearEstimator(
+        datafit=WeightedPoisson(weights),
+        penalty=L1(alpha=alpha_base),
+        solver=ProxNewton(tol=1e-8, fit_intercept=False)
+    )
+    model_weighted.fit(X, y)
+
+    # FIX: Use the SAME alpha as the weighted model
+    model_dup = GeneralizedLinearEstimator(
+        datafit=Poisson(),
+        penalty=L1(alpha=alpha_base),  # <-- CHANGED: No scaling
+        solver=ProxNewton(tol=1e-8, fit_intercept=False)
+    )
+    model_dup.fit(X_dup, y_dup)
+
+    np.testing.assert_allclose(model_weighted.coef_, model_dup.coef_, rtol=1e-4, atol=1e-4)
 
 if __name__ == '__main__':
     pass

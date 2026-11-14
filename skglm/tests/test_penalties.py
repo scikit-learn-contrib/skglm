@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 
 from numpy.linalg import norm
-from numpy.testing import assert_array_less
+from numpy.testing import assert_array_less, assert_allclose
 
 from sklearn.linear_model import LinearRegression
 from sklearn.utils import check_random_state
@@ -162,3 +162,49 @@ def test_logsum_prox():
 
 if __name__ == "__main__":
     pass
+
+
+@pytest.mark.parametrize('stepsize', [2., 3., 4.])
+@pytest.mark.parametrize('value, expected', [(0., 0.), (2., 0.), (6., 6.)])
+@pytest.mark.parametrize('sign', [-1., 1.])
+def test_scad_large_stepsize(stepsize, value, expected, sign):
+    penalty = SCAD(alpha=1., gamma=4.)
+    assert_allclose(penalty.prox_1d(sign * value, stepsize, 0), sign * expected)
+
+
+@pytest.mark.parametrize('sign', [-1., 1.])
+def test_scad_flat_minimum(sign):
+    # At step = gamma - 1 and |value| = gamma * alpha, every point
+    # in [alpha, gamma * alpha] minimizes the proximal objective.
+    penalty = SCAD(alpha=1., gamma=4.)
+    result = penalty.prox_1d(sign * 4., 3., 0)
+    assert 1. <= sign * result <= 4.
+    objective = penalty.value(np.array([result])) + (result - sign * 4.) ** 2 / 6.
+    assert_allclose(objective, 2.5)
+
+
+@pytest.mark.parametrize('stepsize', [2., 3., 4.])
+def test_block_scad_large_stepsize(stepsize):
+    penalty = BlockSCAD(alpha=1., gamma=4.)
+    value = np.array([3.6, -4.8])  # norm = 6
+    assert_allclose(penalty.prox_1feat(value, stepsize, 0), value)
+
+
+def test_scad_estimator_boundary_stepsize():
+    # Quadratic curvature is 1/2, so coordinate descent uses step = 2.
+    X = np.array([[0.], [1.]])
+    y = np.array([0., 6.])
+    estimator = GeneralizedLinearEstimator(
+        penalty=SCAD(alpha=1., gamma=3.),
+        solver=AndersonCD(fit_intercept=False),
+    ).fit(X, y)
+    assert_allclose(estimator.coef_, [6.])
+
+
+@pytest.mark.parametrize('stepsize, value, expected', [
+    (4., 4.2, 0.2),  # large step: the soft-thresholded candidate wins
+    (2., 3.5, 2.5),  # positive middle curvature: its stationary point wins
+])
+def test_scad_nonzero_shrinkage(stepsize, value, expected):
+    penalty = SCAD(alpha=1., gamma=4.)
+    assert_allclose(penalty.prox_1d(value, stepsize, 0), expected)

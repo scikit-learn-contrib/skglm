@@ -3,6 +3,9 @@
 Version 0.6 (in progress)
 -------------------------
 
+- Fixed division by zero in SCAD and BlockSCAD proximal operators when the
+  step size equals ``gamma - 1``.
+
 - Fixed zero-norm block proximal operators returning NaNs or raising a division
   by zero error in multi-task and group penalties.
 

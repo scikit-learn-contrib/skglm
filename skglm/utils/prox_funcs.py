@@ -130,11 +130,14 @@ def prox_SCAD(value, stepsize, alpha, gamma):
     # see: http://proceedings.mlr.press/v28/gong13a.pdf
     tau = gamma * alpha
     x_1 = max(0, np.abs(value) - alpha * stepsize)
-    x_2 = ((gamma - 1) * np.abs(value) - stepsize * tau) / (
-        gamma - 1 - stepsize)
-    x_2 = abs(x_2)
     x_3 = abs(value)
-    x_s = [x_1, x_2, x_3]
+    x_s = [x_1, x_3]
+    # The middle piece is linear or concave when stepsize >= gamma - 1;
+    # any global minimum is also attained in an outer piece.
+    if stepsize < gamma - 1:
+        x_2 = ((gamma - 1) * np.abs(value) - stepsize * tau) / (
+            gamma - 1 - stepsize)
+        x_s.append(abs(x_2))
 
     objs = np.array([(0.5 / stepsize) * (x - np.abs(value)) ** 2 + value_SCAD(
         np.array([x]), alpha, gamma) for x in x_s])
